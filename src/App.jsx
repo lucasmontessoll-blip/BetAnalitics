@@ -3,6 +3,7 @@ import axios from 'axios';
 import confetti from 'canvas-confetti';
 import { AreaChart, Area, LineChart, Line, XAxis, YAxis, Tooltip, ResponsiveContainer } from 'recharts';
 import { motion, AnimatePresence } from 'framer-motion';
+import dadosFut from './dados.json'; // IMPORTAÇÃO DO JSON ⚽
 import './App.css';
 
 // ============================================================================
@@ -18,7 +19,6 @@ const getPrediction = (p, name) => (Array.isArray(p) ? p.find(i => i.type?.devel
 const processarTrends = (d, h, a) => { if (!Array.isArray(d)) return null; const m = {}; d.forEach(t => { const n = t.type?.name, id = t.participant_id, v = t.data?.value ?? t.value, min = t.minute || 90; if (!m[n]) m[n] = { type: n, home: 0, away: 0, _mH: -1, _mA: -1 }; if (id === h && min > m[n]._mH) { m[n].home = v; m[n]._mH = min; } else if (id === a && min > m[n]._mA) { m[n].away = v; m[n]._mA = min; } }); return Object.values(m).map(({ type, home, away }) => ({ type, home, away })); };
 const formatarClassificacaoAPI = (d) => { if (!Array.isArray(d)) return []; return d.map(i => { const getStat = (c) => i.details?.find(x => x.type?.code === c)?.value || 0; return { position: i.position, team_name: i.participant?.name || "Equipe", logo: i.participant?.image_path || "", points: i.points || 0, matches_played: getStat('overall-matches-played'), won: getStat('overall-won'), draw: getStat('overall-draw'), lost: getStat('overall-lost'), goal_diff: getStat('goal-difference') }; }).sort((a, b) => a.position - b.position); };
 
-// Proteção extra: Garantir que tvstations é realmente um Array
 const extrairTVs = (f) => { if (!Array.isArray(f.tvstations)) return []; const tvs = []; const ids = new Set(); f.tvstations.forEach(t => { if (t?.tvstation && !ids.has(t.tvstation.id) && t.tvstation.name) { ids.add(t.tvstation.id); tvs.push({ id: t.tvstation.id, name: t.tvstation.name, image: t.tvstation.image_path, url: t.tvstation.url }); } }); return tvs; };
 
 const listaEsportesFino = [{name:'Futebol',icon:'⚽'},{name:'Basquetebol',icon:'🏀'},{name:'Tênis',icon:'🎾'},{name:'Futebol Am.',icon:'🏈'},{name:'Beisebol',icon:'⚾'},{name:'Voleibol',icon:'🏐'},{name:'Hóquei Gelo',icon:'🏒'},{name:'Rugby',icon:'🏉'},{name:'E-Sports',icon:'🎮'},{name:'UFC / MMA',icon:'🥊'},{name:'Fórmula 1',icon:'🏎️'},{name:'Golfe',icon:'⛳'},{name:'Futsal',icon:'🥅'},{name:'Andebol',icon:'🤾'},{name:'Tênis de Mesa',icon:'🏓'},{name:'Snooker',icon:'🎱'},{name:'Dardos',icon:'🎯'},{name:'Críquete',icon:'🏏'},{name:'Ciclismo',icon:'🚴'},{name:'Badminton',icon:'🏸'},{name:'Polo Aquático',icon:'🤽'},{name:'MotoGP',icon:'🏍️'}];
@@ -30,29 +30,23 @@ const MOCK_STANDINGS_BRASILEIRAO = [{position:1,team_name:"Flamengo",logo:"https
 const MOCK_AGENDA = [{id:1,league:"La Liga",date:"2026-04-25 19:00",home:"Atlético Madrid",away:"Athletic Club",hImg:"https://cdn.sportmonks.com/images/soccer/teams/12/7980.png",aImg:"https://cdn.sportmonks.com/images/soccer/teams/10/13258.png"},{id:2,league:"Champions League",date:"2026-04-29 19:00",home:"Atlético Madrid",away:"Arsenal",hImg:"https://cdn.sportmonks.com/images/soccer/teams/12/7980.png",aImg:"https://cdn.sportmonks.com/images/soccer/teams/19/19.png"}];
 
 const RAW_GAMES = [
-  {
-    id:101,league_name:"La Liga",starting_at:"2026-04-20 16:00:00",status:"Live",home_team:"Real Madrid",home_id:101,away_team:"FC Barcelona",away_id:102,
-    home_image:"https://cdn.sportmonks.com/images/soccer/teams/12/3468.png",away_image:"https://cdn.sportmonks.com/images/soccer/teams/19/83.png",
-    scores:[{score:{goals:2}},{score:{goals:1}}],scoreHome:2,scoreAway:1,result_info:"65:30",venue:"Santiago Bernabéu",odds_format:{home:"1.85",draw:"3.50",away:"4.20"},
-    predictions:[{type:{developer_name:'FULLTIME_RESULT_PROBABILITY'},predictions:{home:55.5,draw:20.5,away:24.0}}],sidelined:[],events:[],lineups:[],xgfixture:[],
-    tvstations:[{id:37,name:"ESPN",image:"https://cdn.sportmonks.com/images/core/tvstations/5/37.png",url:"https://www.espn.com"}, {id:41,name:"DAZN",image:"https://cdn.sportmonks.com/images/core/tvstations/9/41.png",url:"https://www.dazn.com"}]
-  },
+  { id:101,league_name:"La Liga",starting_at:"2026-04-20 16:00:00",status:"Live",home_team:"Real Madrid",home_id:101,away_team:"FC Barcelona",away_id:102, home_image:"https://cdn.sportmonks.com/images/soccer/teams/12/3468.png",away_image:"https://cdn.sportmonks.com/images/soccer/teams/19/83.png", scores:[{score:{goals:2}},{score:{goals:1}}],scoreHome:2,scoreAway:1,result_info:"65:30",venue:"Santiago Bernabéu",odds_format:{home:"1.85",draw:"3.50",away:"4.20"}, predictions:[{type:{developer_name:'FULLTIME_RESULT_PROBABILITY'},predictions:{home:55.5,draw:20.5,away:24.0}}],sidelined:[],events:[],lineups:[],xgfixture:[], tvstations:[{id:37,name:"ESPN",image:"https://cdn.sportmonks.com/images/core/tvstations/5/37.png",url:"https://www.espn.com"}, {id:41,name:"DAZN",image:"https://cdn.sportmonks.com/images/core/tvstations/9/41.png",url:"https://www.dazn.com"}] },
   {"id":19439572,"league":{"name":"La Liga"},"starting_at":"2026-04-22 17:00:00","state":{"developer_name":"FT"},"venue":{"name":"Estadio Manuel Martínez Valero"},"participants":[{"id":1099,"name":"Elche","image_path":"https://cdn.sportmonks.com/images/soccer/teams/11/1099.png","meta":{"location":"home"}},{"id":7980,"name":"Atlético Madrid","image_path":"https://cdn.sportmonks.com/images/soccer/teams/12/7980.png","meta":{"location":"away"}}],"scores":[{"participant_id":1099,"score":{"goals":3},"description":"CURRENT"},{"participant_id":7980,"score":{"goals":2},"description":"CURRENT"}],"events":[{"id":156677864,"minute":18,"player_name":"David Affengruber","type":{"code":"goal"},"participant_id":1099},{"id":156678195,"minute":36,"player_name":"Nico González","type":{"code":"goal"},"participant_id":7980}]},
   {"id":19439520,"league":{"name":"La Liga"},"starting_at":"2026-03-14 15:15:00","state":{"developer_name":"FT"},"venue":{"name":"Riyadh Air Metropolitano"},"participants":[{"id":7980,"name":"Atlético Madrid","image_path":"https://cdn.sportmonks.com/images/soccer/teams/12/7980.png","meta":{"location":"home"}},{"id":106,"name":"Getafe","image_path":"https://cdn.sportmonks.com/images/soccer/teams/10/106.png","meta":{"location":"away"}}],"scores":[{"participant_id":7980,"score":{"goals":1},"description":"CURRENT"},{"participant_id":106,"score":{"goals":0},"description":"CURRENT"}],"events":[{"id":156222615,"minute":8,"player_name":"Nahuel Molina","type":{"code":"goal"},"participant_id":7980},{"id":156226285,"minute":55,"player_name":"Abdel Abqar","type":{"code":"redcard"},"participant_id":106},{"id":156226939,"minute":66,"player_name":"Julián Alvarez","related_player_name":"Alexander Sørloth","type":{"code":"substitution"},"participant_id":7980}],"sidelined":[{"participant_id":106,"sideline":{"player":{"display_name":"Borja Mayoral"},"type":{"name":"Knee Injury"}}}],"statistics":[{"type":{"name":"Ball Possession %"},"participant_id":7980,"data":{"value":66}},{"type":{"name":"Ball Possession %"},"participant_id":106,"data":{"value":34}},{"type":{"name":"Shots Total"},"participant_id":7980,"data":{"value":16}},{"type":{"name":"Shots Total"},"participant_id":106,"data":{"value":7}},{"type":{"name":"Corners"},"participant_id":7980,"data":{"value":10}},{"type":{"name":"Corners"},"participant_id":106,"data":{"value":3}}]}
 ];
 
 const MOCK_GAMES = RAW_GAMES.map(f => {
-    if (f.home_team) return f; 
-    const h = f.participants?.find(p => p.meta?.location === 'home') || f.participants?.[0]; 
-    const a = f.participants?.find(p => p.meta?.location === 'away') || f.participants?.[1]; 
-    return { 
-        id: f.id, league_name: f.league?.name, starting_at: f.starting_at, status: f.state?.developer_name === 'FT' ? 'Finished' : 'Live', 
-        home_team: h?.name, home_id: h?.id, away_team: a?.name, away_id: a?.id, home_image: h?.image_path, away_image: a?.image_path, 
-        scoreHome: f.scores?.find(s => s.participant_id === h?.id)?.score?.goals ?? 0, scoreAway: f.scores?.find(s => s.participant_id === a?.id)?.score?.goals ?? 0, 
-        result_info: f.result_info, predictions: [], odds_format: { home: "-", draw: "-", away: "-" }, venue: f.venue?.name || "Estádio", 
-        events: f.events || [], sidelined: f.sidelined?.map(s => ({ name: s.sideline?.player?.display_name || "Jogador", reason: s.sideline?.type?.name || "Desfalque", teamId: s.participant_id })) || [], lineups: [], xgfixture: [], stats: processarTrends(f.trends || f.statistics, h?.id, a?.id), 
-        tvstations: f.tvstations ? extrairTVs(f) : [{id:111,name:"SuperSport",image:"https://cdn.sportmonks.com/images/core/tvstations/15/111.png",url:""}] 
-    }; 
+  if (f.home_team) return f; 
+  const h = f.participants?.find(p => p.meta?.location === 'home') || f.participants?.[0]; 
+  const a = f.participants?.find(p => p.meta?.location === 'away') || f.participants?.[1]; 
+  return { 
+      id: f.id, league_name: f.league?.name, starting_at: f.starting_at, status: f.state?.developer_name === 'FT' ? 'Finished' : 'Live', 
+      home_team: h?.name, home_id: h?.id, away_team: a?.name, away_id: a?.id, home_image: h?.image_path, away_image: a?.image_path, 
+      scoreHome: f.scores?.find(s => s.participant_id === h?.id)?.score?.goals ?? 0, scoreAway: f.scores?.find(s => s.participant_id === a?.id)?.score?.goals ?? 0, 
+      result_info: f.result_info, predictions: [], odds_format: { home: "-", draw: "-", away: "-" }, venue: f.venue?.name || "Estádio", 
+      events: f.events || [], sidelined: f.sidelined?.map(s => ({ name: s.sideline?.player?.display_name || "Jogador", reason: s.sideline?.type?.name || "Desfalque", teamId: s.participant_id })) || [], lineups: [], xgfixture: [], stats: processarTrends(f.trends || f.statistics, h?.id, a?.id), 
+      tvstations: f.tvstations ? extrairTVs(f) : [{id:111,name:"SuperSport",image:"https://cdn.sportmonks.com/images/core/tvstations/15/111.png",url:""}] 
+  }; 
 });
 
 // ============================================================================
@@ -96,8 +90,9 @@ export default function App() {
   const [bancaData, setBancaData] = useState([]);
   const [estatisticas, setEstatisticas] = useState(null);
   const [favoritos, setFavoritos] = useState([]);
+  
   const [jogadorAberto, setJogadorAberto] = useState(null);
-  const [loadingJogador, setLoadingJogador] = useState(false);
+  const [abaGeralAtiva, setAbaGeralAtiva] = useState('dashboard'); // NOVO ESTADO: Dashboard vs Jogador
 
   const diasSemana = getWeekDays(dataFiltro);
 
@@ -107,7 +102,6 @@ export default function App() {
         if (usr === 'admin@nexus.com') {
             setUserData({ email: 'admin@nexus.com', is_vip: true });
         } else {
-            // PROTEÇÃO CONTRA TELA BRANCA (Se o cache estiver quebrado, limpa e evita crash)
             let bL = {};
             try { bL = JSON.parse(localStorage.getItem('bet_users') || '{}'); } 
             catch(e) { localStorage.removeItem('bet_users'); }
@@ -185,13 +179,23 @@ export default function App() {
     } catch (e) { setApiError("⚠️ Servidor Offline. Carregando Mocks."); cacheAPI.current[cK] = MOCK_GAMES; aplicarFiltros(MOCK_GAMES, menuAtivo); } finally { setLoading(false); }
   };
 
-  const carregarPerfilJogador = async (pId, pName) => {
+  // NOVA FUNÇÃO: Lê diretamente os dados do seu arquivo
+  const carregarPerfilJogador = async () => {
     if (!userData?.is_vip) { alert("🔒 VIP PRO requerido."); setShowProfileMenu(true); return; }
-    setLoadingJogador(true);
-    setTimeout(() => {
-        setJogadorAberto({ perfil: { id: pId, nome: pName, foto: "https://cdn.sportmonks.com/images/soccer/players/24/31000.png", altura: 186, peso: 81 }, historicoRecente: [{ data: "14/04/2026", confronto: "ATL x BAR", campeonato: "Champions", minutosJogados: 90, metricas: { xG: "0.11", xGoT: "0.17" } }, { data: "11/04/2026", confronto: "BAR x ESP", campeonato: "La Liga", minutosJogados: 90, metricas: { xG: "0.00", xGoT: "0.00" } }], performanceTemporada: { expected: 11.54, actual: 12, difference: 0.45 } });
-        setLoadingJogador(false);
-    }, 600);
+    
+    // Puxando os dados reais do seu dados.json
+    const { display_name, image_path, height, weight, date_of_birth, latest } = dadosFut;
+    const statsRecentes = latest[0]?.xglineup || [];
+
+    setJogadorAberto({
+        nome: display_name,
+        foto: image_path,
+        nascimento: date_of_birth,
+        altura: height,
+        peso: weight,
+        statsRecentes: statsRecentes,
+        ultimoJogo: latest[0]?.fixture?.name || "Partida"
+    });
   };
 
   const carregarBanca = async () => { try { const res = await axios.get(`${API_URL}/banca/${userData.email}`); setBancaData(res.data?.historico || []); } catch (e) { setBancaData([]); } };
@@ -234,18 +238,19 @@ export default function App() {
   return (
     <div className="app-layout" style={{ display: 'flex', flexDirection: 'column', height: '100vh', overflow: 'hidden', background: theme.bgApp, color: theme.textMain, fontFamily: 'Inter, sans-serif' }}>
       
-      {/* NAVBAR TOPO */}
+      {/* NAVBAR TOPO - COM BOTÕES PARA CONTROLAR A TELA DO JOGADOR */}
       <div style={{ background: 'rgba(21,24,32,0.8)', borderBottom: `1px solid ${theme.border}`, display: 'flex', alignItems: 'center', justifyContent: 'space-between', height: '70px', padding: '0 25px', zIndex: 100 }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: '30px' }}>
               <div style={{ fontSize: '22px', fontWeight: '900', color: theme.textMain }}>BETANALYTICS<span style={{color: theme.cyan}}>.PRO</span></div>
               {!isMobile && (
-                  <div style={{ display: 'flex', alignItems: 'center', background: 'rgba(9, 10, 15, 0.5)', borderRadius: '8px', padding: '10px 15px', border: `1px solid ${theme.border}`, width: '300px' }}>
-                      <span style={{ color: theme.textMuted, marginRight: '10px' }}>🔍</span>
-                      <input placeholder="Buscar times, ligas..." value={busca} onChange={e => setBusca(e.target.value)} style={{ background: 'transparent', border: 'none', color: '#fff', outline: 'none', width: '100%', fontSize: '13px' }} />
+                  <div style={{ display: 'flex', gap: '15px' }}>
+                      <button onClick={() => setAbaGeralAtiva('dashboard')} style={{ background: 'none', border: 'none', color: abaGeralAtiva === 'dashboard' ? theme.cyan : theme.textMuted, fontWeight: 'bold', cursor: 'pointer', padding: '10px' }}>Dashboard</button>
+                      <button onClick={() => { setAbaGeralAtiva('jogador'); carregarPerfilJogador(); }} style={{ background: 'none', border: 'none', color: abaGeralAtiva === 'jogador' ? theme.cyan : theme.textMuted, fontWeight: 'bold', cursor: 'pointer', padding: '10px' }}>🏃 Estatística do Jogador</button>
                   </div>
               )}
           </div>
           <div style={{ display: 'flex', alignItems: 'center', gap: '20px' }}>
+            {/* ... Pesquisa Navbar original (opcional: podes manter a input antiga aqui, reduzi p/ espaço) */}
             <div style={{ position: 'relative' }}>
                 <button onClick={() => setShowProfileMenu(!showProfileMenu)} style={{ background: 'rgba(0,212,182,0.1)', color: theme.cyan, border: `1px solid ${theme.cyan}`, borderRadius: '50%', width: '40px', height: '40px', cursor: 'pointer' }}>👤</button>
                 <AnimatePresence>
@@ -265,147 +270,183 @@ export default function App() {
       </div>
 
       <div style={{display: 'flex', flex: 1, overflow: 'hidden', paddingBottom: isMobile ? '65px' : '0'}}>
-          {/* MENU LATERAL COM ABAS INTEGRADAS */}
-          {!isMobile && (
-            <aside style={{ backgroundColor: theme.bgPanel, borderColor: theme.border, width: '280px', borderRight: '1px solid', display: 'flex', flexDirection: 'column' }}>
-                <div style={{ display: 'flex', padding: '10px', gap: '5px', background: '#0f111a', margin: '15px', borderRadius: '8px', border: `1px solid ${theme.border}` }}>
-                    <button onClick={() => setMenuAtivo('Ligas')} style={{ flex: 1, padding: '10px', fontSize: '12px', fontWeight: 'bold', borderRadius: '6px', background: menuAtivo !== 'Esportes' ? '#1c202d' : 'transparent', color: menuAtivo !== 'Esportes' ? '#fff' : theme.textMuted, cursor: 'pointer', border: 'none' }}>LIGAS</button>
-                    <button onClick={() => setMenuAtivo('Esportes')} style={{ flex: 1, padding: '10px', fontSize: '12px', fontWeight: 'bold', borderRadius: '6px', background: menuAtivo === 'Esportes' ? '#1c202d' : 'transparent', color: menuAtivo === 'Esportes' ? '#fff' : theme.textMuted, cursor: 'pointer', border: 'none' }}>ESPORTES</button>
-                </div>
-                <nav className="flex-1 overflow-y-auto px-4 custom-scrollbar" style={{ padding: '0 15px 15px', overflowY: 'auto' }}>
-                    {menuAtivo === 'Esportes' ? (
-                        <AbaEsportes esporteAtivo={esporteAtivo} setEsporteAtivo={setEsporteAtivo} />
-                    ) : (
-                        <div style={{ display: 'flex', flexDirection: 'column', gap: '5px' }}>
-                            {listaLigas.map(l => (
-                                <button key={l.name} onClick={() => {setMenuAtivo(l.name.toLowerCase()); setViewMode('jogos');}} style={{ display: 'flex', alignItems: 'center', gap: '12px', padding: '12px', background: menuAtivo === l.name.toLowerCase() ? theme.bgHover : 'transparent', color: menuAtivo === l.name.toLowerCase() ? theme.cyan : theme.textMuted, border: 'none', borderRadius: '10px', cursor: 'pointer', fontWeight: '600' }}>
-                                    <span style={{ fontSize: '18px' }}>{l.icon}</span> <span>{l.name}</span>
-                                </button>
-                            ))}
-                        </div>
-                    )}
-                </nav>
-            </aside>
-          )}
-
-          {/* PAINEL CENTRAL */}
-          <div className="custom-scrollbar" style={{ flex: 1, overflowY: 'auto', background: theme.bgApp, padding: isMobile ? '10px' : '20px 25px' }}>
-            <div style={{ display: 'flex', gap: '10px', marginBottom: '20px', flexWrap: 'wrap' }}>
-                <button onClick={() => setViewMode('jogos')} style={{ padding: '12px 25px', borderRadius: '8px', background: viewMode === 'jogos' ? 'rgba(0,212,182,0.1)' : theme.bgPanel, color: viewMode === 'jogos' ? theme.cyan : theme.textMuted, border: `1px solid ${viewMode === 'jogos' ? theme.cyan : theme.border}`, fontWeight: 'bold', cursor: 'pointer' }}>⚽ Partidas</button>
-                <button onClick={() => setViewMode('classificacao')} style={{ padding: '12px 25px', borderRadius: '8px', background: viewMode === 'classificacao' ? 'rgba(0,212,182,0.1)' : theme.bgPanel, color: viewMode === 'classificacao' ? theme.cyan : theme.textMuted, border: `1px solid ${viewMode === 'classificacao' ? theme.cyan : theme.border}`, fontWeight: 'bold', cursor: 'pointer' }}>🏆 Classificação</button>
-                <button onClick={() => setViewMode('agenda')} style={{ padding: '12px 25px', borderRadius: '8px', background: viewMode === 'agenda' ? 'rgba(0,212,182,0.1)' : theme.bgPanel, color: viewMode === 'agenda' ? theme.cyan : theme.textMuted, border: `1px solid ${viewMode === 'agenda' ? theme.cyan : theme.border}`, fontWeight: 'bold', cursor: 'pointer' }}>🗓️ Recentes e Futuras</button>
-            </div>
-
-            {viewMode === 'jogos' && (
-                <>
-                    <div style={{ background: theme.bgPanel, borderRadius: '12px', border: `1px solid ${theme.border}`, marginBottom: '25px', padding: '15px 20px' }}>
-                        <div style={{ display: 'flex', alignItems: 'center', gap: '15px', marginBottom: '15px', borderBottom: `1px solid ${theme.border}`, paddingBottom: '15px' }}>
-                            <div style={{background: 'rgba(0, 212, 182, 0.1)', color: theme.cyan, padding: '10px', borderRadius: '8px', fontSize: '18px'}}>📅</div>
-                            <div style={{ display: 'flex', gap: '5px', overflowX: 'auto', scrollbarWidth: 'none', flex: 1 }}>
-                                {diasSemana.map((d, index) => {
-                                    const isActive = dataFiltro === d.iso;
-                                    return (
-                                        <div key={index} onClick={() => setDataFiltro(d.iso)} style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', minWidth: '65px', padding: '8px', cursor: 'pointer', borderBottom: isActive ? `3px solid ${theme.cyan}` : '3px solid transparent', color: isActive ? theme.cyan : theme.textMuted }}>
-                                            <span style={{ fontSize: '11px', fontWeight: 'bold' }}>{isActive ? 'HOJE' : d.nome}</span>
-                                            <span style={{ fontSize: '13px', fontWeight: isActive ? 'bold' : '500' }}>{d.dia}</span>
-                                        </div>
-                                    )
-                                })}
-                            </div>
-                        </div>
-                        <div style={{ display: 'flex', gap: '12px', overflowX: 'auto', scrollbarWidth: 'none' }}>
-                            {['Todos', 'Ao Vivo', 'Próximo', 'Terminado'].map(f => (
-                                <div key={f} onClick={() => setFilterCentro(f)} style={{ padding: '8px 18px', borderRadius: '20px', fontSize: '12px', fontWeight: 'bold', cursor: 'pointer', background: filterCentro === f ? theme.cyan : 'transparent', color: filterCentro === f ? '#000' : theme.textMuted, border: `1px solid ${filterCentro === f ? theme.cyan : theme.border}` }}>{f}</div>
-                            ))}
+          
+          {/* SE A ABA FOR JOGADOR, EXIBIMOS APENAS ELA */}
+          {abaGeralAtiva === 'jogador' && jogadorAberto ? (
+            <div style={{ flex: 1, overflowY: 'auto', background: theme.bgApp, padding: '40px', display: 'flex', justifyContent: 'center' }}>
+                <div style={{ maxWidth: '900px', width: '100%', background: theme.bgPanel, borderRadius: '20px', border: `1px solid ${theme.border}`, padding: '40px' }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '30px', marginBottom: '40px' }}>
+                        <img src={jogadorAberto.foto} alt="Jogador" style={{ width: '150px', borderRadius: '50%', border: `3px solid ${theme.cyan}` }} />
+                        <div>
+                            <h1 style={{ margin: '0 0 10px 0', fontSize: '36px', color: theme.cyan }}>{jogadorAberto.nome}</h1>
+                            <p style={{ margin: 0, color: theme.textMuted }}>Nascimento: {jogadorAberto.nascimento}</p>
+                            <p style={{ margin: '5px 0', fontWeight: 'bold' }}>Altura: {jogadorAberto.altura}cm | Peso: {jogadorAberto.peso}kg</p>
                         </div>
                     </div>
-
-                    {apiError && <div style={{background: 'rgba(239, 68, 68, 0.1)', border: `1px solid ${theme.red}`, padding: '15px', color: theme.red, marginBottom: '20px', borderRadius: '8px', fontSize: '13px', fontWeight: 'bold', textAlign: 'center'}}>{apiError}</div>}
-
-                    {Object.keys(jogosAgrupados).length === 0 ? <div style={{padding: '60px 20px', color: theme.textMuted, textAlign: 'center', background: theme.bgPanel, borderRadius: '12px', border: `1px dashed ${theme.border}`}}>Nenhuma partida encontrada.</div> :
-                    Object.entries(jogosAgrupados).map(([leagueName, games]) => (
-                        <div key={leagueName} style={{marginBottom: '25px', background: theme.bgPanel, borderRadius: '12px', border: `1px solid ${theme.border}`, overflow: 'hidden'}}>
-                            <div style={{padding: '15px 20px', background: theme.bgHover, fontWeight: 'bold'}}>{leagueName}</div>
-                            {games.map(j => {
-                                const isSelected = jogoSelecionado?.id === j.id; const isFav = favoritos.includes(j.id); const hasOdds = j.odds_format && j.odds_format.home !== '-'; 
-                                return (
-                                    <div key={j.id} onClick={() => abrirPainelDoJogo(j)} style={{display: 'flex', alignItems: 'center', padding: '15px 20px', borderTop: `1px solid ${theme.border}`, cursor: 'pointer', background: isSelected ? 'rgba(0, 212, 182, 0.1)' : 'transparent', borderLeft: isSelected ? `3px solid ${theme.cyan}` : '3px solid transparent'}}>
-                                        <div style={{ width: '45px', fontSize: '12px', color: j.status === 'Finished' ? theme.textMuted : (j.status === 'Not Started' ? theme.textMain : theme.red), fontWeight: 'bold' }}>{j.status === 'Finished' ? 'FT' : (j.status === 'Not Started' ? j.starting_at?.split(' ')[1]?.substring(0,5) : 'LIVE')}</div>
-                                        <div style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                                            <div style={{ flex: 1, textAlign: 'right', fontSize: '14px', fontWeight: '600' }}>{j.home_team}</div>
-                                            <img src={j.home_image} style={{width:'22px', height: '22px', margin: '0 12px'}} alt="home" />
-                                            <div style={{ background: j.status === 'Finished' ? theme.bgHover : theme.bgApp, color: j.status === 'Finished' ? theme.textMain : theme.cyan, padding: '6px 12px', borderRadius: '6px', fontSize: '15px', fontWeight: 'bold', minWidth: '60px', textAlign: 'center', border: `1px solid ${theme.border}` }}>{j.status === 'Not Started' ? '-' : `${j.scoreHome ?? 0} - ${j.scoreAway ?? 0}`}</div>
-                                            <img src={j.away_image} style={{width:'22px', height: '22px', margin: '0 12px'}} alt="away" />
-                                            <div style={{ flex: 1, textAlign: 'left', fontSize: '14px', fontWeight: '600' }}>{j.away_team}</div>
-                                        </div>
-                                        {!isMobile && (
-                                            <div style={{display: 'flex', gap: '8px', marginLeft: '25px'}}>
-                                                {['home', 'draw', 'away'].map(oddType => (
-                                                    <div key={oddType} style={{ background: hasOdds ? theme.bgApp : theme.bgHover, border: `1px solid ${theme.border}`, padding: '8px', borderRadius: '6px', width: '50px', textAlign: 'center', color: hasOdds ? theme.textMain : theme.textMuted, fontSize: '12px', fontWeight: 'bold' }}>{hasOdds ? j.odds_format[oddType] : '🔒'}</div>
-                                                ))}
-                                            </div>
-                                        )}
-                                        <div onClick={(e) => toggleFavorito(e, j.id)} style={{fontSize: '20px', color: isFav ? theme.yellow : theme.border, marginLeft: '20px'}}>{isFav ? '★' : '☆'}</div>
-                                    </div>
-                                )
-                            })}
-                        </div>
-                    ))}
-                </>
-            )}
-
-            {viewMode === 'agenda' && (
-                <motion.div initial={{opacity: 0}} animate={{opacity: 1}} style={{background: theme.bgPanel, borderRadius: '12px', border: `1px solid ${theme.border}`, padding: '20px'}}>
-                    <h2 style={{color: theme.cyan, marginBottom: '20px', display: 'flex', alignItems: 'center', gap: '10px'}}><span style={{fontSize: '24px'}}>🗓️</span> Próximos Jogos: Atlético de Madrid</h2>
-                    <div style={{display: 'flex', flexDirection: 'column', gap: '10px'}}>
-                        {MOCK_AGENDA.map((jogo) => (
-                            <div key={jogo.id} style={{display: 'flex', alignItems: 'center', padding: '15px 20px', background: theme.bgApp, border: `1px solid ${theme.border}`, borderRadius: '8px', gap: '15px'}}>
-                                <div style={{width: '120px'}}>
-                                    <div style={{fontSize: '12px', color: theme.cyan, fontWeight: 'bold'}}>{jogo.date.split(' ')[0].split('-').reverse().join('/')}</div>
-                                    <div style={{fontSize: '10px', color: theme.textMuted}}>{jogo.league}</div>
-                                </div>
-                                <div style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                                    <div style={{ flex: 1, textAlign: 'right', fontSize: '14px', fontWeight: '600', color: theme.textMain }}>{jogo.home}</div>
-                                    <img src={jogo.hImg} style={{width:'24px', height: '24px', margin: '0 12px'}} alt="home" />
-                                    <div style={{ fontSize: '14px', fontWeight: 'bold', color: theme.textMuted, margin: '0 10px' }}>vs</div>
-                                    <img src={jogo.aImg} style={{width:'24px', height: '24px', margin: '0 12px'}} alt="away" />
-                                    <div style={{ flex: 1, textAlign: 'left', fontSize: '14px', fontWeight: '600', color: theme.textMain }}>{jogo.away}</div>
-                                </div>
+                    
+                    <h3 style={{ borderBottom: `1px solid ${theme.border}`, paddingBottom: '10px', marginBottom: '20px', color: theme.textMain }}>Métricas do Último Jogo ({jogadorAberto.ultimoJogo})</h3>
+                    <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '20px' }}>
+                        {jogadorAberto.statsRecentes.map(s => (
+                            <div key={s.id} style={{ background: '#1c202d', padding: '20px', borderRadius: '12px', textAlign: 'center', border: `1px solid ${theme.border}` }}>
+                                <div style={{ fontSize: '12px', color: theme.textMuted, marginBottom: '10px' }}>{s.type.name}</div>
+                                <div style={{ fontSize: '24px', color: theme.cyan, fontWeight: 'bold' }}>{s.data.value}</div>
                             </div>
                         ))}
                     </div>
+                </div>
+            </div>
+          ) : (
+          
+          /* CASO CONTRÁRIO, EXIBIMOS O TEU DASHBOARD NORMAL QUE JÁ TINHAS FEITO */
+          <>
+            {/* MENU LATERAL COM ABAS INTEGRADAS */}
+            {!isMobile && (
+              <aside style={{ backgroundColor: theme.bgPanel, borderColor: theme.border, width: '280px', borderRight: '1px solid', display: 'flex', flexDirection: 'column' }}>
+                  <div style={{ display: 'flex', padding: '10px', gap: '5px', background: '#0f111a', margin: '15px', borderRadius: '8px', border: `1px solid ${theme.border}` }}>
+                      <button onClick={() => setMenuAtivo('Ligas')} style={{ flex: 1, padding: '10px', fontSize: '12px', fontWeight: 'bold', borderRadius: '6px', background: menuAtivo !== 'Esportes' ? '#1c202d' : 'transparent', color: menuAtivo !== 'Esportes' ? '#fff' : theme.textMuted, cursor: 'pointer', border: 'none' }}>LIGAS</button>
+                      <button onClick={() => setMenuAtivo('Esportes')} style={{ flex: 1, padding: '10px', fontSize: '12px', fontWeight: 'bold', borderRadius: '6px', background: menuAtivo === 'Esportes' ? '#1c202d' : 'transparent', color: menuAtivo === 'Esportes' ? '#fff' : theme.textMuted, cursor: 'pointer', border: 'none' }}>ESPORTES</button>
+                  </div>
+                  <nav className="flex-1 overflow-y-auto px-4 custom-scrollbar" style={{ padding: '0 15px 15px', overflowY: 'auto' }}>
+                      {menuAtivo === 'Esportes' ? (
+                          <AbaEsportes esporteAtivo={esporteAtivo} setEsporteAtivo={setEsporteAtivo} />
+                      ) : (
+                          <div style={{ display: 'flex', flexDirection: 'column', gap: '5px' }}>
+                              {listaLigas.map(l => (
+                                  <button key={l.name} onClick={() => {setMenuAtivo(l.name.toLowerCase()); setViewMode('jogos');}} style={{ display: 'flex', alignItems: 'center', gap: '12px', padding: '12px', background: menuAtivo === l.name.toLowerCase() ? theme.bgHover : 'transparent', color: menuAtivo === l.name.toLowerCase() ? theme.cyan : theme.textMuted, border: 'none', borderRadius: '10px', cursor: 'pointer', fontWeight: '600' }}>
+                                      <span style={{ fontSize: '18px' }}>{l.icon}</span> <span>{l.name}</span>
+                                  </button>
+                              ))}
+                          </div>
+                      )}
+                  </nav>
+              </aside>
+            )}
+
+            {/* PAINEL CENTRAL (JOGOS) */}
+            <div className="custom-scrollbar" style={{ flex: 1, overflowY: 'auto', background: theme.bgApp, padding: isMobile ? '10px' : '20px 25px' }}>
+              <div style={{ display: 'flex', gap: '10px', marginBottom: '20px', flexWrap: 'wrap' }}>
+                  <button onClick={() => setViewMode('jogos')} style={{ padding: '12px 25px', borderRadius: '8px', background: viewMode === 'jogos' ? 'rgba(0,212,182,0.1)' : theme.bgPanel, color: viewMode === 'jogos' ? theme.cyan : theme.textMuted, border: `1px solid ${viewMode === 'jogos' ? theme.cyan : theme.border}`, fontWeight: 'bold', cursor: 'pointer' }}>⚽ Partidas</button>
+                  <button onClick={() => setViewMode('classificacao')} style={{ padding: '12px 25px', borderRadius: '8px', background: viewMode === 'classificacao' ? 'rgba(0,212,182,0.1)' : theme.bgPanel, color: viewMode === 'classificacao' ? theme.cyan : theme.textMuted, border: `1px solid ${viewMode === 'classificacao' ? theme.cyan : theme.border}`, fontWeight: 'bold', cursor: 'pointer' }}>🏆 Classificação</button>
+                  <button onClick={() => setViewMode('agenda')} style={{ padding: '12px 25px', borderRadius: '8px', background: viewMode === 'agenda' ? 'rgba(0,212,182,0.1)' : theme.bgPanel, color: viewMode === 'agenda' ? theme.cyan : theme.textMuted, border: `1px solid ${viewMode === 'agenda' ? theme.cyan : theme.border}`, fontWeight: 'bold', cursor: 'pointer' }}>🗓️ Recentes e Futuras</button>
+              </div>
+
+              {viewMode === 'jogos' && (
+                  <>
+                      <div style={{ background: theme.bgPanel, borderRadius: '12px', border: `1px solid ${theme.border}`, marginBottom: '25px', padding: '15px 20px' }}>
+                          <div style={{ display: 'flex', alignItems: 'center', gap: '15px', marginBottom: '15px', borderBottom: `1px solid ${theme.border}`, paddingBottom: '15px' }}>
+                              <div style={{background: 'rgba(0, 212, 182, 0.1)', color: theme.cyan, padding: '10px', borderRadius: '8px', fontSize: '18px'}}>📅</div>
+                              <div style={{ display: 'flex', gap: '5px', overflowX: 'auto', scrollbarWidth: 'none', flex: 1 }}>
+                                  {diasSemana.map((d, index) => {
+                                      const isActive = dataFiltro === d.iso;
+                                      return (
+                                          <div key={index} onClick={() => setDataFiltro(d.iso)} style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', minWidth: '65px', padding: '8px', cursor: 'pointer', borderBottom: isActive ? `3px solid ${theme.cyan}` : '3px solid transparent', color: isActive ? theme.cyan : theme.textMuted }}>
+                                              <span style={{ fontSize: '11px', fontWeight: 'bold' }}>{isActive ? 'HOJE' : d.nome}</span>
+                                              <span style={{ fontSize: '13px', fontWeight: isActive ? 'bold' : '500' }}>{d.dia}</span>
+                                          </div>
+                                      )
+                                  })}
+                              </div>
+                          </div>
+                          <div style={{ display: 'flex', gap: '12px', overflowX: 'auto', scrollbarWidth: 'none' }}>
+                              {['Todos', 'Ao Vivo', 'Próximo', 'Terminado'].map(f => (
+                                  <div key={f} onClick={() => setFilterCentro(f)} style={{ padding: '8px 18px', borderRadius: '20px', fontSize: '12px', fontWeight: 'bold', cursor: 'pointer', background: filterCentro === f ? theme.cyan : 'transparent', color: filterCentro === f ? '#000' : theme.textMuted, border: `1px solid ${filterCentro === f ? theme.cyan : theme.border}` }}>{f}</div>
+                              ))}
+                          </div>
+                      </div>
+
+                      {apiError && <div style={{background: 'rgba(239, 68, 68, 0.1)', border: `1px solid ${theme.red}`, padding: '15px', color: theme.red, marginBottom: '20px', borderRadius: '8px', fontSize: '13px', fontWeight: 'bold', textAlign: 'center'}}>{apiError}</div>}
+
+                      {Object.keys(jogosAgrupados).length === 0 ? <div style={{padding: '60px 20px', color: theme.textMuted, textAlign: 'center', background: theme.bgPanel, borderRadius: '12px', border: `1px dashed ${theme.border}`}}>Nenhuma partida encontrada.</div> :
+                      Object.entries(jogosAgrupados).map(([leagueName, games]) => (
+                          <div key={leagueName} style={{marginBottom: '25px', background: theme.bgPanel, borderRadius: '12px', border: `1px solid ${theme.border}`, overflow: 'hidden'}}>
+                              <div style={{padding: '15px 20px', background: theme.bgHover, fontWeight: 'bold'}}>{leagueName}</div>
+                              {games.map(j => {
+                                  const isSelected = jogoSelecionado?.id === j.id; const isFav = favoritos.includes(j.id); const hasOdds = j.odds_format && j.odds_format.home !== '-'; 
+                                  return (
+                                      <div key={j.id} onClick={() => abrirPainelDoJogo(j)} style={{display: 'flex', alignItems: 'center', padding: '15px 20px', borderTop: `1px solid ${theme.border}`, cursor: 'pointer', background: isSelected ? 'rgba(0, 212, 182, 0.1)' : 'transparent', borderLeft: isSelected ? `3px solid ${theme.cyan}` : '3px solid transparent'}}>
+                                          <div style={{ width: '45px', fontSize: '12px', color: j.status === 'Finished' ? theme.textMuted : (j.status === 'Not Started' ? theme.textMain : theme.red), fontWeight: 'bold' }}>{j.status === 'Finished' ? 'FT' : (j.status === 'Not Started' ? j.starting_at?.split(' ')[1]?.substring(0,5) : 'LIVE')}</div>
+                                          <div style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                                              <div style={{ flex: 1, textAlign: 'right', fontSize: '14px', fontWeight: '600' }}>{j.home_team}</div>
+                                              <img src={j.home_image} style={{width:'22px', height: '22px', margin: '0 12px'}} alt="home" />
+                                              <div style={{ background: j.status === 'Finished' ? theme.bgHover : theme.bgApp, color: j.status === 'Finished' ? theme.textMain : theme.cyan, padding: '6px 12px', borderRadius: '6px', fontSize: '15px', fontWeight: 'bold', minWidth: '60px', textAlign: 'center', border: `1px solid ${theme.border}` }}>{j.status === 'Not Started' ? '-' : `${j.scoreHome ?? 0} - ${j.scoreAway ?? 0}`}</div>
+                                              <img src={j.away_image} style={{width:'22px', height: '22px', margin: '0 12px'}} alt="away" />
+                                              <div style={{ flex: 1, textAlign: 'left', fontSize: '14px', fontWeight: '600' }}>{j.away_team}</div>
+                                          </div>
+                                          {!isMobile && (
+                                              <div style={{display: 'flex', gap: '8px', marginLeft: '25px'}}>
+                                                  {['home', 'draw', 'away'].map(oddType => (
+                                                      <div key={oddType} style={{ background: hasOdds ? theme.bgApp : theme.bgHover, border: `1px solid ${theme.border}`, padding: '8px', borderRadius: '6px', width: '50px', textAlign: 'center', color: hasOdds ? theme.textMain : theme.textMuted, fontSize: '12px', fontWeight: 'bold' }}>{hasOdds ? j.odds_format[oddType] : '🔒'}</div>
+                                                  ))}
+                                              </div>
+                                          )}
+                                          <div onClick={(e) => toggleFavorito(e, j.id)} style={{fontSize: '20px', color: isFav ? theme.yellow : theme.border, marginLeft: '20px'}}>{isFav ? '★' : '☆'}</div>
+                                      </div>
+                                  )
+                              })}
+                          </div>
+                      ))}
+                  </>
+              )}
+
+              {viewMode === 'agenda' && (
+                  <motion.div initial={{opacity: 0}} animate={{opacity: 1}} style={{background: theme.bgPanel, borderRadius: '12px', border: `1px solid ${theme.border}`, padding: '20px'}}>
+                      <h2 style={{color: theme.cyan, marginBottom: '20px', display: 'flex', alignItems: 'center', gap: '10px'}}><span style={{fontSize: '24px'}}>🗓️</span> Próximos Jogos: Atlético de Madrid</h2>
+                      <div style={{display: 'flex', flexDirection: 'column', gap: '10px'}}>
+                          {MOCK_AGENDA.map((jogo) => (
+                              <div key={jogo.id} style={{display: 'flex', alignItems: 'center', padding: '15px 20px', background: theme.bgApp, border: `1px solid ${theme.border}`, borderRadius: '8px', gap: '15px'}}>
+                                  <div style={{width: '120px'}}>
+                                      <div style={{fontSize: '12px', color: theme.cyan, fontWeight: 'bold'}}>{jogo.date.split(' ')[0].split('-').reverse().join('/')}</div>
+                                      <div style={{fontSize: '10px', color: theme.textMuted}}>{jogo.league}</div>
+                                  </div>
+                                  <div style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                                      <div style={{ flex: 1, textAlign: 'right', fontSize: '14px', fontWeight: '600', color: theme.textMain }}>{jogo.home}</div>
+                                      <img src={jogo.hImg} style={{width:'24px', height: '24px', margin: '0 12px'}} alt="home" />
+                                      <div style={{ fontSize: '14px', fontWeight: 'bold', color: theme.textMuted, margin: '0 10px' }}>vs</div>
+                                      <img src={jogo.aImg} style={{width:'24px', height: '24px', margin: '0 12px'}} alt="away" />
+                                      <div style={{ flex: 1, textAlign: 'left', fontSize: '14px', fontWeight: '600', color: theme.textMain }}>{jogo.away}</div>
+                                  </div>
+                              </div>
+                          ))}
+                      </div>
+                  </motion.div>
+              )}
+
+              {viewMode === 'classificacao' && (
+                  <ClassificacaoPanel menuAtivo={menuAtivo} loadingClassificacao={loadingClassificacao} classificacao={classificacao} />
+              )}
+            </div>
+
+            {/* PAINEL DIREITO (DETALHES DA PARTIDA) */}
+            {!isMobile && <RightPanelComponent jogoSelecionado={jogoSelecionado} rightTab={rightTab} setRightTab={setRightTab} analiseIA={analiseIA} estatisticas={estatisticas} carregarPerfilJogador={carregarPerfilJogador} setAbaGeralAtiva={setAbaGeralAtiva} isMobile={false}/>}
+
+            {isMobile && jogoSelecionado && (
+                <motion.div initial={{ opacity: 0, y: 100 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: 100 }} style={{position: 'fixed', top: 0, left: 0, right: 0, bottom: '65px', background: theme.bgApp, zIndex: 100, display: 'flex', flexDirection: 'column'}}>
+                    <button onClick={() => setJogoSelecionado(null)} style={{background: theme.bgPanel, color: theme.cyan, padding: '15px', border: 'none', borderBottom: `1px solid ${theme.border}`, fontWeight: 'bold'}}><span style={{fontSize:'18px', marginRight: '8px'}}>⬇</span> Fechar Detalhes</button>
+                    <RightPanelComponent jogoSelecionado={jogoSelecionado} rightTab={rightTab} setRightTab={setRightTab} analiseIA={analiseIA} estatisticas={estatisticas} carregarPerfilJogador={carregarPerfilJogador} setAbaGeralAtiva={setAbaGeralAtiva} isMobile={true}/>
                 </motion.div>
             )}
 
-            {viewMode === 'classificacao' && (
-                <ClassificacaoPanel menuAtivo={menuAtivo} loadingClassificacao={loadingClassificacao} classificacao={classificacao} />
-            )}
-          </div>
-
-          {!isMobile && <RightPanelComponent jogoSelecionado={jogoSelecionado} rightTab={rightTab} setRightTab={setRightTab} analiseIA={analiseIA} estatisticas={estatisticas} carregarPerfilJogador={carregarPerfilJogador} loadingJogador={loadingJogador} isMobile={false}/>}
-
-          {isMobile && jogoSelecionado && (
-              <motion.div initial={{ opacity: 0, y: 100 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: 100 }} style={{position: 'fixed', top: 0, left: 0, right: 0, bottom: '65px', background: theme.bgApp, zIndex: 100, display: 'flex', flexDirection: 'column'}}>
-                  <button onClick={() => setJogoSelecionado(null)} style={{background: theme.bgPanel, color: theme.cyan, padding: '15px', border: 'none', borderBottom: `1px solid ${theme.border}`, fontWeight: 'bold'}}><span style={{fontSize:'18px', marginRight: '8px'}}>⬇</span> Fechar Detalhes</button>
-                  <RightPanelComponent jogoSelecionado={jogoSelecionado} rightTab={rightTab} setRightTab={setRightTab} analiseIA={analiseIA} estatisticas={estatisticas} carregarPerfilJogador={carregarPerfilJogador} loadingJogador={loadingJogador} isMobile={true}/>
-              </motion.div>
-          )}
-
-          <ModalsExtras menuAtivo={menuAtivo} isMobile={isMobile} dadosPix={dadosPix} form={form} setForm={setForm} setDadosPix={setDadosPix} setMenuAtivo={setMenuAtivo} bancaData={bancaData} />
-          
+            <ModalsExtras menuAtivo={menuAtivo} isMobile={isMobile} dadosPix={dadosPix} form={form} setForm={setForm} setDadosPix={setDadosPix} setMenuAtivo={setMenuAtivo} bancaData={bancaData} />
+          </>
+          )} 
       </div>
 
-      {isMobile && (
+      {isMobile && abaGeralAtiva !== 'jogador' && (
         <div style={{ position: 'fixed', bottom: 0, left: 0, right: 0, height: '65px', background: theme.bgPanel, borderTop: `1px solid ${theme.border}`, display: 'flex', alignItems: 'center', justifyContent: 'space-around', zIndex: 999, paddingBottom: '5px' }}>
             <button onClick={() => setMenuAtivo('todos')} style={{background: 'none', border: 'none', display: 'flex', flexDirection: 'column', alignItems: 'center', color: menuAtivo === 'todos' ? theme.cyan : theme.textMuted}}><span style={{fontSize: '22px'}}>🏠</span><span style={{fontSize:'10px', fontWeight:'bold'}}>Home</span></button>
             <button onClick={() => setFilterCentro('Ao Vivo')} style={{background: 'none', border: 'none', display: 'flex', flexDirection: 'column', alignItems: 'center', color: filterCentro === 'Ao Vivo' ? theme.red : theme.textMuted}}><span style={{fontSize: '22px'}}>🔴</span><span style={{fontSize:'10px', fontWeight:'bold'}}>Live</span></button>
-            <button onClick={() => setMenuAtivo('gestão de banca')} style={{background: 'none', border: 'none', display: 'flex', flexDirection: 'column', alignItems: 'center', color: menuAtivo === 'gestão de banca' ? theme.cyan : theme.textMuted}}><span style={{fontSize: '22px'}}>📊</span><span style={{fontSize:'10px', fontWeight:'bold'}}>Banca</span></button>
+            <button onClick={() => { setAbaGeralAtiva('jogador'); carregarPerfilJogador(); }} style={{background: 'none', border: 'none', display: 'flex', flexDirection: 'column', alignItems: 'center', color: theme.cyan}}><span style={{fontSize: '22px'}}>🏃</span><span style={{fontSize:'10px', fontWeight:'bold'}}>Jogador</span></button>
             <button onClick={() => setMenuAtivo('assinar pro')} style={{background: 'none', border: 'none', display: 'flex', flexDirection: 'column', alignItems: 'center', color: menuAtivo === 'assinar pro' ? theme.cyan : theme.textMuted}}><span style={{fontSize: '22px'}}>👑</span><span style={{fontSize:'10px', fontWeight:'bold'}}>PRO</span></button>
         </div>
       )}
 
+      {isMobile && abaGeralAtiva === 'jogador' && (
+        <div style={{ position: 'fixed', bottom: 0, left: 0, right: 0, height: '65px', background: theme.bgPanel, borderTop: `1px solid ${theme.border}`, display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 999, paddingBottom: '5px' }}>
+            <button onClick={() => setAbaGeralAtiva('dashboard')} style={{background: theme.cyan, color: '#000', border: 'none', padding: '10px 30px', borderRadius: '20px', fontWeight: 'bold'}}>⬅ Voltar ao Dashboard</button>
+        </div>
+      )}
+
       <AuthModal showLoginMenu={showLoginMenu} setShowLoginMenu={setShowLoginMenu} authMode={authMode} setAuthMode={setAuthMode} loginEmail={loginEmail} setLoginEmail={setLoginEmail} loginSenha={loginSenha} setLoginSenha={setLoginSenha} handleLogin={handleLogin} handleCadastro={handleCadastro} />
-      <PlayerProfileModal jogadorAberto={jogadorAberto} setJogadorAberto={setJogadorAberto} />
     </div>
   );
 }
@@ -432,7 +473,7 @@ function AbaEsportes({ esporteAtivo, setEsporteAtivo }) {
   );
 }
 
-function RightPanelComponent({ jogoSelecionado, rightTab, setRightTab, analiseIA, estatisticas, carregarPerfilJogador, loadingJogador, isMobile }) {
+function RightPanelComponent({ jogoSelecionado, rightTab, setRightTab, analiseIA, estatisticas, carregarPerfilJogador, setAbaGeralAtiva, isMobile }) {
     if (!jogoSelecionado) return ( <div style={{ width: isMobile ? '100%' : '420px', background: theme.bgApp, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', color: theme.textMuted, padding: '30px' }}><div style={{fontSize: '30px', marginBottom: '20px'}}>🏟️</div><h3>Análise de Partida</h3><p style={{fontSize: '13px', textAlign: 'center'}}>Selecione uma partida para ver os detalhes.</p></div> );
     return (
         <div className="right-panel custom-scrollbar" style={{ width: isMobile ? '100%' : '420px', background: theme.bgApp, overflowY: 'auto', padding: isMobile ? '0' : '15px' }}>
@@ -483,7 +524,6 @@ function RightPanelComponent({ jogoSelecionado, rightTab, setRightTab, analiseIA
                                     <div style={{fontSize: '12px', color: theme.textMain, marginBottom: '15px', fontWeight: 'bold'}}>⏱️ Timeline do Jogo</div>
                                     <div style={{display: 'flex', flexDirection: 'column', gap: '10px', position: 'relative'}}>
                                         <div style={{position: 'absolute', top: 0, bottom: 0, left: '19px', width: '2px', background: theme.border}}></div>
-                                        {/* PROTEÇÃO EXTRA: Copiando o array antes de ordenar para evitar crash de mutação */}
                                         {[...(jogoSelecionado.events || [])].sort((a,b)=>(a.minute || 0) - (b.minute || 0)).map(ev => {
                                             const isHome = ev.participant_id === jogoSelecionado.home_id; const isSub = ev.type?.code?.includes('sub'); const icon = ev.type?.code?.includes('goal') ? '⚽' : ev.type?.code?.includes('yellow') ? '🟨' : ev.type?.code?.includes('red') ? '🟥' : isSub ? '🔄' : '📌';
                                             return ( <div key={ev.id} style={{display: 'flex', alignItems: 'center', gap: '15px', zIndex: 1}}><div style={{width: '40px', height: '24px', background: theme.bgApp, border: `1px solid ${theme.border}`, borderRadius: '12px', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '10px', color: theme.cyan}}>{ev.minute}'</div><div style={{background: theme.bgHover, padding: '10px 15px', borderRadius: '8px', flex: 1, display: 'flex', justifyContent: 'space-between', alignItems: 'center', border: `1px solid ${theme.border}`}}><div style={{fontSize: '12px', color: theme.textMain}}><span style={{marginRight: '8px', fontSize: '14px'}}>{icon}</span>{isSub && ev.related_player_name ? <span>{ev.related_player_name} <span style={{color: theme.green}}>⬆</span> <span style={{color: theme.textMuted, fontSize: '10px'}}>{ev.player_name} ⬇</span></span> : (ev.player_name || 'Jogador')}</div><div style={{fontSize: '10px', color: isHome ? theme.cyan : theme.yellow}}>{isHome ? 'CASA' : 'FORA'}</div></div></div> )
@@ -520,7 +560,7 @@ function RightPanelComponent({ jogoSelecionado, rightTab, setRightTab, analiseIA
                                     <div style={{flex: 1}}>
                                         <div style={{fontSize: '12px', color: theme.cyan, marginBottom: '15px', fontWeight: 'bold', textAlign: 'center'}}>{jogoSelecionado.home_team}</div>
                                         {jogoSelecionado.lineups.filter(l => l.team_id === jogoSelecionado.home_id && l.formation_position).sort((a,b)=>a.formation_position - b.formation_position).map(p => (
-                                            <div key={p.id} onClick={() => carregarPerfilJogador(p.player_id, p.player_name)} style={{cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '10px', background: theme.bgApp, padding: '10px', borderRadius: '8px', marginBottom: '8px', border: `1px solid ${theme.border}`}}>
+                                            <div key={p.id} onClick={() => { setAbaGeralAtiva('jogador'); carregarPerfilJogador(); }} style={{cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '10px', background: theme.bgApp, padding: '10px', borderRadius: '8px', marginBottom: '8px', border: `1px solid ${theme.border}`}}>
                                                 <span style={{width: '24px', height: '24px', borderRadius: '4px', background: theme.bgHover, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '11px', color: theme.textMain}}>{p.jersey_number || '-'}</span>
                                                 <span style={{fontSize: '12px', color: theme.textMuted, overflow: 'hidden'}}>{p.player_name}</span>
                                             </div>
@@ -529,7 +569,7 @@ function RightPanelComponent({ jogoSelecionado, rightTab, setRightTab, analiseIA
                                     <div style={{flex: 1}}>
                                         <div style={{fontSize: '12px', color: theme.yellow, marginBottom: '15px', fontWeight: 'bold', textAlign: 'center'}}>{jogoSelecionado.away_team}</div>
                                         {jogoSelecionado.lineups.filter(l => l.team_id === jogoSelecionado.away_id && l.formation_position).sort((a,b)=>a.formation_position - b.formation_position).map(p => (
-                                            <div key={p.id} onClick={() => carregarPerfilJogador(p.player_id, p.player_name)} style={{cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '10px', background: theme.bgApp, padding: '10px', borderRadius: '8px', marginBottom: '8px', border: `1px solid ${theme.border}`, flexDirection: 'row-reverse'}}>
+                                            <div key={p.id} onClick={() => { setAbaGeralAtiva('jogador'); carregarPerfilJogador(); }} style={{cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '10px', background: theme.bgApp, padding: '10px', borderRadius: '8px', marginBottom: '8px', border: `1px solid ${theme.border}`, flexDirection: 'row-reverse'}}>
                                                 <span style={{width: '24px', height: '24px', borderRadius: '4px', background: theme.bgHover, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '11px', color: theme.textMain}}>{p.jersey_number || '-'}</span>
                                                 <span style={{fontSize: '12px', color: theme.textMuted, overflow: 'hidden'}}>{p.player_name}</span>
                                             </div>
@@ -585,9 +625,4 @@ function ModalsExtras({ menuAtivo, isMobile, dadosPix, form, setForm, setDadosPi
 function AuthModal({ showLoginMenu, setShowLoginMenu, authMode, setAuthMode, loginEmail, setLoginEmail, loginSenha, setLoginSenha, handleLogin, handleCadastro }) {
     if (!showLoginMenu) return null;
     return ( <div style={{ position: 'fixed', inset: 0, background: 'rgba(9,10,15,0.9)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 1000 }}><motion.div initial={{ scale: 0.9 }} animate={{ scale: 1 }} style={{ background: theme.bgPanel, padding: '40px 30px', width: '90%', maxWidth: '400px' }}><h2 style={{ color: '#fff', textAlign: 'center' }}>Acesso</h2><div style={{display: 'flex', gap: '10px', marginBottom: '20px'}}><button onClick={() => setAuthMode('login')} style={{flex: 1, padding: '12px', background: authMode === 'login' ? theme.cyan : 'transparent'}}>Entrar</button><button onClick={() => setAuthMode('register')} style={{flex: 1, padding: '12px', background: authMode === 'register' ? theme.cyan : 'transparent'}}>Cadastrar</button></div><input placeholder="E-mail" value={loginEmail} onChange={e => setLoginEmail(e.target.value)} style={{width: '100%', padding: '15px', marginBottom: '15px'}} /><input placeholder="Senha" type="password" value={loginSenha} onChange={e => setLoginSenha(e.target.value)} style={{width: '100%', padding: '15px', marginBottom: '25px'}} /><button style={{width: '100%', padding: '15px', background: theme.cyan, fontWeight: 'bold'}} onClick={authMode === 'login' ? handleLogin : handleCadastro}>CONTINUAR</button><button style={{width: '100%', padding: '10px', background: 'transparent', color: theme.textMuted}} onClick={() => setShowLoginMenu(false)}>Cancelar</button></motion.div></div> );
-}
-
-function PlayerProfileModal({ jogadorAberto, setJogadorAberto }) {
-    if (!jogadorAberto) return null;
-    return ( <div style={{ position: 'fixed', inset: 0, background: 'rgba(9,10,15,0.9)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 1100 }}><motion.div initial={{ scale: 0.9 }} animate={{ scale: 1 }} style={{ background: theme.bgPanel, padding: '25px', width: '90%', maxWidth: '500px' }}><div style={{display: 'flex', justifyContent: 'space-between'}}><h2 style={{color: theme.textMain}}>{jogadorAberto.perfil.nome}</h2><button onClick={() => setJogadorAberto(null)} style={{color: theme.red}}>✖</button></div><div style={{background: 'rgba(0,212,182,0.05)', padding: '15px', marginTop: '20px'}}><div style={{color: theme.cyan}}>📊 {jogadorAberto.performanceTemporada?.actual} Gols</div></div></motion.div></div> );
 }
