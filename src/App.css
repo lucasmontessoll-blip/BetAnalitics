@@ -1,0 +1,134 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800;900&display=swap');
+
+body { margin: 0; padding: 0; background: #0a0a0a; color: #fff; font-family: 'Inter', -apple-system, sans-serif; }
+.app-layout { display: flex; height: 100vh; overflow: hidden; }
+
+/* Menus e Layouts */
+.sidebar { width: 260px; background: #121212; border-right: 1px solid #222; display: flex; flex-direction: column; overflow-y: auto; }
+.main-area { flex: 1; display: flex; flex-direction: column; background: #0a0a0a; overflow-y: auto; padding: 20px; }
+.top-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 30px; }
+.logo h1 { margin: 0; font-size: 24px; color: #fff; }
+
+/* Botões */
+.btn-outline { background: transparent; border: 1px solid #444; color: #fff; padding: 8px 16px; border-radius: 6px; cursor: pointer; font-weight: bold; transition: 0.2s; display: inline-flex; align-items: center; justify-content: center; }
+.btn-outline:hover { border-color: #ffdf1b; color: #ffdf1b; }
+.btn-outline:disabled { opacity: 0.5; cursor: not-allowed; }
+.btn-primary { background: #ffdf1b; color: #000; border: none; padding: 10px 20px; border-radius: 6px; cursor: pointer; font-weight: bold; transition: 0.2s; }
+.btn-primary:hover { background: #e6c817; }
+.btn-primary:disabled { opacity: 0.5; cursor: not-allowed; }
+
+/* Cards de Partidas */
+.games-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(320px, 1fr)); gap: 20px; }
+.match-card { background: #1a1a1a; border: 1px solid #333; border-radius: 10px; overflow: hidden; display: flex; flex-direction: column; transition: transform 0.2s; }
+.match-card:hover { border-color: #ffdf1b; transform: translateY(-3px); box-shadow: 0 5px 15px rgba(255, 223, 27, 0.1); }
+.card-header-bet { display: flex; justify-content: space-between; align-items: center; padding: 12px 15px; background: #121212; border-bottom: 1px solid #333; font-size: 12px; font-weight: bold; color: #aaa; }
+.card-body-bet { padding: 20px 15px; flex: 1; }
+.scoreboard-bet { display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; }
+.team-col-bet { display: flex; align-items: center; gap: 10px; flex: 1; overflow: hidden;}
+.team-logo { width: 32px; height: 32px; object-fit: contain; background: #fff; border-radius: 50%; padding: 2px;}
+.team-name { font-size: 14px; font-weight: bold; color: #fff; text-align: center; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.score-center { font-size: 24px; font-weight: 900; padding: 0 15px; color: #fff; }
+
+/* Odds e Menus Internos */
+.odds-row-bet { display: flex; gap: 10px; margin-top: 15px; }
+.odd-box { flex: 1; background: #121212; border: 1px solid #333; padding: 10px; border-radius: 6px; text-align: center; }
+.odd-label { display: block; font-size: 11px; color: #888; margin-bottom: 5px; }
+.odd-value { display: block; font-size: 14px; font-weight: bold; color: #fff; }
+.card-footer-bet { background: #ffdf1b; color: #000; border: none; padding: 15px; font-weight: bold; cursor: pointer; text-align: center; transition: 0.2s; width: 100%; font-size: 14px; }
+.card-footer-bet:hover { background: #e6c817; }
+.footer-locked { background: #121212; color: #666; cursor: not-allowed; border-top: 1px solid #333; }
+
+.h2h-bar-wrapper { display: flex; height: 6px; border-radius: 3px; overflow: hidden; margin-top: 4px; }
+.h2h-home { background: #00a877; transition: width 0.5s ease; }
+.h2h-away { background: #ff4747; transition: width 0.5s ease; }
+
+.expander-container { background: #121212; border: 1px solid #333; padding: 15px; border-radius: 8px; display: flex; flex-direction: column; gap: 10px; }
+.expander-container input { background: #1a1a1a; border: 1px solid #444; color: #fff; padding: 10px; border-radius: 6px; outline: none; }
+.menu-item { padding: 12px 15px; margin-bottom: 4px; border-radius: 6px; color: #aaa; cursor: pointer; font-weight: 600; transition: 0.2s; }
+.menu-item:hover { background: #1a1a1a; color: #fff; }
+.menu-item.active { background: #ffdf1b; color: #000; }
+.tab-btn { flex: 1; padding: 12px; background: #121212; border: 1px solid #333; color: #aaa; font-weight: bold; cursor: pointer; border-radius: 6px; transition: 0.2s; }
+.tab-btn.active { background: #ffdf1b; color: #000; border-color: #ffdf1b; }
+
+/* Tabela e Utilitários */
+.table-container { background: #1a1a1a; border-radius: 10px; overflow: hidden; border: 1px solid #333; margin-top: 15px;}
+.table-container table { width: 100%; border-collapse: collapse; }
+.table-container th { background: #121212; padding: 15px; text-align: left; color: #888; font-size: 13px; }
+.table-container td { padding: 15px; border-top: 1px solid #333; color: #fff; font-size: 14px; }
+.custom-scrollbar::-webkit-scrollbar { width: 6px; }
+.custom-scrollbar::-webkit-scrollbar-thumb { background: #333; border-radius: 3px; }
+.live-pulse { color: #ff4747 !important; font-weight: 900 !important; }
+.country-badge { background: rgba(255, 223, 27, 0.15); color: #ffdf1b; padding: 3px 8px; border-radius: 4px; font-size: 9px; font-weight: 900; border: 1px solid #ffdf1b; text-transform: uppercase; white-space: nowrap; letter-spacing: 1px; }
+
+/* ==========================================
+   NOVA ENGENHARIA MOBILE (ESTILO SOFASCORE REAL)
+   ========================================== */
+@media (max-width: 768px) {
+  :root, html, body { font-size: 13px !important; }
+
+  /* 1. DESTRAVA A TELA: A página inteira rola agora, matando o buraco no final */
+  .app-layout { 
+    flex-direction: column !important; 
+    height: auto !important; 
+    min-height: 100vh !important;
+    overflow: visible !important; 
+  }
+
+  /* 2. BARRA DE ROLAGEM HORIZONTAL (O Menu do Topo) */
+  .sidebar {
+    width: 100% !important;
+    height: auto !important;
+    border-right: none !important;
+    border-bottom: 1px solid #333 !important;
+    padding: 0 !important;
+    display: flex !important;
+    flex-direction: row !important;
+    flex-wrap: nowrap !important; /* PROÍBE descer de linha */
+    overflow-x: auto !important; /* CRIA a rolagem pro lado */
+    overflow-y: hidden !important;
+    -webkit-overflow-scrolling: touch !important; /* Deixa o arrasto macio no celular */
+    scrollbar-width: none !important; /* Esconde a scrollbar feia (Firefox) */
+  }
+  .sidebar::-webkit-scrollbar {
+    display: none !important; /* Esconde a scrollbar feia (Chrome/Safari) */
+  }
+
+  /* 3. AS ABAS DO MENU (Estilo SofaScore) */
+  .menu-item {
+    flex: 0 0 auto !important; /* Mantém o tamanho do texto, não espreme */
+    padding: 15px 20px !important;
+    margin: 0 !important;
+    border-radius: 0 !important; /* Tira borda redonda */
+    border-bottom: 3px solid transparent !important; /* Prepara a linha embaixo */
+    white-space: nowrap !important; /* O texto não corta nunca */
+    background: transparent !important;
+    font-size: 0.95rem !important;
+  }
+  .menu-item.active { 
+    background: transparent !important; 
+    color: #ffdf1b !important; 
+    border-bottom: 3px solid #ffdf1b !important; /* Linha de marcação amarela */
+    font-weight: 800 !important;
+  }
+
+  /* 4. ÁREA PRINCIPAL E HEADER */
+  .main-area {
+    width: 100% !important;
+    padding: 15px 10px !important;
+    height: auto !important;
+    overflow: visible !important;
+  }
+
+  .top-header {
+    flex-direction: column !important;
+    align-items: stretch !important;
+    gap: 15px !important;
+    margin-bottom: 15px !important;
+  }
+  .top-header .logo h1 { text-align: center !important; font-size: 1.5rem !important; }
+  .expander-container { width: 100% !important; padding: 10px !important; }
+
+  /* 5. JOGOS */
+  .games-grid { grid-template-columns: 1fr !important; gap: 15px !important; }
+  .match-card { margin-bottom: 0 !important; }
+}

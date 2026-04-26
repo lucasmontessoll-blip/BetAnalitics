@@ -1,0 +1,290 @@
+{
+  "id": 19439520,
+  "sport_id": 1,
+  "league_id": 564,
+  "season_id": 25659,
+  "stage_id": 77476930,
+  "group_id": null,
+  "aggregate_id": null,
+  "round_id": 373237,
+  "state_id": 5,
+  "venue_id": 140808,
+  "name": "Atlético Madrid vs Getafe",
+  "starting_at": "2026-03-14 15:15:00",
+  "result_info": "Atlético Madrid won after full-time.",
+  "leg": "1/1",
+  "details": null,
+  "length": 90,
+  "placeholder": false,
+  "has_odds": true,
+  "has_premium_odds": true,
+  "starting_at_timestamp": 1773501300,
+  "participants": [
+    {
+      "id": 7980,
+      "sport_id": 1,
+      "country_id": 32,
+      "venue_id": 140808,
+      "gender": "male",
+      "name": "Atlético Madrid",
+      "short_code": "ATM",
+      "image_path": "https://cdn.sportmonks.com/images/soccer/teams/12/7980.png",
+      "founded": 1903,
+      "type": "domestic",
+      "placeholder": false,
+      "last_played_at": "2026-04-11 19:00:00",
+      "meta": {
+        "location": "home",
+        "winner": true,
+        "position": 4
+      }
+    },
+    {
+      "id": 106,
+      "sport_id": 1,
+      "country_id": 32,
+      "venue_id": 9351,
+      "gender": "male",
+      "name": "Getafe",
+      "short_code": "GET",
+      "image_path": "https://cdn.sportmonks.com/images/soccer/teams/10/106.png",
+      "founded": 1983,
+      "type": "domestic",
+      "placeholder": false,
+      "last_played_at": "2026-04-13 19:00:00",
+      "meta": {
+        "location": "away",
+        "winner": false,
+        "position": 9
+      }
+    }
+  ],
+  "league": {
+    "id": 564,
+    "sport_id": 1,
+    "country_id": 32,
+    "name": "La Liga",
+    "active": true,
+    "short_code": "ESP PL",
+    "image_path": "https://cdn.sportmonks.com/images/soccer/leagues/20/564.png",
+    "type": "league",
+    "sub_type": "domestic",
+    "last_played_at": "2026-04-13 19:00:00",
+    "category": 1,
+    "has_jerseys": false
+  },
+  "venue": {
+    "id": 140808,
+    "country_id": 32,
+    "city_id": 53252,
+    "name": "Riyadh Air Metropolitano",
+    "address": "Madrid",
+    "zipcode": null,
+    "latitude": "40.436111",
+    "longitude": "-3.599444",
+    "capacity": 70460,
+    "image_path": "https://cdn.sportmonks.com/images/core/venues/8/140808.png",
+    "city_name": "Madrid",
+    "surface": "grass",
+    "national_team": false
+  },
+  "state": {
+    "id": 5,
+    "state": "FT",
+    "name": "Full Time",
+    "short_name": "FT",
+    "developer_name": "FT"
+  },
+  "scores": [
+    {
+      "id": 19598667,
+      "fixture_id": 19439520,
+      "type_id": 2,
+      "participant_id": 106,
+      "score": {
+        "goals": 0,
+        "participant": "away"
+      },
+      "description": "2ND_HALF"
+    },
+    {
+      "id": 19598659,
+      "fixture_id": 19439520,
+      "type_id": 1525,
+      "participant_id": 7980,
+      "score": {
+        "goals": 1,
+        "participant": "home"
+      },
+      "description": "CURRENT"
+    },
+    {
+      "id": 19598664,
+      "fixture_id": 19439520,
+      "type_id": 1,
+      "participant_id": 106,
+      "score": {
+        "goals": 0,
+        "participant": "away"
+      },
+      "description": "1ST_HALF"
+    },
+    {
+      "id": 19602959,
+      "fixture_id": 19439520,
+      "type_id": 48996,
+      "participant_id": 7980,
+      "score": {
+        "goals": 0,
+        "participant": "home"
+      },
+      "description": "2ND_HALF_ONLY"
+    },
+    {
+      "id": 19602960,
+      "fixture_id": 19439520,
+      "type_id": 48996,
+      "participant_id": 106,
+      "score": {
+        "goals": 0,
+        "participant": "away"
+      },
+      "description": "2ND_HALF_ONLY"
+    },
+    {
+      "id": 19598660,
+      "fixture_id": 19439520,
+      "type_id": 1525,
+      "participant_id": 106,
+      "score": {
+        "goals": 0,
+        "participant": "away"
+      },
+      "description": "CURRENT"
+    },
+    {
+      "id": 19598665,
+      "fixture_id": 19439520,
+      "type_id": 2,
+      "participant_id": 7980,
+      "score": {
+        "goals": 1,
+        "participant": "home"
+      },
+      "description": "2ND_HALF"
+    },
+    {
+      "id": 19598662,
+      "fixture_id": 19439520,
+      "type_id": 1,
+      "participant_id": 7980,
+      "score": {
+        "goals": 1,
+        "participant": "home"
+      },
+      "description": "1ST_HALF"
+    }
+  ],
+  "metadata": [
+    {
+      "id": 9217162,
+      "metadatable_id": 19439520,
+      "type_id": 35,
+      "value_type": "object",
+      "values": {
+        "neutral": false
+      },
+      "type": {
+        "id": 35,
+        "name": "Neutral Venue",
+        "code": "neutral_venue",
+        "developer_name": "NEUTRAL_VENUE",
+        "model_type": "metadata",
+        "stat_group": null
+      }
+    },
+    {
+      "id": 9572341,
+      "metadatable_id": 19439520,
+      "type_id": 36,
+      "value_type": "object",
+      "values": {
+        "kickOff": "home"
+      },
+      "type": {
+        "id": 36,
+        "name": "Kickoff",
+        "code": "kickoff",
+        "developer_name": "KICKOFF",
+        "model_type": "metadata",
+        "stat_group": null
+      }
+    },
+    {
+      "id": 9572340,
+      "metadatable_id": 19439520,
+      "type_id": 159,
+      "value_type": "object",
+      "values": {
+        "home": "3-5-2",
+        "away": "5-3-2"
+      },
+      "type": {
+        "id": 159,
+        "name": "Formation",
+        "code": "formation",
+        "developer_name": "FORMATION",
+        "model_type": "metadata",
+        "stat_group": null
+      }
+    }
+  ],
+  "coaches": [
+    {
+      "id": 452946,
+      "player_id": 452946,
+      "sport_id": 1,
+      "country_id": 44,
+      "nationality_id": 44,
+      "city_id": null,
+      "common_name": "D. Simeone",
+      "firstname": "Diego Pablo",
+      "lastname": "Simeone",
+      "name": "Diego Pablo Simeone",
+      "display_name": "D. Simeone",
+      "image_path": "https://cdn.sportmonks.com/images/soccer/players/18/452946.png",
+      "height": 177,
+      "weight": 77,
+      "date_of_birth": "1970-04-28",
+      "gender": "male",
+      "meta": {
+        "fixture_id": 19439520,
+        "coach_id": 452946,
+        "participant_id": 7980
+      }
+    },
+    {
+      "id": 524009,
+      "player_id": 524009,
+      "sport_id": 1,
+      "country_id": 32,
+      "nationality_id": 32,
+      "city_id": null,
+      "common_name": "J. Bordalás Jiménez",
+      "firstname": "José",
+      "lastname": "Bordalás Jiménez",
+      "name": "José Bordalás Jiménez",
+      "display_name": "José Bordalás Jiménez",
+      "image_path": "https://cdn.sportmonks.com/images/soccer/players/9/524009.png",
+      "height": null,
+      "weight": null,
+      "date_of_birth": "1964-03-05",
+      "gender": "male",
+      "meta": {
+        "fixture_id": 19439520,
+        "coach_id": 524009,
+        "participant_id": 106
+      }
+    }
+  ]
+}

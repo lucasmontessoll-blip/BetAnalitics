@@ -1,0 +1,675 @@
+{
+  "dados": {
+    "cache_soccer_brazil_campeonato": {
+      "response": [
+        {
+          "fixture": {
+            "id": 50000,
+            "date": "2026-04-18T21:30:00Z",
+            "status": {
+              "short": "NS"
+            }
+          },
+          "league": {
+            "id": 71,
+            "name": "Brasileirão Série A",
+            "country": "Brazil"
+          },
+          "teams": {
+            "home": {
+              "name": "Chapecoense",
+              "logo": "https://cdn-icons-png.flaticon.com/512/8844/8844046.png"
+            },
+            "away": {
+              "name": "Botafogo",
+              "logo": "https://cdn-icons-png.flaticon.com/512/8844/8844046.png"
+            }
+          },
+          "goals": {
+            "home": null,
+            "away": null
+          }
+        },
+        {
+          "fixture": {
+            "id": 50001,
+            "date": "2026-04-18T21:30:00Z",
+            "status": {
+              "short": "NS"
+            }
+          },
+          "league": {
+            "id": 71,
+            "name": "Brasileirão Série A",
+            "country": "Brazil"
+          },
+          "teams": {
+            "home": {
+              "name": "Vasco da Gama",
+              "logo": "https://cdn-icons-png.flaticon.com/512/8844/8844046.png"
+            },
+            "away": {
+              "name": "Sao Paulo",
+              "logo": "https://cdn-icons-png.flaticon.com/512/8844/8844046.png"
+            }
+          },
+          "goals": {
+            "home": null,
+            "away": null
+          }
+        },
+        {
+          "fixture": {
+            "id": 50002,
+            "date": "2026-04-18T23:00:00Z",
+            "status": {
+              "short": "NS"
+            }
+          },
+          "league": {
+            "id": 71,
+            "name": "Brasileirão Série A",
+            "country": "Brazil"
+          },
+          "teams": {
+            "home": {
+              "name": "Vitoria",
+              "logo": "https://cdn-icons-png.flaticon.com/512/8844/8844046.png"
+            },
+            "away": {
+              "name": "Corinthians",
+              "logo": "https://cdn-icons-png.flaticon.com/512/8844/8844046.png"
+            }
+          },
+          "goals": {
+            "home": null,
+            "away": null
+          }
+        },
+        {
+          "fixture": {
+            "id": 50003,
+            "date": "2026-04-18T23:30:00Z",
+            "status": {
+              "short": "NS"
+            }
+          },
+          "league": {
+            "id": 71,
+            "name": "Brasileirão Série A",
+            "country": "Brazil"
+          },
+          "teams": {
+            "home": {
+              "name": "Cruzeiro",
+              "logo": "https://cdn-icons-png.flaticon.com/512/8844/8844046.png"
+            },
+            "away": {
+              "name": "Grêmio",
+              "logo": "https://cdn-icons-png.flaticon.com/512/8844/8844046.png"
+            }
+          },
+          "goals": {
+            "home": null,
+            "away": null
+          }
+        },
+        {
+          "fixture": {
+            "id": 50004,
+            "date": "2026-04-19T14:00:00Z",
+            "status": {
+              "short": "NS"
+            }
+          },
+          "league": {
+            "id": 71,
+            "name": "Brasileirão Série A",
+            "country": "Brazil"
+          },
+          "teams": {
+            "home": {
+              "name": "Internacional",
+              "logo": "https://cdn-icons-png.flaticon.com/512/8844/8844046.png"
+            },
+            "away": {
+              "name": "Mirassol",
+              "logo": "https://cdn-icons-png.flaticon.com/512/8844/8844046.png"
+            }
+          },
+          "goals": {
+            "home": null,
+            "away": null
+          }
+        },
+        {
+          "fixture": {
+            "id": 50005,
+            "date": "2026-04-19T19:00:00Z",
+            "status": {
+              "short": "NS"
+            }
+          },
+          "league": {
+            "id": 71,
+            "name": "Brasileirão Série A",
+            "country": "Brazil"
+          },
+          "teams": {
+            "home": {
+              "name": "Coritiba",
+              "logo": "https://cdn-icons-png.flaticon.com/512/8844/8844046.png"
+            },
+            "away": {
+              "name": "Atletico Mineiro",
+              "logo": "https://cdn-icons-png.flaticon.com/512/8844/8844046.png"
+            }
+          },
+          "goals": {
+            "home": null,
+            "away": null
+          }
+        },
+        {
+          "fixture": {
+            "id": 50006,
+            "date": "2026-04-19T19:00:00Z",
+            "status": {
+              "short": "NS"
+            }
+          },
+          "league": {
+            "id": 71,
+            "name": "Brasileirão Série A",
+            "country": "Brazil"
+          },
+          "teams": {
+            "home": {
+              "name": "Santos",
+              "logo": "https://cdn-icons-png.flaticon.com/512/8844/8844046.png"
+            },
+            "away": {
+              "name": "Fluminense",
+              "logo": "https://cdn-icons-png.flaticon.com/512/8844/8844046.png"
+            }
+          },
+          "goals": {
+            "home": null,
+            "away": null
+          }
+        },
+        {
+          "fixture": {
+            "id": 50007,
+            "date": "2026-04-19T21:30:00Z",
+            "status": {
+              "short": "NS"
+            }
+          },
+          "league": {
+            "id": 71,
+            "name": "Brasileirão Série A",
+            "country": "Brazil"
+          },
+          "teams": {
+            "home": {
+              "name": "Palmeiras",
+              "logo": "https://cdn-icons-png.flaticon.com/512/8844/8844046.png"
+            },
+            "away": {
+              "name": "Atletico Paranaense",
+              "logo": "https://cdn-icons-png.flaticon.com/512/8844/8844046.png"
+            }
+          },
+          "goals": {
+            "home": null,
+            "away": null
+          }
+        },
+        {
+          "fixture": {
+            "id": 50008,
+            "date": "2026-04-19T21:30:00Z",
+            "status": {
+              "short": "NS"
+            }
+          },
+          "league": {
+            "id": 71,
+            "name": "Brasileirão Série A",
+            "country": "Brazil"
+          },
+          "teams": {
+            "home": {
+              "name": "Bragantino-SP",
+              "logo": "https://cdn-icons-png.flaticon.com/512/8844/8844046.png"
+            },
+            "away": {
+              "name": "Remo",
+              "logo": "https://cdn-icons-png.flaticon.com/512/8844/8844046.png"
+            }
+          },
+          "goals": {
+            "home": null,
+            "away": null
+          }
+        },
+        {
+          "fixture": {
+            "id": 50009,
+            "date": "2026-04-19T22:30:00Z",
+            "status": {
+              "short": "NS"
+            }
+          },
+          "league": {
+            "id": 71,
+            "name": "Brasileirão Série A",
+            "country": "Brazil"
+          },
+          "teams": {
+            "home": {
+              "name": "Flamengo",
+              "logo": "https://cdn-icons-png.flaticon.com/512/8844/8844046.png"
+            },
+            "away": {
+              "name": "Bahia",
+              "logo": "https://cdn-icons-png.flaticon.com/512/8844/8844046.png"
+            }
+          },
+          "goals": {
+            "home": null,
+            "away": null
+          }
+        },
+        {
+          "fixture": {
+            "id": 50010,
+            "date": "2026-04-25T21:30:00Z",
+            "status": {
+              "short": "NS"
+            }
+          },
+          "league": {
+            "id": 71,
+            "name": "Brasileirão Série A",
+            "country": "Brazil"
+          },
+          "teams": {
+            "home": {
+              "name": "Bahia",
+              "logo": "https://cdn-icons-png.flaticon.com/512/8844/8844046.png"
+            },
+            "away": {
+              "name": "Santos",
+              "logo": "https://cdn-icons-png.flaticon.com/512/8844/8844046.png"
+            }
+          },
+          "goals": {
+            "home": null,
+            "away": null
+          }
+        },
+        {
+          "fixture": {
+            "id": 50011,
+            "date": "2026-04-25T21:30:00Z",
+            "status": {
+              "short": "NS"
+            }
+          },
+          "league": {
+            "id": 71,
+            "name": "Brasileirão Série A",
+            "country": "Brazil"
+          },
+          "teams": {
+            "home": {
+              "name": "Botafogo",
+              "logo": "https://cdn-icons-png.flaticon.com/512/8844/8844046.png"
+            },
+            "away": {
+              "name": "Internacional",
+              "logo": "https://cdn-icons-png.flaticon.com/512/8844/8844046.png"
+            }
+          },
+          "goals": {
+            "home": null,
+            "away": null
+          }
+        },
+        {
+          "fixture": {
+            "id": 50012,
+            "date": "2026-04-25T21:30:00Z",
+            "status": {
+              "short": "NS"
+            }
+          },
+          "league": {
+            "id": 71,
+            "name": "Brasileirão Série A",
+            "country": "Brazil"
+          },
+          "teams": {
+            "home": {
+              "name": "Remo",
+              "logo": "https://cdn-icons-png.flaticon.com/512/8844/8844046.png"
+            },
+            "away": {
+              "name": "Cruzeiro",
+              "logo": "https://cdn-icons-png.flaticon.com/512/8844/8844046.png"
+            }
+          },
+          "goals": {
+            "home": null,
+            "away": null
+          }
+        },
+        {
+          "fixture": {
+            "id": 50013,
+            "date": "2026-04-26T00:00:00Z",
+            "status": {
+              "short": "NS"
+            }
+          },
+          "league": {
+            "id": 71,
+            "name": "Brasileirão Série A",
+            "country": "Brazil"
+          },
+          "teams": {
+            "home": {
+              "name": "Sao Paulo",
+              "logo": "https://cdn-icons-png.flaticon.com/512/8844/8844046.png"
+            },
+            "away": {
+              "name": "Mirassol",
+              "logo": "https://cdn-icons-png.flaticon.com/512/8844/8844046.png"
+            }
+          },
+          "goals": {
+            "home": null,
+            "away": null
+          }
+        },
+        {
+          "fixture": {
+            "id": 50014,
+            "date": "2026-04-26T19:00:00Z",
+            "status": {
+              "short": "NS"
+            }
+          },
+          "league": {
+            "id": 71,
+            "name": "Brasileirão Série A",
+            "country": "Brazil"
+          },
+          "teams": {
+            "home": {
+              "name": "Corinthians",
+              "logo": "https://cdn-icons-png.flaticon.com/512/8844/8844046.png"
+            },
+            "away": {
+              "name": "Vasco da Gama",
+              "logo": "https://cdn-icons-png.flaticon.com/512/8844/8844046.png"
+            }
+          },
+          "goals": {
+            "home": null,
+            "away": null
+          }
+        },
+        {
+          "fixture": {
+            "id": 50015,
+            "date": "2026-04-26T19:00:00Z",
+            "status": {
+              "short": "NS"
+            }
+          },
+          "league": {
+            "id": 71,
+            "name": "Brasileirão Série A",
+            "country": "Brazil"
+          },
+          "teams": {
+            "home": {
+              "name": "Grêmio",
+              "logo": "https://cdn-icons-png.flaticon.com/512/8844/8844046.png"
+            },
+            "away": {
+              "name": "Coritiba",
+              "logo": "https://cdn-icons-png.flaticon.com/512/8844/8844046.png"
+            }
+          },
+          "goals": {
+            "home": null,
+            "away": null
+          }
+        },
+        {
+          "fixture": {
+            "id": 50016,
+            "date": "2026-04-26T21:30:00Z",
+            "status": {
+              "short": "NS"
+            }
+          },
+          "league": {
+            "id": 71,
+            "name": "Brasileirão Série A",
+            "country": "Brazil"
+          },
+          "teams": {
+            "home": {
+              "name": "Atletico Paranaense",
+              "logo": "https://cdn-icons-png.flaticon.com/512/8844/8844046.png"
+            },
+            "away": {
+              "name": "Vitoria",
+              "logo": "https://cdn-icons-png.flaticon.com/512/8844/8844046.png"
+            }
+          },
+          "goals": {
+            "home": null,
+            "away": null
+          }
+        },
+        {
+          "fixture": {
+            "id": 50017,
+            "date": "2026-04-26T21:30:00Z",
+            "status": {
+              "short": "NS"
+            }
+          },
+          "league": {
+            "id": 71,
+            "name": "Brasileirão Série A",
+            "country": "Brazil"
+          },
+          "teams": {
+            "home": {
+              "name": "Bragantino-SP",
+              "logo": "https://cdn-icons-png.flaticon.com/512/8844/8844046.png"
+            },
+            "away": {
+              "name": "Palmeiras",
+              "logo": "https://cdn-icons-png.flaticon.com/512/8844/8844046.png"
+            }
+          },
+          "goals": {
+            "home": null,
+            "away": null
+          }
+        },
+        {
+          "fixture": {
+            "id": 50018,
+            "date": "2026-04-26T23:30:00Z",
+            "status": {
+              "short": "NS"
+            }
+          },
+          "league": {
+            "id": 71,
+            "name": "Brasileirão Série A",
+            "country": "Brazil"
+          },
+          "teams": {
+            "home": {
+              "name": "Atletico Mineiro",
+              "logo": "https://cdn-icons-png.flaticon.com/512/8844/8844046.png"
+            },
+            "away": {
+              "name": "Flamengo",
+              "logo": "https://cdn-icons-png.flaticon.com/512/8844/8844046.png"
+            }
+          },
+          "goals": {
+            "home": null,
+            "away": null
+          }
+        },
+        {
+          "fixture": {
+            "id": 50019,
+            "date": "2026-04-26T23:30:00Z",
+            "status": {
+              "short": "NS"
+            }
+          },
+          "league": {
+            "id": 71,
+            "name": "Brasileirão Série A",
+            "country": "Brazil"
+          },
+          "teams": {
+            "home": {
+              "name": "Fluminense",
+              "logo": "https://cdn-icons-png.flaticon.com/512/8844/8844046.png"
+            },
+            "away": {
+              "name": "Chapecoense",
+              "logo": "https://cdn-icons-png.flaticon.com/512/8844/8844046.png"
+            }
+          },
+          "goals": {
+            "home": null,
+            "away": null
+          }
+        }
+      ]
+    }
+  },
+  "odds": {
+    "cache_soccer_brazil_campeonato": {
+      "50000": {
+        "home": "2.95",
+        "draw": "3.20",
+        "away": "2.10"
+      },
+      "50001": {
+        "home": "2.28",
+        "draw": "3.15",
+        "away": "3.20"
+      },
+      "50002": {
+        "home": "2.55",
+        "draw": "2.95",
+        "away": "2.50"
+      },
+      "50003": {
+        "home": "1.68",
+        "draw": "3.70",
+        "away": "4.95"
+      },
+      "50004": {
+        "home": "1.66",
+        "draw": "3.45",
+        "away": "3.90"
+      },
+      "50005": {
+        "home": "2.53",
+        "draw": "3.23",
+        "away": "2.96"
+      },
+      "50006": {
+        "home": "2.40",
+        "draw": "2.90",
+        "away": "2.30"
+      },
+      "50007": {
+        "home": "1.55",
+        "draw": "3.90",
+        "away": "5.60"
+      },
+      "50008": {
+        "home": "1.42",
+        "draw": "3.60",
+        "away": "4.90"
+      },
+      "50009": {
+        "home": "1.47",
+        "draw": "4.30",
+        "away": "6.20"
+      },
+      "50010": {
+        "home": "1.87",
+        "draw": "3.60",
+        "away": "4.37"
+      },
+      "50011": {
+        "home": "2.10",
+        "draw": "3.40",
+        "away": "3.40"
+      },
+      "50012": {
+        "home": "3.10",
+        "draw": "3.40",
+        "away": "2.25"
+      },
+      "50013": {
+        "home": "1.75",
+        "draw": "3.75",
+        "away": "4.89"
+      },
+      "50014": {
+        "home": "2.01",
+        "draw": "3.40",
+        "away": "4.01"
+      },
+      "50015": {
+        "home": "1.70",
+        "draw": "3.15",
+        "away": "3.85"
+      },
+      "50016": {
+        "home": "1.68",
+        "draw": "3.15",
+        "away": "4.00"
+      },
+      "50017": {
+        "home": "3.20",
+        "draw": "2.90",
+        "away": "1.98"
+      },
+      "50018": {
+        "home": "3.46",
+        "draw": "3.40",
+        "away": "2.18"
+      },
+      "50019": {
+        "home": "1.36",
+        "draw": "4.40",
+        "away": "8.40"
+      }
+    }
+  },
+  "timestamps": {
+    "cache_soccer_brazil_campeonato": 1776118199060
+  }
+}
