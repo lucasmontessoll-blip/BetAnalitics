@@ -1,0 +1,132 @@
+{
+  "id": 19439520,
+  "sport_id": 1,
+  "league": {
+    "id": 564,
+    "name": "La Liga",
+    "image_path": "https://cdn.sportmonks.com/images/soccer/leagues/20/564.png"
+  },
+  "venue": {
+    "name": "Riyadh Air Metropolitano",
+    "city_name": "Madrid"
+  },
+  "state": {
+    "name": "Full Time",
+    "short_name": "FT"
+  },
+  "result_info": "Atlético Madrid won after full-time.",
+  "participants": [
+    {
+      "id": 7980,
+      "name": "Atlético Madrid",
+      "short_code": "ATM",
+      "image_path": "https://cdn.sportmonks.com/images/soccer/teams/12/7980.png",
+      "meta": { "location": "home", "position": 4 }
+    },
+    {
+      "id": 106,
+      "name": "Getafe",
+      "short_code": "GET",
+      "image_path": "https://cdn.sportmonks.com/images/soccer/teams/10/106.png",
+      "meta": { "location": "away", "position": 9 }
+    }
+  ],
+  "scores": [
+    {
+      "participant_id": 7980,
+      "description": "CURRENT",
+      "score": { "goals": 1 }
+    },
+    {
+      "participant_id": 106,
+      "description": "CURRENT",
+      "score": { "goals": 0 }
+    }
+  ],
+  "weatherreport": {
+    "temperature": { "day": 11.58 },
+    "description": "light rain",
+    "icon": "https://cdn.sportmonks.com/images/weather/10d.png"
+  },
+  "statistics": [
+    { "participant_id": 7980, "type_id": 45, "data": { "value": 66 } },
+    { "participant_id": 106, "type_id": 45, "data": { "value": 34 } },
+    { "participant_id": 7980, "type_id": 42, "data": { "value": 16 } },
+    { "participant_id": 106, "type_id": 42, "data": { "value": 7 } },
+    { "participant_id": 7980, "type_id": 86, "data": { "value": 5 } },
+    { "participant_id": 106, "type_id": 86, "data": { "value": 3 } },
+    { "participant_id": 7980, "type_id": 80, "data": { "value": 554 } },
+    { "participant_id": 106, "type_id": 80, "data": { "value": 286 } },
+    { "participant_id": 7980, "type_id": 56, "data": { "value": 11 } },
+    { "participant_id": 106, "type_id": 56, "data": { "value": 11 } },
+    { "participant_id": 7980, "type_id": 34, "data": { "value": 10 } },
+    { "participant_id": 106, "type_id": 34, "data": { "value": 3 } }
+  ],
+  "events": [
+    {
+      "id": 156222615,
+      "minute": 8,
+      "participant_id": 7980,
+      "type": { "name": "Goal" },
+      "player_name": "Nahuel Molina",
+      "addition": "1st Goal",
+      "info": "Right foot shot"
+    },
+    {
+      "id": 156225625,
+      "minute": 46,
+      "participant_id": 106,
+      "type": { "name": "Substitution" },
+      "player_name": "Veljko Birmancevic",
+      "related_player_name": "Kiko Femenía"
+    },
+    {
+      "id": 156226285,
+      "minute": 55,
+      "participant_id": 106,
+      "type": { "name": "Redcard" },
+      "player_name": "Abdel Abqar",
+      "addition": "1st Redcard",
+      "info": "Violent conduct"
+    },
+    {
+      "id": 156226941,
+      "minute": 55,
+      "participant_id": 106,
+      "type": { "name": "Yellowcard" },
+      "player_name": "José Bordalás",
+      "addition": "Coach Card",
+      "info": "Argument"
+    },
+    {
+      "id": 156226964,
+      "minute": 66,
+      "participant_id": 7980,
+      "type": { "name": "Substitution" },
+      "player_name": "Giuliano Simeone",
+      "related_player_name": "Marc Pubill"
+    }
+  ],
+  "sidelined": [
+    {
+      "id": 1373110,
+      "participant_id": 106,
+      "player": {
+        "display_name": "Borja Mayoral"
+      },
+      "type": {
+        "name": "Knee Injury"
+      }
+    },
+    {
+      "id": 1380594,
+      "participant_id": 106,
+      "player": {
+        "display_name": "Carles Aleñá"
+      },
+      "type": {
+        "name": "Muscle Injury"
+      }
+    }
+  ]
+}
