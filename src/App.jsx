@@ -3,8 +3,17 @@ import axios from 'axios';
 import confetti from 'canvas-confetti';
 import { AreaChart, Area, LineChart, Line, XAxis, YAxis, Tooltip, ResponsiveContainer } from 'recharts';
 import { motion, AnimatePresence } from 'framer-motion';
-import dadosFut from './dados.json'; // IMPORTAÇÃO DO JSON ⚽
+
+// 💳 IMPORTAÇÃO OFICIAL DO MERCADO PAGO
+import { initMercadoPago, Payment } from '@mercadopago/sdk-react'; 
+
+import dadosFut from './dados.json'; 
 import './App.css';
+
+// ============================================================================
+// 🔑 INICIALIZANDO O MERCADO PAGO COM A SUA PUBLIC KEY
+// ============================================================================
+initMercadoPago('APP_USR-4fa18e00-642d-4369-bc77-e8c68ed9c2a0', { locale: 'pt-BR' });
 
 // ============================================================================
 // ⚙️ BASE DE DADOS E CONFIGURAÇÕES OTIMIZADAS (CÓDIGO BLINDADO)
@@ -92,7 +101,7 @@ export default function App() {
   const [favoritos, setFavoritos] = useState([]);
   
   const [jogadorAberto, setJogadorAberto] = useState(null);
-  const [abaGeralAtiva, setAbaGeralAtiva] = useState('dashboard'); // NOVO ESTADO: Dashboard vs Jogador
+  const [abaGeralAtiva, setAbaGeralAtiva] = useState('dashboard');
 
   const diasSemana = getWeekDays(dataFiltro);
 
@@ -109,24 +118,6 @@ export default function App() {
         }
     }
   }, []);
-
-  useEffect(() => {
-    let int;
-    if (dadosPix && form.email) {
-        int = setInterval(async () => {
-            try {
-                const res = await axios.get(`${API_URL}/pagar/status/${dadosPix.id_pagamento}/${form.email}`).catch(() => ({ data: { pago: true } }));
-                if (res.data?.pago) {
-                    clearInterval(int); setUserData({ email: form.email, is_vip: true }); localStorage.setItem('bet_sessao_ativa', form.email);
-                    let bL = {};
-                    try { bL = JSON.parse(localStorage.getItem('bet_users') || '{}'); } catch(e) {}
-                    if (bL[form.email]) { bL[form.email].is_vip = true; localStorage.setItem('bet_users', JSON.stringify(bL)); }
-                    setDadosPix(null); confetti(); alert("🎉 VIP Ativado!"); setMenuAtivo("todos");
-                }
-            } catch (e) {}
-        }, 5000); 
-    } return () => clearInterval(int);
-  }, [dadosPix, form.email]);
 
   useEffect(() => {
     if (!["gestão de banca", "assinar pro"].includes(menuAtivo)) carregarDadosEsporte(false); 
@@ -179,22 +170,13 @@ export default function App() {
     } catch (e) { setApiError("⚠️ Servidor Offline. Carregando Mocks."); cacheAPI.current[cK] = MOCK_GAMES; aplicarFiltros(MOCK_GAMES, menuAtivo); } finally { setLoading(false); }
   };
 
-  // NOVA FUNÇÃO: Lê diretamente os dados do seu arquivo
   const carregarPerfilJogador = async () => {
     if (!userData?.is_vip) { alert("🔒 VIP PRO requerido."); setShowProfileMenu(true); return; }
-    
-    // Puxando os dados reais do seu dados.json
     const { display_name, image_path, height, weight, date_of_birth, latest } = dadosFut;
     const statsRecentes = latest[0]?.xglineup || [];
-
     setJogadorAberto({
-        nome: display_name,
-        foto: image_path,
-        nascimento: date_of_birth,
-        altura: height,
-        peso: weight,
-        statsRecentes: statsRecentes,
-        ultimoJogo: latest[0]?.fixture?.name || "Partida"
+        nome: display_name, foto: image_path, nascimento: date_of_birth, altura: height, peso: weight,
+        statsRecentes: statsRecentes, ultimoJogo: latest[0]?.fixture?.name || "Partida"
     });
   };
 
@@ -238,7 +220,6 @@ export default function App() {
   return (
     <div className="app-layout" style={{ display: 'flex', flexDirection: 'column', height: '100vh', overflow: 'hidden', background: theme.bgApp, color: theme.textMain, fontFamily: 'Inter, sans-serif' }}>
       
-      {/* NAVBAR TOPO - COM BOTÕES PARA CONTROLAR A TELA DO JOGADOR */}
       <div style={{ background: 'rgba(21,24,32,0.8)', borderBottom: `1px solid ${theme.border}`, display: 'flex', alignItems: 'center', justifyContent: 'space-between', height: '70px', padding: '0 25px', zIndex: 100 }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: '30px' }}>
               <div style={{ fontSize: '22px', fontWeight: '900', color: theme.textMain }}>BETANALYTICS<span style={{color: theme.cyan}}>.PRO</span></div>
@@ -269,8 +250,6 @@ export default function App() {
       </div>
 
       <div style={{display: 'flex', flex: 1, overflow: 'hidden', paddingBottom: isMobile ? '65px' : '0'}}>
-          
-          {/* SE A ABA FOR JOGADOR, EXIBIMOS APENAS ELA */}
           {abaGeralAtiva === 'jogador' && jogadorAberto ? (
             <div style={{ flex: 1, overflowY: 'auto', background: theme.bgApp, padding: '40px', display: 'flex', justifyContent: 'center' }}>
                 <div style={{ maxWidth: '900px', width: '100%', background: theme.bgPanel, borderRadius: '20px', border: `1px solid ${theme.border}`, padding: '40px' }}>
@@ -287,18 +266,15 @@ export default function App() {
                     <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '20px' }}>
                         {jogadorAberto.statsRecentes.map(s => (
                             <div key={s.id} style={{ background: '#1c202d', padding: '20px', borderRadius: '12px', textAlign: 'center', border: `1px solid ${theme.border}` }}>
-                                <div style={{ fontSize: '12px', color: theme.textMuted, marginBottom: '10px' }}>{s.type.name}</div>
-                                <div style={{ fontSize: '24px', color: theme.cyan, fontWeight: 'bold' }}>{s.data.value}</div>
+                                <div style={{ fontSize: '12px', color: theme.textMuted, marginBottom: '10px' }}>{s.type?.name}</div>
+                                <div style={{ fontSize: '24px', color: theme.cyan, fontWeight: 'bold' }}>{s.data?.value}</div>
                             </div>
                         ))}
                     </div>
                 </div>
             </div>
           ) : (
-          
-          /* CASO CONTRÁRIO, EXIBIMOS O TEU DASHBOARD NORMAL QUE JÁ TINHAS FEITO */
           <>
-            {/* MENU LATERAL COM ABAS INTEGRADAS */}
             {!isMobile && (
               <aside style={{ backgroundColor: theme.bgPanel, borderColor: theme.border, width: '280px', borderRight: '1px solid', display: 'flex', flexDirection: 'column' }}>
                   <div style={{ display: 'flex', padding: '10px', gap: '5px', background: '#0f111a', margin: '15px', borderRadius: '8px', border: `1px solid ${theme.border}` }}>
@@ -321,7 +297,6 @@ export default function App() {
               </aside>
             )}
 
-            {/* PAINEL CENTRAL (JOGOS) */}
             <div className="custom-scrollbar" style={{ flex: 1, overflowY: 'auto', background: theme.bgApp, padding: isMobile ? '10px' : '20px 25px' }}>
               <div style={{ display: 'flex', gap: '10px', marginBottom: '20px', flexWrap: 'wrap' }}>
                   <button onClick={() => setViewMode('jogos')} style={{ padding: '12px 25px', borderRadius: '8px', background: viewMode === 'jogos' ? 'rgba(0,212,182,0.1)' : theme.bgPanel, color: viewMode === 'jogos' ? theme.cyan : theme.textMuted, border: `1px solid ${viewMode === 'jogos' ? theme.cyan : theme.border}`, fontWeight: 'bold', cursor: 'pointer' }}>⚽ Partidas</button>
@@ -415,7 +390,6 @@ export default function App() {
               )}
             </div>
 
-            {/* PAINEL DIREITO (DETALHES DA PARTIDA) */}
             {!isMobile && <RightPanelComponent jogoSelecionado={jogoSelecionado} rightTab={rightTab} setRightTab={setRightTab} analiseIA={analiseIA} estatisticas={estatisticas} carregarPerfilJogador={carregarPerfilJogador} setAbaGeralAtiva={setAbaGeralAtiva} isMobile={false}/>}
 
             {isMobile && jogoSelecionado && (
@@ -425,7 +399,8 @@ export default function App() {
                 </motion.div>
             )}
 
-            <ModalsExtras menuAtivo={menuAtivo} isMobile={isMobile} dadosPix={dadosPix} form={form} setForm={setForm} setDadosPix={setDadosPix} setMenuAtivo={setMenuAtivo} bancaData={bancaData} />
+            {/* AQUI PASSAMOS O setUserData PARA O NOVO COMPONENTE DE PAGAMENTO */}
+            <ModalsExtras menuAtivo={menuAtivo} isMobile={isMobile} dadosPix={dadosPix} form={form} setForm={setForm} setDadosPix={setDadosPix} setMenuAtivo={setMenuAtivo} bancaData={bancaData} setUserData={setUserData} />
           </>
           )} 
       </div>
@@ -489,110 +464,12 @@ function RightPanelComponent({ jogoSelecionado, rightTab, setRightTab, analiseIA
                     {['Detalhes', 'Análise IA', 'Escalações', 'Probs', 'Estatísticas', 'Estações de TV'].map(tab => ( <div key={tab} onClick={() => setRightTab(tab)} style={{padding: '16px 12px', cursor: 'pointer', color: rightTab === tab ? theme.cyan : theme.textMuted, fontWeight: 'bold', fontSize: '11px', borderBottom: rightTab === tab ? `2px solid ${theme.cyan}` : '2px solid transparent', whiteSpace: 'nowrap', textAlign: 'center', textTransform: 'uppercase'}}>{tab}</div> ))}
                 </div>
                 <div style={{padding: '20px'}}>
-                    
-                    {rightTab === 'Análise IA' && (
-                        <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }}>
-                            <div style={{display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '15px'}}><span style={{fontSize: '18px'}}>🤖</span><h4 style={{color: theme.textMain, margin: 0}}>Análise IA</h4></div>
-                            <div style={{background: 'rgba(0, 212, 182, 0.05)', padding: '16px', borderRadius: '12px', border: `1px solid rgba(0, 212, 182, 0.2)`}}>
-                                <div style={{fontSize: '13px', lineHeight: '1.6', color: '#cbd5e1', whiteSpace: 'pre-wrap'}}>⚡ {analiseIA}</div>
-                            </div>
-                        </motion.div>
-                    )}
-
-                    {rightTab === 'Estações de TV' && (
-                        <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }}>
-                            <div style={{fontSize: '12px', color: theme.textMain, marginBottom: '15px', fontWeight: 'bold'}}>📺 Transmissões Oficiais (Canais)</div>
-                            {jogoSelecionado.tvstations?.length > 0 ? (
-                                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: '10px' }}>
-                                    {jogoSelecionado.tvstations.map(tv => (
-                                        <a key={tv.id} href={tv.url || '#'} target="_blank" rel="noreferrer" style={{ display: 'flex', alignItems: 'center', gap: '10px', background: theme.bgApp, padding: '10px', borderRadius: '8px', border: `1px solid ${theme.border}`, textDecoration: 'none', color: theme.textMain }}>
-                                            <img src={tv.image} style={{ width: '24px', height: '24px', objectFit: 'contain' }} alt="tv" />
-                                            <span style={{ fontSize: '11px', fontWeight: 'bold', overflow: 'hidden', whiteSpace: 'nowrap', textOverflow: 'ellipsis' }}>{tv.name}</span>
-                                        </a>
-                                    ))}
-                                </div>
-                            ) : <div style={{textAlign: 'center', padding: '40px 0', color: theme.textMuted, fontSize: '13px', background: theme.bgApp, borderRadius: '12px', border: `1px dashed ${theme.border}`}}>Nenhuma transmissão encontrada para esta partida.</div>}
-                        </motion.div>
-                    )}
-
-                    {rightTab === 'Detalhes' && (
-                        <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }}>
-                            <div style={{background: theme.bgApp, borderRadius: '12px', padding: '16px', marginBottom: '25px', border: `1px solid ${theme.border}`}}><div style={{fontSize: '11px', color: theme.textMuted, marginBottom: '12px', fontWeight: 'bold', textTransform: 'uppercase'}}>Local da Partida</div><div style={{display: 'flex', alignItems: 'center', gap: '10px', fontSize: '13px', color: theme.textMain}}><span style={{fontSize: '18px'}}>🏟️</span> <span style={{fontWeight: '500'}}>{jogoSelecionado.venue}</span></div></div>
-                            {jogoSelecionado.events?.length > 0 && (
-                                <div style={{marginBottom: '25px'}}>
-                                    <div style={{fontSize: '12px', color: theme.textMain, marginBottom: '15px', fontWeight: 'bold'}}>⏱️ Timeline do Jogo</div>
-                                    <div style={{display: 'flex', flexDirection: 'column', gap: '10px', position: 'relative'}}>
-                                        <div style={{position: 'absolute', top: 0, bottom: 0, left: '19px', width: '2px', background: theme.border}}></div>
-                                        {[...(jogoSelecionado.events || [])].sort((a,b)=>(a.minute || 0) - (b.minute || 0)).map(ev => {
-                                            const isHome = ev.participant_id === jogoSelecionado.home_id; const isSub = ev.type?.code?.includes('sub'); const icon = ev.type?.code?.includes('goal') ? '⚽' : ev.type?.code?.includes('yellow') ? '🟨' : ev.type?.code?.includes('red') ? '🟥' : isSub ? '🔄' : '📌';
-                                            return ( <div key={ev.id} style={{display: 'flex', alignItems: 'center', gap: '15px', zIndex: 1}}><div style={{width: '40px', height: '24px', background: theme.bgApp, border: `1px solid ${theme.border}`, borderRadius: '12px', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '10px', color: theme.cyan}}>{ev.minute}'</div><div style={{background: theme.bgHover, padding: '10px 15px', borderRadius: '8px', flex: 1, display: 'flex', justifyContent: 'space-between', alignItems: 'center', border: `1px solid ${theme.border}`}}><div style={{fontSize: '12px', color: theme.textMain}}><span style={{marginRight: '8px', fontSize: '14px'}}>{icon}</span>{isSub && ev.related_player_name ? <span>{ev.related_player_name} <span style={{color: theme.green}}>⬆</span> <span style={{color: theme.textMuted, fontSize: '10px'}}>{ev.player_name} ⬇</span></span> : (ev.player_name || 'Jogador')}</div><div style={{fontSize: '10px', color: isHome ? theme.cyan : theme.yellow}}>{isHome ? 'CASA' : 'FORA'}</div></div></div> )
-                                        })}
-                                    </div>
-                                </div>
-                            )}
-                        </motion.div>
-                    )}
-                    
-                    {/* 👇 AQUI ESTÁ A CORREÇÃO DA TELA PRETA: VERIFICAÇÃO DE ARRAY E STRING 👇 */}
-                    {rightTab === 'Estatísticas' && (
-                        <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }}>
-                            <div style={{height: '150px', width: '100%', marginBottom: '25px', background: theme.bgApp, padding: '10px', borderRadius: '12px', border: `1px solid ${theme.border}`}}><ResponsiveContainer width="100%" height="100%"><LineChart data={generateMockMomentum()}><XAxis dataKey="time" hide /><YAxis domain={[-60, 60]} hide /><Line type="stepAfter" dataKey="pressao" stroke={theme.cyan} strokeWidth={2} dot={false} /></LineChart></ResponsiveContainer></div>
-                            {(estatisticas || jogoSelecionado.stats) && Array.isArray(estatisticas || jogoSelecionado.stats) ? ( 
-                                <div style={{background: theme.bgApp, padding: '20px', borderRadius: '12px', border: `1px solid ${theme.border}`}}>
-                                    {(estatisticas || jogoSelecionado.stats).map((s, index) => { 
-                                        if(!s) return null; 
-                                        let type = s.type?.name || s.type || 'Dado'; 
-                                        let typeStr = String(type);
-                                        let home = s.home || s.value || s.data?.value || 0; 
-                                        let away = s.away || s.value || s.data?.value || 0; 
-                                        const labelPt = typeStr.replace('Ball Possession %', 'Posse de Bola').replace('Total Shots', 'Chutes').replace('Corner Kicks', 'Escanteios'); 
-                                        return <StatRow key={index} label={labelPt} home={home} away={away} isPercent={typeStr.includes('Possession') || typeStr.includes('%')} /> 
-                                    })}
-                                </div> 
-                            ) : <div style={{textAlign: 'center', padding: '40px 0', color: theme.textMuted, fontSize: '12px'}}>Aguardando Dados...</div>}
-                        </motion.div>
-                    )}
-
-                    {rightTab === 'Probs' && (
-                        <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }}>
-                            {jogoSelecionado.predictions?.length > 0 ? (
-                                <>
-                                    {getPrediction(jogoSelecionado.predictions, 'FULLTIME_RESULT_PROBABILITY') && (
-                                        <div style={{marginBottom: '25px', background: theme.bgApp, padding: '18px', borderRadius: '12px', border: `1px solid ${theme.border}`}}><div style={{fontSize: '11px', color: theme.textMuted, marginBottom: '12px', fontWeight: 'bold'}}>Resultado Final (1X2)</div><div style={{display: 'flex', height: '12px', borderRadius: '6px', overflow: 'hidden', marginBottom: '12px'}}><div style={{width: `${getPrediction(jogoSelecionado.predictions, 'FULLTIME_RESULT_PROBABILITY').home}%`, background: theme.cyan}}></div><div style={{width: `${getPrediction(jogoSelecionado.predictions, 'FULLTIME_RESULT_PROBABILITY').draw}%`, background: theme.textMuted}}></div><div style={{width: `${getPrediction(jogoSelecionado.predictions, 'FULLTIME_RESULT_PROBABILITY').away}%`, background: theme.yellow}}></div></div><div style={{display: 'flex', justifyContent: 'space-between', fontSize: '11px', fontWeight: 'bold'}}><span style={{color: theme.cyan}}>Casa: {getPrediction(jogoSelecionado.predictions, 'FULLTIME_RESULT_PROBABILITY').home}%</span><span style={{color: theme.textMuted}}>Emp: {getPrediction(jogoSelecionado.predictions, 'FULLTIME_RESULT_PROBABILITY').draw}%</span><span style={{color: theme.yellow}}>Fora: {getPrediction(jogoSelecionado.predictions, 'FULLTIME_RESULT_PROBABILITY').away}%</span></div></div>
-                                    )}
-                                    {getPrediction(jogoSelecionado.predictions, 'BTTS_PROBABILITY') && (
-                                        <div style={{marginBottom: '25px', background: theme.bgApp, padding: '18px', borderRadius: '12px', border: `1px solid ${theme.border}`}}><div style={{fontSize: '11px', color: theme.textMuted, marginBottom: '12px', fontWeight: 'bold'}}>Ambas Marcam (BTTS)</div><div style={{display: 'flex', justifyContent: 'space-between'}}><div style={{color: theme.green, fontWeight: '800'}}>{getPrediction(jogoSelecionado.predictions, 'BTTS_PROBABILITY').yes}% SIM</div><div style={{color: theme.red, fontWeight: '800'}}>{getPrediction(jogoSelecionado.predictions, 'BTTS_PROBABILITY').no}% NÃO</div></div></div>
-                                    )}
-                                </>
-                            ) : <div style={{textAlign: 'center', padding: '40px 0', color: theme.textMuted, fontSize: '13px'}}>Modelos indisponíveis.</div>}
-                        </motion.div>
-                    )}
-                    {rightTab === 'Escalações' && (
-                        <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }}>
-                            {jogoSelecionado.lineups?.length > 0 ? (
-                                <div style={{display: 'flex', gap: '15px'}}>
-                                    <div style={{flex: 1}}>
-                                        <div style={{fontSize: '12px', color: theme.cyan, marginBottom: '15px', fontWeight: 'bold', textAlign: 'center'}}>{jogoSelecionado.home_team}</div>
-                                        {jogoSelecionado.lineups.filter(l => l.team_id === jogoSelecionado.home_id && l.formation_position).sort((a,b)=>a.formation_position - b.formation_position).map(p => (
-                                            <div key={p.id} onClick={() => { setAbaGeralAtiva('jogador'); carregarPerfilJogador(); }} style={{cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '10px', background: theme.bgApp, padding: '10px', borderRadius: '8px', marginBottom: '8px', border: `1px solid ${theme.border}`}}>
-                                                <span style={{width: '24px', height: '24px', borderRadius: '4px', background: theme.bgHover, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '11px', color: theme.textMain}}>{p.jersey_number || '-'}</span>
-                                                <span style={{fontSize: '12px', color: theme.textMuted, overflow: 'hidden'}}>{p.player_name}</span>
-                                            </div>
-                                        ))}
-                                    </div>
-                                    <div style={{flex: 1}}>
-                                        <div style={{fontSize: '12px', color: theme.yellow, marginBottom: '15px', fontWeight: 'bold', textAlign: 'center'}}>{jogoSelecionado.away_team}</div>
-                                        {jogoSelecionado.lineups.filter(l => l.team_id === jogoSelecionado.away_id && l.formation_position).sort((a,b)=>a.formation_position - b.formation_position).map(p => (
-                                            <div key={p.id} onClick={() => { setAbaGeralAtiva('jogador'); carregarPerfilJogador(); }} style={{cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '10px', background: theme.bgApp, padding: '10px', borderRadius: '8px', marginBottom: '8px', border: `1px solid ${theme.border}`, flexDirection: 'row-reverse'}}>
-                                                <span style={{width: '24px', height: '24px', borderRadius: '4px', background: theme.bgHover, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '11px', color: theme.textMain}}>{p.jersey_number || '-'}</span>
-                                                <span style={{fontSize: '12px', color: theme.textMuted, overflow: 'hidden'}}>{p.player_name}</span>
-                                            </div>
-                                        ))}
-                                    </div>
-                                </div>
-                            ) : <div style={{textAlign: 'center', padding: '40px 0', color: theme.textMuted, fontSize: '13px', background: theme.bgApp, borderRadius: '12px', border: `1px dashed ${theme.border}`}}>Escalações ainda não divulgadas.</div>}
-                        </motion.div>
-                    )}
+                    {rightTab === 'Análise IA' && ( <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }}><div style={{display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '15px'}}><span style={{fontSize: '18px'}}>🤖</span><h4 style={{color: theme.textMain, margin: 0}}>Análise IA</h4></div><div style={{background: 'rgba(0, 212, 182, 0.05)', padding: '16px', borderRadius: '12px', border: `1px solid rgba(0, 212, 182, 0.2)`}}><div style={{fontSize: '13px', lineHeight: '1.6', color: '#cbd5e1', whiteSpace: 'pre-wrap'}}>⚡ {analiseIA}</div></div></motion.div> )}
+                    {rightTab === 'Estações de TV' && ( <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }}><div style={{fontSize: '12px', color: theme.textMain, marginBottom: '15px', fontWeight: 'bold'}}>📺 Transmissões Oficiais (Canais)</div>{jogoSelecionado.tvstations?.length > 0 ? ( <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: '10px' }}>{jogoSelecionado.tvstations.map(tv => ( <a key={tv.id} href={tv.url || '#'} target="_blank" rel="noreferrer" style={{ display: 'flex', alignItems: 'center', gap: '10px', background: theme.bgApp, padding: '10px', borderRadius: '8px', border: `1px solid ${theme.border}`, textDecoration: 'none', color: theme.textMain }}><img src={tv.image} style={{ width: '24px', height: '24px', objectFit: 'contain' }} alt="tv" /><span style={{ fontSize: '11px', fontWeight: 'bold', overflow: 'hidden', whiteSpace: 'nowrap', textOverflow: 'ellipsis' }}>{tv.name}</span></a> ))}</div> ) : <div style={{textAlign: 'center', padding: '40px 0', color: theme.textMuted, fontSize: '13px', background: theme.bgApp, borderRadius: '12px', border: `1px dashed ${theme.border}`}}>Nenhuma transmissão.</div>}</motion.div> )}
+                    {rightTab === 'Detalhes' && ( <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }}><div style={{background: theme.bgApp, borderRadius: '12px', padding: '16px', marginBottom: '25px', border: `1px solid ${theme.border}`}}><div style={{fontSize: '11px', color: theme.textMuted, marginBottom: '12px', fontWeight: 'bold', textTransform: 'uppercase'}}>Local da Partida</div><div style={{display: 'flex', alignItems: 'center', gap: '10px', fontSize: '13px', color: theme.textMain}}><span style={{fontSize: '18px'}}>🏟️</span> <span style={{fontWeight: '500'}}>{jogoSelecionado.venue}</span></div></div>{jogoSelecionado.events?.length > 0 && ( <div style={{marginBottom: '25px'}}><div style={{fontSize: '12px', color: theme.textMain, marginBottom: '15px', fontWeight: 'bold'}}>⏱️ Timeline do Jogo</div><div style={{display: 'flex', flexDirection: 'column', gap: '10px', position: 'relative'}}><div style={{position: 'absolute', top: 0, bottom: 0, left: '19px', width: '2px', background: theme.border}}></div>{[...(jogoSelecionado.events || [])].sort((a,b)=>(a.minute || 0) - (b.minute || 0)).map(ev => { const isHome = ev.participant_id === jogoSelecionado.home_id; const isSub = ev.type?.code?.includes('sub'); const icon = ev.type?.code?.includes('goal') ? '⚽' : ev.type?.code?.includes('yellow') ? '🟨' : ev.type?.code?.includes('red') ? '🟥' : isSub ? '🔄' : '📌'; return ( <div key={ev.id} style={{display: 'flex', alignItems: 'center', gap: '15px', zIndex: 1}}><div style={{width: '40px', height: '24px', background: theme.bgApp, border: `1px solid ${theme.border}`, borderRadius: '12px', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '10px', color: theme.cyan}}>{ev.minute}'</div><div style={{background: theme.bgHover, padding: '10px 15px', borderRadius: '8px', flex: 1, display: 'flex', justifyContent: 'space-between', alignItems: 'center', border: `1px solid ${theme.border}`}}><div style={{fontSize: '12px', color: theme.textMain}}><span style={{marginRight: '8px', fontSize: '14px'}}>{icon}</span>{isSub && ev.related_player_name ? <span>{ev.related_player_name} <span style={{color: theme.green}}>⬆</span> <span style={{color: theme.textMuted, fontSize: '10px'}}>{ev.player_name} ⬇</span></span> : (ev.player_name || 'Jogador')}</div><div style={{fontSize: '10px', color: isHome ? theme.cyan : theme.yellow}}>{isHome ? 'CASA' : 'FORA'}</div></div></div> ) })}</div></div> )}</motion.div> )}
+                    {rightTab === 'Estatísticas' && ( <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }}><div style={{height: '150px', width: '100%', marginBottom: '25px', background: theme.bgApp, padding: '10px', borderRadius: '12px', border: `1px solid ${theme.border}`}}><ResponsiveContainer width="100%" height="100%"><LineChart data={generateMockMomentum()}><XAxis dataKey="time" hide /><YAxis domain={[-60, 60]} hide /><Line type="stepAfter" dataKey="pressao" stroke={theme.cyan} strokeWidth={2} dot={false} /></LineChart></ResponsiveContainer></div>{(estatisticas || jogoSelecionado.stats) && Array.isArray(estatisticas || jogoSelecionado.stats) ? ( <div style={{background: theme.bgApp, padding: '20px', borderRadius: '12px', border: `1px solid ${theme.border}`}}>{(estatisticas || jogoSelecionado.stats).map((s, index) => { if(!s) return null; let type = s.type?.name || s.type || 'Dado'; let typeStr = String(type); let home = s.home || s.value || s.data?.value || 0; let away = s.away || s.value || s.data?.value || 0; const labelPt = typeStr.replace('Ball Possession %', 'Posse de Bola').replace('Total Shots', 'Chutes').replace('Corner Kicks', 'Escanteios'); return <StatRow key={index} label={labelPt} home={home} away={away} isPercent={typeStr.includes('Possession') || typeStr.includes('%')} /> })}</div> ) : <div style={{textAlign: 'center', padding: '40px 0', color: theme.textMuted, fontSize: '12px'}}>Aguardando Dados...</div>}</motion.div> )}
+                    {rightTab === 'Probs' && ( <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }}>{jogoSelecionado.predictions?.length > 0 ? ( <>{getPrediction(jogoSelecionado.predictions, 'FULLTIME_RESULT_PROBABILITY') && ( <div style={{marginBottom: '25px', background: theme.bgApp, padding: '18px', borderRadius: '12px', border: `1px solid ${theme.border}`}}><div style={{fontSize: '11px', color: theme.textMuted, marginBottom: '12px', fontWeight: 'bold'}}>Resultado Final (1X2)</div><div style={{display: 'flex', height: '12px', borderRadius: '6px', overflow: 'hidden', marginBottom: '12px'}}><div style={{width: `${getPrediction(jogoSelecionado.predictions, 'FULLTIME_RESULT_PROBABILITY').home}%`, background: theme.cyan}}></div><div style={{width: `${getPrediction(jogoSelecionado.predictions, 'FULLTIME_RESULT_PROBABILITY').draw}%`, background: theme.textMuted}}></div><div style={{width: `${getPrediction(jogoSelecionado.predictions, 'FULLTIME_RESULT_PROBABILITY').away}%`, background: theme.yellow}}></div></div><div style={{display: 'flex', justifyContent: 'space-between', fontSize: '11px', fontWeight: 'bold'}}><span style={{color: theme.cyan}}>Casa: {getPrediction(jogoSelecionado.predictions, 'FULLTIME_RESULT_PROBABILITY').home}%</span><span style={{color: theme.textMuted}}>Emp: {getPrediction(jogoSelecionado.predictions, 'FULLTIME_RESULT_PROBABILITY').draw}%</span><span style={{color: theme.yellow}}>Fora: {getPrediction(jogoSelecionado.predictions, 'FULLTIME_RESULT_PROBABILITY').away}%</span></div></div> )}{getPrediction(jogoSelecionado.predictions, 'BTTS_PROBABILITY') && ( <div style={{marginBottom: '25px', background: theme.bgApp, padding: '18px', borderRadius: '12px', border: `1px solid ${theme.border}`}}><div style={{fontSize: '11px', color: theme.textMuted, marginBottom: '12px', fontWeight: 'bold'}}>Ambas Marcam (BTTS)</div><div style={{display: 'flex', justifyContent: 'space-between'}}><div style={{color: theme.green, fontWeight: '800'}}>{getPrediction(jogoSelecionado.predictions, 'BTTS_PROBABILITY').yes}% SIM</div><div style={{color: theme.red, fontWeight: '800'}}>{getPrediction(jogoSelecionado.predictions, 'BTTS_PROBABILITY').no}% NÃO</div></div></div> )}</> ) : <div style={{textAlign: 'center', padding: '40px 0', color: theme.textMuted, fontSize: '13px'}}>Modelos indisponíveis.</div>}</motion.div> )}
+                    {rightTab === 'Escalações' && ( <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }}>{jogoSelecionado.lineups?.length > 0 ? ( <div style={{display: 'flex', gap: '15px'}}><div style={{flex: 1}}><div style={{fontSize: '12px', color: theme.cyan, marginBottom: '15px', fontWeight: 'bold', textAlign: 'center'}}>{jogoSelecionado.home_team}</div>{jogoSelecionado.lineups.filter(l => l.team_id === jogoSelecionado.home_id && l.formation_position).sort((a,b)=>a.formation_position - b.formation_position).map(p => ( <div key={p.id} onClick={() => { setAbaGeralAtiva('jogador'); carregarPerfilJogador(); }} style={{cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '10px', background: theme.bgApp, padding: '10px', borderRadius: '8px', marginBottom: '8px', border: `1px solid ${theme.border}`}}><span style={{width: '24px', height: '24px', borderRadius: '4px', background: theme.bgHover, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '11px', color: theme.textMain}}>{p.jersey_number || '-'}</span><span style={{fontSize: '12px', color: theme.textMuted, overflow: 'hidden'}}>{p.player_name}</span></div> ))}</div><div style={{flex: 1}}><div style={{fontSize: '12px', color: theme.yellow, marginBottom: '15px', fontWeight: 'bold', textAlign: 'center'}}>{jogoSelecionado.away_team}</div>{jogoSelecionado.lineups.filter(l => l.team_id === jogoSelecionado.away_id && l.formation_position).sort((a,b)=>a.formation_position - b.formation_position).map(p => ( <div key={p.id} onClick={() => { setAbaGeralAtiva('jogador'); carregarPerfilJogador(); }} style={{cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '10px', background: theme.bgApp, padding: '10px', borderRadius: '8px', marginBottom: '8px', border: `1px solid ${theme.border}`, flexDirection: 'row-reverse'}}><span style={{width: '24px', height: '24px', borderRadius: '4px', background: theme.bgHover, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '11px', color: theme.textMain}}>{p.jersey_number || '-'}</span><span style={{fontSize: '12px', color: theme.textMuted, overflow: 'hidden'}}>{p.player_name}</span></div> ))}</div></div> ) : <div style={{textAlign: 'center', padding: '40px 0', color: theme.textMuted, fontSize: '13px', background: theme.bgApp, borderRadius: '12px', border: `1px dashed ${theme.border}`}}>Escalações ainda não divulgadas.</div>}</motion.div> )}
                 </div>
             </motion.div>
         </div>
@@ -602,41 +479,97 @@ function RightPanelComponent({ jogoSelecionado, rightTab, setRightTab, analiseIA
 function StatRow({ label, home, away }) {
   const homeVal = Number(home) || 0; const awayVal = Number(away) || 0; const total = homeVal + awayVal;
   const homeP = total > 0 ? Math.round((homeVal/total)*100) : 50; const awayP = total > 0 ? Math.round((awayVal/total)*100) : 50;
-  return (
-    <div style={{ margin: '15px 0' }}>
-      <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '11px', color: theme.textMuted, marginBottom: '6px' }}><span>{homeVal}</span><span style={{fontWeight: 'bold', textTransform: 'uppercase'}}>{label}</span><span>{awayVal}</span></div>
-      <div style={{ display: 'flex', gap: '6px' }}>
-          <div style={{ flex: 1, height: '6px', backgroundColor: theme.border, display: 'flex', justifyContent: 'flex-end', borderRadius: '3px' }}><div style={{ width: `${homeP}%`, backgroundColor: theme.cyan }}/></div>
-          <div style={{ flex: 1, height: '6px', backgroundColor: theme.border, borderRadius: '3px' }}><div style={{ width: `${awayP}%`, backgroundColor: theme.yellow }}/></div>
-      </div>
-    </div>
-  );
+  return ( <div style={{ margin: '15px 0' }}><div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '11px', color: theme.textMuted, marginBottom: '6px' }}><span>{homeVal}</span><span style={{fontWeight: 'bold', textTransform: 'uppercase'}}>{label}</span><span>{awayVal}</span></div><div style={{ display: 'flex', gap: '6px' }}><div style={{ flex: 1, height: '6px', backgroundColor: theme.border, display: 'flex', justifyContent: 'flex-end', borderRadius: '3px' }}><div style={{ width: `${homeP}%`, backgroundColor: theme.cyan }}/></div><div style={{ flex: 1, height: '6px', backgroundColor: theme.border, borderRadius: '3px' }}><div style={{ width: `${awayP}%`, backgroundColor: theme.yellow }}/></div></div></div> );
 }
 
 function ClassificacaoPanel({ menuAtivo, loadingClassificacao, classificacao }) {
-    return (
-        <motion.div initial={{opacity: 0}} animate={{opacity: 1}} style={{background: theme.bgPanel, borderRadius: '12px', border: `1px solid ${theme.border}`, overflow: 'hidden', padding: '20px'}}>
-            {menuAtivo === 'todos' || menuAtivo === 'todos os jogos' || menuAtivo === 'esportes' ? (
-                <div style={{textAlign: 'center', color: theme.textMuted, padding: '40px 0'}}><span style={{fontSize: '30px', display: 'block', marginBottom: '10px'}}>🏆</span>Selecione uma liga no menu lateral.</div>
-            ) : loadingClassificacao ? (
-                <div style={{textAlign: 'center', color: theme.cyan, padding: '40px 0', fontWeight: 'bold'}}>Calculando...</div>
-            ) : (
-                <div style={{overflowX: 'auto'}}><table style={{width: '100%', borderCollapse: 'collapse', textAlign: 'left', color: theme.textMain, fontSize: '13px'}}><thead><tr style={{borderBottom: `1px solid ${theme.border}`, color: theme.textMuted}}><th>#</th><th>Equipe</th><th>P</th><th>J</th><th>V</th><th>E</th><th>D</th><th>SG</th></tr></thead><tbody>{classificacao.map((t, i) => (<tr key={i} style={{borderBottom: `1px solid rgba(255,255,255,0.02)`}}><td style={{padding: '12px 8px', color: theme.cyan}}>{t.position}</td><td style={{padding: '12px 8px', display: 'flex', alignItems: 'center', gap: '10px'}}><img src={t.logo} style={{width: '24px'}} alt="" />{t.team_name}</td><td>{t.points}</td><td>{t.matches_played}</td><td>{t.won}</td><td>{t.draw}</td><td>{t.lost}</td><td>{t.goal_diff}</td></tr>))}</tbody></table></div>
-            )}
-        </motion.div>
-    );
+    return ( <motion.div initial={{opacity: 0}} animate={{opacity: 1}} style={{background: theme.bgPanel, borderRadius: '12px', border: `1px solid ${theme.border}`, overflow: 'hidden', padding: '20px'}}>{menuAtivo === 'todos' || menuAtivo === 'todos os jogos' || menuAtivo === 'esportes' ? ( <div style={{textAlign: 'center', color: theme.textMuted, padding: '40px 0'}}><span style={{fontSize: '30px', display: 'block', marginBottom: '10px'}}>🏆</span>Selecione uma liga no menu lateral.</div> ) : loadingClassificacao ? ( <div style={{textAlign: 'center', color: theme.cyan, padding: '40px 0', fontWeight: 'bold'}}>Calculando...</div> ) : ( <div style={{overflowX: 'auto'}}><table style={{width: '100%', borderCollapse: 'collapse', textAlign: 'left', color: theme.textMain, fontSize: '13px'}}><thead><tr style={{borderBottom: `1px solid ${theme.border}`, color: theme.textMuted}}><th>#</th><th>Equipe</th><th>P</th><th>J</th><th>V</th><th>E</th><th>D</th><th>SG</th></tr></thead><tbody>{classificacao.map((t, i) => (<tr key={i} style={{borderBottom: `1px solid rgba(255,255,255,0.02)`}}><td style={{padding: '12px 8px', color: theme.cyan}}>{t.position}</td><td style={{padding: '12px 8px', display: 'flex', alignItems: 'center', gap: '10px'}}><img src={t.logo} style={{width: '24px'}} alt="" />{t.team_name}</td><td>{t.points}</td><td>{t.matches_played}</td><td>{t.won}</td><td>{t.draw}</td><td>{t.lost}</td><td>{t.goal_diff}</td></tr>))}</tbody></table></div> )}</motion.div> );
 }
 
-function ModalsExtras({ menuAtivo, isMobile, dadosPix, form, setForm, setDadosPix, setMenuAtivo, bancaData }) {
+// ============================================================================
+// 💳 COMPONENTE DE PAGAMENTO OFICIAL DO MERCADO PAGO
+// ============================================================================
+function ModalsExtras({ menuAtivo, isMobile, dadosPix, form, setForm, setDadosPix, setMenuAtivo, bancaData, setUserData }) {
+    
+    // Configuração do valor a ser cobrado
+    const initialization = { amount: 29.90 }; 
+    
+    // Configuração do visual do formulário (Theme Dark para combinar com o site)
+    const customization = {
+        visual: { style: { theme: 'dark' } },
+        paymentMethods: {
+            creditCard: "all",
+            debitCard: "all",
+            ticket: "all" // O Mercado Pago inclui o PIX automaticamente aqui!
+        }
+    };
+
+    // Função disparada quando o cliente clica em "Pagar"
+    const onSubmit = async (formData) => {
+        if (!formData.payer.email) formData.payer.email = form.email;
+        
+        return new Promise((resolve, reject) => {
+            axios.post('https://betanalitics.onrender.com/api/processar-pagamento', formData)
+                .then(res => {
+                    if (res.data.status === 'approved') {
+                        // Pagamento via Cartão Aprovado na hora!
+                        setUserData({ email: form.email, is_vip: true });
+                        localStorage.setItem('bet_sessao_ativa', form.email);
+                        
+                        let bL = {};
+                        try { bL = JSON.parse(localStorage.getItem('bet_users') || '{}'); } catch(e) {}
+                        if (bL[form.email]) { bL[form.email].is_vip = true; localStorage.setItem('bet_users', JSON.stringify(bL)); }
+                        
+                        alert("🎉 Pagamento Aprovado! Bem-vindo ao VIP PRO!");
+                        setDadosPix(null);
+                        setMenuAtivo('todos');
+                    } else if (res.data.status === 'pending') {
+                        // Pagamento via PIX gerado
+                        alert("⏳ Pagamento pendente. Se você gerou um PIX ou Boleto, conclua o pagamento no seu banco para ativar o VIP.");
+                        setDadosPix(null);
+                        setMenuAtivo('todos');
+                    } else {
+                        alert("❌ Pagamento recusado. Verifique o saldo ou os dados do cartão.");
+                    }
+                    resolve();
+                })
+                .catch(err => {
+                    console.error(err);
+                    alert("⚠️ Erro de comunicação com o servidor bancário.");
+                    reject();
+                });
+        });
+    };
+
     return (
         <>
-            {menuAtivo === "assinar pro" && ( <div style={{position: 'fixed', top: 0, left: 0, right: 0, bottom: isMobile ? '65px' : 0, background: 'rgba(9,10,15,0.95)', zIndex: 200, padding: '40px 20px', textAlign: 'center'}}><div style={{maxWidth: '500px', margin: '0 auto'}}><h1 style={{color: theme.cyan}}>VIP PRO 👑</h1>{!dadosPix ? ( <div style={{display: 'flex', flexDirection: 'column', gap: '20px'}}><input placeholder="E-mail" style={{padding: '18px'}} onChange={e => setForm({...form, email: e.target.value})} /><button style={{padding: '18px', background: theme.cyan, color: '#000'}} onClick={() => { if(!form.email) return; setDadosPix({ id_pagamento: 12345 });}}>Gerar PIX</button><button onClick={() => setMenuAtivo('todos')} style={{color: theme.textMuted, background: 'none', border: 'none'}}>Voltar</button></div> ) : ( <div style={{background: theme.bgPanel, padding: '40px', border: `1px dashed ${theme.cyan}`}}><h3 style={{color: theme.cyan}}>PIX Gerado!</h3></div> )}</div></div> )}
+            {menuAtivo === "assinar pro" && ( 
+                <div style={{position: 'fixed', top: 0, left: 0, right: 0, bottom: isMobile ? '65px' : 0, background: 'rgba(9,10,15,0.95)', zIndex: 200, padding: '40px 20px', textAlign: 'center', overflowY: 'auto'}}>
+                    <div style={{maxWidth: '500px', margin: '0 auto'}}>
+                        <h1 style={{color: theme.cyan, margin: '0 0 5px 0'}}>VIP PRO 👑</h1>
+                        <p style={{color: theme.textMuted, marginBottom: '25px', fontSize: '13px'}}>Assinatura Mensal: <b>R$ 29,90</b></p>
+                        
+                        {!dadosPix ? ( 
+                            <div style={{display: 'flex', flexDirection: 'column', gap: '15px'}}>
+                                <input placeholder="Confirme seu E-mail" value={form.email} style={{padding: '16px', borderRadius: '8px', border: `1px solid ${theme.border}`, background: theme.bgApp, color: '#fff', outline: 'none'}} onChange={e => setForm({...form, email: e.target.value})} />
+                                <button style={{padding: '16px', background: theme.cyan, color: '#000', border: 'none', borderRadius: '8px', fontWeight: 'bold', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '10px'}} onClick={() => { if(!form.email) return alert("Por favor, preencha o e-mail."); setDadosPix({ checkout: true });}}>
+                                    <span style={{fontSize: '20px'}}>🔒</span> Ir para Pagamento Seguro
+                                </button>
+                                <button onClick={() => setMenuAtivo('todos')} style={{color: theme.textMuted, background: 'none', border: 'none', marginTop: '10px', cursor: 'pointer', fontWeight: 'bold'}}>Cancelar</button>
+                            </div> 
+                        ) : ( 
+                            <div style={{background: theme.bgPanel, padding: '20px', borderRadius: '12px', border: `1px solid ${theme.border}`}}>
+                                <Payment 
+                                    initialization={initialization} 
+                                    customization={customization} 
+                                    onSubmit={onSubmit} 
+                                    onError={(err) => console.log(err)} 
+                                />
+                                <button onClick={() => setDadosPix(null)} style={{width: '100%', marginTop: '15px', padding: '15px', background: theme.bgHover, color: theme.textMain, border: `1px solid ${theme.border}`, borderRadius: '8px', fontWeight: 'bold', cursor: 'pointer'}}>Voltar</button>
+                            </div> 
+                        )}
+                    </div>
+                </div> 
+            )}
             {menuAtivo === "gestão de banca" && ( <div style={{position: 'fixed', top: 0, left: 0, right: 0, bottom: isMobile ? '65px' : 0, background: 'rgba(9,10,15,0.95)', zIndex: 200, padding: '30px', textAlign: 'center'}}><button onClick={() => setMenuAtivo('todos')} style={{color: theme.textMuted, background: 'none', border: 'none'}}>⬅ Voltar</button><h2 style={{color: theme.cyan}}>Banca</h2><div style={{height: '300px', maxWidth: '800px', margin: '0 auto'}}><ResponsiveContainer width="100%" height="100%"><AreaChart data={bancaData.length ? bancaData : [{name:'Seg',val:100},{name:'Ter',val:120}]}><XAxis dataKey="name" /><Area type="monotone" dataKey="val" stroke={theme.cyan} fill={theme.cyan} fillOpacity={0.2} /></AreaChart></ResponsiveContainer></div></div> )}
         </>
-    );
-}
-
-function AuthModal({ showLoginMenu, setShowLoginMenu, authMode, setAuthMode, loginEmail, setLoginEmail, loginSenha, setLoginSenha, handleLogin, handleCadastro }) {
-    if (!showLoginMenu) return null;
-    return ( <div style={{ position: 'fixed', inset: 0, background: 'rgba(9,10,15,0.9)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 1000 }}><motion.div initial={{ scale: 0.9 }} animate={{ scale: 1 }} style={{ background: theme.bgPanel, padding: '40px 30px', width: '90%', maxWidth: '400px' }}><h2 style={{ color: '#fff', textAlign: 'center' }}>Acesso</h2><div style={{display: 'flex', gap: '10px', marginBottom: '20px'}}><button onClick={() => setAuthMode('login')} style={{flex: 1, padding: '12px', background: authMode === 'login' ? theme.cyan : 'transparent'}}>Entrar</button><button onClick={() => setAuthMode('register')} style={{flex: 1, padding: '12px', background: authMode === 'register' ? theme.cyan : 'transparent'}}>Cadastrar</button></div><input placeholder="E-mail" value={loginEmail} onChange={e => setLoginEmail(e.target.value)} style={{width: '100%', padding: '15px', marginBottom: '15px'}} /><input placeholder="Senha" type="password" value={loginSenha} onChange={e => setLoginSenha(e.target.value)} style={{width: '100%', padding: '15px', marginBottom: '25px'}} /><button style={{width: '100%', padding: '15px', background: theme.cyan, fontWeight: 'bold'}} onClick={authMode === 'login' ? handleLogin : handleCadastro}>CONTINUAR</button><button style={{width: '100%', padding: '10px', background: 'transparent', color: theme.textMuted}} onClick={() => setShowLoginMenu(false)}>Cancelar</button></motion.div></div> );
-}
