@@ -11,7 +11,7 @@ import dadosFut from './dados.json';
 import './App.css';
 
 // ============================================================================
-// 🔑 INICIALIZANDO O MERCADO PAGO COM A SUA PUBLIC KEY
+// 🔑 INICIALIZANDO O MERCADO PAGO COM A TUA PUBLIC KEY
 // ============================================================================
 initMercadoPago('APP_USR-4fa18e00-642d-4369-bc77-e8c68ed9c2a0', { locale: 'pt-BR' });
 
@@ -399,7 +399,6 @@ export default function App() {
                 </motion.div>
             )}
 
-            {/* AQUI PASSAMOS O setUserData PARA O NOVO COMPONENTE DE PAGAMENTO */}
             <ModalsExtras menuAtivo={menuAtivo} isMobile={isMobile} dadosPix={dadosPix} form={form} setForm={setForm} setDadosPix={setDadosPix} setMenuAtivo={setMenuAtivo} bancaData={bancaData} setUserData={setUserData} />
           </>
           )} 
@@ -494,13 +493,15 @@ function ModalsExtras({ menuAtivo, isMobile, dadosPix, form, setForm, setDadosPi
     // Configuração do valor a ser cobrado
     const initialization = { amount: 29.90 }; 
     
-    // Configuração do visual do formulário (Theme Dark para combinar com o site)
+    // 👇 AQUI ESTÁ A CORREÇÃO PARA FORÇAR OS CARTÕES 👇
     const customization = {
         visual: { style: { theme: 'dark' } },
         paymentMethods: {
             creditCard: "all",
             debitCard: "all",
-            ticket: "all" // O Mercado Pago inclui o PIX automaticamente aqui!
+            bankTransfer: "all", // 💠 Garante o PIX Oficial
+            ticket: "all",       // 📄 Garante o Boleto
+            maxInstallments: 12  // 💳 Libera o parcelamento no cartão
         }
     };
 
@@ -573,3 +574,10 @@ function ModalsExtras({ menuAtivo, isMobile, dadosPix, form, setForm, setDadosPi
             )}
             {menuAtivo === "gestão de banca" && ( <div style={{position: 'fixed', top: 0, left: 0, right: 0, bottom: isMobile ? '65px' : 0, background: 'rgba(9,10,15,0.95)', zIndex: 200, padding: '30px', textAlign: 'center'}}><button onClick={() => setMenuAtivo('todos')} style={{color: theme.textMuted, background: 'none', border: 'none'}}>⬅ Voltar</button><h2 style={{color: theme.cyan}}>Banca</h2><div style={{height: '300px', maxWidth: '800px', margin: '0 auto'}}><ResponsiveContainer width="100%" height="100%"><AreaChart data={bancaData.length ? bancaData : [{name:'Seg',val:100},{name:'Ter',val:120}]}><XAxis dataKey="name" /><Area type="monotone" dataKey="val" stroke={theme.cyan} fill={theme.cyan} fillOpacity={0.2} /></AreaChart></ResponsiveContainer></div></div> )}
         </>
+    );
+}
+
+function AuthModal({ showLoginMenu, setShowLoginMenu, authMode, setAuthMode, loginEmail, setLoginEmail, loginSenha, setLoginSenha, handleLogin, handleCadastro }) {
+    if (!showLoginMenu) return null;
+    return ( <div style={{ position: 'fixed', inset: 0, background: 'rgba(9,10,15,0.9)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 1000 }}><motion.div initial={{ scale: 0.9 }} animate={{ scale: 1 }} style={{ background: theme.bgPanel, padding: '40px 30px', width: '90%', maxWidth: '400px' }}><h2 style={{ color: '#fff', textAlign: 'center' }}>Acesso</h2><div style={{display: 'flex', gap: '10px', marginBottom: '20px'}}><button onClick={() => setAuthMode('login')} style={{flex: 1, padding: '12px', background: authMode === 'login' ? theme.cyan : 'transparent'}}>Entrar</button><button onClick={() => setAuthMode('register')} style={{flex: 1, padding: '12px', background: authMode === 'register' ? theme.cyan : 'transparent'}}>Cadastrar</button></div><input placeholder="E-mail" value={loginEmail} onChange={e => setLoginEmail(e.target.value)} style={{width: '100%', padding: '15px', marginBottom: '15px'}} /><input placeholder="Senha" type="password" value={loginSenha} onChange={e => setLoginSenha(e.target.value)} style={{width: '100%', padding: '15px', marginBottom: '25px'}} /><button style={{width: '100%', padding: '15px', background: theme.cyan, fontWeight: 'bold'}} onClick={authMode === 'login' ? handleLogin : handleCadastro}>CONTINUAR</button><button style={{width: '100%', padding: '10px', background: 'transparent', color: theme.textMuted}} onClick={() => setShowLoginMenu(false)}>Cancelar</button></motion.div></div> );
+}
