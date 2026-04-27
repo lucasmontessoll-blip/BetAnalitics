@@ -250,7 +250,6 @@ export default function App() {
               )}
           </div>
           <div style={{ display: 'flex', alignItems: 'center', gap: '20px' }}>
-            {/* ... Pesquisa Navbar original (opcional: podes manter a input antiga aqui, reduzi p/ espaço) */}
             <div style={{ position: 'relative' }}>
                 <button onClick={() => setShowProfileMenu(!showProfileMenu)} style={{ background: 'rgba(0,212,182,0.1)', color: theme.cyan, border: `1px solid ${theme.cyan}`, borderRadius: '50%', width: '40px', height: '40px', cursor: 'pointer' }}>👤</button>
                 <AnimatePresence>
@@ -533,12 +532,27 @@ function RightPanelComponent({ jogoSelecionado, rightTab, setRightTab, analiseIA
                             )}
                         </motion.div>
                     )}
+                    
+                    {/* 👇 AQUI ESTÁ A CORREÇÃO DA TELA PRETA: VERIFICAÇÃO DE ARRAY E STRING 👇 */}
                     {rightTab === 'Estatísticas' && (
                         <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }}>
                             <div style={{height: '150px', width: '100%', marginBottom: '25px', background: theme.bgApp, padding: '10px', borderRadius: '12px', border: `1px solid ${theme.border}`}}><ResponsiveContainer width="100%" height="100%"><LineChart data={generateMockMomentum()}><XAxis dataKey="time" hide /><YAxis domain={[-60, 60]} hide /><Line type="stepAfter" dataKey="pressao" stroke={theme.cyan} strokeWidth={2} dot={false} /></LineChart></ResponsiveContainer></div>
-                            {estatisticas || jogoSelecionado.stats ? ( <div style={{background: theme.bgApp, padding: '20px', borderRadius: '12px', border: `1px solid ${theme.border}`}}>{(estatisticas || jogoSelecionado.stats).map(s => { let type = s.type?.name || s.type; let home = s.home || s.value; let away = s.away || s.value; const labelPt = type.replace('Ball Possession %', 'Posse de Bola').replace('Total Shots', 'Chutes').replace('Corner Kicks', 'Escanteios'); return <StatRow key={type} label={labelPt} home={home} away={away} isPercent={type.includes('Possession') || type.includes('%')} /> })}</div> ) : <div style={{textAlign: 'center', padding: '40px 0', color: theme.textMuted, fontSize: '12px'}}>Aguardando Dados...</div>}
+                            {(estatisticas || jogoSelecionado.stats) && Array.isArray(estatisticas || jogoSelecionado.stats) ? ( 
+                                <div style={{background: theme.bgApp, padding: '20px', borderRadius: '12px', border: `1px solid ${theme.border}`}}>
+                                    {(estatisticas || jogoSelecionado.stats).map((s, index) => { 
+                                        if(!s) return null; 
+                                        let type = s.type?.name || s.type || 'Dado'; 
+                                        let typeStr = String(type);
+                                        let home = s.home || s.value || s.data?.value || 0; 
+                                        let away = s.away || s.value || s.data?.value || 0; 
+                                        const labelPt = typeStr.replace('Ball Possession %', 'Posse de Bola').replace('Total Shots', 'Chutes').replace('Corner Kicks', 'Escanteios'); 
+                                        return <StatRow key={index} label={labelPt} home={home} away={away} isPercent={typeStr.includes('Possession') || typeStr.includes('%')} /> 
+                                    })}
+                                </div> 
+                            ) : <div style={{textAlign: 'center', padding: '40px 0', color: theme.textMuted, fontSize: '12px'}}>Aguardando Dados...</div>}
                         </motion.div>
                     )}
+
                     {rightTab === 'Probs' && (
                         <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }}>
                             {jogoSelecionado.predictions?.length > 0 ? (
