@@ -1,5 +1,7 @@
 const express = require('express');
 const cors = require('cors');
+const { MercadoPagoConfig, Payment } = require('mercadopago'); // IMPORTAÇÃO DA BIBLIOTECA
+
 const app = express();
 
 // Permite que o seu Frontend converse com o Backend sem dar erro de CORS
@@ -11,15 +13,54 @@ app.use(cors({
 app.use(express.json());
 
 // =========================================================================
-// ESSA É A ROTA QUE O SEU APP.JSX ESTÁ CHAMANDO!
+// 💳 CONFIGURAÇÃO DO MERCADO PAGO 
+// A Public Key (APP_USR-4fa18e00-642d-4369-bc77-e8c68ed9c2a0) será usada no App.jsx!
+// =========================================================================
+const client = new MercadoPagoConfig({ accessToken: 'APP_USR-2548637752713726-042717-43ca72e6d42cc6ff579b9d6ea7497b75-3344260552' });
+
+
+// =========================================================================
+// 🚀 NOVA ROTA: PROCESSAR PAGAMENTOS (CARTÃO E PIX)
+// =========================================================================
+app.post('/api/processar-pagamento', async (req, res) => {
+    try {
+        const body = {
+            transaction_amount: req.body.transaction_amount,
+            token: req.body.token, // O token seguro gerado pelo React
+            description: 'Assinatura VIP PRO - BetAnalytics', // Nome que aparece na fatura do cliente
+            installments: req.body.installments,
+            payment_method_id: req.body.payment_method_id,
+            issuer_id: req.body.issuer_id,
+            payer: {
+                email: req.body.payer.email,
+            }
+        };
+
+        const payment = new Payment(client);
+        const result = await payment.create({ body });
+
+        // Devolvemos o status para o site saber se o banco aprovou ou recusou
+        res.status(200).json({
+            status: result.status,
+            status_detail: result.status_detail,
+            id: result.id
+        });
+
+    } catch (error) {
+        console.error("Erro no pagamento:", error);
+        res.status(500).json({ error: 'Falha ao processar o pagamento' });
+    }
+});
+
+
+// =========================================================================
+// ROTA DO SEU JSON DE ESTATÍSTICAS (MANTIDA 100% INTACTA)
 // =========================================================================
 app.get('/api/match', (req, res) => {
     
     // Aqui você pode ler a data que o Frontend mandou (opcional, se for usar na API real)
     const dataFiltro = req.query.date;
 
-    // 1. AQUI FICA AQUELE JSON GIGANTE QUE VOCÊ ME MANDOU
-    // (Eu encurtei aqui pra não ficar gigante, mas você cola ele inteiro dentro dessa variável)
     const SEU_JSON = {
         "fixtures": [
             {
@@ -39,15 +80,13 @@ app.get('/api/match', (req, res) => {
                     { "name": "Real Oviedo", "image_path": "https://cdn.sportmonks.com/images/soccer/teams/29/93.png", "meta": { "location": "away" } }
                 ]
             }
-            // ... coloque o resto dos jogos da La Liga aqui ...
+            // ... resto dos jogos da La Liga ...
         ],
         "league": {
             "name": "La Liga"
         }
     };
 
-    // 2. É AQUI QUE A MÁGICA ACONTECE!
-    // O comando "res.json" pega o SEU_JSON e envia pela internet direto pro seu App.jsx
     res.json(SEU_JSON);
 });
 
