@@ -496,8 +496,10 @@ function ModalsExtras({ menuAtivo, isMobile, dadosPix, form, setForm, setDadosPi
         visual: { style: { theme: 'dark' } },
         paymentMethods: {
             creditCard: "all",
-            debitCard: ["visa", "master", "maestro", "elo", "hipercard"], 
+            // Força a remoção do "Caixa Tem" ao exigir apenas as bandeiras tradicionais
+            debitCard: ["debvisa", "debmaster", "debmaestro", "debelo"], 
             bankTransfer: "all", 
+            ticket: "none", // ❌ DESLIGA O BOLETO EXPLICITAMENTE
             maxInstallments: 12  
         }
     };
@@ -520,11 +522,11 @@ function ModalsExtras({ menuAtivo, isMobile, dadosPix, form, setForm, setDadosPi
                         setDadosPix(null);
                         setMenuAtivo('todos');
                     } else if (res.data.status === 'pending') {
-                        alert("⏳ Pagamento pendente. Se você gerou um PIX, conclua o pagamento no seu banco para ativar o VIP.");
+                        alert("⏳ Pagamento pendente. Se gerou um PIX, conclua no seu banco para ativar.");
                         setDadosPix(null);
                         setMenuAtivo('todos');
                     } else {
-                        alert("❌ Pagamento recusado. Verifique o saldo ou os dados do cartão.");
+                        alert("❌ Pagamento recusado. Verifique os dados.");
                     }
                     resolve();
                 })
