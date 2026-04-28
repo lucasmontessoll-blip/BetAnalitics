@@ -490,22 +490,18 @@ function ClassificacaoPanel({ menuAtivo, loadingClassificacao, classificacao }) 
 // ============================================================================
 function ModalsExtras({ menuAtivo, isMobile, dadosPix, form, setForm, setDadosPix, setMenuAtivo, bancaData, setUserData }) {
     
-    // Configuração do valor a ser cobrado
     const initialization = { amount: 29.90 }; 
     
-    // 👇 AQUI ESTÁ A CORREÇÃO PARA FORÇAR OS CARTÕES 👇
     const customization = {
         visual: { style: { theme: 'dark' } },
         paymentMethods: {
             creditCard: "all",
-            debitCard: "all",
-            bankTransfer: "all", // 💠 Garante o PIX Oficial
-            ticket: "all",       // 📄 Garante o Boleto
-            maxInstallments: 12  // 💳 Libera o parcelamento no cartão
+            debitCard: ["visa", "master", "maestro", "elo", "hipercard"], 
+            bankTransfer: "all", 
+            maxInstallments: 12  
         }
     };
 
-    // Função disparada quando o cliente clica em "Pagar"
     const onSubmit = async (formData) => {
         if (!formData.payer.email) formData.payer.email = form.email;
         
@@ -513,7 +509,6 @@ function ModalsExtras({ menuAtivo, isMobile, dadosPix, form, setForm, setDadosPi
             axios.post('https://betanalitics.onrender.com/api/processar-pagamento', formData)
                 .then(res => {
                     if (res.data.status === 'approved') {
-                        // Pagamento via Cartão Aprovado na hora!
                         setUserData({ email: form.email, is_vip: true });
                         localStorage.setItem('bet_sessao_ativa', form.email);
                         
@@ -525,8 +520,7 @@ function ModalsExtras({ menuAtivo, isMobile, dadosPix, form, setForm, setDadosPi
                         setDadosPix(null);
                         setMenuAtivo('todos');
                     } else if (res.data.status === 'pending') {
-                        // Pagamento via PIX gerado
-                        alert("⏳ Pagamento pendente. Se você gerou um PIX ou Boleto, conclua o pagamento no seu banco para ativar o VIP.");
+                        alert("⏳ Pagamento pendente. Se você gerou um PIX, conclua o pagamento no seu banco para ativar o VIP.");
                         setDadosPix(null);
                         setMenuAtivo('todos');
                     } else {
