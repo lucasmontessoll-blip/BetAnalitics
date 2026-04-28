@@ -11,7 +11,7 @@ import dadosFut from './dados.json';
 import './App.css';
 
 // ============================================================================
-// 🔑 INICIALIZANDO O MERCADO PAGO COM A TUA PUBLIC KEY
+// 🔑 INICIALIZANDO O MERCADO PAGO COM A SUA PUBLIC KEY
 // ============================================================================
 initMercadoPago('APP_USR-4fa18e00-642d-4369-bc77-e8c68ed9c2a0', { locale: 'pt-BR' });
 
@@ -490,16 +490,23 @@ function ClassificacaoPanel({ menuAtivo, loadingClassificacao, classificacao }) 
 // ============================================================================
 function ModalsExtras({ menuAtivo, isMobile, dadosPix, form, setForm, setDadosPix, setMenuAtivo, bancaData, setUserData }) {
     
-    const initialization = { amount: 29.90 }; 
+    // 👇 INICIALIZAÇÃO BLINDADA: Passando o e-mail obrigatoriamente para a raiz do Mercado Pago
+    const initialization = { 
+        amount: 29.90,
+        payer: {
+            email: form.email
+        }
+    }; 
     
-    // A configuração voltou ao padrão que funciona no MP sem dar erro
+    // 👇 CUSTOMIZAÇÃO PADRÃO: Sem remover "ticket" para não crashar a API deles.
     const customization = {
         visual: { style: { theme: 'dark' } },
         paymentMethods: {
-            creditCard: "all",
-            debitCard: "all", 
-            bankTransfer: "all", 
-            maxInstallments: 12  
+            creditCard: 'all',
+            debitCard: 'all',
+            bankTransfer: 'all',
+            ticket: 'all',
+            maxInstallments: 12
         }
     };
 
@@ -521,7 +528,7 @@ function ModalsExtras({ menuAtivo, isMobile, dadosPix, form, setForm, setDadosPi
                         setDadosPix(null);
                         setMenuAtivo('todos');
                     } else if (res.data.status === 'pending') {
-                        alert("⏳ Pagamento pendente. Se gerou um PIX, conclua no seu banco para ativar.");
+                        alert("⏳ Pagamento pendente. Se você gerou um PIX ou Boleto, conclua o pagamento para ativar o VIP.");
                         setDadosPix(null);
                         setMenuAtivo('todos');
                     } else {
@@ -547,7 +554,7 @@ function ModalsExtras({ menuAtivo, isMobile, dadosPix, form, setForm, setDadosPi
                         
                         {!dadosPix ? ( 
                             <div style={{display: 'flex', flexDirection: 'column', gap: '15px'}}>
-                                <input placeholder="Confirme seu E-mail" value={form.email} style={{padding: '16px', borderRadius: '8px', border: `1px solid ${theme.border}`, background: theme.bgApp, color: '#fff', outline: 'none'}} onChange={e => setForm({...form, email: e.target.value})} />
+                                <input placeholder="Confirme seu E-mail (USE UM EMAIL DIFERENTE DA SUA CONTA DO MP)" value={form.email} style={{padding: '16px', borderRadius: '8px', border: `1px solid ${theme.border}`, background: theme.bgApp, color: '#fff', outline: 'none'}} onChange={e => setForm({...form, email: e.target.value})} />
                                 <button style={{padding: '16px', background: theme.cyan, color: '#000', border: 'none', borderRadius: '8px', fontWeight: 'bold', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '10px'}} onClick={() => { if(!form.email) return alert("Por favor, preencha o e-mail."); setDadosPix({ checkout: true });}}>
                                     <span style={{fontSize: '20px'}}>🔒</span> Ir para Pagamento Seguro
                                 </button>
@@ -555,8 +562,7 @@ function ModalsExtras({ menuAtivo, isMobile, dadosPix, form, setForm, setDadosPi
                             </div> 
                         ) : ( 
                             <div style={{background: theme.bgPanel, padding: '20px', borderRadius: '12px', border: `1px solid ${theme.border}`}}>
-                                
-                                {/* 👇 NOVA BARRA DE AVISO DE BANDEIRAS 👇 */}
+                                {/* BARRA DE AVISO DE BANDEIRAS MANTIDA */}
                                 <div style={{marginBottom: '15px', padding: '15px', background: 'rgba(0, 212, 182, 0.05)', border: `1px dashed ${theme.cyan}`, borderRadius: '8px'}}>
                                     <div style={{fontSize: '11px', color: theme.cyan, fontWeight: 'bold', marginBottom: '10px', textTransform: 'uppercase'}}>Aceitamos Débito e Crédito:</div>
                                     <div style={{display: 'flex', justifyContent: 'center', gap: '8px', flexWrap: 'wrap'}}>
@@ -567,7 +573,6 @@ function ModalsExtras({ menuAtivo, isMobile, dadosPix, form, setForm, setDadosPi
                                         <span style={{background: '#1c202d', padding: '4px 8px', borderRadius: '4px', fontSize: '11px', color: '#fff', fontWeight: 'bold'}}>🟠 Inter</span>
                                     </div>
                                 </div>
-
                                 <Payment 
                                     initialization={initialization} 
                                     customization={customization} 
@@ -580,12 +585,4 @@ function ModalsExtras({ menuAtivo, isMobile, dadosPix, form, setForm, setDadosPi
                     </div>
                 </div> 
             )}
-            {menuAtivo === "gestão de banca" && ( <div style={{position: 'fixed', top: 0, left: 0, right: 0, bottom: isMobile ? '65px' : 0, background: 'rgba(9,10,15,0.95)', zIndex: 200, padding: '30px', textAlign: 'center'}}><button onClick={() => setMenuAtivo('todos')} style={{color: theme.textMuted, background: 'none', border: 'none'}}>⬅ Voltar</button><h2 style={{color: theme.cyan}}>Banca</h2><div style={{height: '300px', maxWidth: '800px', margin: '0 auto'}}><ResponsiveContainer width="100%" height="100%"><AreaChart data={bancaData.length ? bancaData : [{name:'Seg',val:100},{name:'Ter',val:120}]}><XAxis dataKey="name" /><Area type="monotone" dataKey="val" stroke={theme.cyan} fill={theme.cyan} fillOpacity={0.2} /></AreaChart></ResponsiveContainer></div></div> )}
-        </>
-    );
-}
-
-function AuthModal({ showLoginMenu, setShowLoginMenu, authMode, setAuthMode, loginEmail, setLoginEmail, loginSenha, setLoginSenha, handleLogin, handleCadastro }) {
-    if (!showLoginMenu) return null;
-    return ( <div style={{ position: 'fixed', inset: 0, background: 'rgba(9,10,15,0.9)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 1000 }}><motion.div initial={{ scale: 0.9 }} animate={{ scale: 1 }} style={{ background: theme.bgPanel, padding: '40px 30px', width: '90%', maxWidth: '400px' }}><h2 style={{ color: '#fff', textAlign: 'center' }}>Acesso</h2><div style={{display: 'flex', gap: '10px', marginBottom: '20px'}}><button onClick={() => setAuthMode('login')} style={{flex: 1, padding: '12px', background: authMode === 'login' ? theme.cyan : 'transparent'}}>Entrar</button><button onClick={() => setAuthMode('register')} style={{flex: 1, padding: '12px', background: authMode === 'register' ? theme.cyan : 'transparent'}}>Cadastrar</button></div><input placeholder="E-mail" value={loginEmail} onChange={e => setLoginEmail(e.target.value)} style={{width: '100%', padding: '15px', marginBottom: '15px'}} /><input placeholder="Senha" type="password" value={loginSenha} onChange={e => setLoginSenha(e.target.value)} style={{width: '100%', padding: '15px', marginBottom: '25px'}} /><button style={{width: '100%', padding: '15px', background: theme.cyan, fontWeight: 'bold'}} onClick={authMode === 'login' ? handleLogin : handleCadastro}>CONTINUAR</button><button style={{width: '100%', padding: '10px', background: 'transparent', color: theme.textMuted}} onClick={() => setShowLoginMenu(false)}>Cancelar</button></motion.div></div> );
-}
+            {menuAtivo === "gestão de banca" && ( <div style={{position: 'fixed', top: 0, left: 0, right: 0, bottom: isMobile ? '65px' : 0, background: 'rgba(9,10,15,0.95)', zIndex: 200, padding: '30px', textAlign: 'center'}}><button onClick={() => setMenuAtivo('todos')} style={{color: theme.textMuted, background: 'none', border: 'none'}}>⬅ Voltar</button><h2 style={{color: theme.cyan}}>Banca</h2><div style={{height: '300px', maxWidth: '800px', margin: '0 auto'}}><ResponsiveContainer width="100%" height="100%"><AreaChart data={b
