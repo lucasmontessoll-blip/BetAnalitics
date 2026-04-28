@@ -492,14 +492,13 @@ function ModalsExtras({ menuAtivo, isMobile, dadosPix, form, setForm, setDadosPi
     
     const initialization = { amount: 29.90 }; 
     
+    // A configuração voltou ao padrão que funciona no MP sem dar erro
     const customization = {
         visual: { style: { theme: 'dark' } },
         paymentMethods: {
             creditCard: "all",
-            // Força a remoção do "Caixa Tem" ao exigir apenas as bandeiras tradicionais
-            debitCard: ["debvisa", "debmaster", "debmaestro", "debelo"], 
+            debitCard: "all", 
             bankTransfer: "all", 
-            ticket: "none", // ❌ DESLIGA O BOLETO EXPLICITAMENTE
             maxInstallments: 12  
         }
     };
@@ -556,6 +555,19 @@ function ModalsExtras({ menuAtivo, isMobile, dadosPix, form, setForm, setDadosPi
                             </div> 
                         ) : ( 
                             <div style={{background: theme.bgPanel, padding: '20px', borderRadius: '12px', border: `1px solid ${theme.border}`}}>
+                                
+                                {/* 👇 NOVA BARRA DE AVISO DE BANDEIRAS 👇 */}
+                                <div style={{marginBottom: '15px', padding: '15px', background: 'rgba(0, 212, 182, 0.05)', border: `1px dashed ${theme.cyan}`, borderRadius: '8px'}}>
+                                    <div style={{fontSize: '11px', color: theme.cyan, fontWeight: 'bold', marginBottom: '10px', textTransform: 'uppercase'}}>Aceitamos Débito e Crédito:</div>
+                                    <div style={{display: 'flex', justifyContent: 'center', gap: '8px', flexWrap: 'wrap'}}>
+                                        <span style={{background: '#1c202d', padding: '4px 8px', borderRadius: '4px', fontSize: '11px', color: '#fff', fontWeight: 'bold'}}>💳 Mastercard</span>
+                                        <span style={{background: '#1c202d', padding: '4px 8px', borderRadius: '4px', fontSize: '11px', color: '#fff', fontWeight: 'bold'}}>💳 Visa</span>
+                                        <span style={{background: '#1c202d', padding: '4px 8px', borderRadius: '4px', fontSize: '11px', color: '#fff', fontWeight: 'bold'}}>💳 Elo</span>
+                                        <span style={{background: '#1c202d', padding: '4px 8px', borderRadius: '4px', fontSize: '11px', color: '#fff', fontWeight: 'bold'}}>🟣 Nubank</span>
+                                        <span style={{background: '#1c202d', padding: '4px 8px', borderRadius: '4px', fontSize: '11px', color: '#fff', fontWeight: 'bold'}}>🟠 Inter</span>
+                                    </div>
+                                </div>
+
                                 <Payment 
                                     initialization={initialization} 
                                     customization={customization} 
