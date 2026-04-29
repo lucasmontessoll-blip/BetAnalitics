@@ -586,7 +586,7 @@ export default function App() {
 }
 
 // ============================================================================
-// 🧩 COMPONENTES EXTRAÍDOS (FORMATADOS COM QUEBRAS DE LINHA)
+// 🧩 COMPONENTES EXTRAÍDOS (FORMATADOS)
 // ============================================================================
 function AbaEsportes({ esporteAtivo, setEsporteAtivo }) {
   return (
@@ -912,15 +912,15 @@ function ClassificacaoPanel({ menuAtivo, loadingClassificacao, classificacao }) 
 }
 
 function ModalsExtras({ menuAtivo, isMobile, dadosPix, form, setForm, setDadosPix, setMenuAtivo, bancaData, setUserData }) {
-    const initialization = { amount: 29.90 }; 
     
+    // 👇 ESTADO NOVO: GUARDA O PIX GERADO PELO BACKEND 👇
+    const [pixRecebido, setPixRecebido] = useState(null); 
+    
+    const initialization = { amount: 29.90 }; 
     const customization = {
         visual: { style: { theme: 'dark' } },
         paymentMethods: {
-            creditCard: 'all',
-            debitCard: 'all', 
-            bankTransfer: 'all', 
-            maxInstallments: 12  
+            creditCard: 'all', debitCard: 'all', bankTransfer: 'all', maxInstallments: 12  
         }
     };
 
@@ -940,9 +940,14 @@ function ModalsExtras({ menuAtivo, isMobile, dadosPix, form, setForm, setDadosPi
                         setDadosPix(null);
                         setMenuAtivo('todos');
                     } else if (res.data.status === 'pending') {
-                        alert("⏳ Pagamento pendente. Conclua no seu banco para ativar.");
-                        setDadosPix(null);
-                        setMenuAtivo('todos');
+                        // 👇 A MÁGICA: Se tem QR CODE, ele salva e desenha na tela! 👇
+                        if (res.data.qr_code) {
+                            setPixRecebido(res.data);
+                        } else {
+                            alert("⏳ Pagamento pendente. Conclua no seu banco para ativar.");
+                            setDadosPix(null);
+                            setMenuAtivo('todos');
+                        }
                     } else {
                         alert("❌ Pagamento recusado. Verifique os dados.");
                     }
@@ -964,14 +969,35 @@ function ModalsExtras({ menuAtivo, isMobile, dadosPix, form, setForm, setDadosPi
                         <h1 style={{color: theme.cyan, margin: '0 0 5px 0'}}>VIP PRO 👑</h1>
                         <p style={{color: theme.textMuted, marginBottom: '25px', fontSize: '13px'}}>Assinatura Mensal: <b>R$ 29,90</b></p>
                         
-                        {!dadosPix ? ( 
+                        {!dadosPix && !pixRecebido ? ( 
                             <div style={{display: 'flex', flexDirection: 'column', gap: '15px'}}>
-                                <input placeholder="E-mail (Para teste, não use o do MP)" value={form.email} style={{padding: '16px', borderRadius: '8px', border: `1px solid ${theme.border}`, background: theme.bgApp, color: '#fff', outline: 'none'}} onChange={e => setForm({...form, email: e.target.value})} />
+                                <input placeholder="E-mail (Não use o da sua conta Mercado Pago)" value={form.email} style={{padding: '16px', borderRadius: '8px', border: `1px solid ${theme.border}`, background: theme.bgApp, color: '#fff', outline: 'none'}} onChange={e => setForm({...form, email: e.target.value})} />
                                 <button style={{padding: '16px', background: theme.cyan, color: '#000', border: 'none', borderRadius: '8px', fontWeight: 'bold', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '10px'}} onClick={() => { if(!form.email) return alert("Por favor, preencha o e-mail."); setDadosPix({ checkout: true });}}>
                                     <span style={{fontSize: '20px'}}>🔒</span> Ir para Pagamento Seguro
                                 </button>
                                 <button onClick={() => setMenuAtivo('todos')} style={{color: theme.textMuted, background: 'none', border: 'none', marginTop: '10px', cursor: 'pointer', fontWeight: 'bold'}}>Cancelar</button>
                             </div> 
+                        ) : pixRecebido ? (
+                            // 👇 TELA INCRÍVEL DO QR CODE PIX 👇
+                            <div style={{background: theme.bgPanel, padding: '30px 20px', borderRadius: '12px', border: `2px solid ${theme.cyan}`, textAlign: 'center'}}>
+                                <h2 style={{color: theme.cyan, margin: '0 0 10px 0'}}>Pague seu PIX</h2>
+                                <p style={{color: theme.textMuted, fontSize: '13px', margin: '0 0 20px 0'}}>Abra o app do seu banco e escaneie o código abaixo:</p>
+                                
+                                <img src={`data:image/jpeg;base64,${pixRecebido.qr_code_base64}`} alt="QR Code PIX" style={{width: '200px', height: '200px', margin: '0 auto', display: 'block', borderRadius: '8px', border: '5px solid #fff'}} />
+                                
+                                <div style={{marginTop: '20px', textAlign: 'left'}}>
+                                    <div style={{fontSize: '11px', color: theme.cyan, fontWeight: 'bold', marginBottom: '5px', textTransform: 'uppercase'}}>Ou Copia e Cola:</div>
+                                    <textarea readOnly value={pixRecebido.qr_code} style={{width: '100%', padding: '12px', background: theme.bgApp, color: theme.textMuted, border: `1px solid ${theme.border}`, borderRadius: '8px', fontSize: '11px', resize: 'none'}} rows={4} />
+                                </div>
+
+                                <button onClick={() => { navigator.clipboard.writeText(pixRecebido.qr_code); alert("Código copiado!"); }} style={{width: '100%', marginTop: '15px', padding: '15px', background: theme.cyan, color: '#000', fontWeight: 'bold', border: 'none', borderRadius: '8px', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px'}}>
+                                    <span style={{fontSize: '18px'}}>📋</span> Copiar Código PIX
+                                </button>
+
+                                <button onClick={() => { setPixRecebido(null); setDadosPix(null); setMenuAtivo('todos'); alert("Assim que o banco confirmar, seu VIP será ativado!"); }} style={{width: '100%', marginTop: '10px', padding: '15px', background: 'transparent', color: theme.textMuted, border: `1px solid ${theme.border}`, borderRadius: '8px', fontWeight: 'bold', cursor: 'pointer'}}>
+                                    Fechar Janela
+                                </button>
+                            </div>
                         ) : ( 
                             <div style={{background: theme.bgPanel, padding: '20px', borderRadius: '12px', border: `1px solid ${theme.border}`}}>
                                 <div style={{marginBottom: '15px', padding: '15px', background: 'rgba(0, 212, 182, 0.05)', border: `1px dashed ${theme.cyan}`, borderRadius: '8px'}}>
