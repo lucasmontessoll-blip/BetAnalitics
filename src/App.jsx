@@ -912,10 +912,9 @@ function ClassificacaoPanel({ menuAtivo, loadingClassificacao, classificacao }) 
 }
 
 function ModalsExtras({ menuAtivo, isMobile, dadosPix, form, setForm, setDadosPix, setMenuAtivo, bancaData, setUserData }) {
-    
     const [pixRecebido, setPixRecebido] = useState(null); 
-    
     const initialization = { amount: 29.90 }; 
+    
     const customization = {
         visual: { style: { theme: 'dark' } },
         paymentMethods: {
@@ -924,6 +923,7 @@ function ModalsExtras({ menuAtivo, isMobile, dadosPix, form, setForm, setDadosPi
     };
 
     const onSubmit = async (formData) => {
+        // Envia exatamente o que o Mercado Pago exige no frontend
         if (!formData.payer) formData.payer = {};
         if (!formData.payer.email) formData.payer.email = form.email;
         
@@ -953,9 +953,8 @@ function ModalsExtras({ menuAtivo, isMobile, dadosPix, form, setForm, setDadosPi
                     resolve();
                 })
                 .catch(err => {
-                    // 👇 AQUI ELE MOSTRA O ERRO EXATO DO BANCO NA TELA!
                     const motivo = err.response?.data?.motivo || err.message;
-                    alert("⚠️ ERRO EXATO DO BANCO:\n" + motivo);
+                    alert("⚠️ ERRO DO BANCO:\n" + motivo);
                     reject();
                 });
         });
@@ -971,7 +970,7 @@ function ModalsExtras({ menuAtivo, isMobile, dadosPix, form, setForm, setDadosPi
                         
                         {!dadosPix && !pixRecebido ? ( 
                             <div style={{display: 'flex', flexDirection: 'column', gap: '15px'}}>
-                                <input placeholder="E-mail (Não use o da sua conta Mercado Pago)" value={form.email} style={{padding: '16px', borderRadius: '8px', border: `1px solid ${theme.border}`, background: theme.bgApp, color: '#fff', outline: 'none'}} onChange={e => setForm({...form, email: e.target.value})} />
+                                <input placeholder="E-mail (Para teste, não use o da sua conta MP)" value={form.email} style={{padding: '16px', borderRadius: '8px', border: `1px solid ${theme.border}`, background: theme.bgApp, color: '#fff', outline: 'none'}} onChange={e => setForm({...form, email: e.target.value})} />
                                 <button style={{padding: '16px', background: theme.cyan, color: '#000', border: 'none', borderRadius: '8px', fontWeight: 'bold', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '10px'}} onClick={() => { if(!form.email) return alert("Por favor, preencha o e-mail."); setDadosPix({ checkout: true });}}>
                                     <span style={{fontSize: '20px'}}>🔒</span> Ir para Pagamento Seguro
                                 </button>

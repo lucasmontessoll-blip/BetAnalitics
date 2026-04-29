@@ -13,27 +13,51 @@ app.use(express.json());
 
 // =========================================================================
 // 💳 CONFIGURAÇÃO DO MERCADO PAGO 
+// ⚠️ ALERTA DE SEGURANÇA: Mais tarde, deves colocar este Token nas 
+// Variáveis de Ambiente (Environment Variables) do Render!
 // =========================================================================
 const client = new MercadoPagoConfig({ accessToken: 'APP_USR-2548637752713726-042717-43ca72e6d42cc6ff579b9d6ea7497b75-3344260552' });
 
+// =========================================================================
+// 🚀 PROCESSAMENTO DE PAGAMENTOS (NÍVEL PROFISSIONAL)
+// =========================================================================
 app.post('/api/processar-pagamento', async (req, res) => {
     try {
-        const body = {
-            ...req.body,
-            description: 'Assinatura VIP PRO - BetAnalytics'
-        };
+        const { transaction_amount, payer, payment_method_id, token, installments, issuer_id } = req.body;
 
-        // INJEÇÃO DE CPF: O PIX exige CPF. Se faltar, injetamos um padrão válido para não bloquear.
-        if (body.payment_method_id === 'pix') {
-            if (!body.payer) body.payer = {};
-            body.payer.first_name = body.payer.first_name || "Cliente";
-            body.payer.last_name = body.payer.last_name || "VIP";
-            body.payer.identification = body.payer.identification || { type: "CPF", number: "37429811058" };
+        // 1. Validações Iniciais Rigorosas
+        if (!transaction_amount) return res.status(400).json({ error: "Valor obrigatório", motivo: "Falta o valor da transação." });
+        if (!payer || !payer.email) return res.status(400).json({ error: "Email obrigatório", motivo: "O e-mail do pagador está ausente." });
+
+        // 2. Validação Exclusiva para PIX (CPF Obrigatório Real)
+        if (payment_method_id === 'pix') {
+            if (!payer.identification || !payer.identification.number) {
+                return res.status(400).json({ error: "CPF obrigatório para PIX", motivo: "O Banco Central exige um CPF válido para gerar o PIX." });
+            }
         }
 
-        const payment = new Payment(client);
-        const result = await payment.create({ body });
+        // 3. Montagem do Pacote Seguro (Sem espalhar lixo do Frontend)
+        const paymentData = {
+            transaction_amount: Number(transaction_amount),
+            description: "Assinatura VIP PRO - BetAnalytics",
+            payment_method_id: payment_method_id,
+            payer: {
+                email: payer.email,
+                first_name: payer.first_name || "Cliente",
+                last_name: payer.last_name || "VIP",
+                identification: payer.identification
+            }
+        };
 
+        // 4. Adiciona dados específicos se for Cartão de Crédito/Débito
+        if (token) paymentData.token = token;
+        if (installments) paymentData.installments = Number(installments);
+        if (issuer_id) paymentData.issuer_id = issuer_id;
+
+        const payment = new Payment(client);
+        const result = await payment.create({ body: paymentData });
+
+        // 5. Devolve o sucesso e o QR Code (se existir)
         res.status(200).json({
             status: result.status,
             id: result.id,
@@ -42,13 +66,17 @@ app.post('/api/processar-pagamento', async (req, res) => {
         });
 
     } catch (error) {
-        // 👇 A MÁGICA DO RAIO-X ESTÁ AQUI: Captura o erro exato do banco!
-        console.error("Erro completo:", error);
-        const detalhe = error.api_response ? error.api_response.message : error.message;
-        res.status(400).json({ error: 'Falha no banco', motivo: detalhe });
+        console.error("🔥 ERRO REAL NO BANCO:", error);
+        res.status(400).json({ 
+            error: "Falha no pagamento", 
+            motivo: error.api_response?.message || error.message 
+        });
     }
 });
 
+// =========================================================================
+// ROTA DO SEU JSON DE ESTATÍSTICAS
+// =========================================================================
 app.get('/api/match', (req, res) => {
     const SEU_JSON = {
         "fixtures": [
