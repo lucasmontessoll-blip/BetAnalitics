@@ -925,6 +925,8 @@ function ModalsExtras({ menuAtivo, isMobile, dadosPix, form, setForm, setDadosPi
     };
 
     const onSubmit = async (formData) => {
+        // 👇 A CORREÇÃO DO JAVASCRIPT AQUI! 👇
+        if (!formData.payer) formData.payer = {};
         if (!formData.payer.email) formData.payer.email = form.email;
         
         return new Promise((resolve, reject) => {
@@ -940,7 +942,6 @@ function ModalsExtras({ menuAtivo, isMobile, dadosPix, form, setForm, setDadosPi
                         setDadosPix(null);
                         setMenuAtivo('todos');
                     } else if (res.data.status === 'pending') {
-                        // 👇 A MÁGICA: Se tem QR CODE, ele salva e desenha na tela! 👇
                         if (res.data.qr_code) {
                             setPixRecebido(res.data);
                         } else {
@@ -971,14 +972,13 @@ function ModalsExtras({ menuAtivo, isMobile, dadosPix, form, setForm, setDadosPi
                         
                         {!dadosPix && !pixRecebido ? ( 
                             <div style={{display: 'flex', flexDirection: 'column', gap: '15px'}}>
-                                <input placeholder="E-mail (Não use o da sua conta Mercado Pago)" value={form.email} style={{padding: '16px', borderRadius: '8px', border: `1px solid ${theme.border}`, background: theme.bgApp, color: '#fff', outline: 'none'}} onChange={e => setForm({...form, email: e.target.value})} />
+                                <input placeholder="E-mail (Para teste, não use o do Mercado Pago)" value={form.email} style={{padding: '16px', borderRadius: '8px', border: `1px solid ${theme.border}`, background: theme.bgApp, color: '#fff', outline: 'none'}} onChange={e => setForm({...form, email: e.target.value})} />
                                 <button style={{padding: '16px', background: theme.cyan, color: '#000', border: 'none', borderRadius: '8px', fontWeight: 'bold', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '10px'}} onClick={() => { if(!form.email) return alert("Por favor, preencha o e-mail."); setDadosPix({ checkout: true });}}>
                                     <span style={{fontSize: '20px'}}>🔒</span> Ir para Pagamento Seguro
                                 </button>
                                 <button onClick={() => setMenuAtivo('todos')} style={{color: theme.textMuted, background: 'none', border: 'none', marginTop: '10px', cursor: 'pointer', fontWeight: 'bold'}}>Cancelar</button>
                             </div> 
                         ) : pixRecebido ? (
-                            // 👇 TELA INCRÍVEL DO QR CODE PIX 👇
                             <div style={{background: theme.bgPanel, padding: '30px 20px', borderRadius: '12px', border: `2px solid ${theme.cyan}`, textAlign: 'center'}}>
                                 <h2 style={{color: theme.cyan, margin: '0 0 10px 0'}}>Pague seu PIX</h2>
                                 <p style={{color: theme.textMuted, fontSize: '13px', margin: '0 0 20px 0'}}>Abra o app do seu banco e escaneie o código abaixo:</p>
