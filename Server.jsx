@@ -18,26 +18,22 @@ app.use(express.json());
 const client = new MercadoPagoConfig({ accessToken: 'APP_USR-2548637752713726-042717-43ca72e6d42cc6ff579b9d6ea7497b75-3344260552' });
 
 // =========================================================================
-// 🚀 ROTA DE PAGAMENTOS (AGORA COM CAPTURA DE QR CODE PIX)
+// 🚀 NOVA ROTA DE PAGAMENTOS (CORRIGIDA PARA ACEITAR O CPF DO PIX)
 // =========================================================================
 app.post('/api/processar-pagamento', async (req, res) => {
     try {
+        // 👇 A CORREÇÃO ESTÁ AQUI! 
+        // Em vez de filtrarmos, pegamos em TUDO o que o site mandou (...req.body)
+        // Isso garante que o CPF, Nome e Cartões passem direto para o Banco!
         const body = {
-            transaction_amount: req.body.transaction_amount,
-            token: req.body.token, 
-            description: 'Assinatura VIP PRO - BetAnalytics', 
-            installments: req.body.installments,
-            payment_method_id: req.body.payment_method_id,
-            issuer_id: req.body.issuer_id,
-            payer: {
-                email: req.body.payer.email,
-            }
+            ...req.body,
+            description: 'Assinatura VIP PRO - BetAnalytics'
         };
 
         const payment = new Payment(client);
         const result = await payment.create({ body });
 
-        // 👇 A MÁGICA ACONTECE AQUI: Capturamos o QR Code do PIX se ele existir
+        // Capturamos o QR Code do PIX se ele for gerado
         let qr_code = null;
         let qr_code_base64 = null;
         
@@ -46,7 +42,7 @@ app.post('/api/processar-pagamento', async (req, res) => {
             qr_code_base64 = result.point_of_interaction.transaction_data.qr_code_base64;
         }
 
-        // Devolvemos tudo mastigado para o React
+        // Devolvemos o status e a imagem do PIX para a sua tela
         res.status(200).json({
             status: result.status,
             status_detail: result.status_detail,
@@ -62,7 +58,7 @@ app.post('/api/processar-pagamento', async (req, res) => {
 });
 
 // =========================================================================
-// ROTA DO SEU JSON DE ESTATÍSTICAS (MANTIDA INTACTA)
+// ROTA DO SEU JSON DE ESTATÍSTICAS
 // =========================================================================
 app.get('/api/match', (req, res) => {
     const SEU_JSON = {
