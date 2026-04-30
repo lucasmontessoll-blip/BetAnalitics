@@ -12,12 +12,11 @@ import './App.css';
 // ============================================================================
 initMercadoPago('APP_USR-4fa18e00-642d-4369-bc77-e8c68ed9c2a0', { locale: 'pt-BR' });
 
+// ============================================================================
+// ⚙️ BASE DE DADOS E CONFIGURAÇÕES OTIMIZADAS
+// ============================================================================
 const API_URL = 'https://betanalitics.onrender.com/api';
-const theme = { 
-  bgApp: '#090a0f', bgPanel: '#13161f', bgHover: '#1c202d', 
-  border: '#232838', cyan: '#00d4b6', yellow: '#facc15', 
-  textMain: '#f8fafc', textMuted: '#64748b', red: '#ef4444', green: '#10b981' 
-};
+const theme = { bgApp: '#090a0f', bgPanel: '#13161f', bgHover: '#1c202d', border: '#232838', cyan: '#00d4b6', yellow: '#facc15', textMain: '#f8fafc', textMuted: '#64748b', red: '#ef4444', green: '#10b981' };
 
 const getLocalYYYYMMDD = () => { const d = new Date(); d.setMinutes(d.getMinutes() - d.getTimezoneOffset()); return d.toISOString().split('T')[0]; };
 const getWeekDays = (b) => Array.from({length: 7}, (_, i) => { const d = new Date(b + "T12:00:00Z"); d.setDate(d.getDate() + i - 3); return { iso: d.toISOString().split('T')[0], nome: ['DOM','SEG','TER','QUA','QUI','SEX','SÁB'][d.getDay()], dia: `${String(d.getDate()).padStart(2, '0')}/${String(d.getMonth()+1).padStart(2, '0')}` }; });
@@ -28,19 +27,32 @@ const formatarClassificacaoAPI = (d) => { if (!Array.isArray(d)) return []; retu
 
 const extrairTVs = (f) => { if (!Array.isArray(f.tvstations)) return []; const tvs = []; const ids = new Set(); f.tvstations.forEach(t => { if (t?.tvstation && !ids.has(t.tvstation.id) && t.tvstation.name) { ids.add(t.tvstation.id); tvs.push({ id: t.tvstation.id, name: t.tvstation.name, image: t.tvstation.image_path, url: t.tvstation.url }); } }); return tvs; };
 
-const listaEsportesFino = [{name:'Futebol',icon:'⚽'},{name:'Basquetebol',icon:'🏀'},{name:'Tênis',icon:'🎾'},{name:'Futebol Am.',icon:'🏈'},{name:'Beisebol',icon:'⚾'},{name:'Voleibol',icon:'🏐'},{name:'E-Sports',icon:'🎮'},{name:'UFC / MMA',icon:'🥊'},{name:'Fórmula 1',icon:'🏎️'}];
-const listaLigas = [{name:'Todos',icon:'🌍'},{name:'Brasileirão Série A',icon:'🇧🇷'},{name:'Brasileirão Série B',icon:'🇧🇷'},{name:'Copa do Brasil',icon:'🏆'},{name:'Libertadores',icon:'🌎'},{name:'Champions League',icon:'⭐'},{name:'Premier League',icon:'🏴󠁧󠁢󠁥󠁮󠁧󠁿'},{name:'La Liga',icon:'🇪🇸'}];
-const MOCK_STANDINGS_LALIGA = [{position:1,team_name:"Real Madrid",logo:"https://cdn.sportmonks.com/images/soccer/teams/12/3468.png",points:78,matches_played:31,won:24,draw:6,lost:1,goal_diff:50},{position:2,team_name:"FC Barcelona",logo:"https://cdn.sportmonks.com/images/soccer/teams/19/83.png",points:70,matches_played:31,won:21,draw:7,lost:3,goal_diff:27}];
-const MOCK_AGENDA = [{id:1,league:"La Liga",date:"2026-04-25 19:00",home:"Atlético Madrid",away:"Athletic Club",hImg:"https://cdn.sportmonks.com/images/soccer/teams/12/7980.png",aImg:"https://cdn.sportmonks.com/images/soccer/teams/10/13258.png"}];
+const listaEsportesFino = [{name:'Futebol',icon:'⚽'},{name:'Basquetebol',icon:'🏀'},{name:'Tênis',icon:'🎾'},{name:'Futebol Am.',icon:'🏈'},{name:'Beisebol',icon:'⚾'},{name:'Voleibol',icon:'🏐'},{name:'Hóquei Gelo',icon:'🏒'},{name:'Rugby',icon:'🏉'},{name:'E-Sports',icon:'🎮'},{name:'UFC / MMA',icon:'🥊'},{name:'Fórmula 1',icon:'🏎️'},{name:'Golfe',icon:'⛳'},{name:'Futsal',icon:'🥅'},{name:'Andebol',icon:'🤾'},{name:'Tênis de Mesa',icon:'🏓'},{name:'Snooker',icon:'🎱'},{name:'Dardos',icon:'🎯'},{name:'Críquete',icon:'🏏'},{name:'Ciclismo',icon:'🚴'},{name:'Badminton',icon:'🏸'},{name:'Polo Aquático',icon:'🤽'},{name:'MotoGP',icon:'🏍️'}];
+const listaLigas = [{name:'Todos',icon:'🌍'},{name:'Brasileirão Série A',icon:'🇧🇷'},{name:'Brasileirão Série B',icon:'🇧🇷'},{name:'Brasileirão Série C',icon:'🇧🇷'},{name:'Copa do Brasil',icon:'🏆'},{name:'Libertadores',icon:'🌎'},{name:'Copa Sul-Americana',icon:'🌎'},{name:'Champions League',icon:'⭐'},{name:'Europa League',icon:'🇪🇺'},{name:'Premier League',icon:'🏴󠁧󠁢󠁥󠁮󠁧󠁿'},{name:'La Liga',icon:'🇪🇸'},{name:'Serie A Italiana',icon:'🇮🇹'},{name:'Bundesliga',icon:'🇩🇪'},{name:'MLS (EUA)',icon:'🇺🇸'},{name:'Saudi Pro League',icon:'🇸🇦'},{name:'Eliminatórias Copa',icon:'🏆'}];
+
+const MOCK_STANDINGS_LALIGA = [{position:1,team_name:"Real Madrid",logo:"https://cdn.sportmonks.com/images/soccer/teams/12/3468.png",points:78,matches_played:31,won:24,draw:6,lost:1,goal_diff:50},{position:2,team_name:"FC Barcelona",logo:"https://cdn.sportmonks.com/images/soccer/teams/19/83.png",points:70,matches_played:31,won:21,draw:7,lost:3,goal_diff:27},{position:3,team_name:"Girona",logo:"https://cdn.sportmonks.com/images/soccer/teams/11/11.png",points:65,matches_played:31,won:20,draw:5,lost:6,goal_diff:24},{position:4,team_name:"Atlético Madrid",logo:"https://cdn.sportmonks.com/images/soccer/teams/12/7980.png",points:61,matches_played:31,won:19,draw:4,lost:8,goal_diff:23}];
+const MOCK_STANDINGS_PREMIER = [{position:1,team_name:"Arsenal",logo:"https://cdn.sportmonks.com/images/soccer/teams/14/14.png",points:74,matches_played:32,won:23,draw:5,lost:4,goal_diff:51},{position:2,team_name:"Manchester City",logo:"https://cdn.sportmonks.com/images/soccer/teams/9/9.png",points:73,matches_played:32,won:22,draw:7,lost:3,goal_diff:44},{position:3,team_name:"Liverpool",logo:"https://cdn.sportmonks.com/images/soccer/teams/8/8.png",points:71,matches_played:32,won:21,draw:8,lost:3,goal_diff:41}];
+const MOCK_STANDINGS_BRASILEIRAO = [{position:1,team_name:"Flamengo",logo:"https://cdn.sportmonks.com/images/soccer/teams/2/98.png",points:15,matches_played:6,won:5,draw:0,lost:1,goal_diff:8},{position:2,team_name:"Palmeiras",logo:"https://cdn.sportmonks.com/images/soccer/teams/3/99.png",points:14,matches_played:6,won:4,draw:2,lost:0,goal_diff:6},{position:3,team_name:"Botafogo",logo:"https://cdn.sportmonks.com/images/soccer/teams/4/100.png",points:13,matches_played:6,won:4,draw:1,lost:1,goal_diff:7}];
+const MOCK_AGENDA = [{id:1,league:"La Liga",date:"2026-04-25 19:00",home:"Atlético Madrid",away:"Athletic Club",hImg:"https://cdn.sportmonks.com/images/soccer/teams/12/7980.png",aImg:"https://cdn.sportmonks.com/images/soccer/teams/10/13258.png"},{id:2,league:"Champions League",date:"2026-04-29 19:00",home:"Atlético Madrid",away:"Arsenal",hImg:"https://cdn.sportmonks.com/images/soccer/teams/12/7980.png",aImg:"https://cdn.sportmonks.com/images/soccer/teams/19/19.png"}];
 
 const RAW_GAMES = [
-  { id:101,league_name:"La Liga",starting_at:"2026-04-20 16:00:00",status:"Live",home_team:"Real Madrid",home_id:101,away_team:"FC Barcelona",away_id:102, home_image:"https://cdn.sportmonks.com/images/soccer/teams/12/3468.png",away_image:"https://cdn.sportmonks.com/images/soccer/teams/19/83.png", scores:[{score:{goals:2}},{score:{goals:1}}],scoreHome:2,scoreAway:1,result_info:"65:30",venue:"Santiago Bernabéu",odds_format:{home:"1.85",draw:"3.50",away:"4.20"}, predictions:[],sidelined:[],events:[],lineups:[],xgfixture:[], tvstations:[] },
-  {"id":19439520,"league":{"name":"La Liga"},"starting_at":"2026-03-14 15:15:00","state":{"developer_name":"FT"},"venue":{"name":"Riyadh Air Metropolitano"},"participants":[{"id":7980,"name":"Atlético Madrid","image_path":"https://cdn.sportmonks.com/images/soccer/teams/12/7980.png","meta":{"location":"home"}},{"id":106,"name":"Getafe","image_path":"https://cdn.sportmonks.com/images/soccer/teams/10/106.png","meta":{"location":"away"}}],"scores":[{"participant_id":7980,"score":{"goals":1},"description":"CURRENT"},{"participant_id":106,"score":{"goals":0},"description":"CURRENT"}],"events":[],"sidelined":[],"statistics":[]}
+  { id:101,league_name:"La Liga",starting_at:"2026-04-20 16:00:00",status:"Live",home_team:"Real Madrid",home_id:101,away_team:"FC Barcelona",away_id:102, home_image:"https://cdn.sportmonks.com/images/soccer/teams/12/3468.png",away_image:"https://cdn.sportmonks.com/images/soccer/teams/19/83.png", scores:[{score:{goals:2}},{score:{goals:1}}],scoreHome:2,scoreAway:1,result_info:"65:30",venue:"Santiago Bernabéu",odds_format:{home:"1.85",draw:"3.50",away:"4.20"}, predictions:[{type:{developer_name:'FULLTIME_RESULT_PROBABILITY'},predictions:{home:55.5,draw:20.5,away:24.0}}],sidelined:[],events:[],lineups:[],xgfixture:[], tvstations:[{id:37,name:"ESPN",image:"https://cdn.sportmonks.com/images/core/tvstations/5/37.png",url:"https://www.espn.com"}, {id:41,name:"DAZN",image:"https://cdn.sportmonks.com/images/core/tvstations/9/41.png",url:"https://www.dazn.com"}] },
+  {"id":19439572,"league":{"name":"La Liga"},"starting_at":"2026-04-22 17:00:00","state":{"developer_name":"FT"},"venue":{"name":"Estadio Manuel Martínez Valero"},"participants":[{"id":1099,"name":"Elche","image_path":"https://cdn.sportmonks.com/images/soccer/teams/11/1099.png","meta":{"location":"home"}},{"id":7980,"name":"Atlético Madrid","image_path":"https://cdn.sportmonks.com/images/soccer/teams/12/7980.png","meta":{"location":"away"}}],"scores":[{"participant_id":1099,"score":{"goals":3},"description":"CURRENT"},{"participant_id":7980,"score":{"goals":2},"description":"CURRENT"}],"events":[{"id":156677864,"minute":18,"player_name":"David Affengruber","type":{"code":"goal"},"participant_id":1099},{"id":156678195,"minute":36,"player_name":"Nico González","type":{"code":"goal"},"participant_id":7980}]},
+  {"id":19439520,"league":{"name":"La Liga"},"starting_at":"2026-03-14 15:15:00","state":{"developer_name":"FT"},"venue":{"name":"Riyadh Air Metropolitano"},"participants":[{"id":7980,"name":"Atlético Madrid","image_path":"https://cdn.sportmonks.com/images/soccer/teams/12/7980.png","meta":{"location":"home"}},{"id":106,"name":"Getafe","image_path":"https://cdn.sportmonks.com/images/soccer/teams/10/106.png","meta":{"location":"away"}}],"scores":[{"participant_id":7980,"score":{"goals":1},"description":"CURRENT"},{"participant_id":106,"score":{"goals":0},"description":"CURRENT"}],"events":[{"id":156222615,"minute":8,"player_name":"Nahuel Molina","type":{"code":"goal"},"participant_id":7980},{"id":156226285,"minute":55,"player_name":"Abdel Abqar","type":{"code":"redcard"},"participant_id":106},{"id":156226939,"minute":66,"player_name":"Julián Alvarez","related_player_name":"Alexander Sørloth","type":{"code":"substitution"},"participant_id":7980}],"sidelined":[{"participant_id":106,"sideline":{"player":{"display_name":"Borja Mayoral"},"type":{"name":"Knee Injury"}}}],"statistics":[{"type":{"name":"Ball Possession %"},"participant_id":7980,"data":{"value":66}},{"type":{"name":"Ball Possession %"},"participant_id":106,"data":{"value":34}},{"type":{"name":"Shots Total"},"participant_id":7980,"data":{"value":16}},{"type":{"name":"Shots Total"},"participant_id":106,"data":{"value":7}},{"type":{"name":"Corners"},"participant_id":7980,"data":{"value":10}},{"type":{"name":"Corners"},"participant_id":106,"data":{"value":3}}]}
 ];
 
 const MOCK_GAMES = RAW_GAMES.map(f => {
-  if (f.home_team) return f; const h = f.participants?.find(p => p.meta?.location === 'home') || f.participants?.[0]; const a = f.participants?.find(p => p.meta?.location === 'away') || f.participants?.[1]; 
-  return { id: f.id, league_name: f.league?.name, starting_at: f.starting_at, status: f.state?.developer_name === 'FT' ? 'Finished' : 'Live', home_team: h?.name, home_id: h?.id, away_team: a?.name, away_id: a?.id, home_image: h?.image_path, away_image: a?.image_path, scoreHome: f.scores?.find(s => s.participant_id === h?.id)?.score?.goals ?? 0, scoreAway: f.scores?.find(s => s.participant_id === a?.id)?.score?.goals ?? 0, result_info: f.result_info, predictions: [], odds_format: { home: "-", draw: "-", away: "-" }, venue: f.venue?.name || "Estádio", events: f.events || [], sidelined: [], lineups: [], xgfixture: [], stats: [], tvstations: [] }; 
+  if (f.home_team) return f; 
+  const h = f.participants?.find(p => p.meta?.location === 'home') || f.participants?.[0]; 
+  const a = f.participants?.find(p => p.meta?.location === 'away') || f.participants?.[1]; 
+  return { 
+      id: f.id, league_name: f.league?.name, starting_at: f.starting_at, status: f.state?.developer_name === 'FT' ? 'Finished' : 'Live', 
+      home_team: h?.name, home_id: h?.id, away_team: a?.name, away_id: a?.id, home_image: h?.image_path, away_image: a?.image_path, 
+      scoreHome: f.scores?.find(s => s.participant_id === h?.id)?.score?.goals ?? 0, scoreAway: f.scores?.find(s => s.participant_id === a?.id)?.score?.goals ?? 0, 
+      result_info: f.result_info, predictions: [], odds_format: { home: "-", draw: "-", away: "-" }, venue: f.venue?.name || "Estádio", 
+      events: f.events || [], sidelined: f.sidelined?.map(s => ({ name: s.sideline?.player?.display_name || "Jogador", reason: s.sideline?.type?.name || "Desfalque", teamId: s.participant_id })) || [], lineups: [], xgfixture: [], stats: processarTrends(f.trends || f.statistics, h?.id, a?.id), 
+      tvstations: f.tvstations ? extrairTVs(f) : [{id:111,name:"SuperSport",image:"https://cdn.sportmonks.com/images/core/tvstations/15/111.png",url:""}] 
+  }; 
 });
 
 // ============================================================================
@@ -93,10 +105,12 @@ export default function App() {
   useEffect(() => {
     const usr = localStorage.getItem('bet_sessao_ativa');
     if (usr) {
-        if (usr === 'admin@nexus.com') { setUserData({ email: 'admin@nexus.com', is_vip: true });
+        if (usr === 'admin@nexus.com') {
+            setUserData({ email: 'admin@nexus.com', is_vip: true });
         } else {
             let bL = {};
-            try { bL = JSON.parse(localStorage.getItem('bet_users') || '{}'); } catch(e) { localStorage.removeItem('bet_users'); }
+            try { bL = JSON.parse(localStorage.getItem('bet_users') || '{}'); } 
+            catch(e) { localStorage.removeItem('bet_users'); }
             if (bL[usr]) setUserData({ email: bL[usr].email, is_vip: bL[usr].is_vip });
         }
     }
@@ -119,11 +133,13 @@ export default function App() {
       setLoadingClassificacao(true);
       try {
           const res = await axios.get(`${API_URL}/standings?league=${liga}`);
-          if (res.data && res.data.length > 0) { setClassificacao(formatarClassificacaoAPI(res.data)); setLoadingClassificacao(false); 
-          } else throw new Error("Vazio");
+          if (res.data && res.data.length > 0) { setClassificacao(formatarClassificacaoAPI(res.data)); setLoadingClassificacao(false); } 
+          else throw new Error("Vazio");
       } catch(e) {
           setTimeout(() => {
-              if (liga === 'brasileirão série a') setClassificacao(MOCK_STANDINGS_BRASILEIRAO); else setClassificacao(MOCK_STANDINGS_LALIGA);
+              if (liga === 'premier league') setClassificacao(MOCK_STANDINGS_PREMIER);
+              else if (liga === 'brasileirão série a') setClassificacao(MOCK_STANDINGS_BRASILEIRAO);
+              else setClassificacao(MOCK_STANDINGS_LALIGA);
               setLoadingClassificacao(false);
           }, 600);
       }
@@ -155,7 +171,10 @@ export default function App() {
     if (!userData?.is_vip) { alert("🔒 VIP PRO requerido."); setShowProfileMenu(true); return; }
     const { display_name, image_path, height, weight, date_of_birth, latest } = dadosFut;
     const statsRecentes = latest[0]?.xglineup || [];
-    setJogadorAberto({ nome: display_name, foto: image_path, nascimento: date_of_birth, altura: height, peso: weight, statsRecentes: statsRecentes, ultimoJogo: latest[0]?.fixture?.name || "Partida" });
+    setJogadorAberto({
+        nome: display_name, foto: image_path, nascimento: date_of_birth, altura: height, peso: weight,
+        statsRecentes: statsRecentes, ultimoJogo: latest[0]?.fixture?.name || "Partida"
+    });
   };
 
   const carregarBanca = async () => { try { const res = await axios.get(`${API_URL}/banca/${userData.email}`); setBancaData(res.data?.historico || []); } catch (e) { setBancaData([]); } };
@@ -464,14 +483,9 @@ function ClassificacaoPanel({ menuAtivo, loadingClassificacao, classificacao }) 
 
 function ModalsExtras({ menuAtivo, isMobile, dadosPix, form, setForm, setDadosPix, setMenuAtivo, bancaData, setUserData }) {
     const [pixRecebido, setPixRecebido] = useState(null); 
-    
-    // 👇 INICIANDO O MERCADO PAGO COM O CPF QUE O CLIENTE DIGITOU 👇
     const initialization = { 
         amount: 29.90,
-        payer: {
-            email: form.email,
-            identification: { type: "CPF", number: form.cpf }
-        }
+        payer: { email: form.email, identification: { type: "CPF", number: form.cpf } }
     }; 
     
     const customization = {
@@ -489,6 +503,8 @@ function ModalsExtras({ menuAtivo, isMobile, dadosPix, form, setForm, setDadosPi
                 .then(res => {
                     if (res.data.status === 'approved') {
                         alert("🎉 Pagamento Aprovado! Bem-vindo ao VIP PRO!");
+                        setUserData({ email: form.email, is_vip: true });
+                        localStorage.setItem('bet_sessao_ativa', form.email);
                         setDadosPix(null);
                         setMenuAtivo('todos');
                     } else if (res.data.status === 'pending') {
@@ -521,23 +537,12 @@ function ModalsExtras({ menuAtivo, isMobile, dadosPix, form, setForm, setDadosPi
                         
                         {!dadosPix && !pixRecebido ? ( 
                             <div style={{display: 'flex', flexDirection: 'column', gap: '15px'}}>
-                                <input 
-                                    placeholder="E-mail (Para o recibo)" 
-                                    value={form.email} 
-                                    style={{padding: '16px', borderRadius: '8px', border: `1px solid ${theme.border}`, background: theme.bgApp, color: '#fff', outline: 'none'}} 
-                                    onChange={e => setForm({...form, email: e.target.value})} 
-                                />
-                                {/* 👇 O NOVO CAMPO DE CPF 👇 */}
-                                <input 
-                                    placeholder="Seu CPF (Apenas números)" 
-                                    value={form.cpf} 
-                                    maxLength={11}
-                                    style={{padding: '16px', borderRadius: '8px', border: `1px solid ${theme.border}`, background: theme.bgApp, color: '#fff', outline: 'none'}} 
-                                    onChange={e => setForm({...form, cpf: e.target.value.replace(/\D/g, '')})} 
-                                />
+                                <input placeholder="E-mail (Para o recibo)" value={form.email} style={{padding: '16px', borderRadius: '8px', border: `1px solid ${theme.border}`, background: theme.bgApp, color: '#fff', outline: 'none'}} onChange={e => setForm({...form, email: e.target.value})} />
+                                <input placeholder="Seu CPF (Apenas números reais)" value={form.cpf} maxLength={11} style={{padding: '16px', borderRadius: '8px', border: `1px solid ${theme.border}`, background: theme.bgApp, color: '#fff', outline: 'none'}} onChange={e => setForm({...form, cpf: e.target.value.replace(/\D/g, '')})} />
+                                
                                 <button style={{padding: '16px', background: theme.cyan, color: '#000', border: 'none', borderRadius: '8px', fontWeight: 'bold', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '10px'}} 
                                     onClick={() => { 
-                                        if(!form.email || form.cpf.length !== 11) return alert("Por favor, preencha o e-mail e um CPF válido (11 números) antes de prosseguir."); 
+                                        if(!form.email || form.cpf.length !== 11) return alert("Por favor, preencha o e-mail e um CPF válido com 11 números."); 
                                         setDadosPix({ checkout: true });
                                     }}>
                                     <span style={{fontSize: '20px'}}>🔒</span> Ir para Pagamento Seguro
@@ -548,10 +553,12 @@ function ModalsExtras({ menuAtivo, isMobile, dadosPix, form, setForm, setDadosPi
                             <div style={{background: theme.bgPanel, padding: '30px 20px', borderRadius: '12px', border: `2px solid ${theme.cyan}`, textAlign: 'center'}}>
                                 <h2 style={{color: theme.cyan, margin: '0 0 10px 0'}}>Pague seu PIX</h2>
                                 <img src={`data:image/jpeg;base64,${pixRecebido.qr_code_base64}`} alt="QR Code PIX" style={{width: '200px', height: '200px', margin: '0 auto', display: 'block', borderRadius: '8px', border: '5px solid #fff'}} />
-                                <textarea readOnly value={pixRecebido.qr_code} style={{width: '100%', padding: '12px', background: theme.bgApp, color: theme.textMuted, border: `1px solid ${theme.border}`, borderRadius: '8px', fontSize: '11px', resize: 'none', marginTop: '15px'}} rows={4} />
-                                <button onClick={() => { setPixRecebido(null); setDadosPix(null); setMenuAtivo('todos'); }} style={{width: '100%', marginTop: '10px', padding: '15px', background: 'transparent', color: theme.textMuted, border: `1px solid ${theme.border}`, borderRadius: '8px', fontWeight: 'bold', cursor: 'pointer'}}>
-                                    Fechar Janela
-                                </button>
+                                <div style={{marginTop: '20px', textAlign: 'left'}}>
+                                    <div style={{fontSize: '11px', color: theme.cyan, fontWeight: 'bold', marginBottom: '5px', textTransform: 'uppercase'}}>Ou Copia e Cola:</div>
+                                    <textarea readOnly value={pixRecebido.qr_code} style={{width: '100%', padding: '12px', background: theme.bgApp, color: theme.textMuted, border: `1px solid ${theme.border}`, borderRadius: '8px', fontSize: '11px', resize: 'none'}} rows={4} />
+                                </div>
+                                <button onClick={() => { navigator.clipboard.writeText(pixRecebido.qr_code); alert("Código copiado!"); }} style={{width: '100%', marginTop: '15px', padding: '15px', background: theme.cyan, color: '#000', fontWeight: 'bold', border: 'none', borderRadius: '8px', cursor: 'pointer'}}>Copiar PIX</button>
+                                <button onClick={() => { setPixRecebido(null); setDadosPix(null); setMenuAtivo('todos'); }} style={{width: '100%', marginTop: '10px', padding: '15px', background: 'transparent', color: theme.textMuted, border: `1px solid ${theme.border}`, borderRadius: '8px', fontWeight: 'bold', cursor: 'pointer'}}>Fechar Janela</button>
                             </div>
                         ) : ( 
                             <div style={{background: theme.bgPanel, padding: '20px', borderRadius: '12px', border: `1px solid ${theme.border}`}}>
@@ -562,20 +569,7 @@ function ModalsExtras({ menuAtivo, isMobile, dadosPix, form, setForm, setDadosPi
                     </div>
                 </div> 
             )}
-            {menuAtivo === "gestão de banca" && ( 
-              <div style={{position: 'fixed', top: 0, left: 0, right: 0, bottom: isMobile ? '65px' : 0, background: 'rgba(9,10,15,0.95)', zIndex: 200, padding: '30px', textAlign: 'center'}}>
-                <button onClick={() => setMenuAtivo('todos')} style={{color: theme.textMuted, background: 'none', border: 'none'}}>⬅ Voltar</button>
-                <h2 style={{color: theme.cyan}}>Banca</h2>
-                <div style={{height: '300px', maxWidth: '800px', margin: '0 auto'}}>
-                  <ResponsiveContainer width="100%" height="100%">
-                    <AreaChart data={bancaData.length ? bancaData : [{name:'Seg',val:100},{name:'Ter',val:120}]}>
-                      <XAxis dataKey="name" />
-                      <Area type="monotone" dataKey="val" stroke={theme.cyan} fill={theme.cyan} fillOpacity={0.2} />
-                    </AreaChart>
-                  </ResponsiveContainer>
-                </div>
-              </div> 
-            )}
+            {menuAtivo === "gestão de banca" && ( <div style={{position: 'fixed', top: 0, left: 0, right: 0, bottom: isMobile ? '65px' : 0, background: 'rgba(9,10,15,0.95)', zIndex: 200, padding: '30px', textAlign: 'center'}}><button onClick={() => setMenuAtivo('todos')} style={{color: theme.textMuted, background: 'none', border: 'none'}}>⬅ Voltar</button><h2 style={{color: theme.cyan}}>Banca</h2><div style={{height: '300px', maxWidth: '800px', margin: '0 auto'}}><ResponsiveContainer width="100%" height="100%"><AreaChart data={bancaData.length ? bancaData : [{name:'Seg',val:100},{name:'Ter',val:120}]}><XAxis dataKey="name" /><Area type="monotone" dataKey="val" stroke={theme.cyan} fill={theme.cyan} fillOpacity={0.2} /></AreaChart></ResponsiveContainer></div></div> )}
         </>
     );
 }
@@ -587,13 +581,13 @@ function AuthModal({ showLoginMenu, setShowLoginMenu, authMode, setAuthMode, log
         <motion.div initial={{ scale: 0.9 }} animate={{ scale: 1 }} style={{ background: theme.bgPanel, padding: '40px 30px', width: '90%', maxWidth: '400px' }}>
           <h2 style={{ color: '#fff', textAlign: 'center' }}>Acesso</h2>
           <div style={{display: 'flex', gap: '10px', marginBottom: '20px'}}>
-            <button onClick={() => setAuthMode('login')} style={{flex: 1, padding: '12px', background: authMode === 'login' ? theme.cyan : 'transparent'}}>Entrar</button>
-            <button onClick={() => setAuthMode('register')} style={{flex: 1, padding: '12px', background: authMode === 'register' ? theme.cyan : 'transparent'}}>Cadastrar</button>
+            <button onClick={() => setAuthMode('login')} style={{flex: 1, padding: '12px', background: authMode === 'login' ? theme.cyan : 'transparent', color: '#fff', border: 'none'}}>Entrar</button>
+            <button onClick={() => setAuthMode('register')} style={{flex: 1, padding: '12px', background: authMode === 'register' ? theme.cyan : 'transparent', color: '#fff', border: 'none'}}>Cadastrar</button>
           </div>
-          <input placeholder="E-mail" value={loginEmail} onChange={e => setLoginEmail(e.target.value)} style={{width: '100%', padding: '15px', marginBottom: '15px'}} />
-          <input placeholder="Senha" type="password" value={loginSenha} onChange={e => setLoginSenha(e.target.value)} style={{width: '100%', padding: '15px', marginBottom: '25px'}} />
-          <button style={{width: '100%', padding: '15px', background: theme.cyan, fontWeight: 'bold'}} onClick={authMode === 'login' ? handleLogin : handleCadastro}>CONTINUAR</button>
-          <button style={{width: '100%', padding: '10px', background: 'transparent', color: theme.textMuted}} onClick={() => setShowLoginMenu(false)}>Cancelar</button>
+          <input placeholder="E-mail" value={loginEmail} onChange={e => setLoginEmail(e.target.value)} style={{width: '100%', padding: '15px', marginBottom: '15px', background: '#000', color: '#fff', border: `1px solid ${theme.border}`, borderRadius: '8px'}} />
+          <input placeholder="Senha" type="password" value={loginSenha} onChange={e => setLoginSenha(e.target.value)} style={{width: '100%', padding: '15px', marginBottom: '25px', background: '#000', color: '#fff', border: `1px solid ${theme.border}`, borderRadius: '8px'}} />
+          <button style={{width: '100%', padding: '15px', background: theme.cyan, color: '#000', fontWeight: 'bold', border: 'none', borderRadius: '8px'}} onClick={authMode === 'login' ? handleLogin : handleCadastro}>CONTINUAR</button>
+          <button style={{width: '100%', padding: '10px', background: 'transparent', color: theme.textMuted, border: 'none', marginTop: '10px'}} onClick={() => setShowLoginMenu(false)}>Cancelar</button>
         </motion.div>
       </div> 
     );
