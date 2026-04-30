@@ -3,7 +3,6 @@ const cors = require('cors');
 const { MercadoPagoConfig, Payment } = require('mercadopago');
 
 const app = express();
-
 app.use(cors({ origin: '*', methods: ['GET','POST'] }));
 app.use(express.json());
 
@@ -19,6 +18,8 @@ app.post('/api/processar-pagamento', async (req, res) => {
             payment_method_id: payment_method_id,
             payer: {
                 email: payer.email,
+                first_name: payer.first_name || "Cliente",
+                last_name: payer.last_name || "VIP",
                 identification: {
                     type: "CPF",
                     number: payer.identification?.number?.replace(/\D/g, '')
@@ -26,10 +27,11 @@ app.post('/api/processar-pagamento', async (req, res) => {
             }
         };
 
+        // Adiciona dados de cartão apenas se não for PIX
         if (payment_method_id !== 'pix') {
-            if (token) paymentData.token = token;
-            if (installments) paymentData.installments = Number(installments);
-            if (issuer_id) paymentData.issuer_id = issuer_id;
+            paymentData.token = token;
+            paymentData.installments = Number(installments);
+            paymentData.issuer_id = issuer_id;
         }
 
         const payment = new Payment(client);
@@ -37,18 +39,16 @@ app.post('/api/processar-pagamento', async (req, res) => {
 
         res.status(200).json({
             status: result.status,
-            status_detail: result.status_detail, // 👇 AQUI CAPTURAMOS O MOTIVO DA RECUSA
+            status_detail: result.status_detail,
             id: result.id,
             qr_code: result.point_of_interaction?.transaction_data?.qr_code || null,
             qr_code_base64: result.point_of_interaction?.transaction_data?.qr_code_base64 || null
         });
 
     } catch (error) {
-        console.error("❌ ERRO NA API DO MERCADO PAGO:", error.api_response?.data || error.message);
-        res.status(400).json({ 
-            error: "Falha na validação", 
-            motivo: error.api_response?.data?.message || error.message 
-        });
+        const erroMsg = error.api_response?.message || error.message;
+        console.error("❌ ERRO NO BANCO:", erroMsg);
+        res.status(400).json({ motivo: erroMsg });
     }
 });
 
