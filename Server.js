@@ -27,25 +27,15 @@ app.post('/api/processar-pagamento', async (req, res) => {
             issuer_id
         } = req.body;
 
-        // ✅ BASE CORRIGIDA PARA TODOS (PIX E CARTÃO)
+        // ✅ BASE CORRIGIDA (IMPORTANTE PARA PIX)
         const paymentData = {
             transaction_amount: Number(transaction_amount),
             description: "Assinatura VIP PRO - BetAnalytics",
             payment_method_id: payment_method_id,
             payer: {
-                email: payer?.email || "teste@teste.com",
-                first_name: payer?.first_name || "Cliente",
-                last_name: payer?.last_name || "VIP"
+                email: payer?.email || "teste@teste.com"
             }
         };
-
-        // ✅ Adiciona o CPF para TODOS (Obrigatório para PIX e Cartão)
-        if (payer?.identification?.number) {
-            paymentData.payer.identification = {
-                type: "CPF",
-                number: payer.identification.number.replace(/\D/g, '')
-            };
-        }
 
         // ✅ SE FOR PIX
         if (payment_method_id === 'pix') {
@@ -57,6 +47,17 @@ app.post('/api/processar-pagamento', async (req, res) => {
             paymentData.token = token;
             paymentData.installments = Number(installments);
             paymentData.issuer_id = issuer_id;
+
+            // opcional: identificação só para cartão
+            paymentData.payer.first_name = payer?.first_name;
+            paymentData.payer.last_name = payer?.last_name;
+
+            if (payer?.identification?.number) {
+                paymentData.payer.identification = {
+                    type: "CPF",
+                    number: payer.identification.number.replace(/\D/g, '')
+                };
+            }
         }
 
         const payment = new Payment(client);
