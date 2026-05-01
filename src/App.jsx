@@ -7,7 +7,8 @@ import { initMercadoPago, Payment } from '@mercadopago/sdk-react';
 import dadosFut from './dados.json'; 
 import './App.css';
 
-initMercadoPago('APP_USR-4fa18e00-642d-4369-bc77-e8c68ed9c2a0', { locale: 'pt-BR' });
+// 👇 AQUI ESTÁ A SUA CHAVE PÚBLICA DE TESTE!
+initMercadoPago('TEST-3d653755-940f-4f91-925f-e9168afc0ae2', { locale: 'pt-BR' });
 
 const API_URL = 'https://betanalitics.onrender.com/api';
 const theme = { bgApp: '#090a0f', bgPanel: '#13161f', bgHover: '#1c202d', border: '#232838', cyan: '#00d4b6', yellow: '#facc15', textMain: '#f8fafc', textMuted: '#64748b', red: '#ef4444', green: '#10b981' };
@@ -76,7 +77,6 @@ export default function App() {
   const [showLoginMenu, setShowLoginMenu] = useState(false);
   const [showProfileMenu, setShowProfileMenu] = useState(false);
   
-  // 👇 ADICIONEI O CAMPO 'NOME' NO ESTADO
   const [form, setForm] = useState({ nome: '', email: '', cpf: '' });
   const [dadosPix, setDadosPix] = useState(null);
 
@@ -514,7 +514,6 @@ function ModalsExtras({ menuAtivo, isMobile, dadosPix, form, setForm, setDadosPi
         }
     };
 
-    // 👇 O SEGREDO DO CARTÃO ESTÁ AQUI: LIMPO PARA NÃO CRASHAR O FORMULÁRIO 👇
     const initialization = { amount: 29.90 }; 
     const customization = {
         visual: { style: { theme: 'dark', customVariables: { formBackgroundColor: '#13161f' } } },
