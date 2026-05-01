@@ -18,8 +18,8 @@ app.post('/api/processar-pagamento', async (req, res) => {
             payment_method_id: payment_method_id,
             payer: {
                 email: payer.email,
-                first_name: payer.first_name || "Cliente",
-                last_name: payer.last_name || "VIP",
+                first_name: payer.first_name, // 👇 Agora recebe o nome real
+                last_name: payer.last_name,   // 👇 E o sobrenome real
                 identification: {
                     type: "CPF",
                     number: payer.identification?.number?.replace(/\D/g, '')
@@ -27,7 +27,6 @@ app.post('/api/processar-pagamento', async (req, res) => {
             }
         };
 
-        // Adiciona dados de cartão apenas se não for PIX
         if (payment_method_id !== 'pix') {
             paymentData.token = token;
             paymentData.installments = Number(installments);
