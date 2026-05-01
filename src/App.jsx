@@ -75,7 +75,9 @@ export default function App() {
   const [loginSenha, setLoginSenha] = useState('');
   const [showLoginMenu, setShowLoginMenu] = useState(false);
   const [showProfileMenu, setShowProfileMenu] = useState(false);
-  const [form, setForm] = useState({ email: '', cpf: '' });
+  
+  // 👇 ADICIONEI O CAMPO 'NOME' NO ESTADO
+  const [form, setForm] = useState({ nome: '', email: '', cpf: '' });
   const [dadosPix, setDadosPix] = useState(null);
 
   const [analiseIA, setAnaliseIA] = useState('');
@@ -92,12 +94,9 @@ export default function App() {
   useEffect(() => {
     const usr = localStorage.getItem('bet_sessao_ativa');
     if (usr) {
-        if (usr === 'admin@nexus.com') {
-            setUserData({ email: 'admin@nexus.com', is_vip: true });
-        } else {
-            let bL = {};
-            try { bL = JSON.parse(localStorage.getItem('bet_users') || '{}'); } 
-            catch(e) { localStorage.removeItem('bet_users'); }
+        if (usr === 'admin@nexus.com') { setUserData({ email: 'admin@nexus.com', is_vip: true }); } 
+        else {
+            let bL = {}; try { bL = JSON.parse(localStorage.getItem('bet_users') || '{}'); } catch(e) { localStorage.removeItem('bet_users'); }
             if (bL[usr]) setUserData({ email: bL[usr].email, is_vip: bL[usr].is_vip });
         }
     }
@@ -120,10 +119,8 @@ export default function App() {
       setLoadingClassificacao(true);
       try {
           const res = await axios.get(`${API_URL}/standings?league=${liga}`);
-          if (res.data && res.data.length > 0) { 
-            setClassificacao(formatarClassificacaoAPI(res.data)); 
-            setLoadingClassificacao(false); 
-          } else throw new Error("Vazio");
+          if (res.data && res.data.length > 0) { setClassificacao(formatarClassificacaoAPI(res.data)); setLoadingClassificacao(false); } 
+          else throw new Error("Vazio");
       } catch(e) {
           setTimeout(() => {
               if (liga === 'brasileirão série a') setClassificacao(MOCK_STANDINGS_BRASILEIRAO);
@@ -409,7 +406,7 @@ export default function App() {
 }
 
 // ============================================================================
-// 🧩 COMPONENTES EXTRAÍDOS E BLINDADOS
+// 🧩 COMPONENTES EXTRAÍDOS E BLINDADOS (SISTEMA DE CHECKOUT CORRIGIDO)
 // ============================================================================
 function AbaEsportes({ esporteAtivo, setEsporteAtivo }) {
   return (
@@ -485,33 +482,46 @@ function ModalsExtras({ menuAtivo, isMobile, dadosPix, form, setForm, setDadosPi
     const gerarPixNativo = async () => {
         setLoadingPix(true);
         try {
+            const nomes = form.nome ? form.nome.trim().split(' ') : ['Cliente'];
+            const firstName = nomes[0];
+            const lastName = nomes.length > 1 ? nomes.slice(1).join(' ') : 'VIP';
+
             const res = await axios.post('https://betanalitics.onrender.com/api/processar-pagamento', {
                 transaction_amount: 29.90,
                 payment_method_id: 'pix',
-                payer: { email: form.email, identification: { type: "CPF", number: form.cpf } }
+                payer: {
+                    email: form.email,
+                    first_name: firstName,
+                    last_name: lastName,
+                    identification: { type: "CPF", number: form.cpf }
+                }
             });
             
-            if (res.data.qr_code) {
-                setPixRecebido(res.data);
-                setPassoPagamento(4);
+            if (res.data.status === 'pending' || res.data.status === 'approved') {
+                if (res.data.qr_code) {
+                    setPixRecebido(res.data);
+                    setPassoPagamento(4);
+                } else {
+                    alert("⚠️ PIX gerado, mas o banco não enviou o QR Code.");
+                }
             } else {
-                alert("⚠️ Erro: Não foi possível gerar o código. " + res.data.status_detail);
+                alert(`❌ PIX Recusado pelo banco.\nMotivo: ${res.data.status_detail || 'Não informado'}`);
             }
         } catch (err) {
-            alert("⚠️ Erro do Banco:\n" + (err.response?.data?.motivo || err.message));
+            alert("⚠️ Erro no servidor:\n" + (err.response?.data?.motivo || err.message));
         } finally {
             setLoadingPix(false);
         }
     };
 
-    const initialization = { amount: 29.90, payer: { email: form.email, identification: { type: "CPF", number: form.cpf } } }; 
-    const customization = { visual: { theme: 'dark' }, paymentMethods: { creditCard: 'all', debitCard: 'all', bankTransfer: 'none', ticket: 'none', maxInstallments: 12 } };
+    // 👇 O SEGREDO DO CARTÃO ESTÁ AQUI: LIMPO PARA NÃO CRASHAR O FORMULÁRIO 👇
+    const initialization = { amount: 29.90 }; 
+    const customization = {
+        visual: { style: { theme: 'dark', customVariables: { formBackgroundColor: '#13161f' } } },
+        paymentMethods: { maxInstallments: 12 }
+    };
 
     const onSubmitCartao = async (formData) => {
-        if (!formData.payer) formData.payer = {};
-        formData.payer.email = form.email;
-        formData.payer.identification = { type: "CPF", number: form.cpf };
-        
         return new Promise((resolve, reject) => {
             axios.post('https://betanalitics.onrender.com/api/processar-pagamento', formData)
                 .then(res => {
@@ -521,12 +531,12 @@ function ModalsExtras({ menuAtivo, isMobile, dadosPix, form, setForm, setDadosPi
                         localStorage.setItem('bet_sessao_ativa', form.email);
                         setMenuAtivo('todos');
                     } else {
-                        alert(`❌ Pagamento recusado.\nDetalhe: ${res.data.status_detail}`);
+                        alert(`❌ Pagamento recusado pelo cartão.\nMotivo: ${res.data.status_detail}`);
                     }
                     resolve();
                 })
                 .catch(err => {
-                    alert("⚠️ Erro do Banco:\n" + (err.response?.data?.motivo || err.message));
+                    alert("⚠️ Erro:\n" + (err.response?.data?.motivo || err.message));
                     reject();
                 });
         });
@@ -544,11 +554,13 @@ function ModalsExtras({ menuAtivo, isMobile, dadosPix, form, setForm, setDadosPi
                         
                         {passoPagamento === 1 && ( 
                             <div style={{display: 'flex', flexDirection: 'column', gap: '15px'}}>
+                                <input placeholder="Nome Completo (Conforme no CPF)" value={form.nome} style={{padding: '16px', borderRadius: '8px', border: `1px solid ${theme.border}`, background: theme.bgApp, color: '#fff', outline: 'none'}} onChange={e => setForm({...form, nome: e.target.value})} />
                                 <input placeholder="E-mail (Para onde vai o recibo)" value={form.email} style={{padding: '16px', borderRadius: '8px', border: `1px solid ${theme.border}`, background: theme.bgApp, color: '#fff', outline: 'none'}} onChange={e => setForm({...form, email: e.target.value})} />
                                 <input placeholder="Seu CPF (Apenas números)" value={form.cpf} maxLength={11} style={{padding: '16px', borderRadius: '8px', border: `1px solid ${theme.border}`, background: theme.bgApp, color: '#fff', outline: 'none'}} onChange={e => setForm({...form, cpf: e.target.value.replace(/\D/g, '')})} />
+                                
                                 <button style={{padding: '16px', background: theme.cyan, color: '#000', border: 'none', borderRadius: '8px', fontWeight: 'bold', cursor: 'pointer'}} 
                                     onClick={() => { 
-                                        if(!form.email || form.cpf.length !== 11) return alert("Por favor, preencha o e-mail e um CPF válido (11 números)."); 
+                                        if(!form.nome || !form.email || form.cpf.length !== 11) return alert("Por favor, preencha o Nome, E-mail e um CPF válido de 11 números."); 
                                         setPassoPagamento(2);
                                     }}>Continuar</button>
                                 <button onClick={() => setMenuAtivo('todos')} style={{color: theme.textMuted, background: 'none', border: 'none', marginTop: '10px', cursor: 'pointer', fontWeight: 'bold'}}>Cancelar</button>
@@ -559,12 +571,12 @@ function ModalsExtras({ menuAtivo, isMobile, dadosPix, form, setForm, setDadosPi
                             <div style={{background: theme.bgPanel, padding: '20px', borderRadius: '12px', border: `1px solid ${theme.border}`}}>
                                 <h3 style={{color: theme.textMain, margin: '0 0 20px 0'}}>Como prefere pagar?</h3>
                                 <button disabled={loadingPix} onClick={gerarPixNativo} style={{width: '100%', padding: '18px', background: theme.cyan, color: '#000', fontWeight: 'bold', border: 'none', borderRadius: '8px', marginBottom: '15px', cursor: 'pointer', display: 'flex', justifyContent: 'center', alignItems: 'center', gap: '10px'}}>
-                                    <span style={{fontSize: '20px'}}>💠</span> {loadingPix ? 'A gerar código...' : 'Pagar com PIX na hora'}
+                                    <span style={{fontSize: '20px'}}>💠</span> {loadingPix ? 'A gerar código PIX...' : 'Pagar com PIX na hora'}
                                 </button>
                                 <button onClick={() => setPassoPagamento(3)} style={{width: '100%', padding: '18px', background: theme.bgHover, color: theme.textMain, border: `1px solid ${theme.border}`, borderRadius: '8px', fontWeight: 'bold', cursor: 'pointer', display: 'flex', justifyContent: 'center', alignItems: 'center', gap: '10px'}}>
                                     <span style={{fontSize: '20px'}}>💳</span> Cartão de Crédito / Débito
                                 </button>
-                                <button onClick={() => setPassoPagamento(1)} style={{color: theme.textMuted, background: 'none', border: 'none', marginTop: '20px', cursor: 'pointer', fontWeight: 'bold'}}>⬅ Voltar</button>
+                                <button onClick={() => setPassoPagamento(1)} style={{color: theme.textMuted, background: 'none', border: 'none', marginTop: '20px', cursor: 'pointer', fontWeight: 'bold'}}>⬅ Voltar aos Dados</button>
                             </div>
                         )}
 
