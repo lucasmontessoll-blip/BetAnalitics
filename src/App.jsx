@@ -7,6 +7,7 @@ import { initMercadoPago, Payment } from '@mercadopago/sdk-react';
 import dadosFut from './dados.json'; 
 import './App.css';
 
+// 👇 AQUI ESTÁ A SUA CHAVE PÚBLICA DE TESTE!
 initMercadoPago('REMOVED_MP_HISTORICAL_SECRET', { locale: 'pt-BR' });
 
 const API_URL = 'https://betanalitics.onrender.com/api';
@@ -76,7 +77,6 @@ export default function App() {
   const [showLoginMenu, setShowLoginMenu] = useState(false);
   const [showProfileMenu, setShowProfileMenu] = useState(false);
   
-  // 👇 ADICIONEI O CAMPO 'NOME' NO ESTADO
   const [form, setForm] = useState({ nome: '', email: '', cpf: '' });
   const [dadosPix, setDadosPix] = useState(null);
 
@@ -514,7 +514,6 @@ function ModalsExtras({ menuAtivo, isMobile, dadosPix, form, setForm, setDadosPi
         }
     };
 
-    // 👇 O SEGREDO DO CARTÃO ESTÁ AQUI: LIMPO PARA NÃO CRASHAR O FORMULÁRIO 👇
     const initialization = { amount: 29.90 }; 
     const customization = {
         visual: { style: { theme: 'dark', customVariables: { formBackgroundColor: '#13161f' } } },

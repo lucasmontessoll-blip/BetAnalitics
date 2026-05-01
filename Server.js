@@ -6,6 +6,7 @@ const app = express();
 app.use(cors({ origin: '*', methods: ['GET','POST'] }));
 app.use(express.json());
 
+// 👇 AQUI ESTÁ O SEU NOVO ACCESS TOKEN DE TESTE!
 const client = new MercadoPagoConfig({ accessToken: 'REMOVED_MP_HISTORICAL_SECRET' });
 
 app.post('/api/processar-pagamento', async (req, res) => {
@@ -18,8 +19,8 @@ app.post('/api/processar-pagamento', async (req, res) => {
             payment_method_id: payment_method_id,
             payer: {
                 email: payer.email,
-                first_name: payer.first_name, // 👇 Agora recebe o nome real
-                last_name: payer.last_name,   // 👇 E o sobrenome real
+                first_name: payer.first_name,
+                last_name: payer.last_name,
                 identification: {
                     type: "CPF",
                     number: payer.identification?.number?.replace(/\D/g, '')
