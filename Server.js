@@ -6,7 +6,7 @@ const app = express();
 app.use(cors({ origin: '*', methods: ['GET','POST'] }));
 app.use(express.json());
 
-// 👇 AQUI ESTÁ O SEU NOVO ACCESS TOKEN DE TESTE!
+// Token de Teste do Lucas - Garantindo que não há bloqueios de Produção
 const client = new MercadoPagoConfig({ accessToken: 'REMOVED_MP_HISTORICAL_SECRET' });
 
 app.post('/api/processar-pagamento', async (req, res) => {
@@ -28,6 +28,7 @@ app.post('/api/processar-pagamento', async (req, res) => {
             }
         };
 
+        // Adiciona dados de cartão apenas se o cliente NÃO escolher PIX
         if (payment_method_id !== 'pix') {
             paymentData.token = token;
             paymentData.installments = Number(installments);
