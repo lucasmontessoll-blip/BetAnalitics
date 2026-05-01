@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, useMemo } from 'react';
 import axios from 'axios';
 import confetti from 'canvas-confetti';
 import { AreaChart, Area, LineChart, Line, XAxis, YAxis, ResponsiveContainer } from 'recharts';
@@ -7,7 +7,7 @@ import { initMercadoPago, Payment } from '@mercadopago/sdk-react';
 import dadosFut from './dados.json'; 
 import './App.css';
 
-// 👇 AQUI ESTÁ A SUA CHAVE PÚBLICA DE TESTE!
+// Chave Pública de Teste do Lucas
 initMercadoPago('TEST-3d653755-940f-4f91-925f-e9168afc0ae2', { locale: 'pt-BR' });
 
 const API_URL = 'https://betanalitics.onrender.com/api';
@@ -406,7 +406,7 @@ export default function App() {
 }
 
 // ============================================================================
-// 🧩 COMPONENTES EXTRAÍDOS E BLINDADOS (SISTEMA DE CHECKOUT CORRIGIDO)
+// 🧩 COMPONENTES EXTRAÍDOS
 // ============================================================================
 function AbaEsportes({ esporteAtivo, setEsporteAtivo }) {
   return (
@@ -514,11 +514,13 @@ function ModalsExtras({ menuAtivo, isMobile, dadosPix, form, setForm, setDadosPi
         }
     };
 
-    const initialization = { amount: 29.90 }; 
-    const customization = {
+    // 👇 O SEGREDO ESTÁ AQUI: useMemo CONGELA AS CONFIGURAÇÕES E IMPEDE O FORMULÁRIO DE SUMIR 👇
+    const initialization = useMemo(() => ({ amount: 29.90 }), []);
+    
+    const customization = useMemo(() => ({
         visual: { style: { theme: 'dark', customVariables: { formBackgroundColor: '#13161f' } } },
-        paymentMethods: { maxInstallments: 12 }
-    };
+        paymentMethods: { creditCard: 'all', debitCard: 'all', maxInstallments: 12 }
+    }), []);
 
     const onSubmitCartao = async (formData) => {
         return new Promise((resolve, reject) => {
@@ -581,7 +583,7 @@ function ModalsExtras({ menuAtivo, isMobile, dadosPix, form, setForm, setDadosPi
 
                         {passoPagamento === 3 && ( 
                             <div style={{background: theme.bgPanel, padding: '20px', borderRadius: '12px', border: `1px solid ${theme.border}`}}>
-                                <Payment initialization={initialization} customization={customization} onSubmit={onSubmitCartao} onError={(err) => console.log(err)} />
+                                <Payment initialization={initialization} customization={customization} onSubmit={onSubmitCartao} onError={(err) => console.log("Erro no Mercado Pago:", err)} />
                                 <button onClick={() => setPassoPagamento(2)} style={{width: '100%', marginTop: '15px', padding: '15px', background: theme.bgHover, color: theme.textMain, border: `1px solid ${theme.border}`, borderRadius: '8px', fontWeight: 'bold', cursor: 'pointer'}}>Voltar</button>
                             </div> 
                         )}
