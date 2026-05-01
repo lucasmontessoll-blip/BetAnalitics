@@ -7,12 +7,13 @@ const app = express();
 app.use(cors({ origin: '*', methods: ['GET','POST'] }));
 app.use(express.json());
 
-// 🔥 TOKEN DE PRODUÇÃO (OBRIGATÓRIO PRA PIX FUNCIONAR)
+// 🔥 TOKEN PRODUÇÃO (OBRIGATÓRIO PRA PIX FUNCIONAR)
 const client = new MercadoPagoConfig({
     accessToken: 'APP_USR-c05e91db-5e62-4838-8790-e73906d11dbc'
 });
 
-// 🚀 CRIAR PAGAMENTO PIX
+
+// 🚀 GERAR PIX
 app.post('/api/pix', async (req, res) => {
     try {
         const payment = new Payment(client);
@@ -23,7 +24,7 @@ app.post('/api/pix', async (req, res) => {
                 description: "Plano VIP BetAnalytics",
                 payment_method_id: "pix",
                 payer: {
-                    email: req.body.email
+                    email: req.body.email || "teste@test.com"
                 },
                 date_of_expiration: new Date(Date.now() + 30 * 60 * 1000).toISOString()
             }
@@ -37,13 +38,13 @@ app.post('/api/pix', async (req, res) => {
         });
 
     } catch (error) {
-        console.log("ERRO:", error);
+        console.log("❌ ERRO PIX:", JSON.stringify(error, null, 2));
         res.status(500).json({ error: error.message });
     }
 });
 
 
-// 🔎 CONSULTAR STATUS DO PAGAMENTO
+// 🔎 VERIFICAR STATUS
 app.get('/api/status/:id', async (req, res) => {
     try {
         const payment = new Payment(client);
@@ -55,8 +56,13 @@ app.get('/api/status/:id', async (req, res) => {
         });
 
     } catch (error) {
+        console.log("❌ ERRO STATUS:", error);
         res.status(500).json({ error: error.message });
     }
 });
 
-app.listen(3000, () => console.log("🚀 PIX rodando na porta 3000"));
+
+// 🚀 START
+app.listen(3000, () => {
+    console.log("🚀 Servidor PIX rodando em http://localhost:3000");
+});
