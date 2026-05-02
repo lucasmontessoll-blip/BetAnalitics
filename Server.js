@@ -12,9 +12,7 @@ app.use(cors({
 app.use(express.json());
 
 // ⚠️ TOKEN TEST (pode falhar PIX — ideal depois usar produção)
-const client = new MercadoPagoConfig({
-    accessToken: 'REMOVED_MP_HISTORICAL_SECRET'
-});
+const client = new MercadoPagoConfig({ accessToken: 'REMOVED_MP_HISTORICAL_SECRET' });
 
 app.post('/api/processar-pagamento', async (req, res) => {
     try {
