@@ -8,7 +8,7 @@ import dadosFut from './dados.json';
 import './App.css';
 
 // Chave Pública do Lucas
-initMercadoPago('APP_USR-4fa18e00-642d-4369-bc77-e8c68ed9c2a0', { locale: 'pt-BR' });
+initMercadoPago('TEST-3d653755-940f-4f91-925f-e9168afc0ae2', { locale: 'pt-BR' });
 const API_URL = 'https://betanalitics.onrender.com/api';
 const theme = { bgApp: '#090a0f', bgPanel: '#13161f', bgHover: '#1c202d', border: '#232838', cyan: '#00d4b6', yellow: '#facc15', textMain: '#f8fafc', textMuted: '#64748b', red: '#ef4444', green: '#10b981' };
 
