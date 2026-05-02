@@ -7,8 +7,8 @@ import { initMercadoPago, Payment } from '@mercadopago/sdk-react';
 import dadosFut from './dados.json'; 
 import './App.css';
 
-// Chave Pública de Teste do Lucas
-initMercadoPago('TEST-3d653755-940f-4f91-925f-e9168afc0ae2', { locale: 'pt-BR' });
+// Chave Pública do Lucas
+initMercadoPago('APP_USR-5947285218976034-050113-a9857b202a29e411236349f75b6b25c3-669622996'});
 
 const API_URL = 'https://betanalitics.onrender.com/api';
 const theme = { bgApp: '#090a0f', bgPanel: '#13161f', bgHover: '#1c202d', border: '#232838', cyan: '#00d4b6', yellow: '#facc15', textMain: '#f8fafc', textMuted: '#64748b', red: '#ef4444', green: '#10b981' };
