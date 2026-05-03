@@ -12,7 +12,7 @@ const client = new MercadoPagoConfig({
     accessToken: 'SEU_ACCESS_TOKEN_PRODUCAO'
 });
 
-app.post('/api/processar-pagamento', async (req, res) => {
+app.post('/api/processar-pagamento', async (req, res) =>  {
     try {
         const { transaction_amount, payer, payment_method_id } = req.body;
 
