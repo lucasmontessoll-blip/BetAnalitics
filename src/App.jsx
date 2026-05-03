@@ -9,7 +9,10 @@ import './App.css';
 
 // Chave Pública do Lucas
 initMercadoPago('TEST-3d653755-940f-4f91-925f-e9168afc0ae2', { locale: 'pt-BR' });
-const API_URL = 'https://betanalitics.onrender.com/api';
+
+// 🔥 A URL DO RENDER CORRIGIDA AQUI 🔥
+const API_URL = 'https://betanalytics-1.onrender.com/api';
+
 const theme = { bgApp: '#090a0f', bgPanel: '#13161f', bgHover: '#1c202d', border: '#232838', cyan: '#00d4b6', yellow: '#facc15', textMain: '#f8fafc', textMuted: '#64748b', red: '#ef4444', green: '#10b981' };
 
 const getLocalYYYYMMDD = () => { const d = new Date(); d.setMinutes(d.getMinutes() - d.getTimezoneOffset()); return d.toISOString().split('T')[0]; };
@@ -478,8 +481,8 @@ function ModalsExtras({
   const [passo, setPasso] = useState(1);
   const [loading, setLoading] = useState(false);
 
-  // Alterado de localhost para a sua URL de produção no Render para não dar erro
-  const API = "https://betanalitics.onrender.com/api";
+  // 🔥 A URL DO RENDER CORRIGIDA AQUI TAMBÉM 🔥
+  const API = "https://betanalytics-1.onrender.com/api";
 
   async function gerarPix() {
     try {
