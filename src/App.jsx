@@ -465,161 +465,113 @@ function ClassificacaoPanel({ menuAtivo, loadingClassificacao, classificacao }) 
     return ( <motion.div initial={{opacity: 0}} animate={{opacity: 1}} style={{background: theme.bgPanel, borderRadius: '12px', border: `1px solid ${theme.border}`, overflow: 'hidden', padding: '20px'}}>{menuAtivo === 'todos' || menuAtivo === 'todos os jogos' || menuAtivo === 'esportes' ? ( <div style={{textAlign: 'center', color: theme.textMuted, padding: '40px 0'}}><span style={{fontSize: '30px', display: 'block', marginBottom: '10px'}}>🏆</span>Selecione uma liga no menu lateral.</div> ) : loadingClassificacao ? ( <div style={{textAlign: 'center', color: theme.cyan, padding: '40px 0', fontWeight: 'bold'}}>Calculando...</div> ) : ( <div style={{overflowX: 'auto'}}><table style={{width: '100%', borderCollapse: 'collapse', textAlign: 'left', color: theme.textMain, fontSize: '13px'}}><thead><tr style={{borderBottom: `1px solid ${theme.border}`, color: theme.textMuted}}><th>#</th><th>Equipe</th><th>P</th><th>J</th><th>V</th><th>E</th><th>D</th><th>SG</th></tr></thead><tbody>{classificacao.map((t, i) => (<tr key={i} style={{borderBottom: `1px solid rgba(255,255,255,0.02)`}}><td style={{padding: '12px 8px', color: theme.cyan}}>{t.position}</td><td style={{padding: '12px 8px', display: 'flex', alignItems: 'center', gap: '10px'}}><img src={t.logo} style={{width: '24px'}} alt="" />{t.team_name}</td><td>{t.points}</td><td>{t.matches_played}</td><td>{t.won}</td><td>{t.draw}</td><td>{t.lost}</td><td>{t.goal_diff}</td></tr>))}</tbody></table></div> )}</motion.div> );
 }
 
-function ModalsExtras({ menuAtivo, isMobile, dadosPix, form, setForm, setDadosPix, setMenuAtivo, bancaData, setUserData }) {
-    const [passoPagamento, setPassoPagamento] = useState(1); 
-    const [pixRecebido, setPixRecebido] = useState(null); 
-    const [loadingPix, setLoadingPix] = useState(false);
+// 🔥 SEU NOVO CÓDIGO INSERIDO AQUI 🔥
+function ModalsExtras({
+  menuAtivo,
+  isMobile,
+  dadosPix,
+  form,
+  setForm,
+  setDadosPix,
+  setMenuAtivo
+}) {
+  const [passo, setPasso] = useState(1);
+  const [loading, setLoading] = useState(false);
 
-    useEffect(() => {
-        if (menuAtivo !== 'assinar pro') {
-            setPassoPagamento(1);
-            setPixRecebido(null);
-            setDadosPix(null);
+  // Alterado de localhost para a sua URL de produção no Render para não dar erro
+  const API = "https://betanalitics.onrender.com/api";
+
+  async function gerarPix() {
+    try {
+      setLoading(true);
+
+      const payload = {
+        transaction_amount: 1.0,
+        payment_method_id: "pix",
+        payer: {
+          email: form.email,
+          first_name: form.nome,
+          last_name: "Cliente",
+          identification: {
+            type: "CPF",
+            number: form.cpf.replace(/\D/g, "")
+          }
         }
-    }, [menuAtivo, setDadosPix]);
+      };
 
-    const gerarPixNativo = async () => {
-        setLoadingPix(true);
-        try {
-            const nomes = form.nome ? form.nome.trim().split(' ') : ['Cliente'];
-            const firstName = nomes[0];
-            const lastName = nomes.length > 1 ? nomes.slice(1).join(' ') : 'VIP';
+      const { data } = await axios.post(
+        `${API}/processar-pagamento`,
+        payload
+      );
 
-            const res = await axios.post('https://betanalitics.onrender.com/api/processar-pagamento', {
-                transaction_amount: 29.90,
-                payment_method_id: 'pix',
-                payer: {
-                    email: form.email,
-                    first_name: firstName,
-                    last_name: lastName,
-                    identification: { type: "CPF", number: form.cpf }
-                }
-            });
-            
-            if (res.data.status === 'pending' || res.data.status === 'approved') {
-                if (res.data.qr_code) {
-                    setPixRecebido(res.data);
-                    setPassoPagamento(4);
-                } else {
-                    alert("⚠️ PIX gerado, mas o banco não enviou o QR Code.");
-                }
-            } else {
-                alert(`❌ PIX Recusado pelo banco.\nMotivo: ${res.data.status_detail || 'Não informado'}`);
-            }
-        } catch (err) {
-            alert("⚠️ Erro no servidor:\n" + (err.response?.data?.motivo || err.message));
-        } finally {
-            setLoadingPix(false);
-        }
-    };
+      if (!data.qr_code) throw new Error("Erro ao gerar PIX");
 
-    // 👇 O SEGREDO ESTÁ AQUI: useMemo CONGELA AS CONFIGURAÇÕES E IMPEDE O FORMULÁRIO DE SUMIR 👇
-    const initialization = useMemo(() => ({ amount: 29.90 }), []);
-    
-    const customization = useMemo(() => ({
-        visual: { style: { theme: 'dark', customVariables: { formBackgroundColor: '#13161f' } } },
-        paymentMethods: { creditCard: 'all', debitCard: 'all', maxInstallments: 12 }
-    }), []);
+      setDadosPix(data);
+      setPasso(2);
 
-    const onSubmitCartao = async (formData) => {
-        return new Promise((resolve, reject) => {
-            axios.post('https://betanalitics.onrender.com/api/processar-pagamento', formData)
-                .then(res => {
-                    if (res.data.status === 'approved') {
-                        alert("🎉 Pagamento Aprovado! Bem-vindo ao VIP PRO!");
-                        setUserData({ email: form.email, is_vip: true });
-                        localStorage.setItem('bet_sessao_ativa', form.email);
-                        setMenuAtivo('todos');
-                    } else {
-                        alert(`❌ Pagamento recusado pelo cartão.\nMotivo: ${res.data.status_detail}`);
-                    }
-                    resolve();
-                })
-                .catch(err => {
-                    alert("⚠️ Erro:\n" + (err.response?.data?.motivo || err.message));
-                    reject();
-                });
-        });
-    };
+    } catch (e) {
+      alert(e?.response?.data?.erro || e.message);
+    } finally {
+      setLoading(false);
+    }
+  }
 
-    if (menuAtivo !== "assinar pro" && menuAtivo !== "gestão de banca") return null;
+  if (menuAtivo !== "assinar pro") return null;
 
-    return (
-        <>
-            {menuAtivo === "assinar pro" && ( 
-                <div style={{position: 'fixed', top: 0, left: 0, right: 0, bottom: isMobile ? '65px' : 0, background: 'rgba(9,10,15,0.95)', zIndex: 200, padding: '40px 20px', textAlign: 'center', overflowY: 'auto'}}>
-                    <div style={{maxWidth: '500px', margin: '0 auto'}}>
-                        <h1 style={{color: theme.cyan, margin: '0 0 5px 0'}}>VIP PRO 👑</h1>
-                        <p style={{color: theme.textMuted, marginBottom: '25px', fontSize: '13px'}}>Assinatura Mensal: <b>R$ 29,90</b></p>
-                        
-                        {passoPagamento === 1 && ( 
-                            <div style={{display: 'flex', flexDirection: 'column', gap: '15px'}}>
-                                <input placeholder="Nome Completo (Conforme no CPF)" value={form.nome} style={{padding: '16px', borderRadius: '8px', border: `1px solid ${theme.border}`, background: theme.bgApp, color: '#fff', outline: 'none'}} onChange={e => setForm({...form, nome: e.target.value})} />
-                                <input placeholder="E-mail (Para onde vai o recibo)" value={form.email} style={{padding: '16px', borderRadius: '8px', border: `1px solid ${theme.border}`, background: theme.bgApp, color: '#fff', outline: 'none'}} onChange={e => setForm({...form, email: e.target.value})} />
-                                <input placeholder="Seu CPF (Apenas números)" value={form.cpf} maxLength={11} style={{padding: '16px', borderRadius: '8px', border: `1px solid ${theme.border}`, background: theme.bgApp, color: '#fff', outline: 'none'}} onChange={e => setForm({...form, cpf: e.target.value.replace(/\D/g, '')})} />
-                                
-                                <button style={{padding: '16px', background: theme.cyan, color: '#000', border: 'none', borderRadius: '8px', fontWeight: 'bold', cursor: 'pointer'}} 
-                                    onClick={() => { 
-                                        if(!form.nome || !form.email || form.cpf.length !== 11) return alert("Por favor, preencha o Nome, E-mail e um CPF válido de 11 números."); 
-                                        setPassoPagamento(2);
-                                    }}>Continuar</button>
-                                <button onClick={() => setMenuAtivo('todos')} style={{color: theme.textMuted, background: 'none', border: 'none', marginTop: '10px', cursor: 'pointer', fontWeight: 'bold'}}>Cancelar</button>
-                            </div> 
-                        )}
+  return (
+    <div style={{position:"fixed", inset:0, background:"#000a", display:"flex", justifyContent:"center", alignItems:"center", zIndex: 1000}}>
+      <div style={{background:"#13161f", padding:30, borderRadius:10, width:350, display: "flex", flexDirection: "column", gap: "15px", color: "#fff"}}>
+        
+        <button onClick={() => setMenuAtivo('todos')} style={{alignSelf: 'flex-start', background: 'none', border: 'none', color: '#64748b', cursor: 'pointer'}}>⬅ Voltar</button>
 
-                        {passoPagamento === 2 && (
-                            <div style={{background: theme.bgPanel, padding: '20px', borderRadius: '12px', border: `1px solid ${theme.border}`}}>
-                                <h3 style={{color: theme.textMain, margin: '0 0 20px 0'}}>Como prefere pagar?</h3>
-                                <button disabled={loadingPix} onClick={gerarPixNativo} style={{width: '100%', padding: '18px', background: theme.cyan, color: '#000', fontWeight: 'bold', border: 'none', borderRadius: '8px', marginBottom: '15px', cursor: 'pointer', display: 'flex', justifyContent: 'center', alignItems: 'center', gap: '10px'}}>
-                                    <span style={{fontSize: '20px'}}>💠</span> {loadingPix ? 'A gerar código PIX...' : 'Pagar com PIX na hora'}
-                                </button>
-                                <button onClick={() => setPassoPagamento(3)} style={{width: '100%', padding: '18px', background: theme.bgHover, color: theme.textMain, border: `1px solid ${theme.border}`, borderRadius: '8px', fontWeight: 'bold', cursor: 'pointer', display: 'flex', justifyContent: 'center', alignItems: 'center', gap: '10px'}}>
-                                    <span style={{fontSize: '20px'}}>💳</span> Cartão de Crédito / Débito
-                                </button>
-                                <button onClick={() => setPassoPagamento(1)} style={{color: theme.textMuted, background: 'none', border: 'none', marginTop: '20px', cursor: 'pointer', fontWeight: 'bold'}}>⬅ Voltar aos Dados</button>
-                            </div>
-                        )}
+        {passo === 1 && (
+          <>
+            <h2 style={{margin: 0, color: "#00d4b6"}}>Assinar VIP</h2>
 
-                        {passoPagamento === 3 && ( 
-                            <div style={{background: theme.bgPanel, padding: '20px', borderRadius: '12px', border: `1px solid ${theme.border}`}}>
-                                <Payment initialization={initialization} customization={customization} onSubmit={onSubmitCartao} onError={(err) => console.log("Erro no Mercado Pago:", err)} />
-                                <button onClick={() => setPassoPagamento(2)} style={{width: '100%', marginTop: '15px', padding: '15px', background: theme.bgHover, color: theme.textMain, border: `1px solid ${theme.border}`, borderRadius: '8px', fontWeight: 'bold', cursor: 'pointer'}}>Voltar</button>
-                            </div> 
-                        )}
+            <input placeholder="Nome"
+              style={{padding: '12px', borderRadius: '6px', border: '1px solid #232838', background: '#090a0f', color: '#fff'}}
+              onChange={e=>setForm({...form,nome:e.target.value})}
+            />
 
-                        {passoPagamento === 4 && pixRecebido && (
-                            <div style={{background: theme.bgPanel, padding: '30px 20px', borderRadius: '12px', border: `2px solid ${theme.cyan}`, textAlign: 'center'}}>
-                                <h2 style={{color: theme.cyan, margin: '0 0 10px 0'}}>Pague seu PIX</h2>
-                                <p style={{color: theme.textMuted, fontSize: '13px', margin: '0 0 20px 0'}}>Abra o app do seu banco e escaneie o código abaixo:</p>
-                                <img src={`data:image/jpeg;base64,${pixRecebido.qr_code_base64}`} alt="QR Code PIX" style={{width: '200px', height: '200px', margin: '0 auto', display: 'block', borderRadius: '8px', border: '5px solid #fff'}} />
-                                <div style={{marginTop: '20px', textAlign: 'left'}}>
-                                    <div style={{fontSize: '11px', color: theme.cyan, fontWeight: 'bold', marginBottom: '5px', textTransform: 'uppercase'}}>Ou Copia e Cola:</div>
-                                    <textarea readOnly value={pixRecebido.qr_code} style={{width: '100%', padding: '12px', background: theme.bgApp, color: theme.textMuted, border: `1px solid ${theme.border}`, borderRadius: '8px', fontSize: '11px', resize: 'none'}} rows={4} />
-                                </div>
-                                <button onClick={() => { navigator.clipboard.writeText(pixRecebido.qr_code); alert("Código copiado!"); }} style={{width: '100%', marginTop: '15px', padding: '15px', background: theme.cyan, color: '#000', fontWeight: 'bold', border: 'none', borderRadius: '8px', cursor: 'pointer'}}>Copiar PIX</button>
-                                <button onClick={() => setMenuAtivo('todos')} style={{width: '100%', marginTop: '10px', padding: '15px', background: 'transparent', color: theme.textMuted, border: `1px solid ${theme.border}`, borderRadius: '8px', fontWeight: 'bold', cursor: 'pointer'}}>Fechar Janela</button>
-                            </div>
-                        )}
-                    </div>
-                </div> 
-            )}
-            
-            {menuAtivo === "gestão de banca" && ( 
-              <div style={{position: 'fixed', top: 0, left: 0, right: 0, bottom: isMobile ? '65px' : 0, background: 'rgba(9,10,15,0.95)', zIndex: 200, padding: '30px', textAlign: 'center'}}>
-                <button onClick={() => setMenuAtivo('todos')} style={{color: theme.textMuted, background: 'none', border: 'none'}}>⬅ Voltar</button>
-                <h2 style={{color: theme.cyan}}>Banca</h2>
-                <div style={{height: '300px', maxWidth: '800px', margin: '0 auto'}}>
-                  <ResponsiveContainer width="100%" height="100%">
-                    <AreaChart data={bancaData.length ? bancaData : [{name:'Seg',val:100},{name:'Ter',val:120}]}>
-                      <XAxis dataKey="name" />
-                      <Area type="monotone" dataKey="val" stroke={theme.cyan} fill={theme.cyan} fillOpacity={0.2} />
-                    </AreaChart>
-                  </ResponsiveContainer>
-                </div>
-              </div> 
-            )}
-        </>
-    );
+            <input placeholder="Email"
+              style={{padding: '12px', borderRadius: '6px', border: '1px solid #232838', background: '#090a0f', color: '#fff'}}
+              onChange={e=>setForm({...form,email:e.target.value})}
+            />
+
+            <input placeholder="CPF"
+              style={{padding: '12px', borderRadius: '6px', border: '1px solid #232838', background: '#090a0f', color: '#fff'}}
+              onChange={e=>setForm({...form,cpf:e.target.value})}
+            />
+
+            <button onClick={gerarPix} style={{padding: '15px', background: '#00d4b6', color: '#000', fontWeight: 'bold', border: 'none', borderRadius: '6px', cursor: 'pointer'}}>
+              {loading ? "Gerando..." : "Gerar PIX"}
+            </button>
+          </>
+        )}
+
+        {passo === 2 && dadosPix && (
+          <>
+            <h3 style={{margin: 0, color: "#00d4b6", textAlign: 'center'}}>Pague com PIX</h3>
+
+            <img
+              src={`data:image/png;base64,${dadosPix.qr_code_base64}`}
+              style={{width:"100%", borderRadius: '8px'}}
+            />
+
+            <textarea value={dadosPix.qr_code} readOnly style={{padding: '10px', fontSize: '11px', background: '#090a0f', color: '#64748b', border: '1px solid #232838', borderRadius: '6px', resize: 'none'}} rows={4} />
+
+            <button onClick={()=>{
+              navigator.clipboard.writeText(dadosPix.qr_code);
+              alert("Copiado!");
+            }} style={{padding: '15px', background: '#00d4b6', color: '#000', fontWeight: 'bold', border: 'none', borderRadius: '6px', cursor: 'pointer'}}>
+              Copiar PIX
+            </button>
+          </>
+        )}
+
+      </div>
+    </div>
+  );
 }
 
 function AuthModal({ showLoginMenu, setShowLoginMenu, authMode, setAuthMode, loginEmail, setLoginEmail, loginSenha, setLoginSenha, handleLogin, handleCadastro }) {
