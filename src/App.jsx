@@ -7,7 +7,7 @@ import { initMercadoPago, Payment } from '@mercadopago/sdk-react';
 import dadosFut from './dados.json'; 
 import './App.css';
 
-// 🔑 A SUA CHAVE PÚBLICA (Mude para a APP_USR-... quando quiser dinheiro real)
+// 🔥 CHAVE DE TESTE (Para garantir que o QR Code é gerado sempre)
 initMercadoPago('TEST-3d653755-940f-4f91-925f-e9168afc0ae2', { locale: 'pt-BR' });
 
 // 🔥 A URL DO RENDER CORRIGIDA (betanalytics-1)
@@ -385,7 +385,7 @@ export default function App() {
           )} 
       </div>
 
-      <ModalsExtras menuAtivo={menuAtivo} isMobile={isMobile} dadosPix={dadosPix} form={form} setForm={setForm} setDadosPix={setDadosPix} setMenuAtivo={setMenuAtivo} bancaData={bancaData} setUserData={setUserData} />
+      <ModalsExtras menuAtivo={menuAtivo} isMobile={isMobile} dadosPix={dadosPix} form={form} setForm={setForm} setDadosPix={setDadosPix} setMenuAtivo={setMenuAtivo} setUserData={setUserData} />
 
       {isMobile && abaGeralAtiva !== 'jogador' && (
         <div style={{ position: 'fixed', bottom: 0, left: 0, right: 0, height: '65px', background: theme.bgPanel, borderTop: `1px solid ${theme.border}`, display: 'flex', alignItems: 'center', justifyContent: 'space-around', zIndex: 999, paddingBottom: '5px' }}>
@@ -468,21 +468,12 @@ function ClassificacaoPanel({ menuAtivo, loadingClassificacao, classificacao }) 
     return ( <motion.div initial={{opacity: 0}} animate={{opacity: 1}} style={{background: theme.bgPanel, borderRadius: '12px', border: `1px solid ${theme.border}`, overflow: 'hidden', padding: '20px'}}>{menuAtivo === 'todos' || menuAtivo === 'todos os jogos' || menuAtivo === 'esportes' ? ( <div style={{textAlign: 'center', color: theme.textMuted, padding: '40px 0'}}><span style={{fontSize: '30px', display: 'block', marginBottom: '10px'}}>🏆</span>Selecione uma liga no menu lateral.</div> ) : loadingClassificacao ? ( <div style={{textAlign: 'center', color: theme.cyan, padding: '40px 0', fontWeight: 'bold'}}>Calculando...</div> ) : ( <div style={{overflowX: 'auto'}}><table style={{width: '100%', borderCollapse: 'collapse', textAlign: 'left', color: theme.textMain, fontSize: '13px'}}><thead><tr style={{borderBottom: `1px solid ${theme.border}`, color: theme.textMuted}}><th>#</th><th>Equipe</th><th>P</th><th>J</th><th>V</th><th>E</th><th>D</th><th>SG</th></tr></thead><tbody>{classificacao.map((t, i) => (<tr key={i} style={{borderBottom: `1px solid rgba(255,255,255,0.02)`}}><td style={{padding: '12px 8px', color: theme.cyan}}>{t.position}</td><td style={{padding: '12px 8px', display: 'flex', alignItems: 'center', gap: '10px'}}><img src={t.logo} style={{width: '24px'}} alt="" />{t.team_name}</td><td>{t.points}</td><td>{t.matches_played}</td><td>{t.won}</td><td>{t.draw}</td><td>{t.lost}</td><td>{t.goal_diff}</td></tr>))}</tbody></table></div> )}</motion.div> );
 }
 
-// 🔥 SEU NOVO CÓDIGO INSERIDO AQUI 🔥
-function ModalsExtras({
-  menuAtivo,
-  isMobile,
-  dadosPix,
-  form,
-  setForm,
-  setDadosPix,
-  setMenuAtivo,
-  setUserData
-}) {
+// 🔥 SUBSTITUIR TUDO O QUE ESTIVER DE ModalsExtras PELO CÓDIGO ABAIXO
+function ModalsExtras({ menuAtivo, isMobile, dadosPix, form, setForm, setDadosPix, setMenuAtivo, setUserData }) {
   const [passo, setPasso] = useState(1);
   const [loading, setLoading] = useState(false);
 
-  // 🔥 A URL DO RENDER CORRIGIDA AQUI TAMBÉM 🔥
+  // A URL DO RENDER (Certifique-se de que é exatamente esta!)
   const API = "https://betanalytics-1.onrender.com/api";
 
   async function gerarPix() {
@@ -490,11 +481,11 @@ function ModalsExtras({
       setLoading(true);
 
       const payload = {
-        transaction_amount: 29.90, // VALOR REAL
+        transaction_amount: 29.90, 
         payment_method_id: "pix",
         payer: {
-          email: form.email,
-          first_name: form.nome,
+          email: form.email || "lucas@teste.com",
+          first_name: form.nome || "Lucas",
           last_name: "Cliente",
           identification: {
             type: "CPF",
@@ -503,24 +494,17 @@ function ModalsExtras({
         }
       };
 
-      const { data } = await axios.post(
-        `${API}/processar-pagamento`,
-        payload
-      );
+      const { data } = await axios.post(`${API}/processar-pagamento`, payload);
 
-      // 🚨 TRAVA MÁGICA: Se não houver QR Code, ele mostra erro e bloqueia!
-      if (!data.qr_code || !data.qr_code_base64) {
-        throw new Error("O Banco recusou a geração do PIX. Tente usar outro CPF!");
+      console.log("O que o servidor devolveu?", data);
+
+      // 🚨 TRAVA DE SEGURANÇA: Só avança se a imagem vier!
+      if (!data.qr_code_base64) {
+        throw new Error("O Mercado Pago recusou gerar o QR Code. Verifique o console ou o painel do Render.");
       }
 
       setDadosPix(data);
       setPasso(2);
-
-      // (Opcional) Activa o VIP assim que gera o PIX 
-      if(setUserData) {
-          setUserData({ email: form.email, is_vip: true });
-          localStorage.setItem('bet_sessao_ativa', form.email);
-      }
 
     } catch (e) {
       alert("❌ ERRO: " + (e?.response?.data?.erro || e.message));
@@ -541,23 +525,23 @@ function ModalsExtras({
           <>
             <h2 style={{margin: 0, color: "#00d4b6"}}>Assinar VIP PRO 👑</h2>
 
-            <input placeholder="Nome"
+            <input placeholder="Nome" value={form.nome}
               style={{padding: '12px', borderRadius: '6px', border: '1px solid #232838', background: '#090a0f', color: '#fff'}}
               onChange={e=>setForm({...form,nome:e.target.value})}
             />
 
-            <input placeholder="Email"
+            <input placeholder="Email" value={form.email}
               style={{padding: '12px', borderRadius: '6px', border: '1px solid #232838', background: '#090a0f', color: '#fff'}}
               onChange={e=>setForm({...form,email:e.target.value})}
             />
 
-            <input placeholder="CPF (Use um diferente do seu!)" maxLength={11}
+            <input placeholder="CPF (Apenas números)" value={form.cpf} maxLength={11}
               style={{padding: '12px', borderRadius: '6px', border: '1px solid #232838', background: '#090a0f', color: '#fff'}}
               onChange={e=>setForm({...form,cpf:e.target.value.replace(/\D/g, '')})}
             />
 
             <button onClick={gerarPix} style={{padding: '15px', background: '#00d4b6', color: '#000', fontWeight: 'bold', border: 'none', borderRadius: '6px', cursor: 'pointer'}}>
-              {loading ? "A gerar código PIX..." : "Gerar PIX Real"}
+              {loading ? "A gerar código PIX..." : "Gerar PIX Teste"}
             </button>
           </>
         )}
@@ -579,7 +563,6 @@ function ModalsExtras({
             }} style={{padding: '15px', background: '#00d4b6', color: '#000', fontWeight: 'bold', border: 'none', borderRadius: '6px', cursor: 'pointer'}}>
               Copiar Linha PIX
             </button>
-            <button onClick={() => setMenuAtivo('todos')} style={{padding: '15px', background: 'transparent', color: '#64748b', border: '1px solid #232838', borderRadius: '6px', fontWeight: 'bold', cursor: 'pointer'}}>Fechar</button>
           </>
         )}
 
