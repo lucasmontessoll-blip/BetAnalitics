@@ -7,10 +7,10 @@ import { initMercadoPago, Payment } from '@mercadopago/sdk-react';
 import dadosFut from './dados.json'; 
 import './App.css';
 
-// Chave Pública do Lucas
+// 🔑 A SUA CHAVE PÚBLICA (Mude para a APP_USR-... quando quiser dinheiro real)
 initMercadoPago('TEST-3d653755-940f-4f91-925f-e9168afc0ae2', { locale: 'pt-BR' });
 
-// 🔥 A URL DO RENDER CORRIGIDA AQUI 🔥
+// 🔥 A URL DO RENDER CORRIGIDA (betanalytics-1)
 const API_URL = 'https://betanalytics-1.onrender.com/api';
 
 const theme = { bgApp: '#090a0f', bgPanel: '#13161f', bgHover: '#1c202d', border: '#232838', cyan: '#00d4b6', yellow: '#facc15', textMain: '#f8fafc', textMuted: '#64748b', red: '#ef4444', green: '#10b981' };
@@ -476,7 +476,8 @@ function ModalsExtras({
   form,
   setForm,
   setDadosPix,
-  setMenuAtivo
+  setMenuAtivo,
+  setUserData
 }) {
   const [passo, setPasso] = useState(1);
   const [loading, setLoading] = useState(false);
@@ -489,7 +490,7 @@ function ModalsExtras({
       setLoading(true);
 
       const payload = {
-        transaction_amount: 1.0,
+        transaction_amount: 29.90, // VALOR REAL
         payment_method_id: "pix",
         payer: {
           email: form.email,
@@ -507,13 +508,22 @@ function ModalsExtras({
         payload
       );
 
-      if (!data.qr_code) throw new Error("Erro ao gerar PIX");
+      // 🚨 TRAVA MÁGICA: Se não houver QR Code, ele mostra erro e bloqueia!
+      if (!data.qr_code || !data.qr_code_base64) {
+        throw new Error("O Banco recusou a geração do PIX. Tente usar outro CPF!");
+      }
 
       setDadosPix(data);
       setPasso(2);
 
+      // (Opcional) Activa o VIP assim que gera o PIX 
+      if(setUserData) {
+          setUserData({ email: form.email, is_vip: true });
+          localStorage.setItem('bet_sessao_ativa', form.email);
+      }
+
     } catch (e) {
-      alert(e?.response?.data?.erro || e.message);
+      alert("❌ ERRO: " + (e?.response?.data?.erro || e.message));
     } finally {
       setLoading(false);
     }
@@ -529,7 +539,7 @@ function ModalsExtras({
 
         {passo === 1 && (
           <>
-            <h2 style={{margin: 0, color: "#00d4b6"}}>Assinar VIP</h2>
+            <h2 style={{margin: 0, color: "#00d4b6"}}>Assinar VIP PRO 👑</h2>
 
             <input placeholder="Nome"
               style={{padding: '12px', borderRadius: '6px', border: '1px solid #232838', background: '#090a0f', color: '#fff'}}
@@ -541,34 +551,35 @@ function ModalsExtras({
               onChange={e=>setForm({...form,email:e.target.value})}
             />
 
-            <input placeholder="CPF"
+            <input placeholder="CPF (Use um diferente do seu!)" maxLength={11}
               style={{padding: '12px', borderRadius: '6px', border: '1px solid #232838', background: '#090a0f', color: '#fff'}}
-              onChange={e=>setForm({...form,cpf:e.target.value})}
+              onChange={e=>setForm({...form,cpf:e.target.value.replace(/\D/g, '')})}
             />
 
             <button onClick={gerarPix} style={{padding: '15px', background: '#00d4b6', color: '#000', fontWeight: 'bold', border: 'none', borderRadius: '6px', cursor: 'pointer'}}>
-              {loading ? "Gerando..." : "Gerar PIX"}
+              {loading ? "A gerar código PIX..." : "Gerar PIX Real"}
             </button>
           </>
         )}
 
         {passo === 2 && dadosPix && (
           <>
-            <h3 style={{margin: 0, color: "#00d4b6", textAlign: 'center'}}>Pague com PIX</h3>
+            <h3 style={{margin: 0, color: "#00d4b6", textAlign: 'center'}}>PIX Gerado!</h3>
 
             <img
-              src={`data:image/png;base64,${dadosPix.qr_code_base64}`}
-              style={{width:"100%", borderRadius: '8px'}}
+              src={`data:image/jpeg;base64,${dadosPix.qr_code_base64}`}
+              style={{width:"100%", borderRadius: '8px', border: '3px solid #fff'}}
             />
 
             <textarea value={dadosPix.qr_code} readOnly style={{padding: '10px', fontSize: '11px', background: '#090a0f', color: '#64748b', border: '1px solid #232838', borderRadius: '6px', resize: 'none'}} rows={4} />
 
             <button onClick={()=>{
               navigator.clipboard.writeText(dadosPix.qr_code);
-              alert("Copiado!");
+              alert("Código Copiado!");
             }} style={{padding: '15px', background: '#00d4b6', color: '#000', fontWeight: 'bold', border: 'none', borderRadius: '6px', cursor: 'pointer'}}>
-              Copiar PIX
+              Copiar Linha PIX
             </button>
+            <button onClick={() => setMenuAtivo('todos')} style={{padding: '15px', background: 'transparent', color: '#64748b', border: '1px solid #232838', borderRadius: '6px', fontWeight: 'bold', cursor: 'pointer'}}>Fechar</button>
           </>
         )}
 
