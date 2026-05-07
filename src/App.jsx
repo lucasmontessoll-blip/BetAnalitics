@@ -488,7 +488,7 @@ function ModalsExtras({
       setLoading(true);
 
       const payload = {
-        transaction_amount: 29.90, // VALOR REAL
+        transaction_amount: 29.90, 
         payment_method_id: "pix",
         payer: {
           email: form.email || "lucas@teste.com",
@@ -503,17 +503,17 @@ function ModalsExtras({
 
       const { data } = await axios.post(`${API}/processar-pagamento`, payload);
 
-      // 🚨 SE NÃO VIER IMAGEM DO BANCO, BLOQUEIA NA HORA!
+      // 🚨 TRAVA MÁGICA: Se não houver QR Code, ele mostra erro na hora!
       if (!data.qr_code || !data.qr_code_base64) {
-        throw new Error("O Banco recusou a geração do PIX. O CPF pode ser inválido ou igual ao dono da conta Mercado Pago.");
+        throw new Error("O Banco não enviou a imagem do QR Code. Motivo: CPF inválido, uso da mesma conta ou bloqueio de segurança.");
       }
 
-      // Se passou da trava acima, temos QR Code!
       setDadosPix(data);
       setPasso(2);
 
     } catch (e) {
-      alert("❌ ERRO: " + (e?.response?.data?.erro || e.message));
+      // Vai mostrar exatamente porquê o código falhou no pop-up!
+      alert("❌ ERRO NO PIX: " + (e?.response?.data?.erro || e.message));
     } finally {
       setLoading(false);
     }
@@ -529,7 +529,8 @@ function ModalsExtras({
 
         {passo === 1 && (
           <>
-            <h2 style={{margin: 0, color: "#00d4b6"}}>Assinar VIP PRO 👑</h2>
+            <h2 style={{margin: 0, color: "#00d4b6"}}>Assinar VIP PRO 👑 (Versão 2.0)</h2>
+            <p style={{fontSize: '11px', color: theme.red, margin: 0}}>* Atenção: Só teste se vir 'Versão 2.0' acima *</p>
 
             <input placeholder="Nome"
               style={{padding: '12px', borderRadius: '6px', border: '1px solid #232838', background: '#090a0f', color: '#fff'}}
