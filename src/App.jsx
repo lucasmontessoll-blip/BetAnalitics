@@ -7,10 +7,10 @@ import { initMercadoPago, Payment } from '@mercadopago/sdk-react';
 import dadosFut from './dados.json'; 
 import './App.css';
 
-// 🔥 CHAVE DE TESTE (Mude para a APP_USR-... quando quiser dinheiro real)
-initMercadoPago('TEST-3d653755-940f-4f91-925f-e9168afc0ae2', { locale: 'pt-BR' });
+// Chave Pública de Produção (coloquei a correta para PIX real)
+initMercadoPago('APP_USR-4fa18e00-642d-4369-bc77-e8c68ed9c2a0', { locale: 'pt-BR' });
 
-// 🔥 A URL DO RENDER CORRIGIDA (betanalytics-1)
+// URL do Render correta (betanalytics-1)
 const API_URL = 'https://betanalytics-1.onrender.com/api';
 
 const theme = { bgApp: '#090a0f', bgPanel: '#13161f', bgHover: '#1c202d', border: '#232838', cyan: '#00d4b6', yellow: '#facc15', textMain: '#f8fafc', textMuted: '#64748b', red: '#ef4444', green: '#10b981' };
@@ -481,6 +481,7 @@ function ModalsExtras({
   const [passo, setPasso] = useState(1);
   const [loading, setLoading] = useState(false);
 
+  // A IDEIA APLICADA: Chama a sua API (no servidor Render)
   const API = "https://betanalytics-1.onrender.com/api";
 
   async function gerarPix() {
@@ -489,13 +490,10 @@ function ModalsExtras({
 
       const payload = {
         transaction_amount: 29.90, 
-        payment_method_id: "pix",
         payer: {
-          email: form.email || "lucas@teste.com",
-          first_name: form.nome || "Cliente",
-          last_name: "VIP",
+          email: form.email,
+          first_name: form.nome,
           identification: {
-            type: "CPF",
             number: form.cpf.replace(/\D/g, "")
           }
         }
@@ -503,17 +501,16 @@ function ModalsExtras({
 
       const { data } = await axios.post(`${API}/processar-pagamento`, payload);
 
-      // 🚨 TRAVA MÁGICA: Se não houver QR Code, ele mostra erro na hora!
-      if (!data.qr_code || !data.qr_code_base64) {
-        throw new Error("O Banco não enviou a imagem do QR Code. Motivo: CPF inválido, uso da mesma conta ou bloqueio de segurança.");
+      // A IDEIA APLICADA: O PIX só é válido se voltar o qr_code_base64 e o status não vai ser approved
+      if (data.qr_code_base64) {
+        setDadosPix(data);
+        setPasso(2); // Avança apenas se tem imagem
+      } else {
+        throw new Error("QR Code não retornou do servidor. Verifique os dados inseridos.");
       }
 
-      setDadosPix(data);
-      setPasso(2);
-
     } catch (e) {
-      // Vai mostrar exatamente porquê o código falhou no pop-up!
-      alert("❌ ERRO NO PIX: " + (e?.response?.data?.erro || e.message));
+      alert("❌ ERRO NO PAGAMENTO: " + (e?.response?.data?.error || e.message));
     } finally {
       setLoading(false);
     }
@@ -529,8 +526,7 @@ function ModalsExtras({
 
         {passo === 1 && (
           <>
-            <h2 style={{margin: 0, color: "#00d4b6"}}>Assinar VIP PRO 👑 (Versão 2.0)</h2>
-            <p style={{fontSize: '11px', color: theme.red, margin: 0}}>* Atenção: Só teste se vir 'Versão 2.0' acima *</p>
+            <h2 style={{margin: 0, color: "#00d4b6"}}>Assinar VIP PRO 👑</h2>
 
             <input placeholder="Nome"
               style={{padding: '12px', borderRadius: '6px', border: '1px solid #232838', background: '#090a0f', color: '#fff'}}
@@ -542,24 +538,23 @@ function ModalsExtras({
               onChange={e=>setForm({...form,email:e.target.value})}
             />
 
-            <input placeholder="CPF (Use um diferente do seu!)" maxLength={11}
+            <input placeholder="CPF" maxLength={11}
               style={{padding: '12px', borderRadius: '6px', border: '1px solid #232838', background: '#090a0f', color: '#fff'}}
               onChange={e=>setForm({...form,cpf:e.target.value.replace(/\D/g, '')})}
             />
 
             <button onClick={gerarPix} style={{padding: '15px', background: '#00d4b6', color: '#000', fontWeight: 'bold', border: 'none', borderRadius: '6px', cursor: 'pointer'}}>
-              {loading ? "A gerar código PIX..." : "Gerar PIX Real"}
+              {loading ? "A gerar código..." : "Gerar PIX"}
             </button>
           </>
         )}
 
         {passo === 2 && dadosPix && (
           <>
-            <h3 style={{margin: 0, color: "#00d4b6", textAlign: 'center'}}>PIX Gerado!</h3>
-            <p style={{textAlign: 'center', fontSize: '12px', color: '#64748b', margin: 0}}>Escaneie ou copie a linha abaixo para pagar</p>
-
+            <h3 style={{margin: 0, color: "#00d4b6", textAlign: 'center'}}>Pague com PIX</h3>
+            
             <img
-              src={`data:image/jpeg;base64,${dadosPix.qr_code_base64}`}
+              src={`data:image/png;base64,${dadosPix.qr_code_base64}`}
               style={{width:"100%", borderRadius: '8px', border: '3px solid #fff'}}
               alt="QR Code"
             />
@@ -570,7 +565,7 @@ function ModalsExtras({
               navigator.clipboard.writeText(dadosPix.qr_code);
               alert("Código Copiado!");
             }} style={{padding: '15px', background: '#00d4b6', color: '#000', fontWeight: 'bold', border: 'none', borderRadius: '6px', cursor: 'pointer'}}>
-              Copiar Linha PIX
+              Copiar PIX
             </button>
           </>
         )}
