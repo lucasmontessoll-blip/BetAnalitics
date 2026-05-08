@@ -3,14 +3,15 @@ import axios from 'axios';
 import confetti from 'canvas-confetti';
 import { AreaChart, Area, LineChart, Line, XAxis, YAxis, ResponsiveContainer } from 'recharts';
 import { motion, AnimatePresence } from 'framer-motion';
+// AQUI IMPORTAMOS O SISTEMA DE CARTÕES OFICIAL:
 import { initMercadoPago, Payment } from '@mercadopago/sdk-react'; 
 import dadosFut from './dados.json'; 
 import './App.css';
 
-// Chave Pública de Produção (coloquei a correta para PIX real)
+// 🔑 COLOQUE AQUI A SUA CHAVE PÚBLICA DE PRODUÇÃO (PUBLIC KEY)
 initMercadoPago('APP_USR-4fa18e00-642d-4369-bc77-e8c68ed9c2a0', { locale: 'pt-BR' });
 
-// URL do Render correta (betanalytics-1)
+// 🔥 A URL DO RENDER CORRIGIDA (betanalytics-1)
 const API_URL = 'https://betanalytics-1.onrender.com/api';
 
 const theme = { bgApp: '#090a0f', bgPanel: '#13161f', bgHover: '#1c202d', border: '#232838', cyan: '#00d4b6', yellow: '#facc15', textMain: '#f8fafc', textMuted: '#64748b', red: '#ef4444', green: '#10b981' };
@@ -385,7 +386,7 @@ export default function App() {
           )} 
       </div>
 
-      <ModalsExtras menuAtivo={menuAtivo} isMobile={isMobile} dadosPix={dadosPix} form={form} setForm={setForm} setDadosPix={setDadosPix} setMenuAtivo={setMenuAtivo} setUserData={setUserData} />
+      <ModalsExtras menuAtivo={menuAtivo} form={form} setForm={setForm} setMenuAtivo={setMenuAtivo} />
 
       {isMobile && abaGeralAtiva !== 'jogador' && (
         <div style={{ position: 'fixed', bottom: 0, left: 0, right: 0, height: '65px', background: theme.bgPanel, borderTop: `1px solid ${theme.border}`, display: 'flex', alignItems: 'center', justifyContent: 'space-around', zIndex: 999, paddingBottom: '5px' }}>
@@ -468,106 +469,141 @@ function ClassificacaoPanel({ menuAtivo, loadingClassificacao, classificacao }) 
     return ( <motion.div initial={{opacity: 0}} animate={{opacity: 1}} style={{background: theme.bgPanel, borderRadius: '12px', border: `1px solid ${theme.border}`, overflow: 'hidden', padding: '20px'}}>{menuAtivo === 'todos' || menuAtivo === 'todos os jogos' || menuAtivo === 'esportes' ? ( <div style={{textAlign: 'center', color: theme.textMuted, padding: '40px 0'}}><span style={{fontSize: '30px', display: 'block', marginBottom: '10px'}}>🏆</span>Selecione uma liga no menu lateral.</div> ) : loadingClassificacao ? ( <div style={{textAlign: 'center', color: theme.cyan, padding: '40px 0', fontWeight: 'bold'}}>Calculando...</div> ) : ( <div style={{overflowX: 'auto'}}><table style={{width: '100%', borderCollapse: 'collapse', textAlign: 'left', color: theme.textMain, fontSize: '13px'}}><thead><tr style={{borderBottom: `1px solid ${theme.border}`, color: theme.textMuted}}><th>#</th><th>Equipe</th><th>P</th><th>J</th><th>V</th><th>E</th><th>D</th><th>SG</th></tr></thead><tbody>{classificacao.map((t, i) => (<tr key={i} style={{borderBottom: `1px solid rgba(255,255,255,0.02)`}}><td style={{padding: '12px 8px', color: theme.cyan}}>{t.position}</td><td style={{padding: '12px 8px', display: 'flex', alignItems: 'center', gap: '10px'}}><img src={t.logo} style={{width: '24px'}} alt="" />{t.team_name}</td><td>{t.points}</td><td>{t.matches_played}</td><td>{t.won}</td><td>{t.draw}</td><td>{t.lost}</td><td>{t.goal_diff}</td></tr>))}</tbody></table></div> )}</motion.div> );
 }
 
-function ModalsExtras({
-  menuAtivo,
-  isMobile,
-  dadosPix,
-  form,
-  setForm,
-  setDadosPix,
-  setMenuAtivo,
-  setUserData
-}) {
+// 🔥 O MODAL PROFISSIONAL: CARTÃO + PIX 🔥
+function ModalsExtras({ menuAtivo, form, setForm, setMenuAtivo }) {
   const [passo, setPasso] = useState(1);
   const [loading, setLoading] = useState(false);
-
-  // A IDEIA APLICADA: Chama a sua API (no servidor Render)
+  const [dadosPix, setDadosPix] = useState(null);
   const API = "https://betanalytics-1.onrender.com/api";
 
+  // 👇 AQUI ESTÁ A CONFIGURAÇÃO QUE ATIVA CRÉDITO E DÉBITO 👇
+  const initialization = useMemo(() => ({
+      amount: 29.90,
+      payer: { email: form.email }
+  }), [form.email]);
+
+  const customization = useMemo(() => ({
+      visual: { style: { theme: 'dark', customVariables: { formBackgroundColor: '#13161f' } } },
+      // 👇 VEJA: creditCard e debitCard ativados!
+      paymentMethods: { creditCard: 'all', debitCard: 'all', maxInstallments: 1 } 
+  }), []);
+
+  // Processa PIX Manual
   async function gerarPix() {
     try {
       setLoading(true);
-
       const payload = {
-        transaction_amount: 29.90, 
-        payer: {
-          email: form.email,
-          first_name: form.nome,
-          identification: {
-            number: form.cpf.replace(/\D/g, "")
-          }
-        }
+        transaction_amount: 29.90,
+        payment_method_id: "pix",
+        payer: { email: form.email, first_name: form.nome, identification: { number: form.cpf.replace(/\D/g, "") } }
       };
 
       const { data } = await axios.post(`${API}/processar-pagamento`, payload);
 
-      // A IDEIA APLICADA: O PIX só é válido se voltar o qr_code_base64 e o status não vai ser approved
-      if (data.qr_code_base64) {
+      if (data.status === "pending" && data.qr_code_base64) {
         setDadosPix(data);
-        setPasso(2); // Avança apenas se tem imagem
+        setPasso(3); // Vai para a tela do QR Code
       } else {
-        throw new Error("QR Code não retornou do servidor. Verifique os dados inseridos.");
+        throw new Error("O Banco não retornou o QR Code.");
       }
-
     } catch (e) {
-      alert("❌ ERRO NO PAGAMENTO: " + (e?.response?.data?.error || e.message));
+      alert("❌ ERRO NO PIX: " + (e?.response?.data?.error || e.message));
     } finally {
       setLoading(false);
     }
   }
 
+  // Processa Cartões
+  const onSubmitCartao = async (formData) => {
+      return new Promise((resolve, reject) => {
+          axios.post(`${API}/processar-pagamento`, {
+              ...formData, 
+              transaction_amount: 29.90,
+              payer: { email: form.email, first_name: form.nome, identification: { number: form.cpf.replace(/\D/g, "") } }
+          })
+          .then(res => {
+              if (res.data.status === 'approved') {
+                  alert("🎉 Pagamento Aprovado! Bem-vindo ao VIP PRO!");
+                  setMenuAtivo('todos');
+              } else {
+                  alert(`❌ Pagamento recusado. Motivo: ${res.data.status_detail}`);
+              }
+              resolve();
+          })
+          .catch(err => {
+              alert("⚠️ Erro no servidor: " + (err.response?.data?.error || err.message));
+              reject();
+          });
+      });
+  };
+
   if (menuAtivo !== "assinar pro") return null;
 
   return (
     <div style={{position:"fixed", inset:0, background:"#000a", display:"flex", justifyContent:"center", alignItems:"center", zIndex: 1000}}>
-      <div style={{background:"#13161f", padding:30, borderRadius:10, width:350, display: "flex", flexDirection: "column", gap: "15px", color: "#fff"}}>
+      <div style={{background:"#13161f", padding:30, borderRadius:10, width:'90%', maxWidth: 450, maxHeight: '90vh', overflowY: 'auto', display: "flex", flexDirection: "column", gap: "15px", color: "#fff"}}>
         
-        <button onClick={() => setMenuAtivo('todos')} style={{alignSelf: 'flex-start', background: 'none', border: 'none', color: '#64748b', cursor: 'pointer'}}>⬅ Voltar</button>
+        <button onClick={() => setMenuAtivo('todos')} style={{alignSelf: 'flex-start', background: 'none', border: 'none', color: '#64748b', cursor: 'pointer', fontWeight: 'bold'}}>⬅ Cancelar</button>
 
+        {/* PASSO 1: DADOS BÁSICOS */}
         {passo === 1 && (
-          <>
+          <motion.div initial={{opacity:0}} animate={{opacity:1}} style={{display: 'flex', flexDirection: 'column', gap: '15px'}}>
             <h2 style={{margin: 0, color: "#00d4b6"}}>Assinar VIP PRO 👑</h2>
+            <p style={{fontSize: '12px', color: theme.textMuted, margin: 0}}>Por apenas R$ 29,90</p>
+            
+            <input placeholder="Seu Nome Completo" value={form.nome} style={{padding: '14px', borderRadius: '6px', border: '1px solid #232838', background: '#090a0f', color: '#fff'}} onChange={e=>setForm({...form,nome:e.target.value})} />
+            <input placeholder="Seu E-mail" value={form.email} style={{padding: '14px', borderRadius: '6px', border: '1px solid #232838', background: '#090a0f', color: '#fff'}} onChange={e=>setForm({...form,email:e.target.value})} />
+            <input placeholder="Seu CPF (Somente números)" value={form.cpf} maxLength={11} style={{padding: '14px', borderRadius: '6px', border: '1px solid #232838', background: '#090a0f', color: '#fff'}} onChange={e=>setForm({...form,cpf:e.target.value.replace(/\D/g, '')})} />
 
-            <input placeholder="Nome"
-              style={{padding: '12px', borderRadius: '6px', border: '1px solid #232838', background: '#090a0f', color: '#fff'}}
-              onChange={e=>setForm({...form,nome:e.target.value})}
-            />
-
-            <input placeholder="Email"
-              style={{padding: '12px', borderRadius: '6px', border: '1px solid #232838', background: '#090a0f', color: '#fff'}}
-              onChange={e=>setForm({...form,email:e.target.value})}
-            />
-
-            <input placeholder="CPF" maxLength={11}
-              style={{padding: '12px', borderRadius: '6px', border: '1px solid #232838', background: '#090a0f', color: '#fff'}}
-              onChange={e=>setForm({...form,cpf:e.target.value.replace(/\D/g, '')})}
-            />
-
-            <button onClick={gerarPix} style={{padding: '15px', background: '#00d4b6', color: '#000', fontWeight: 'bold', border: 'none', borderRadius: '6px', cursor: 'pointer'}}>
-              {loading ? "A gerar código..." : "Gerar PIX"}
+            <button onClick={() => { if(form.nome && form.email && form.cpf.length === 11) setPasso(2); else alert("Preencha todos os dados corretamente."); }} style={{padding: '15px', background: '#00d4b6', color: '#000', fontWeight: 'bold', border: 'none', borderRadius: '6px', cursor: 'pointer', marginTop: '10px'}}>
+              Continuar para Pagamento
             </button>
-          </>
+          </motion.div>
         )}
 
-        {passo === 2 && dadosPix && (
-          <>
-            <h3 style={{margin: 0, color: "#00d4b6", textAlign: 'center'}}>Pague com PIX</h3>
-            
-            <img
-              src={`data:image/png;base64,${dadosPix.qr_code_base64}`}
-              style={{width:"100%", borderRadius: '8px', border: '3px solid #fff'}}
-              alt="QR Code"
-            />
+        {/* PASSO 2: ESCOLHER MÉTODO (ONDE O CARTÃO APARECE!) */}
+        {passo === 2 && (
+          <motion.div initial={{opacity:0}} animate={{opacity:1}} style={{display: 'flex', flexDirection: 'column', gap: '15px'}}>
+             <h3 style={{margin: 0, color: "#fff", textAlign: 'center'}}>Como prefere pagar?</h3>
+             
+             <button onClick={gerarPix} disabled={loading} style={{padding: '18px', background: '#00d4b6', color: '#000', fontWeight: 'bold', border: 'none', borderRadius: '8px', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '10px'}}>
+                <span style={{fontSize: '20px'}}>💠</span> {loading ? "A processar..." : "Pagar com PIX Rápido"}
+             </button>
+             
+             {/* 👇 ESTE É O BOTÃO QUE ABRE O PAGAMENTO DE CARTÃO 👇 */}
+             <button onClick={() => setPasso(4)} disabled={loading} style={{padding: '18px', background: theme.bgHover, color: '#fff', fontWeight: 'bold', border: `1px solid ${theme.border}`, borderRadius: '8px', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '10px'}}>
+                <span style={{fontSize: '20px'}}>💳</span> Pagar com Cartão (Crédito/Débito)
+             </button>
 
-            <textarea value={dadosPix.qr_code} readOnly style={{padding: '10px', fontSize: '11px', background: '#090a0f', color: '#64748b', border: '1px solid #232838', borderRadius: '6px', resize: 'none'}} rows={4} />
+             <button onClick={() => setPasso(1)} style={{padding: '10px', background: 'transparent', color: '#64748b', border: 'none', cursor: 'pointer', marginTop: '10px'}}>Voltar aos dados</button>
+          </motion.div>
+        )}
 
-            <button onClick={()=>{
-              navigator.clipboard.writeText(dadosPix.qr_code);
-              alert("Código Copiado!");
-            }} style={{padding: '15px', background: '#00d4b6', color: '#000', fontWeight: 'bold', border: 'none', borderRadius: '6px', cursor: 'pointer'}}>
-              Copiar PIX
+        {/* PASSO 3: TELA DO PIX (QR CODE) */}
+        {passo === 3 && dadosPix && (
+          <motion.div initial={{opacity:0}} animate={{opacity:1}} style={{display: 'flex', flexDirection: 'column', gap: '15px'}}>
+            <h3 style={{margin: 0, color: "#00d4b6", textAlign: 'center'}}>PIX Gerado!</h3>
+            <p style={{textAlign: 'center', fontSize: '12px', color: '#64748b', margin: 0}}>Escaneie ou copie a linha abaixo para concluir</p>
+
+            <img src={`data:image/jpeg;base64,${dadosPix.qr_code_base64}`} style={{width:"100%", maxWidth: '250px', alignSelf: 'center', borderRadius: '8px', border: '3px solid #fff'}} alt="QR Code" />
+            <textarea value={dadosPix.qr_code} readOnly style={{padding: '12px', fontSize: '11px', background: '#090a0f', color: '#64748b', border: '1px solid #232838', borderRadius: '6px', resize: 'none'}} rows={4} />
+
+            <button onClick={()=>{ navigator.clipboard.writeText(dadosPix.qr_code); alert("Linha digitável copiada!"); }} style={{padding: '15px', background: '#00d4b6', color: '#000', fontWeight: 'bold', border: 'none', borderRadius: '6px', cursor: 'pointer'}}>
+              Copiar Linha PIX
             </button>
-          </>
+          </motion.div>
+        )}
+
+        {/* PASSO 4: TELA DO CARTÃO (BRICK MERCADO PAGO) */}
+        {passo === 4 && (
+          <motion.div initial={{opacity:0}} animate={{opacity:1}} style={{display: 'flex', flexDirection: 'column', gap: '10px'}}>
+            <h3 style={{margin: 0, color: "#fff", textAlign: 'center'}}>Pagar com Cartão</h3>
+            
+            {/* 👇 O FORMULÁRIO DO MERCADO PAGO É GERADO AQUI 👇 */}
+            <Payment initialization={initialization} customization={customization} onSubmit={onSubmitCartao} onError={(e) => console.log(e)} />
+            
+            <button onClick={() => setPasso(2)} style={{padding: '12px', background: 'transparent', color: '#64748b', border: `1px solid ${theme.border}`, borderRadius: '6px', cursor: 'pointer'}}>Voltar aos métodos</button>
+          </motion.div>
         )}
 
       </div>
