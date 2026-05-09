@@ -11,7 +11,7 @@ import './App.css';
 initMercadoPago('REMOVED_MP_HISTORICAL_SECRET', { locale: 'pt-BR' });
 
 // 🔥 URL DO SEU BACKEND
-const API_URL = 'https://betanalytics-1.onrender.com/api';
+const API_URL = 'https://motor-betanalytics-pro.onrender.com/api';
 
 const theme = { bgApp: '#090a0f', bgPanel: '#13161f', bgHover: '#1c202d', border: '#232838', cyan: '#00d4b6', yellow: '#facc15', textMain: '#f8fafc', textMuted: '#64748b', red: '#ef4444', green: '#10b981' };
 
