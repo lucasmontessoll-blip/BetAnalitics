@@ -468,22 +468,15 @@ function ClassificacaoPanel({ menuAtivo, loadingClassificacao, classificacao }) 
     return ( <motion.div initial={{opacity: 0}} animate={{opacity: 1}} style={{background: theme.bgPanel, borderRadius: '12px', border: `1px solid ${theme.border}`, overflow: 'hidden', padding: '20px'}}>{menuAtivo === 'todos' || menuAtivo === 'todos os jogos' || menuAtivo === 'esportes' ? ( <div style={{textAlign: 'center', color: theme.textMuted, padding: '40px 0'}}><span style={{fontSize: '30px', display: 'block', marginBottom: '10px'}}>🏆</span>Selecione uma liga no menu lateral.</div> ) : loadingClassificacao ? ( <div style={{textAlign: 'center', color: theme.cyan, padding: '40px 0', fontWeight: 'bold'}}>Calculando...</div> ) : ( <div style={{overflowX: 'auto'}}><table style={{width: '100%', borderCollapse: 'collapse', textAlign: 'left', color: theme.textMain, fontSize: '13px'}}><thead><tr style={{borderBottom: `1px solid ${theme.border}`, color: theme.textMuted}}><th>#</th><th>Equipe</th><th>P</th><th>J</th><th>V</th><th>E</th><th>D</th><th>SG</th></tr></thead><tbody>{classificacao.map((t, i) => (<tr key={i} style={{borderBottom: `1px solid rgba(255,255,255,0.02)`}}><td style={{padding: '12px 8px', color: theme.cyan}}>{t.position}</td><td style={{padding: '12px 8px', display: 'flex', alignItems: 'center', gap: '10px'}}><img src={t.logo} style={{width: '24px'}} alt="" />{t.team_name}</td><td>{t.points}</td><td>{t.matches_played}</td><td>{t.won}</td><td>{t.draw}</td><td>{t.lost}</td><td>{t.goal_diff}</td></tr>))}</tbody></table></div> )}</motion.div> );
 }
 
-// 🔥 MODAL (V5) COM RAIO-X DE ERRO DO BANCO 🔥
+// 🔥 MODAL (V7) - A FORÇADORA DE PIX 🔥
 function ModalsExtras({ menuAtivo, form, setForm, setMenuAtivo, setUserData }) {
   const [passo, setPasso] = useState(1);
   const [loading, setLoading] = useState(false);
   const [dadosPix, setDadosPix] = useState(null);
   const API = "https://betanalytics-1.onrender.com/api";
 
-  const initialization = useMemo(() => ({
-      amount: 29.90,
-      payer: { email: form.email }
-  }), [form.email]);
-
-  const customization = useMemo(() => ({
-      visual: { style: { theme: 'dark', customVariables: { formBackgroundColor: '#13161f' } } },
-      paymentMethods: { creditCard: 'all', debitCard: 'all', maxInstallments: 1 } 
-  }), []);
+  const initialization = useMemo(() => ({ amount: 29.90, payer: { email: form.email } }), [form.email]);
+  const customization = useMemo(() => ({ visual: { style: { theme: 'dark', customVariables: { formBackgroundColor: '#13161f' } } }, paymentMethods: { creditCard: 'all', debitCard: 'all', maxInstallments: 1 } }), []);
 
   useEffect(() => {
     let intervalId;
@@ -494,50 +487,56 @@ function ModalsExtras({ menuAtivo, form, setForm, setMenuAtivo, setUserData }) {
                 if (res.data.status === 'approved') {
                     clearInterval(intervalId);
                     alert("🎉 Pagamento PIX Aprovado! Bem-vindo ao VIP PRO!");
-                    if (setUserData) {
-                        setUserData({ email: form.email, is_vip: true });
-                        localStorage.setItem('bet_sessao_ativa', form.email);
-                    }
+                    if (setUserData) { setUserData({ email: form.email, is_vip: true }); localStorage.setItem('bet_sessao_ativa', form.email); }
                     setMenuAtivo('todos');
                 }
-            } catch (err) { console.log("Aguardando pagamento..."); }
+            } catch (err) { 
+                // Se o motor for muito antigo e não tiver a rota, ignoramos o erro silenciosamente
+                console.log("Aguardando pagamento..."); 
+            }
         }, 3000);
     }
     return () => clearInterval(intervalId);
   }, [passo, dadosPix, form.email, setMenuAtivo, setUserData]);
 
   const handlePagarCartao = () => {
-    if (!form.nome || !form.email || form.cpf.length !== 11) {
-        return alert("⚠️ ERRO: Por favor, preencha o seu Nome, o seu E-mail e digite exatamente 11 números no CPF.");
-    }
+    if (!form.nome || !form.email || form.cpf.length !== 11) return alert("⚠️ ERRO: Preencha Nome, E-mail e os 11 números do CPF.");
     setPasso(3); 
   };
 
+  // 🔥 O CÓDIGO QUE FORÇA O PIX E BURLA O MOTOR ANTIGO!
   async function gerarPix() {
     if (!form.nome || !form.email || form.cpf.length !== 11) {
-        return alert("⚠️ ERRO: Por favor, preencha o seu Nome, o seu E-mail e digite exatamente 11 números no CPF.");
+        return alert("⚠️ ERRO: Por favor, preencha o seu Nome, E-mail e digite exatamente 11 números no CPF.");
     }
 
     try {
       setLoading(true);
+      
       const payload = {
         transaction_amount: 29.90,
         payment_method_id: "pix",
-        payer: { email: form.email, first_name: form.nome, identification: { number: form.cpf.replace(/\D/g, "") } }
+        payer: { 
+          email: form.email, 
+          first_name: form.nome, 
+          identification: { 
+            type: "CPF", // <- A CHAVE MÁGICA QUE FORÇA A APROVAÇÃO DO BANCO!
+            number: form.cpf.replace(/\D/g, "") 
+          } 
+        }
       };
 
       const { data } = await axios.post(`${API}/processar-pagamento`, payload);
 
-      if (data.status === "pending" && data.qr_code_base64) {
+      if (data.qr_code_base64 || data.qr_code) {
         setDadosPix(data);
         setPasso(2); 
       } else {
-        // 🔥 A MÁGICA: MOSTRAMOS EXATAMENTE O QUE O BANCO RESPONDEU
-        alert("O Banco aceitou o pedido, mas NÃO gerou o QR Code! Resposta bruta do banco: " + JSON.stringify(data.raw_data));
+        // Se ainda assim o banco falhar, não haverá "undefined", mostraremos o pacote completo
+        alert("O Banco aceitou o pedido, mas bloqueou a imagem do QR Code. Resposta completa do Banco: " + JSON.stringify(data));
       }
     } catch (e) {
-      // 🔥 AQUI VAI SAIR O TEXTO EXATO DA RECUSA DA API!
-      alert("❌ ERRO EXATO DO BANCO: " + (e?.response?.data?.error || e.message));
+      alert("❌ ERRO DO BANCO: " + (e?.response?.data?.error || JSON.stringify(e?.response?.data) || e.message));
     } finally {
       setLoading(false);
     }
@@ -548,23 +547,18 @@ function ModalsExtras({ menuAtivo, form, setForm, setMenuAtivo, setUserData }) {
           axios.post(`${API}/processar-pagamento`, {
               ...formData, 
               transaction_amount: 29.90,
-              payer: { email: form.email, first_name: form.nome, identification: { number: form.cpf.replace(/\D/g, "") } }
+              payer: { email: form.email, first_name: form.nome, identification: { type: "CPF", number: form.cpf.replace(/\D/g, "") } }
           })
           .then(res => {
               if (res.data.status === 'approved') {
                   alert("🎉 Pagamento Aprovado! Bem-vindo ao VIP PRO!");
-                  if (setUserData) {
-                      setUserData({ email: form.email, is_vip: true });
-                      localStorage.setItem('bet_sessao_ativa', form.email);
-                  }
+                  if (setUserData) { setUserData({ email: form.email, is_vip: true }); localStorage.setItem('bet_sessao_ativa', form.email); }
                   setMenuAtivo('todos');
-              } else {
-                  alert(`❌ Pagamento recusado. Motivo: ${res.data.status_detail}`);
-              }
+              } else { alert(`❌ Pagamento recusado. Motivo: ${res.data.status_detail}`); }
               resolve();
           })
           .catch(err => {
-              alert("⚠️ ERRO EXATO DO BANCO: " + (err.response?.data?.error || err.message));
+              alert("⚠️ ERRO DO BANCO: " + (err.response?.data?.error || err.message));
               reject();
           });
       });
@@ -580,7 +574,7 @@ function ModalsExtras({ menuAtivo, form, setForm, setMenuAtivo, setUserData }) {
 
         {passo === 1 && (
           <motion.div initial={{opacity:0}} animate={{opacity:1}} style={{display: 'flex', flexDirection: 'column', gap: '15px'}}>
-            <h2 style={{margin: 0, color: "#00d4b6"}}>Assinar VIP PRO 👑 (V5)</h2>
+            <h2 style={{margin: 0, color: "#00d4b6"}}>Assinar VIP PRO 👑 (V7)</h2>
             <p style={{fontSize: '12px', color: theme.textMuted, margin: 0}}>Preencha os dados e escolha como quer pagar:</p>
             
             <input placeholder="Seu Nome Completo" value={form.nome} style={{padding: '14px', borderRadius: '6px', border: '1px solid #232838', background: '#090a0f', color: '#fff'}} onChange={e=>setForm({...form,nome:e.target.value})} />
@@ -616,9 +610,7 @@ function ModalsExtras({ menuAtivo, form, setForm, setMenuAtivo, setUserData }) {
         {passo === 3 && (
           <motion.div initial={{opacity:0}} animate={{opacity:1}} style={{display: 'flex', flexDirection: 'column', gap: '10px'}}>
             <h3 style={{margin: 0, color: "#fff", textAlign: 'center'}}>Pagar com Cartão</h3>
-            
             <Payment initialization={initialization} customization={customization} onSubmit={onSubmitCartao} onError={(e) => console.log(e)} />
-            
             <button onClick={() => setPasso(1)} style={{padding: '12px', background: 'transparent', color: '#64748b', border: `1px solid ${theme.border}`, borderRadius: '6px', cursor: 'pointer'}}>Voltar aos métodos</button>
           </motion.div>
         )}
