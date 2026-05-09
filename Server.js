@@ -1,21 +1,17 @@
 const express = require('express');
 const cors = require('cors');
-const { MercadoPagoConfig, Payment } = require('mercadopago');
 
 const app = express();
 app.use(cors({ origin: '*', methods: ['GET', 'POST'] }));
 app.use(express.json());
 
 // 💰 A SUA CHAVE DE PRODUÇÃO
-const client = new MercadoPagoConfig({
-    accessToken: 'APP_USR-5947285218976034-050113-a9857b202a29e411236349f75b6b25c3-669622996'
-});
+const MP_TOKEN = 'APP_USR-5947285218976034-050113-a9857b202a29e411236349f75b6b25c3-669622996';
 
+// 🔥 ROTA 1: CONEXÃO DIRETA COM O BANCO
 app.post('/api/processar-pagamento', async (req, res) => {
     try {
-        const payment = new Payment(client);
-
-        const paymentData = {
+        const payload = {
             transaction_amount: Number(req.body.transaction_amount || 29.90),
             description: "Assinatura VIP PRO - BetAnalytics",
             payment_method_id: req.body.payment_method_id,
@@ -29,59 +25,66 @@ app.post('/api/processar-pagamento', async (req, res) => {
             }
         };
 
-        if (req.body.token) paymentData.token = req.body.token;
-        if (req.body.installments) paymentData.installments = Number(req.body.installments);
-        if (req.body.issuer_id) paymentData.issuer_id = req.body.issuer_id;
+        if (req.body.token) payload.token = req.body.token;
+        if (req.body.installments) payload.installments = Number(req.body.installments);
+        if (req.body.issuer_id) payload.issuer_id = req.body.issuer_id;
 
-        const result = await payment.create({ body: paymentData });
+        // O Bypass: Falar direto com a API sem intermediários
+        const response = await fetch('https://api.mercadopago.com/v1/payments', {
+            method: 'POST',
+            headers: {
+                'Authorization': `Bearer ${MP_TOKEN}`,
+                'X-Idempotency-Key': Date.now().toString(),
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify(payload)
+        });
+
+        const result = await response.json();
+
+        // 🚨 SE DEU ERRO, O BANCO DIZ EXATAMENTE O PORQUÊ!
+        if (!response.ok) {
+            console.error("❌ ERRO DO BANCO:", result);
+            return res.status(400).json({ error: JSON.stringify(result) });
+        }
 
         const responseData = {
             status: result.status,
             status_detail: result.status_detail,
-            id: result.id
+            id: result.id,
+            raw_data: result 
         };
 
         if (req.body.payment_method_id === 'pix' && result.point_of_interaction) {
-            responseData.qr_code = result.point_of_interaction.transaction_data.qr_code;
-            responseData.qr_code_base64 = result.point_of_interaction.transaction_data.qr_code_base64;
-        } else if (req.body.payment_method_id === 'pix') {
-            // Se o banco aprovou mas não mandou o QR Code
-            throw new Error("O Mercado Pago aceitou, mas não gerou a imagem do PIX. Verifique as permissões da sua conta.");
+            responseData.qr_code = result.point_of_interaction.transaction_data?.qr_code;
+            responseData.qr_code_base64 = result.point_of_interaction.transaction_data?.qr_code_base64;
         }
 
         res.status(200).json(responseData);
 
     } catch (error) {
-        console.error("❌ ERRO NO MERCADO PAGO:", JSON.stringify(error, null, 2));
-        
-        // 🔥 A MÁGICA DO RAIO-X: Extrair a mensagem exata do Banco!
-        let mensagemErro = error.message;
-        if (error.api_response && error.api_response.cause && error.api_response.cause.length > 0) {
-            mensagemErro = error.api_response.cause[0].description; 
-        } else if (error.api_response && error.api_response.message) {
-            mensagemErro = error.api_response.message;
-        }
-
-        // Vai enviar o motivo exato para o seu pop-up no site
-        res.status(400).json({ error: "Motivo da recusa do Banco: " + mensagemErro });
+        console.error("❌ ERRO INTERNO:", error.message);
+        res.status(500).json({ error: error.message });
     }
 });
 
-// POLLING - Consulta o status
+// POLLING - Consulta o status de pagamento
 app.get('/api/status/:id', async (req, res) => {
     try {
-        const payment = new Payment(client);
-        const result = await payment.get({ id: req.params.id });
+        const response = await fetch(`https://api.mercadopago.com/v1/payments/${req.params.id}`, {
+            headers: { 'Authorization': `Bearer ${MP_TOKEN}` }
+        });
+        const result = await response.json();
         res.json({ status: result.status });
     } catch (error) {
-        res.status(500).json({ error: "Erro ao consultar status" });
+        res.status(500).json({ error: "Erro ao consultar" });
     }
 });
 
-app.post('/api/webhook', async (req, res) => res.sendStatus(200));
+app.post('/api/webhook', (req, res) => res.sendStatus(200));
 app.get('/api/match', (req, res) => res.json({ fixtures: [] }));
 app.get('/api/standings', (req, res) => res.json([]));
 
 app.listen(process.env.PORT || 3000, () => {
-    console.log('🚀 Servidor de Pagamentos com Raio-X Rodando!');
+    console.log('🚀 Motor Blindado (Direto na API) Rodando!');
 });

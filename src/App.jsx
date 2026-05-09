@@ -11,7 +11,7 @@ import './App.css';
 initMercadoPago('APP_USR-4fa18e00-642d-4369-bc77-e8c68ed9c2a0', { locale: 'pt-BR' });
 
 // 🔥 URL DO SEU BACKEND
-const API_URL = 'https://betanalytics-1.onrender.com';
+const API_URL = 'https://betanalytics-1.onrender.com/api';
 
 const theme = { bgApp: '#090a0f', bgPanel: '#13161f', bgHover: '#1c202d', border: '#232838', cyan: '#00d4b6', yellow: '#facc15', textMain: '#f8fafc', textMuted: '#64748b', red: '#ef4444', green: '#10b981' };
 
@@ -468,7 +468,7 @@ function ClassificacaoPanel({ menuAtivo, loadingClassificacao, classificacao }) 
     return ( <motion.div initial={{opacity: 0}} animate={{opacity: 1}} style={{background: theme.bgPanel, borderRadius: '12px', border: `1px solid ${theme.border}`, overflow: 'hidden', padding: '20px'}}>{menuAtivo === 'todos' || menuAtivo === 'todos os jogos' || menuAtivo === 'esportes' ? ( <div style={{textAlign: 'center', color: theme.textMuted, padding: '40px 0'}}><span style={{fontSize: '30px', display: 'block', marginBottom: '10px'}}>🏆</span>Selecione uma liga no menu lateral.</div> ) : loadingClassificacao ? ( <div style={{textAlign: 'center', color: theme.cyan, padding: '40px 0', fontWeight: 'bold'}}>Calculando...</div> ) : ( <div style={{overflowX: 'auto'}}><table style={{width: '100%', borderCollapse: 'collapse', textAlign: 'left', color: theme.textMain, fontSize: '13px'}}><thead><tr style={{borderBottom: `1px solid ${theme.border}`, color: theme.textMuted}}><th>#</th><th>Equipe</th><th>P</th><th>J</th><th>V</th><th>E</th><th>D</th><th>SG</th></tr></thead><tbody>{classificacao.map((t, i) => (<tr key={i} style={{borderBottom: `1px solid rgba(255,255,255,0.02)`}}><td style={{padding: '12px 8px', color: theme.cyan}}>{t.position}</td><td style={{padding: '12px 8px', display: 'flex', alignItems: 'center', gap: '10px'}}><img src={t.logo} style={{width: '24px'}} alt="" />{t.team_name}</td><td>{t.points}</td><td>{t.matches_played}</td><td>{t.won}</td><td>{t.draw}</td><td>{t.lost}</td><td>{t.goal_diff}</td></tr>))}</tbody></table></div> )}</motion.div> );
 }
 
-// 🔥 O MODAL DE PAGAMENTO VERSÃO DEFINITIVA (V4) 🔥
+// 🔥 MODAL (V5) COM RAIO-X DE ERRO DO BANCO 🔥
 function ModalsExtras({ menuAtivo, form, setForm, setMenuAtivo, setUserData }) {
   const [passo, setPasso] = useState(1);
   const [loading, setLoading] = useState(false);
@@ -487,7 +487,7 @@ function ModalsExtras({ menuAtivo, form, setForm, setMenuAtivo, setUserData }) {
 
   useEffect(() => {
     let intervalId;
-    if (passo === 2 && dadosPix?.id) {
+    if (passo === 2 && dadosPix?.id) { 
         intervalId = setInterval(async () => {
             try {
                 const res = await axios.get(`${API}/status/${dadosPix.id}`);
@@ -508,14 +508,14 @@ function ModalsExtras({ menuAtivo, form, setForm, setMenuAtivo, setUserData }) {
 
   const handlePagarCartao = () => {
     if (!form.nome || !form.email || form.cpf.length !== 11) {
-        return alert("⚠️ ERRO: Por favor, preencha o seu Nome, o seu E-mail e digite exatamente 11 números no CPF antes de escolher o Cartão!");
+        return alert("⚠️ ERRO: Por favor, preencha o seu Nome, o seu E-mail e digite exatamente 11 números no CPF.");
     }
-    setPasso(3);
+    setPasso(3); 
   };
 
   async function gerarPix() {
     if (!form.nome || !form.email || form.cpf.length !== 11) {
-        return alert("⚠️ ERRO: Por favor, preencha o seu Nome, o seu E-mail e digite exatamente 11 números no CPF antes de gerar o PIX!");
+        return alert("⚠️ ERRO: Por favor, preencha o seu Nome, o seu E-mail e digite exatamente 11 números no CPF.");
     }
 
     try {
@@ -532,10 +532,12 @@ function ModalsExtras({ menuAtivo, form, setForm, setMenuAtivo, setUserData }) {
         setDadosPix(data);
         setPasso(2); 
       } else {
-        throw new Error("O Banco não retornou o QR Code.");
+        // 🔥 A MÁGICA: MOSTRAMOS EXATAMENTE O QUE O BANCO RESPONDEU
+        alert("O Banco aceitou o pedido, mas NÃO gerou o QR Code! Resposta bruta do banco: " + JSON.stringify(data.raw_data));
       }
     } catch (e) {
-      alert("❌ ERRO NO PIX: " + (e?.response?.data?.error || e.message));
+      // 🔥 AQUI VAI SAIR O TEXTO EXATO DA RECUSA DA API!
+      alert("❌ ERRO EXATO DO BANCO: " + (e?.response?.data?.error || e.message));
     } finally {
       setLoading(false);
     }
@@ -562,7 +564,7 @@ function ModalsExtras({ menuAtivo, form, setForm, setMenuAtivo, setUserData }) {
               resolve();
           })
           .catch(err => {
-              alert("⚠️ Erro no servidor: " + (err.response?.data?.error || err.message));
+              alert("⚠️ ERRO EXATO DO BANCO: " + (err.response?.data?.error || err.message));
               reject();
           });
       });
@@ -578,7 +580,7 @@ function ModalsExtras({ menuAtivo, form, setForm, setMenuAtivo, setUserData }) {
 
         {passo === 1 && (
           <motion.div initial={{opacity:0}} animate={{opacity:1}} style={{display: 'flex', flexDirection: 'column', gap: '15px'}}>
-            <h2 style={{margin: 0, color: "#00d4b6"}}>Assinar VIP PRO 👑 (V4)</h2>
+            <h2 style={{margin: 0, color: "#00d4b6"}}>Assinar VIP PRO 👑 (V5)</h2>
             <p style={{fontSize: '12px', color: theme.textMuted, margin: 0}}>Preencha os dados e escolha como quer pagar:</p>
             
             <input placeholder="Seu Nome Completo" value={form.nome} style={{padding: '14px', borderRadius: '6px', border: '1px solid #232838', background: '#090a0f', color: '#fff'}} onChange={e=>setForm({...form,nome:e.target.value})} />
