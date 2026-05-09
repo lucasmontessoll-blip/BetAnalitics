@@ -3,15 +3,14 @@ import axios from 'axios';
 import confetti from 'canvas-confetti';
 import { AreaChart, Area, LineChart, Line, XAxis, YAxis, ResponsiveContainer } from 'recharts';
 import { motion, AnimatePresence } from 'framer-motion';
-// AQUI IMPORTAMOS O SISTEMA DE CARTÕES OFICIAL:
 import { initMercadoPago, Payment } from '@mercadopago/sdk-react'; 
 import dadosFut from './dados.json'; 
 import './App.css';
 
-// 🔑 COLOQUE AQUI A SUA CHAVE PÚBLICA DE PRODUÇÃO (PUBLIC KEY)
+// 🔑 CHAVE PÚBLICA DE PRODUÇÃO
 initMercadoPago('APP_USR-4fa18e00-642d-4369-bc77-e8c68ed9c2a0', { locale: 'pt-BR' });
 
-// 🔥 A URL DO RENDER CORRIGIDA (betanalytics-1)
+// 🔥 URL DO SEU BACKEND
 const API_URL = 'https://betanalytics-1.onrender.com/api';
 
 const theme = { bgApp: '#090a0f', bgPanel: '#13161f', bgHover: '#1c202d', border: '#232838', cyan: '#00d4b6', yellow: '#facc15', textMain: '#f8fafc', textMuted: '#64748b', red: '#ef4444', green: '#10b981' };
@@ -386,7 +385,7 @@ export default function App() {
           )} 
       </div>
 
-      <ModalsExtras menuAtivo={menuAtivo} form={form} setForm={setForm} setMenuAtivo={setMenuAtivo} />
+      <ModalsExtras menuAtivo={menuAtivo} form={form} setForm={setForm} setMenuAtivo={setMenuAtivo} setUserData={setUserData} />
 
       {isMobile && abaGeralAtiva !== 'jogador' && (
         <div style={{ position: 'fixed', bottom: 0, left: 0, right: 0, height: '65px', background: theme.bgPanel, borderTop: `1px solid ${theme.border}`, display: 'flex', alignItems: 'center', justifyContent: 'space-around', zIndex: 999, paddingBottom: '5px' }}>
@@ -469,14 +468,13 @@ function ClassificacaoPanel({ menuAtivo, loadingClassificacao, classificacao }) 
     return ( <motion.div initial={{opacity: 0}} animate={{opacity: 1}} style={{background: theme.bgPanel, borderRadius: '12px', border: `1px solid ${theme.border}`, overflow: 'hidden', padding: '20px'}}>{menuAtivo === 'todos' || menuAtivo === 'todos os jogos' || menuAtivo === 'esportes' ? ( <div style={{textAlign: 'center', color: theme.textMuted, padding: '40px 0'}}><span style={{fontSize: '30px', display: 'block', marginBottom: '10px'}}>🏆</span>Selecione uma liga no menu lateral.</div> ) : loadingClassificacao ? ( <div style={{textAlign: 'center', color: theme.cyan, padding: '40px 0', fontWeight: 'bold'}}>Calculando...</div> ) : ( <div style={{overflowX: 'auto'}}><table style={{width: '100%', borderCollapse: 'collapse', textAlign: 'left', color: theme.textMain, fontSize: '13px'}}><thead><tr style={{borderBottom: `1px solid ${theme.border}`, color: theme.textMuted}}><th>#</th><th>Equipe</th><th>P</th><th>J</th><th>V</th><th>E</th><th>D</th><th>SG</th></tr></thead><tbody>{classificacao.map((t, i) => (<tr key={i} style={{borderBottom: `1px solid rgba(255,255,255,0.02)`}}><td style={{padding: '12px 8px', color: theme.cyan}}>{t.position}</td><td style={{padding: '12px 8px', display: 'flex', alignItems: 'center', gap: '10px'}}><img src={t.logo} style={{width: '24px'}} alt="" />{t.team_name}</td><td>{t.points}</td><td>{t.matches_played}</td><td>{t.won}</td><td>{t.draw}</td><td>{t.lost}</td><td>{t.goal_diff}</td></tr>))}</tbody></table></div> )}</motion.div> );
 }
 
-// 🔥 O MODAL PROFISSIONAL: CARTÃO + PIX 🔥
-function ModalsExtras({ menuAtivo, form, setForm, setMenuAtivo }) {
+// 🔥 O MODAL PROFISSIONAL: CARTÃO + PIX COM POLLING 🔥
+function ModalsExtras({ menuAtivo, form, setForm, setMenuAtivo, setUserData }) {
   const [passo, setPasso] = useState(1);
   const [loading, setLoading] = useState(false);
   const [dadosPix, setDadosPix] = useState(null);
   const API = "https://betanalytics-1.onrender.com/api";
 
-  // 👇 AQUI ESTÁ A CONFIGURAÇÃO QUE ATIVA CRÉDITO E DÉBITO 👇
   const initialization = useMemo(() => ({
       amount: 29.90,
       payer: { email: form.email }
@@ -484,11 +482,40 @@ function ModalsExtras({ menuAtivo, form, setForm, setMenuAtivo }) {
 
   const customization = useMemo(() => ({
       visual: { style: { theme: 'dark', customVariables: { formBackgroundColor: '#13161f' } } },
-      // 👇 VEJA: creditCard e debitCard ativados!
       paymentMethods: { creditCard: 'all', debitCard: 'all', maxInstallments: 1 } 
   }), []);
 
-  // Processa PIX Manual
+  // 🔄 POLLING: O segredo para não aprovar sozinho! Consulta o status a cada 3 segundos.
+  useEffect(() => {
+    let intervalId;
+
+    if (passo === 3 && dadosPix?.id) {
+        intervalId = setInterval(async () => {
+            try {
+                // Pergunta ao backend: "O status já é approved?"
+                const res = await axios.get(`${API}/status/${dadosPix.id}`);
+                
+                if (res.data.status === 'approved') {
+                    clearInterval(intervalId); // Para de perguntar
+                    alert("🎉 Pagamento PIX Aprovado! Bem-vindo ao VIP PRO!");
+                    
+                    if (setUserData) {
+                        setUserData({ email: form.email, is_vip: true });
+                        localStorage.setItem('bet_sessao_ativa', form.email);
+                    }
+                    setMenuAtivo('todos');
+                }
+            } catch (err) {
+                console.log("Aguardando confirmação do PIX...");
+            }
+        }, 3000); // 3 em 3 segundos
+    }
+
+    // Limpa o ciclo se o utilizador fechar a janela antes de pagar
+    return () => clearInterval(intervalId);
+  }, [passo, dadosPix, form.email, setMenuAtivo, setUserData]);
+
+  // Criação do PIX
   async function gerarPix() {
     try {
       setLoading(true);
@@ -502,7 +529,7 @@ function ModalsExtras({ menuAtivo, form, setForm, setMenuAtivo }) {
 
       if (data.status === "pending" && data.qr_code_base64) {
         setDadosPix(data);
-        setPasso(3); // Vai para a tela do QR Code
+        setPasso(3); 
       } else {
         throw new Error("O Banco não retornou o QR Code.");
       }
@@ -524,9 +551,13 @@ function ModalsExtras({ menuAtivo, form, setForm, setMenuAtivo }) {
           .then(res => {
               if (res.data.status === 'approved') {
                   alert("🎉 Pagamento Aprovado! Bem-vindo ao VIP PRO!");
+                  if (setUserData) {
+                      setUserData({ email: form.email, is_vip: true });
+                      localStorage.setItem('bet_sessao_ativa', form.email);
+                  }
                   setMenuAtivo('todos');
               } else {
-                  alert(`❌ Pagamento recusado. Motivo: ${res.data.status_detail}`);
+                  alert(`❌ Pagamento pendente ou recusado. Motivo: ${res.data.status_detail}`);
               }
               resolve();
           })
@@ -561,7 +592,7 @@ function ModalsExtras({ menuAtivo, form, setForm, setMenuAtivo }) {
           </motion.div>
         )}
 
-        {/* PASSO 2: ESCOLHER MÉTODO (ONDE O CARTÃO APARECE!) */}
+        {/* PASSO 2: ESCOLHER MÉTODO */}
         {passo === 2 && (
           <motion.div initial={{opacity:0}} animate={{opacity:1}} style={{display: 'flex', flexDirection: 'column', gap: '15px'}}>
              <h3 style={{margin: 0, color: "#fff", textAlign: 'center'}}>Como prefere pagar?</h3>
@@ -570,7 +601,6 @@ function ModalsExtras({ menuAtivo, form, setForm, setMenuAtivo }) {
                 <span style={{fontSize: '20px'}}>💠</span> {loading ? "A processar..." : "Pagar com PIX Rápido"}
              </button>
              
-             {/* 👇 ESTE É O BOTÃO QUE ABRE O PAGAMENTO DE CARTÃO 👇 */}
              <button onClick={() => setPasso(4)} disabled={loading} style={{padding: '18px', background: theme.bgHover, color: '#fff', fontWeight: 'bold', border: `1px solid ${theme.border}`, borderRadius: '8px', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '10px'}}>
                 <span style={{fontSize: '20px'}}>💳</span> Pagar com Cartão (Crédito/Débito)
              </button>
@@ -583,7 +613,7 @@ function ModalsExtras({ menuAtivo, form, setForm, setMenuAtivo }) {
         {passo === 3 && dadosPix && (
           <motion.div initial={{opacity:0}} animate={{opacity:1}} style={{display: 'flex', flexDirection: 'column', gap: '15px'}}>
             <h3 style={{margin: 0, color: "#00d4b6", textAlign: 'center'}}>PIX Gerado!</h3>
-            <p style={{textAlign: 'center', fontSize: '12px', color: '#64748b', margin: 0}}>Escaneie ou copie a linha abaixo para concluir</p>
+            <p style={{textAlign: 'center', fontSize: '12px', color: '#64748b', margin: 0}}>Escaneie ou copie a linha abaixo para concluir. <br/><b>Aguardando pagamento... ⏳</b></p>
 
             <img src={`data:image/jpeg;base64,${dadosPix.qr_code_base64}`} style={{width:"100%", maxWidth: '250px', alignSelf: 'center', borderRadius: '8px', border: '3px solid #fff'}} alt="QR Code" />
             <textarea value={dadosPix.qr_code} readOnly style={{padding: '12px', fontSize: '11px', background: '#090a0f', color: '#64748b', border: '1px solid #232838', borderRadius: '6px', resize: 'none'}} rows={4} />
@@ -599,7 +629,6 @@ function ModalsExtras({ menuAtivo, form, setForm, setMenuAtivo }) {
           <motion.div initial={{opacity:0}} animate={{opacity:1}} style={{display: 'flex', flexDirection: 'column', gap: '10px'}}>
             <h3 style={{margin: 0, color: "#fff", textAlign: 'center'}}>Pagar com Cartão</h3>
             
-            {/* 👇 O FORMULÁRIO DO MERCADO PAGO É GERADO AQUI 👇 */}
             <Payment initialization={initialization} customization={customization} onSubmit={onSubmitCartao} onError={(e) => console.log(e)} />
             
             <button onClick={() => setPasso(2)} style={{padding: '12px', background: 'transparent', color: '#64748b', border: `1px solid ${theme.border}`, borderRadius: '6px', cursor: 'pointer'}}>Voltar aos métodos</button>
