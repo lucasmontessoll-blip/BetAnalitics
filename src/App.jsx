@@ -468,7 +468,7 @@ function ClassificacaoPanel({ menuAtivo, loadingClassificacao, classificacao }) 
     return ( <motion.div initial={{opacity: 0}} animate={{opacity: 1}} style={{background: theme.bgPanel, borderRadius: '12px', border: `1px solid ${theme.border}`, overflow: 'hidden', padding: '20px'}}>{menuAtivo === 'todos' || menuAtivo === 'todos os jogos' || menuAtivo === 'esportes' ? ( <div style={{textAlign: 'center', color: theme.textMuted, padding: '40px 0'}}><span style={{fontSize: '30px', display: 'block', marginBottom: '10px'}}>🏆</span>Selecione uma liga no menu lateral.</div> ) : loadingClassificacao ? ( <div style={{textAlign: 'center', color: theme.cyan, padding: '40px 0', fontWeight: 'bold'}}>Calculando...</div> ) : ( <div style={{overflowX: 'auto'}}><table style={{width: '100%', borderCollapse: 'collapse', textAlign: 'left', color: theme.textMain, fontSize: '13px'}}><thead><tr style={{borderBottom: `1px solid ${theme.border}`, color: theme.textMuted}}><th>#</th><th>Equipe</th><th>P</th><th>J</th><th>V</th><th>E</th><th>D</th><th>SG</th></tr></thead><tbody>{classificacao.map((t, i) => (<tr key={i} style={{borderBottom: `1px solid rgba(255,255,255,0.02)`}}><td style={{padding: '12px 8px', color: theme.cyan}}>{t.position}</td><td style={{padding: '12px 8px', display: 'flex', alignItems: 'center', gap: '10px'}}><img src={t.logo} style={{width: '24px'}} alt="" />{t.team_name}</td><td>{t.points}</td><td>{t.matches_played}</td><td>{t.won}</td><td>{t.draw}</td><td>{t.lost}</td><td>{t.goal_diff}</td></tr>))}</tbody></table></div> )}</motion.div> );
 }
 
-// 🔥 O MODAL DE PAGAMENTO VERSÃO 3.0 (TUDO NO MESMO ECRÃ) 🔥
+// 🔥 O MODAL DE PAGAMENTO VERSÃO DEFINITIVA (V4) 🔥
 function ModalsExtras({ menuAtivo, form, setForm, setMenuAtivo, setUserData }) {
   const [passo, setPasso] = useState(1);
   const [loading, setLoading] = useState(false);
@@ -485,10 +485,9 @@ function ModalsExtras({ menuAtivo, form, setForm, setMenuAtivo, setUserData }) {
       paymentMethods: { creditCard: 'all', debitCard: 'all', maxInstallments: 1 } 
   }), []);
 
-  // POLLING: Consulta o status a cada 3 segundos
   useEffect(() => {
     let intervalId;
-    if (passo === 2 && dadosPix?.id) { // Passo 2 agora é o QR Code do PIX
+    if (passo === 2 && dadosPix?.id) {
         intervalId = setInterval(async () => {
             try {
                 const res = await axios.get(`${API}/status/${dadosPix.id}`);
@@ -507,15 +506,13 @@ function ModalsExtras({ menuAtivo, form, setForm, setMenuAtivo, setUserData }) {
     return () => clearInterval(intervalId);
   }, [passo, dadosPix, form.email, setMenuAtivo, setUserData]);
 
-  // Função para validar antes de chamar o Cartão
   const handlePagarCartao = () => {
     if (!form.nome || !form.email || form.cpf.length !== 11) {
         return alert("⚠️ ERRO: Por favor, preencha o seu Nome, o seu E-mail e digite exatamente 11 números no CPF antes de escolher o Cartão!");
     }
-    setPasso(3); // Passo 3 é a tela do Cartão
+    setPasso(3);
   };
 
-  // Criação do PIX com validação
   async function gerarPix() {
     if (!form.nome || !form.email || form.cpf.length !== 11) {
         return alert("⚠️ ERRO: Por favor, preencha o seu Nome, o seu E-mail e digite exatamente 11 números no CPF antes de gerar o PIX!");
@@ -533,7 +530,7 @@ function ModalsExtras({ menuAtivo, form, setForm, setMenuAtivo, setUserData }) {
 
       if (data.status === "pending" && data.qr_code_base64) {
         setDadosPix(data);
-        setPasso(2); // Passo 2 é o QR Code 
+        setPasso(2); 
       } else {
         throw new Error("O Banco não retornou o QR Code.");
       }
@@ -544,7 +541,6 @@ function ModalsExtras({ menuAtivo, form, setForm, setMenuAtivo, setUserData }) {
     }
   }
 
-  // Processa Cartões
   const onSubmitCartao = async (formData) => {
       return new Promise((resolve, reject) => {
           axios.post(`${API}/processar-pagamento`, {
@@ -580,10 +576,9 @@ function ModalsExtras({ menuAtivo, form, setForm, setMenuAtivo, setUserData }) {
         
         <button onClick={() => setMenuAtivo('todos')} style={{alignSelf: 'flex-start', background: 'none', border: 'none', color: '#64748b', cursor: 'pointer', fontWeight: 'bold'}}>⬅ Cancelar</button>
 
-        {/* PASSO 1: DADOS + BOTÕES TUDO JUNTO! */}
         {passo === 1 && (
           <motion.div initial={{opacity:0}} animate={{opacity:1}} style={{display: 'flex', flexDirection: 'column', gap: '15px'}}>
-            <h2 style={{margin: 0, color: "#00d4b6"}}>Assinar VIP PRO 👑 (V3)</h2>
+            <h2 style={{margin: 0, color: "#00d4b6"}}>Assinar VIP PRO 👑 (V4)</h2>
             <p style={{fontSize: '12px', color: theme.textMuted, margin: 0}}>Preencha os dados e escolha como quer pagar:</p>
             
             <input placeholder="Seu Nome Completo" value={form.nome} style={{padding: '14px', borderRadius: '6px', border: '1px solid #232838', background: '#090a0f', color: '#fff'}} onChange={e=>setForm({...form,nome:e.target.value})} />
@@ -602,7 +597,6 @@ function ModalsExtras({ menuAtivo, form, setForm, setMenuAtivo, setUserData }) {
           </motion.div>
         )}
 
-        {/* PASSO 2: TELA DO PIX (QR CODE) */}
         {passo === 2 && dadosPix && (
           <motion.div initial={{opacity:0}} animate={{opacity:1}} style={{display: 'flex', flexDirection: 'column', gap: '15px'}}>
             <h3 style={{margin: 0, color: "#00d4b6", textAlign: 'center'}}>PIX Gerado!</h3>
@@ -617,7 +611,6 @@ function ModalsExtras({ menuAtivo, form, setForm, setMenuAtivo, setUserData }) {
           </motion.div>
         )}
 
-        {/* PASSO 3: TELA DO CARTÃO (BRICK MERCADO PAGO) */}
         {passo === 3 && (
           <motion.div initial={{opacity:0}} animate={{opacity:1}} style={{display: 'flex', flexDirection: 'column', gap: '10px'}}>
             <h3 style={{margin: 0, color: "#fff", textAlign: 'center'}}>Pagar com Cartão</h3>
