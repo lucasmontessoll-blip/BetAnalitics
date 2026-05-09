@@ -8,7 +8,7 @@ import dadosFut from './dados.json';
 import './App.css';
 
 // 🔑 CHAVE PÚBLICA DE PRODUÇÃO
-initMercadoPago('APP_USR-4fa18e00-642d-4369-bc77-e8c68ed9c2a0', { locale: 'pt-BR' });
+initMercadoPago('APP_USR-c05e91db-5e62-4838-8790-e73906d11dbc', { locale: 'pt-BR' });
 
 // 🔥 URL DO SEU BACKEND
 const API_URL = 'https://motor-betanalytics-pro.onrender.com/api';
