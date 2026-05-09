@@ -468,7 +468,7 @@ function ClassificacaoPanel({ menuAtivo, loadingClassificacao, classificacao }) 
     return ( <motion.div initial={{opacity: 0}} animate={{opacity: 1}} style={{background: theme.bgPanel, borderRadius: '12px', border: `1px solid ${theme.border}`, overflow: 'hidden', padding: '20px'}}>{menuAtivo === 'todos' || menuAtivo === 'todos os jogos' || menuAtivo === 'esportes' ? ( <div style={{textAlign: 'center', color: theme.textMuted, padding: '40px 0'}}><span style={{fontSize: '30px', display: 'block', marginBottom: '10px'}}>🏆</span>Selecione uma liga no menu lateral.</div> ) : loadingClassificacao ? ( <div style={{textAlign: 'center', color: theme.cyan, padding: '40px 0', fontWeight: 'bold'}}>Calculando...</div> ) : ( <div style={{overflowX: 'auto'}}><table style={{width: '100%', borderCollapse: 'collapse', textAlign: 'left', color: theme.textMain, fontSize: '13px'}}><thead><tr style={{borderBottom: `1px solid ${theme.border}`, color: theme.textMuted}}><th>#</th><th>Equipe</th><th>P</th><th>J</th><th>V</th><th>E</th><th>D</th><th>SG</th></tr></thead><tbody>{classificacao.map((t, i) => (<tr key={i} style={{borderBottom: `1px solid rgba(255,255,255,0.02)`}}><td style={{padding: '12px 8px', color: theme.cyan}}>{t.position}</td><td style={{padding: '12px 8px', display: 'flex', alignItems: 'center', gap: '10px'}}><img src={t.logo} style={{width: '24px'}} alt="" />{t.team_name}</td><td>{t.points}</td><td>{t.matches_played}</td><td>{t.won}</td><td>{t.draw}</td><td>{t.lost}</td><td>{t.goal_diff}</td></tr>))}</tbody></table></div> )}</motion.div> );
 }
 
-// 🔥 O MODAL PROFISSIONAL: CARTÃO + PIX COM POLLING 🔥
+// 🔥 O MODAL DE PAGAMENTO VERSÃO 3.0 (TUDO NO MESMO ECRÃ) 🔥
 function ModalsExtras({ menuAtivo, form, setForm, setMenuAtivo, setUserData }) {
   const [passo, setPasso] = useState(1);
   const [loading, setLoading] = useState(false);
@@ -485,38 +485,42 @@ function ModalsExtras({ menuAtivo, form, setForm, setMenuAtivo, setUserData }) {
       paymentMethods: { creditCard: 'all', debitCard: 'all', maxInstallments: 1 } 
   }), []);
 
-  // 🔄 POLLING: O segredo para não aprovar sozinho! Consulta o status a cada 3 segundos.
+  // POLLING: Consulta o status a cada 3 segundos
   useEffect(() => {
     let intervalId;
-
-    if (passo === 3 && dadosPix?.id) {
+    if (passo === 2 && dadosPix?.id) { // Passo 2 agora é o QR Code do PIX
         intervalId = setInterval(async () => {
             try {
-                // Pergunta ao backend: "O status já é approved?"
                 const res = await axios.get(`${API}/status/${dadosPix.id}`);
-                
                 if (res.data.status === 'approved') {
-                    clearInterval(intervalId); // Para de perguntar
+                    clearInterval(intervalId);
                     alert("🎉 Pagamento PIX Aprovado! Bem-vindo ao VIP PRO!");
-                    
                     if (setUserData) {
                         setUserData({ email: form.email, is_vip: true });
                         localStorage.setItem('bet_sessao_ativa', form.email);
                     }
                     setMenuAtivo('todos');
                 }
-            } catch (err) {
-                console.log("Aguardando confirmação do PIX...");
-            }
-        }, 3000); // 3 em 3 segundos
+            } catch (err) { console.log("Aguardando pagamento..."); }
+        }, 3000);
     }
-
-    // Limpa o ciclo se o utilizador fechar a janela antes de pagar
     return () => clearInterval(intervalId);
   }, [passo, dadosPix, form.email, setMenuAtivo, setUserData]);
 
-  // Criação do PIX
+  // Função para validar antes de chamar o Cartão
+  const handlePagarCartao = () => {
+    if (!form.nome || !form.email || form.cpf.length !== 11) {
+        return alert("⚠️ ERRO: Por favor, preencha o seu Nome, o seu E-mail e digite exatamente 11 números no CPF antes de escolher o Cartão!");
+    }
+    setPasso(3); // Passo 3 é a tela do Cartão
+  };
+
+  // Criação do PIX com validação
   async function gerarPix() {
+    if (!form.nome || !form.email || form.cpf.length !== 11) {
+        return alert("⚠️ ERRO: Por favor, preencha o seu Nome, o seu E-mail e digite exatamente 11 números no CPF antes de gerar o PIX!");
+    }
+
     try {
       setLoading(true);
       const payload = {
@@ -529,7 +533,7 @@ function ModalsExtras({ menuAtivo, form, setForm, setMenuAtivo, setUserData }) {
 
       if (data.status === "pending" && data.qr_code_base64) {
         setDadosPix(data);
-        setPasso(3); 
+        setPasso(2); // Passo 2 é o QR Code 
       } else {
         throw new Error("O Banco não retornou o QR Code.");
       }
@@ -557,7 +561,7 @@ function ModalsExtras({ menuAtivo, form, setForm, setMenuAtivo, setUserData }) {
                   }
                   setMenuAtivo('todos');
               } else {
-                  alert(`❌ Pagamento pendente ou recusado. Motivo: ${res.data.status_detail}`);
+                  alert(`❌ Pagamento recusado. Motivo: ${res.data.status_detail}`);
               }
               resolve();
           })
@@ -576,41 +580,30 @@ function ModalsExtras({ menuAtivo, form, setForm, setMenuAtivo, setUserData }) {
         
         <button onClick={() => setMenuAtivo('todos')} style={{alignSelf: 'flex-start', background: 'none', border: 'none', color: '#64748b', cursor: 'pointer', fontWeight: 'bold'}}>⬅ Cancelar</button>
 
-        {/* PASSO 1: DADOS BÁSICOS */}
+        {/* PASSO 1: DADOS + BOTÕES TUDO JUNTO! */}
         {passo === 1 && (
           <motion.div initial={{opacity:0}} animate={{opacity:1}} style={{display: 'flex', flexDirection: 'column', gap: '15px'}}>
-            <h2 style={{margin: 0, color: "#00d4b6"}}>Assinar VIP PRO 👑</h2>
-            <p style={{fontSize: '12px', color: theme.textMuted, margin: 0}}>Por apenas R$ 29,90</p>
+            <h2 style={{margin: 0, color: "#00d4b6"}}>Assinar VIP PRO 👑 (V3)</h2>
+            <p style={{fontSize: '12px', color: theme.textMuted, margin: 0}}>Preencha os dados e escolha como quer pagar:</p>
             
             <input placeholder="Seu Nome Completo" value={form.nome} style={{padding: '14px', borderRadius: '6px', border: '1px solid #232838', background: '#090a0f', color: '#fff'}} onChange={e=>setForm({...form,nome:e.target.value})} />
             <input placeholder="Seu E-mail" value={form.email} style={{padding: '14px', borderRadius: '6px', border: '1px solid #232838', background: '#090a0f', color: '#fff'}} onChange={e=>setForm({...form,email:e.target.value})} />
-            <input placeholder="Seu CPF (Somente números)" value={form.cpf} maxLength={11} style={{padding: '14px', borderRadius: '6px', border: '1px solid #232838', background: '#090a0f', color: '#fff'}} onChange={e=>setForm({...form,cpf:e.target.value.replace(/\D/g, '')})} />
+            <input placeholder="Seu CPF (Exatamente 11 números)" value={form.cpf} maxLength={11} style={{padding: '14px', borderRadius: '6px', border: '1px solid #232838', background: '#090a0f', color: '#fff'}} onChange={e=>setForm({...form,cpf:e.target.value.replace(/\D/g, '')})} />
 
-            <button onClick={() => { if(form.nome && form.email && form.cpf.length === 11) setPasso(2); else alert("Preencha todos os dados corretamente."); }} style={{padding: '15px', background: '#00d4b6', color: '#000', fontWeight: 'bold', border: 'none', borderRadius: '6px', cursor: 'pointer', marginTop: '10px'}}>
-              Continuar para Pagamento
+            <div style={{height: '1px', background: theme.border, margin: '10px 0'}}></div>
+
+            <button onClick={gerarPix} disabled={loading} style={{padding: '18px', background: '#00d4b6', color: '#000', fontWeight: 'bold', border: 'none', borderRadius: '8px', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '10px'}}>
+                <span style={{fontSize: '20px'}}>💠</span> {loading ? "A processar..." : "Pagar com PIX Rápido"}
+            </button>
+             
+            <button onClick={handlePagarCartao} disabled={loading} style={{padding: '18px', background: theme.bgHover, color: '#fff', fontWeight: 'bold', border: `1px solid ${theme.border}`, borderRadius: '8px', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '10px'}}>
+                <span style={{fontSize: '20px'}}>💳</span> Pagar com Cartão (Crédito/Débito)
             </button>
           </motion.div>
         )}
 
-        {/* PASSO 2: ESCOLHER MÉTODO */}
-        {passo === 2 && (
-          <motion.div initial={{opacity:0}} animate={{opacity:1}} style={{display: 'flex', flexDirection: 'column', gap: '15px'}}>
-             <h3 style={{margin: 0, color: "#fff", textAlign: 'center'}}>Como prefere pagar?</h3>
-             
-             <button onClick={gerarPix} disabled={loading} style={{padding: '18px', background: '#00d4b6', color: '#000', fontWeight: 'bold', border: 'none', borderRadius: '8px', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '10px'}}>
-                <span style={{fontSize: '20px'}}>💠</span> {loading ? "A processar..." : "Pagar com PIX Rápido"}
-             </button>
-             
-             <button onClick={() => setPasso(4)} disabled={loading} style={{padding: '18px', background: theme.bgHover, color: '#fff', fontWeight: 'bold', border: `1px solid ${theme.border}`, borderRadius: '8px', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '10px'}}>
-                <span style={{fontSize: '20px'}}>💳</span> Pagar com Cartão (Crédito/Débito)
-             </button>
-
-             <button onClick={() => setPasso(1)} style={{padding: '10px', background: 'transparent', color: '#64748b', border: 'none', cursor: 'pointer', marginTop: '10px'}}>Voltar aos dados</button>
-          </motion.div>
-        )}
-
-        {/* PASSO 3: TELA DO PIX (QR CODE) */}
-        {passo === 3 && dadosPix && (
+        {/* PASSO 2: TELA DO PIX (QR CODE) */}
+        {passo === 2 && dadosPix && (
           <motion.div initial={{opacity:0}} animate={{opacity:1}} style={{display: 'flex', flexDirection: 'column', gap: '15px'}}>
             <h3 style={{margin: 0, color: "#00d4b6", textAlign: 'center'}}>PIX Gerado!</h3>
             <p style={{textAlign: 'center', fontSize: '12px', color: '#64748b', margin: 0}}>Escaneie ou copie a linha abaixo para concluir. <br/><b>Aguardando pagamento... ⏳</b></p>
@@ -624,14 +617,14 @@ function ModalsExtras({ menuAtivo, form, setForm, setMenuAtivo, setUserData }) {
           </motion.div>
         )}
 
-        {/* PASSO 4: TELA DO CARTÃO (BRICK MERCADO PAGO) */}
-        {passo === 4 && (
+        {/* PASSO 3: TELA DO CARTÃO (BRICK MERCADO PAGO) */}
+        {passo === 3 && (
           <motion.div initial={{opacity:0}} animate={{opacity:1}} style={{display: 'flex', flexDirection: 'column', gap: '10px'}}>
             <h3 style={{margin: 0, color: "#fff", textAlign: 'center'}}>Pagar com Cartão</h3>
             
             <Payment initialization={initialization} customization={customization} onSubmit={onSubmitCartao} onError={(e) => console.log(e)} />
             
-            <button onClick={() => setPasso(2)} style={{padding: '12px', background: 'transparent', color: '#64748b', border: `1px solid ${theme.border}`, borderRadius: '6px', cursor: 'pointer'}}>Voltar aos métodos</button>
+            <button onClick={() => setPasso(1)} style={{padding: '12px', background: 'transparent', color: '#64748b', border: `1px solid ${theme.border}`, borderRadius: '6px', cursor: 'pointer'}}>Voltar aos métodos</button>
           </motion.div>
         )}
 
