@@ -5,7 +5,6 @@ import { AreaChart, Area, LineChart, Line, XAxis, YAxis, ResponsiveContainer } f
 import { motion, AnimatePresence } from 'framer-motion';
 import { initMercadoPago, Payment } from '@mercadopago/sdk-react'; 
 import dadosFut from './dados.json'; 
-import './App.css';
 
 // 🔑 CHAVE PÚBLICA DE PRODUÇÃO
 initMercadoPago('REMOVED_MP_HISTORICAL_SECRET', { locale: 'pt-BR' });
