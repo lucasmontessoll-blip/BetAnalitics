@@ -9,8 +9,8 @@ import dadosFut from './dados.json';
 // 🔑 CHAVE PÚBLICA DE PRODUÇÃO
 initMercadoPago('APP_USR-c05e91db-5e62-4838-8790-e73906d11dbc', { locale: 'pt-BR' });
 
-// 🔥 URL DO SEU BACKEND
-const API_URL = 'https://betanalitics.onrender.com/';
+// 🔥 URL DO SEU BACKEND CORRIGIDA (Sem a barra no final e apontando para o motor ativo)
+const API_URL = 'https://motor-betanalytics-pro.onrender.com';
 
 const theme = { bgApp: '#090a0f', bgPanel: '#13161f', bgHover: '#1c202d', border: '#232838', cyan: '#00d4b6', yellow: '#facc15', textMain: '#f8fafc', textMuted: '#64748b', red: '#ef4444', green: '#10b981' };
 
@@ -472,7 +472,9 @@ function ModalsExtras({ menuAtivo, form, setForm, setMenuAtivo, setUserData }) {
   const [passo, setPasso] = useState(1);
   const [loading, setLoading] = useState(false);
   const [dadosPix, setDadosPix] = useState(null);
-  const API = "https://betanalitics.onrender.com/";
+  
+  // 🔥 CORRIGIDO: Link da API atualizado sem a barra no final
+  const API = "https://motor-betanalytics-pro.onrender.com";
 
   const initialization = useMemo(() => ({ amount: 29.90, payer: { email: form.email } }), [form.email]);
   const customization = useMemo(() => ({ visual: { style: { theme: 'dark', customVariables: { formBackgroundColor: '#13161f' } } }, paymentMethods: { creditCard: 'all', debitCard: 'all', maxInstallments: 1 } }), []);
@@ -490,7 +492,6 @@ function ModalsExtras({ menuAtivo, form, setForm, setMenuAtivo, setUserData }) {
                     setMenuAtivo('todos');
                 }
             } catch (err) { 
-                // Se o motor for muito antigo e não tiver a rota, ignoramos o erro silenciosamente
                 console.log("Aguardando pagamento..."); 
             }
         }, 3000);
@@ -503,7 +504,6 @@ function ModalsExtras({ menuAtivo, form, setForm, setMenuAtivo, setUserData }) {
     setPasso(3); 
   };
 
-  // 🔥 O CÓDIGO QUE FORÇA O PIX E BURLA O MOTOR ANTIGO!
   async function gerarPix() {
     if (!form.nome || !form.email || form.cpf.length !== 11) {
         return alert("⚠️ ERRO: Por favor, preencha o seu Nome, E-mail e digite exatamente 11 números no CPF.");
@@ -519,19 +519,18 @@ function ModalsExtras({ menuAtivo, form, setForm, setMenuAtivo, setUserData }) {
           email: form.email, 
           first_name: form.nome, 
           identification: { 
-            type: "CPF", // <- A CHAVE MÁGICA QUE FORÇA A APROVAÇÃO DO BANCO!
+            type: "CPF",
             number: form.cpf.replace(/\D/g, "") 
           } 
         }
       };
 
-      const { data } = await axios.post(`${API}/processar-pagamento`, payload);
+      const { data } = await axios.post(`${API}/api/processar-pagamento`, payload);
 
       if (data.qr_code_base64 || data.qr_code) {
         setDadosPix(data);
         setPasso(2); 
       } else {
-        // Se ainda assim o banco falhar, não haverá "undefined", mostraremos o pacote completo
         alert("O Banco aceitou o pedido, mas bloqueou a imagem do QR Code. Resposta completa do Banco: " + JSON.stringify(data));
       }
     } catch (e) {
@@ -543,7 +542,7 @@ function ModalsExtras({ menuAtivo, form, setForm, setMenuAtivo, setUserData }) {
 
   const onSubmitCartao = async (formData) => {
       return new Promise((resolve, reject) => {
-          axios.post(`${API}/processar-pagamento`, {
+          axios.post(`${API}/api/processar-pagamento`, {
               ...formData, 
               transaction_amount: 29.90,
               payer: { email: form.email, first_name: form.nome, identification: { type: "CPF", number: form.cpf.replace(/\D/g, "") } }
