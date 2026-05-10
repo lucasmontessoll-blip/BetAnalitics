@@ -11,7 +11,7 @@ import './App.css';
 initMercadoPago('APP_USR-c05e91db-5e62-4838-8790-e73906d11dbc', { locale: 'pt-BR' });
 
 // 🔥 URL DO SEU BACKEND
-const API_URL = 'https://motor-betanalytics-pro.onrender.com/api';
+const API_URL = 'https://betanalitics.onrender.com/';
 
 const theme = { bgApp: '#090a0f', bgPanel: '#13161f', bgHover: '#1c202d', border: '#232838', cyan: '#00d4b6', yellow: '#facc15', textMain: '#f8fafc', textMuted: '#64748b', red: '#ef4444', green: '#10b981' };
 
@@ -473,7 +473,7 @@ function ModalsExtras({ menuAtivo, form, setForm, setMenuAtivo, setUserData }) {
   const [passo, setPasso] = useState(1);
   const [loading, setLoading] = useState(false);
   const [dadosPix, setDadosPix] = useState(null);
-  const API = "https://betanalytics-1.onrender.com/api";
+  const API = "https://betanalitics.onrender.com/";
 
   const initialization = useMemo(() => ({ amount: 29.90, payer: { email: form.email } }), [form.email]);
   const customization = useMemo(() => ({ visual: { style: { theme: 'dark', customVariables: { formBackgroundColor: '#13161f' } } }, paymentMethods: { creditCard: 'all', debitCard: 'all', maxInstallments: 1 } }), []);
