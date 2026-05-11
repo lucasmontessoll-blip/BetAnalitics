@@ -584,7 +584,6 @@ function ModalsExtras({ menuAtivo, form, setForm, setMenuAtivo, setUserData }) {
                 <span style={{fontSize: '20px'}}>💠</span> {loading ? "A processar..." : "Pagar com PIX Rápido"}
             </button>
              
-            {/* 💳 BOTÃO DE CARTÃO ATUALIZADO COM CRÉDITO E DÉBITO 💳 */}
             <button onClick={handlePagarCartao} disabled={loading} style={{padding: '18px', background: theme.bgHover, color: '#fff', fontWeight: 'bold', border: `1px solid ${theme.border}`, borderRadius: '8px', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '10px'}}>
                 <span style={{fontSize: '20px'}}>💳</span> Pagar com Cartão (Crédito/Débito)
             </button>
@@ -618,13 +617,30 @@ function ModalsExtras({ menuAtivo, form, setForm, setMenuAtivo, setUserData }) {
             {/* A CAIXA DO MERCADO PAGO */}
             <Payment initialization={initialization} customization={customization} onSubmit={onSubmitCartao} onError={(e) => console.log(e)} />
             
-            {/* SELOS DE CONFIANÇA INCLUINDO AS BANDEIRAS DE DÉBITO */}
-            <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '8px', marginTop: '5px', marginBottom: '15px' }}>
-                <span style={{ fontSize: '12px', color: '#00d4b6', fontWeight: 'bold', textAlign: 'center' }}>✅ Aceitamos Crédito e Débito de todos os bancos:</span>
-                <div style={{ display: 'flex', justifyContent: 'center', gap: '6px', flexWrap: 'wrap' }}>
-                    {['VISA', 'VISA ELECTRON', 'MASTERCARD', 'MAESTRO', 'ELO', 'NUBANK', 'ITAÚ', 'INTER', 'CAIXA', 'BRADESCO'].map(b => (
-                        <span key={b} style={{ background: '#1c202d', color: '#64748b', fontSize: '10px', padding: '4px 8px', borderRadius: '4px', border: '1px solid #232838', fontWeight: 'bold' }}>{b}</span>
-                    ))}
+            {/* SELOS DE CONFIANÇA VISUAIS (DÉBITO E CRÉDITO) ABAIXO DO QUADRO - IGUAL AO SEU MOCKUP */}
+            <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '15px', marginTop: '-10px', marginBottom: '15px', background: '#1c202d', padding: '15px 10px', borderRadius: '8px', border: `1px solid ${theme.border}` }}>
+                <span style={{ fontSize: '13px', color: theme.textMuted }}>Também aceitamos as principais redes de débito:</span>
+                <div style={{ display: 'flex', justifyContent: 'center', gap: '20px', flexWrap: 'wrap' }}>
+                    {/* Visa Débito */}
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                        <div style={{ background: '#fff', width: '34px', height: '34px', borderRadius: '50%', display: 'flex', justifyContent: 'center', alignItems: 'center', fontWeight: '900', color: '#1a1f36', fontSize: '9px', fontStyle: 'italic' }}>VISA</div>
+                        <span style={{ color: '#fff', fontSize: '15px', fontWeight: '500' }}>Débito</span>
+                    </div>
+                    {/* Mastercard Débito */}
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                        <div style={{ background: '#fff', width: '34px', height: '34px', borderRadius: '50%', display: 'flex', justifyContent: 'center', alignItems: 'center', position: 'relative' }}>
+                            <div style={{ width: '16px', height: '16px', background: '#eb001b', borderRadius: '50%', position: 'absolute', left: '3px' }}></div>
+                            <div style={{ width: '16px', height: '16px', background: '#f79e1b', borderRadius: '50%', position: 'absolute', right: '3px', mixBlendMode: 'multiply' }}></div>
+                        </div>
+                        <span style={{ color: '#fff', fontSize: '15px', fontWeight: '500' }}>Débito</span>
+                    </div>
+                    {/* Elo Débito */}
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                        <div style={{ background: '#1c202d', border: '1px solid #232838', width: '34px', height: '34px', borderRadius: '50%', display: 'flex', justifyContent: 'center', alignItems: 'center' }}>
+                            <div style={{ width: '18px', height: '18px', border: '3px solid #00d4b6', borderRadius: '50%', borderTopColor: '#facc15', borderRightColor: '#ef4444' }}></div>
+                        </div>
+                        <span style={{ color: '#fff', fontSize: '15px', fontWeight: '500' }}>Elo Débito</span>
+                    </div>
                 </div>
             </div>
 
