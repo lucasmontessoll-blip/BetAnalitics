@@ -10,7 +10,7 @@ import dadosFut from './dados.json';
 initMercadoPago('APP_USR-c05e91db-5e62-4838-8790-e73906d11dbc', { locale: 'pt-BR' });
 
 // 🔥 URL DO SEU BACKEND CORRIGIDA (Sem a barra no final e apontando para o motor ativo)
-const API_URL = 'https://motor-betanalytics-pro.onrender.com';
+const API_URL = 'https://betanalitics-1-9stc.onrender.com';
 
 const theme = { bgApp: '#090a0f', bgPanel: '#13161f', bgHover: '#1c202d', border: '#232838', cyan: '#00d4b6', yellow: '#facc15', textMain: '#f8fafc', textMuted: '#64748b', red: '#ef4444', green: '#10b981' };
 
