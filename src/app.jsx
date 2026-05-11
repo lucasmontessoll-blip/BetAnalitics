@@ -9,7 +9,7 @@ import dadosFut from './dados.json';
 // 🔑 CHAVE PÚBLICA DE PRODUÇÃO
 initMercadoPago('APP_USR-c05e91db-5e62-4838-8790-e73906d11dbc', { locale: 'pt-BR' });
 
-// 🔥 URL DO SEU BACKEND CORRIGIDA (Sem a barra no final e apontando para o motor ativo)
+// 🔥 URL DO SEU BACKEND CORRIGIDA
 const API_URL = 'https://betanalitics-1-9stc.onrender.com';
 
 const theme = { bgApp: '#090a0f', bgPanel: '#13161f', bgHover: '#1c202d', border: '#232838', cyan: '#00d4b6', yellow: '#facc15', textMain: '#f8fafc', textMuted: '#64748b', red: '#ef4444', green: '#10b981' };
@@ -467,7 +467,7 @@ function ClassificacaoPanel({ menuAtivo, loadingClassificacao, classificacao }) 
     return ( <motion.div initial={{opacity: 0}} animate={{opacity: 1}} style={{background: theme.bgPanel, borderRadius: '12px', border: `1px solid ${theme.border}`, overflow: 'hidden', padding: '20px'}}>{menuAtivo === 'todos' || menuAtivo === 'todos os jogos' || menuAtivo === 'esportes' ? ( <div style={{textAlign: 'center', color: theme.textMuted, padding: '40px 0'}}><span style={{fontSize: '30px', display: 'block', marginBottom: '10px'}}>🏆</span>Selecione uma liga no menu lateral.</div> ) : loadingClassificacao ? ( <div style={{textAlign: 'center', color: theme.cyan, padding: '40px 0', fontWeight: 'bold'}}>Calculando...</div> ) : ( <div style={{overflowX: 'auto'}}><table style={{width: '100%', borderCollapse: 'collapse', textAlign: 'left', color: theme.textMain, fontSize: '13px'}}><thead><tr style={{borderBottom: `1px solid ${theme.border}`, color: theme.textMuted}}><th>#</th><th>Equipe</th><th>P</th><th>J</th><th>V</th><th>E</th><th>D</th><th>SG</th></tr></thead><tbody>{classificacao.map((t, i) => (<tr key={i} style={{borderBottom: `1px solid rgba(255,255,255,0.02)`}}><td style={{padding: '12px 8px', color: theme.cyan}}>{t.position}</td><td style={{padding: '12px 8px', display: 'flex', alignItems: 'center', gap: '10px'}}><img src={t.logo} style={{width: '24px'}} alt="" />{t.team_name}</td><td>{t.points}</td><td>{t.matches_played}</td><td>{t.won}</td><td>{t.draw}</td><td>{t.lost}</td><td>{t.goal_diff}</td></tr>))}</tbody></table></div> )}</motion.div> );
 }
 
-// 🔥 MODAL (V7) - A FORÇADORA DE PIX 🔥
+// 🔥 MODAL (V7) - A FORÇADORA DE PIX E CARTÕES 🔥
 function ModalsExtras({ menuAtivo, form, setForm, setMenuAtivo, setUserData }) {
   const [passo, setPasso] = useState(1);
   const [loading, setLoading] = useState(false);
@@ -585,9 +585,16 @@ function ModalsExtras({ menuAtivo, form, setForm, setMenuAtivo, setUserData }) {
                 <span style={{fontSize: '20px'}}>💠</span> {loading ? "A processar..." : "Pagar com PIX Rápido"}
             </button>
              
+            {/* 💳 BOTÃO DE CARTÃO COM OS SELOS DE CONFIANÇA EM BAIXO 💳 */}
             <button onClick={handlePagarCartao} disabled={loading} style={{padding: '18px', background: theme.bgHover, color: '#fff', fontWeight: 'bold', border: `1px solid ${theme.border}`, borderRadius: '8px', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '10px'}}>
                 <span style={{fontSize: '20px'}}>💳</span> Pagar com Cartão (Crédito/Débito)
             </button>
+            <div style={{ display: 'flex', justifyContent: 'center', gap: '6px', flexWrap: 'wrap', marginTop: '-5px' }}>
+                {['NUBANK', 'ITAÚ', 'INTER', 'VISA', 'MASTERCARD', '+ BANCOS'].map(b => (
+                    <span key={b} style={{ background: '#1c202d', color: '#64748b', fontSize: '10px', padding: '3px 8px', borderRadius: '4px', border: '1px solid #232838', fontWeight: 'bold' }}>{b}</span>
+                ))}
+            </div>
+            
           </motion.div>
         )}
 
@@ -608,7 +615,20 @@ function ModalsExtras({ menuAtivo, form, setForm, setMenuAtivo, setUserData }) {
         {passo === 3 && (
           <motion.div initial={{opacity:0}} animate={{opacity:1}} style={{display: 'flex', flexDirection: 'column', gap: '10px'}}>
             <h3 style={{margin: 0, color: "#fff", textAlign: 'center'}}>Pagar com Cartão</h3>
+            
+            {/* A CAIXA DO MERCADO PAGO */}
             <Payment initialization={initialization} customization={customization} onSubmit={onSubmitCartao} onError={(e) => console.log(e)} />
+            
+            {/* SELOS DE CONFIANÇA PARA QUEBRAR A OBJEÇÃO DA "CAIXA ECONÔMICA" */}
+            <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '8px', marginTop: '5px', marginBottom: '15px' }}>
+                <span style={{ fontSize: '12px', color: '#00d4b6', fontWeight: 'bold' }}>✅ Aceitamos cartões de todos os bancos:</span>
+                <div style={{ display: 'flex', justifyContent: 'center', gap: '6px', flexWrap: 'wrap' }}>
+                    {['VISA', 'MASTERCARD', 'ELO', 'AMEX', 'NUBANK', 'ITAÚ', 'BRADESCO', 'SANTANDER', 'INTER'].map(b => (
+                        <span key={b} style={{ background: '#1c202d', color: '#64748b', fontSize: '10px', padding: '4px 8px', borderRadius: '4px', border: '1px solid #232838', fontWeight: 'bold' }}>{b}</span>
+                    ))}
+                </div>
+            </div>
+
             <button onClick={() => setPasso(1)} style={{padding: '12px', background: 'transparent', color: '#64748b', border: `1px solid ${theme.border}`, borderRadius: '6px', cursor: 'pointer'}}>Voltar aos métodos</button>
           </motion.div>
         )}
