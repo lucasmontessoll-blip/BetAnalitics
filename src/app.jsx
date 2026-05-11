@@ -474,7 +474,7 @@ function ModalsExtras({ menuAtivo, form, setForm, setMenuAtivo, setUserData }) {
   const [dadosPix, setDadosPix] = useState(null);
   
   // 🔥 CORRIGIDO: Link da API atualizado sem a barra no final
-  const API = "https://motor-betanalytics-pro.onrender.com";
+  const API = "https://betanalitics-1-9stc.onrender.com";
 
   const initialization = useMemo(() => ({ amount: 29.90, payer: { email: form.email } }), [form.email]);
   const customization = useMemo(() => ({ visual: { style: { theme: 'dark', customVariables: { formBackgroundColor: '#13161f' } } }, paymentMethods: { creditCard: 'all', debitCard: 'all', maxInstallments: 1 } }), []);
