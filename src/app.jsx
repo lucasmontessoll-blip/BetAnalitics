@@ -260,7 +260,7 @@ export default function App() {
             {!isMobile && (
               <aside style={{ backgroundColor: theme.bgPanel, borderColor: theme.border, width: '280px', borderRight: '1px solid', display: 'flex', flexDirection: 'column' }}>
                   <div style={{ display: 'flex', padding: '10px', gap: '5px', background: '#0f111a', margin: '15px', borderRadius: '8px', border: `1px solid ${theme.border}` }}>
-                      <button onClick={() => setMenuAtivo('Ligas')} style={{ flex: 1, padding: '10px', fontSize: '12px', fontWeight: 'bold', borderRadius: '6px', background: menuAtivo !== 'Esportes' ? '#1c202d' : 'transparent', color: menuAtivo !== 'Esportes' ? '#fff' : theme.textMuted, cursor: 'pointer', border: 'none' }}>LIGAS</button>
+                      <button onClick={() => setMenuAtivo('todos')} style={{ flex: 1, padding: '10px', fontSize: '12px', fontWeight: 'bold', borderRadius: '6px', background: menuAtivo !== 'Esportes' ? '#1c202d' : 'transparent', color: menuAtivo !== 'Esportes' ? '#fff' : theme.textMuted, cursor: 'pointer', border: 'none' }}>LIGAS</button>
                       <button onClick={() => setMenuAtivo('Esportes')} style={{ flex: 1, padding: '10px', fontSize: '12px', fontWeight: 'bold', borderRadius: '6px', background: menuAtivo === 'Esportes' ? '#1c202d' : 'transparent', color: menuAtivo === 'Esportes' ? '#fff' : theme.textMuted, cursor: 'pointer', border: 'none' }}>ESPORTES</button>
                   </div>
                   <nav className="flex-1 overflow-y-auto px-4 custom-scrollbar" style={{ padding: '0 15px 15px', overflowY: 'auto' }}>
@@ -280,10 +280,38 @@ export default function App() {
             )}
 
             <div className="custom-scrollbar" style={{ flex: 1, overflowY: 'auto', background: theme.bgApp, padding: isMobile ? '10px' : '20px 25px' }}>
-              <div style={{ display: 'flex', gap: '10px', marginBottom: '20px', flexWrap: 'wrap' }}>
-                  <button onClick={() => setViewMode('jogos')} style={{ padding: '12px 25px', borderRadius: '8px', background: viewMode === 'jogos' ? 'rgba(0,212,182,0.1)' : theme.bgPanel, color: viewMode === 'jogos' ? theme.cyan : theme.textMuted, border: `1px solid ${viewMode === 'jogos' ? theme.cyan : theme.border}`, fontWeight: 'bold', cursor: 'pointer' }}>⚽ Partidas</button>
-                  <button onClick={() => setViewMode('classificacao')} style={{ padding: '12px 25px', borderRadius: '8px', background: viewMode === 'classificacao' ? 'rgba(0,212,182,0.1)' : theme.bgPanel, color: viewMode === 'classificacao' ? theme.cyan : theme.textMuted, border: `1px solid ${viewMode === 'classificacao' ? theme.cyan : theme.border}`, fontWeight: 'bold', cursor: 'pointer' }}>🏆 Classificação</button>
-                  <button onClick={() => setViewMode('agenda')} style={{ padding: '12px 25px', borderRadius: '8px', background: viewMode === 'agenda' ? 'rgba(0,212,182,0.1)' : theme.bgPanel, color: viewMode === 'agenda' ? theme.cyan : theme.textMuted, border: `1px solid ${viewMode === 'agenda' ? theme.cyan : theme.border}`, fontWeight: 'bold', cursor: 'pointer' }}>🗓️ Recentes e Futuras</button>
+              
+              {/* 🔥 MUDANÇA PARA MOBILE: MENU LIGAS/ESPORTES NO TOPO 🔥 */}
+              {isMobile && (
+                  <div style={{ marginBottom: '20px' }}>
+                      <div style={{ display: 'flex', padding: '6px', gap: '5px', background: '#0f111a', borderRadius: '8px', border: `1px solid ${theme.border}`, marginBottom: '12px' }}>
+                          <button onClick={() => setMenuAtivo('todos')} style={{ flex: 1, padding: '10px', fontSize: '13px', fontWeight: 'bold', borderRadius: '6px', background: menuAtivo !== 'Esportes' ? '#1c202d' : 'transparent', color: menuAtivo !== 'Esportes' ? '#fff' : theme.textMuted, cursor: 'pointer', border: 'none' }}>LIGAS</button>
+                          <button onClick={() => setMenuAtivo('Esportes')} style={{ flex: 1, padding: '10px', fontSize: '13px', fontWeight: 'bold', borderRadius: '6px', background: menuAtivo === 'Esportes' ? '#1c202d' : 'transparent', color: menuAtivo === 'Esportes' ? '#fff' : theme.textMuted, cursor: 'pointer', border: 'none' }}>ESPORTES</button>
+                      </div>
+                      
+                      <div style={{ display: 'flex', gap: '10px', overflowX: 'auto', paddingBottom: '5px', scrollbarWidth: 'none', msOverflowStyle: 'none' }}>
+                          {menuAtivo === 'Esportes' ? (
+                              listaEsportesFino.map(e => (
+                                  <button key={e.name} onClick={() => setEsporteAtivo(e.name)} style={{ whiteSpace: 'nowrap', flexShrink: 0, padding: '8px 16px', borderRadius: '20px', background: esporteAtivo === e.name ? theme.cyan : theme.bgPanel, color: esporteAtivo === e.name ? '#000' : theme.textMain, border: `1px solid ${esporteAtivo === e.name ? theme.cyan : theme.border}`, display: 'flex', alignItems: 'center', gap: '8px', fontWeight: 'bold', fontSize: '13px', cursor: 'pointer' }}>
+                                      <span>{e.icon}</span> {e.name}
+                                  </button>
+                              ))
+                          ) : (
+                              listaLigas.map(l => (
+                                  <button key={l.name} onClick={() => {setMenuAtivo(l.name.toLowerCase()); setViewMode('jogos');}} style={{ whiteSpace: 'nowrap', flexShrink: 0, padding: '8px 16px', borderRadius: '20px', background: menuAtivo === l.name.toLowerCase() ? theme.bgHover : theme.bgPanel, color: menuAtivo === l.name.toLowerCase() ? theme.cyan : theme.textMuted, border: `1px solid ${menuAtivo === l.name.toLowerCase() ? theme.cyan : theme.border}`, display: 'flex', alignItems: 'center', gap: '8px', fontWeight: 'bold', fontSize: '13px', cursor: 'pointer' }}>
+                                      <span>{l.icon}</span> {l.name}
+                                  </button>
+                              ))
+                          )}
+                      </div>
+                  </div>
+              )}
+
+              {/* 🔥 MUDANÇA: ABAS (PARTIDAS/CLASSIFICAÇÃO) NA MESMA LINHA NO MOBILE 🔥 */}
+              <div style={{ display: 'flex', gap: '10px', marginBottom: '20px', flexWrap: isMobile ? 'nowrap' : 'wrap', overflowX: 'auto', scrollbarWidth: 'none', msOverflowStyle: 'none' }}>
+                  <button onClick={() => setViewMode('jogos')} style={{ whiteSpace: 'nowrap', flexShrink: 0, padding: '12px 25px', borderRadius: '8px', background: viewMode === 'jogos' ? 'rgba(0,212,182,0.1)' : theme.bgPanel, color: viewMode === 'jogos' ? theme.cyan : theme.textMuted, border: `1px solid ${viewMode === 'jogos' ? theme.cyan : theme.border}`, fontWeight: 'bold', cursor: 'pointer' }}>⚽ Partidas</button>
+                  <button onClick={() => setViewMode('classificacao')} style={{ whiteSpace: 'nowrap', flexShrink: 0, padding: '12px 25px', borderRadius: '8px', background: viewMode === 'classificacao' ? 'rgba(0,212,182,0.1)' : theme.bgPanel, color: viewMode === 'classificacao' ? theme.cyan : theme.textMuted, border: `1px solid ${viewMode === 'classificacao' ? theme.cyan : theme.border}`, fontWeight: 'bold', cursor: 'pointer' }}>🏆 Classificação</button>
+                  <button onClick={() => setViewMode('agenda')} style={{ whiteSpace: 'nowrap', flexShrink: 0, padding: '12px 25px', borderRadius: '8px', background: viewMode === 'agenda' ? 'rgba(0,212,182,0.1)' : theme.bgPanel, color: viewMode === 'agenda' ? theme.cyan : theme.textMuted, border: `1px solid ${viewMode === 'agenda' ? theme.cyan : theme.border}`, fontWeight: 'bold', cursor: 'pointer' }}>🗓️ Recentes e Futuras</button>
               </div>
 
               {viewMode === 'jogos' && (
@@ -584,6 +612,7 @@ function ModalsExtras({ menuAtivo, form, setForm, setMenuAtivo, setUserData }) {
                 <span style={{fontSize: '20px'}}>💠</span> {loading ? "A processar..." : "Pagar com PIX Rápido"}
             </button>
              
+            {/* 💳 BOTÃO DE CARTÃO COM OS SELOS DE CONFIANÇA EM BAIXO 💳 */}
             <button onClick={handlePagarCartao} disabled={loading} style={{padding: '18px', background: theme.bgHover, color: '#fff', fontWeight: 'bold', border: `1px solid ${theme.border}`, borderRadius: '8px', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '10px'}}>
                 <span style={{fontSize: '20px'}}>💳</span> Pagar com Cartão (Crédito/Débito)
             </button>
@@ -617,7 +646,7 @@ function ModalsExtras({ menuAtivo, form, setForm, setMenuAtivo, setUserData }) {
             {/* A CAIXA DO MERCADO PAGO */}
             <Payment initialization={initialization} customization={customization} onSubmit={onSubmitCartao} onError={(e) => console.log(e)} />
             
-            {/* SELOS DE CONFIANÇA VISUAIS (DÉBITO E CRÉDITO) ABAIXO DO QUADRO - IGUAL AO SEU MOCKUP */}
+            {/* SELOS DE CONFIANÇA VISUAIS DE DÉBITO ABAIXO DO QUADRO - IGUAL À SUA IMAGEM */}
             <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '15px', marginTop: '-10px', marginBottom: '15px', background: '#1c202d', padding: '15px 10px', borderRadius: '8px', border: `1px solid ${theme.border}` }}>
                 <span style={{ fontSize: '13px', color: theme.textMuted }}>Também aceitamos as principais redes de débito:</span>
                 <div style={{ display: 'flex', justifyContent: 'center', gap: '20px', flexWrap: 'wrap' }}>
