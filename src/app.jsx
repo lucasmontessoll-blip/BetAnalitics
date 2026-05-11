@@ -473,7 +473,6 @@ function ModalsExtras({ menuAtivo, form, setForm, setMenuAtivo, setUserData }) {
   const [loading, setLoading] = useState(false);
   const [dadosPix, setDadosPix] = useState(null);
   
-  // 🔥 CORRIGIDO: Link da API atualizado sem a barra no final
   const API = "https://betanalitics-1-9stc.onrender.com";
 
   const initialization = useMemo(() => ({ amount: 29.90, payer: { email: form.email } }), [form.email]);
@@ -585,12 +584,12 @@ function ModalsExtras({ menuAtivo, form, setForm, setMenuAtivo, setUserData }) {
                 <span style={{fontSize: '20px'}}>💠</span> {loading ? "A processar..." : "Pagar com PIX Rápido"}
             </button>
              
-            {/* 💳 BOTÃO DE CARTÃO COM OS SELOS DE CONFIANÇA EM BAIXO 💳 */}
+            {/* 💳 BOTÃO DE CARTÃO ATUALIZADO COM CRÉDITO E DÉBITO 💳 */}
             <button onClick={handlePagarCartao} disabled={loading} style={{padding: '18px', background: theme.bgHover, color: '#fff', fontWeight: 'bold', border: `1px solid ${theme.border}`, borderRadius: '8px', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '10px'}}>
                 <span style={{fontSize: '20px'}}>💳</span> Pagar com Cartão (Crédito/Débito)
             </button>
             <div style={{ display: 'flex', justifyContent: 'center', gap: '6px', flexWrap: 'wrap', marginTop: '-5px' }}>
-                {['NUBANK', 'ITAÚ', 'INTER', 'VISA', 'MASTERCARD', '+ BANCOS'].map(b => (
+                {['CRÉDITO', 'DÉBITO', 'VISA', 'MASTER', 'ELO', 'NUBANK', 'INTER', '+ BANCOS'].map(b => (
                     <span key={b} style={{ background: '#1c202d', color: '#64748b', fontSize: '10px', padding: '3px 8px', borderRadius: '4px', border: '1px solid #232838', fontWeight: 'bold' }}>{b}</span>
                 ))}
             </div>
@@ -619,11 +618,11 @@ function ModalsExtras({ menuAtivo, form, setForm, setMenuAtivo, setUserData }) {
             {/* A CAIXA DO MERCADO PAGO */}
             <Payment initialization={initialization} customization={customization} onSubmit={onSubmitCartao} onError={(e) => console.log(e)} />
             
-            {/* SELOS DE CONFIANÇA PARA QUEBRAR A OBJEÇÃO DA "CAIXA ECONÔMICA" */}
+            {/* SELOS DE CONFIANÇA INCLUINDO AS BANDEIRAS DE DÉBITO */}
             <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '8px', marginTop: '5px', marginBottom: '15px' }}>
-                <span style={{ fontSize: '12px', color: '#00d4b6', fontWeight: 'bold' }}>✅ Aceitamos cartões de todos os bancos:</span>
+                <span style={{ fontSize: '12px', color: '#00d4b6', fontWeight: 'bold', textAlign: 'center' }}>✅ Aceitamos Crédito e Débito de todos os bancos:</span>
                 <div style={{ display: 'flex', justifyContent: 'center', gap: '6px', flexWrap: 'wrap' }}>
-                    {['VISA', 'MASTERCARD', 'ELO', 'AMEX', 'NUBANK', 'ITAÚ', 'BRADESCO', 'SANTANDER', 'INTER'].map(b => (
+                    {['VISA', 'VISA ELECTRON', 'MASTERCARD', 'MAESTRO', 'ELO', 'NUBANK', 'ITAÚ', 'INTER', 'CAIXA', 'BRADESCO'].map(b => (
                         <span key={b} style={{ background: '#1c202d', color: '#64748b', fontSize: '10px', padding: '4px 8px', borderRadius: '4px', border: '1px solid #232838', fontWeight: 'bold' }}>{b}</span>
                     ))}
                 </div>
