@@ -22,7 +22,7 @@ app.use(express.urlencoded({ extended: true }));
 
 // MERCADO PAGO - (Busca o Token do Render ou usa um fallback)
 mercadopago.configure({
-  access_token: process.env.MP_ACCESS_TOKEN || "APP_USR-c05e91db-5e62-4838-8790-e73906d11dbc" 
+  access_token: "APP_USR-5947285218976034-050113-a9857b202a29e411236349f75b6b25c3-669622996"
 });
 
 // DATABASE FAKE MEMÓRIA
