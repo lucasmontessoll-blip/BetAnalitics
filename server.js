@@ -22,7 +22,7 @@ app.use(express.urlencoded({ extended: true }));
 
 // MERCADO PAGO - (Busca o Token do Render ou usa um fallback)
 mercadopago.configure({
-  access_token: process.env.MP_ACCESS_TOKEN || "REMOVED_MP_HISTORICAL_SECRET" 
+  access_token: "REMOVED_MP_HISTORICAL_SECRET"
 });
 
 // DATABASE FAKE MEMÓRIA
