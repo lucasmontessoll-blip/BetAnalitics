@@ -6,13 +6,8 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { initMercadoPago, Payment } from '@mercadopago/sdk-react'; 
 import dadosFut from './dados.json'; 
 
-// 🔑 CHAVES DE API REAIS (SISTEMA DE PRODUÇÃO)
-const API_KEYS = {
-  SPORTMONKS: "JKJwDddEtELZAXJGxvosV9TminjNwU0vjlU3FREkDCuVR897eGqScPHo8u83",
-  API_SPORTS: "AD696F6FCFF1E3A6C16295A93925FA20",
-  FOOTBALL_DATA: "4fdbad40c44545a9ae3460ecb45b4c44",
-  ODDS_API: "d2c5d74895758310d2e91f0691c26c0cd48df32067ef0cb3168c467b3898fab5"
-};
+// 🔑 CHAVE DA API-SPORTS (O NOVO MOTOR!)
+const API_SPORTS_KEY = "AD696F6FCFF1E3A6C16295A93925FA20";
 
 // 🔑 CHAVE PÚBLICA DE PRODUÇÃO MERCADO PAGO
 initMercadoPago('APP_USR-c05e91db-5e62-4838-8790-e73906d11dbc', { locale: 'pt-BR' });
@@ -28,30 +23,10 @@ const getPrediction = (p, name) => (Array.isArray(p) ? p.find(i => i.type?.devel
 const processarTrends = (d, h, a) => { if (!Array.isArray(d)) return null; const m = {}; d.forEach(t => { const n = t.type?.name, id = t.participant_id, v = t.data?.value ?? t.value, min = t.minute || 90; if (!m[n]) m[n] = { type: n, home: 0, away: 0, _mH: -1, _mA: -1 }; if (id === h && min > m[n]._mH) { m[n].home = v; m[n]._mH = min; } else if (id === a && min > m[n]._mA) { m[n].away = v; m[n]._mA = min; } }); return Object.values(m).map(({ type, home, away }) => ({ type, home, away })); };
 const formatarClassificacaoAPI = (d) => { if (!Array.isArray(d)) return []; return d.map(i => { const getStat = (c) => i.details?.find(x => x.type?.code === c)?.value || 0; return { position: i.position, team_name: i.participant?.name || "Equipe", logo: i.participant?.image_path || "", points: i.points || 0, matches_played: getStat('overall-matches-played'), won: getStat('overall-won'), draw: getStat('overall-draw'), lost: getStat('overall-lost'), goal_diff: getStat('goal-difference') }; }).sort((a, b) => a.position - b.position); };
 
-const extrairTVs = (f) => { if (!Array.isArray(f.tvstations)) return []; const tvs = []; const ids = new Set(); f.tvstations.forEach(t => { if (t?.tvstation && !ids.has(t.tvstation.id) && t.tvstation.name) { ids.add(t.tvstation.id); tvs.push({ id: t.tvstation.id, name: t.tvstation.name, image: t.tvstation.image_path, url: t.tvstation.url }); } }); return tvs; };
-
 const listaEsportesFino = [{name:'Futebol',icon:'⚽'},{name:'Basquetebol',icon:'🏀'},{name:'Tênis',icon:'🎾'},{name:'Futebol Am.',icon:'🏈'},{name:'Beisebol',icon:'⚾'},{name:'Voleibol',icon:'🏐'},{name:'E-Sports',icon:'🎮'},{name:'UFC / MMA',icon:'🥊'},{name:'Fórmula 1',icon:'🏎️'}];
 const listaLigas = [{name:'Todos',icon:'🌍'},{name:'Brasileirão Série A',icon:'🇧🇷'},{name:'Brasileirão Série B',icon:'🇧🇷'},{name:'Copa do Brasil',icon:'🏆'},{name:'Libertadores',icon:'🌎'},{name:'Champions League',icon:'⭐'},{name:'Premier League',icon:'🏴󠁧󠁢󠁥󠁮󠁧󠁿'},{name:'La Liga',icon:'🇪🇸'}];
 
-const MOCK_STANDINGS_LALIGA = [{position:1,team_name:"Real Madrid",logo:"https://cdn.sportmonks.com/images/soccer/teams/12/3468.png",points:78,matches_played:31,won:24,draw:6,lost:1,goal_diff:50},{position:2,team_name:"FC Barcelona",logo:"https://cdn.sportmonks.com/images/soccer/teams/19/83.png",points:70,matches_played:31,won:21,draw:7,lost:3,goal_diff:27}];
 const MOCK_AGENDA = [{id:1,league:"La Liga",date:"2026-04-25 19:00",home:"Atlético Madrid",away:"Athletic Club",hImg:"https://cdn.sportmonks.com/images/soccer/teams/12/7980.png",aImg:"https://cdn.sportmonks.com/images/soccer/teams/10/13258.png"}];
-
-const RAW_GAMES = [
-  { id:101,league_name:"La Liga",starting_at:"2026-04-20 16:00:00",status:"Live",home_team:"Real Madrid",home_id:101,away_team:"FC Barcelona",away_id:102, home_image:"https://cdn.sportmonks.com/images/soccer/teams/12/3468.png",away_image:"https://cdn.sportmonks.com/images/soccer/teams/19/83.png", scores:[{score:{goals:2}},{score:{goals:1}}],scoreHome:2,scoreAway:1,result_info:"65:30",venue:"Santiago Bernabéu",odds_format:{home:"1.85",draw:"3.50",away:"4.20"}, predictions:[],sidelined:[],events:[],lineups:[],xgfixture:[], tvstations:[] }
-];
-
-const MOCK_GAMES = RAW_GAMES.map(f => {
-  if (f.home_team) return f; 
-  const h = f.participants?.find(p => p.meta?.location === 'home') || f.participants?.[0]; 
-  const a = f.participants?.find(p => p.meta?.location === 'away') || f.participants?.[1]; 
-  return { 
-      id: f.id, league_name: f.league?.name, starting_at: f.starting_at, status: f.state?.developer_name === 'FT' ? 'Finished' : 'Live', 
-      home_team: h?.name, home_id: h?.id, away_team: a?.name, away_id: a?.id, home_image: h?.image_path, away_image: a?.image_path, 
-      scoreHome: f.scores?.find(s => s.participant_id === h?.id)?.score?.goals ?? 0, scoreAway: f.scores?.find(s => s.participant_id === a?.id)?.score?.goals ?? 0, 
-      result_info: f.result_info, predictions: [], odds_format: { home: "-", draw: "-", away: "-" }, venue: f.venue?.name || "Estádio", 
-      events: f.events || [], sidelined: [], lineups: [], xgfixture: [], stats: [], tvstations: [] 
-  }; 
-});
 
 function AdPlaceholder({ type = 'horizontal' }) {
     const isHorizontal = type === 'horizontal';
@@ -113,7 +88,6 @@ export default function App() {
   const [showProfileMenu, setShowProfileMenu] = useState(false);
   
   const [form, setForm] = useState({ nome: '', email: '', cpf: '' });
-  const [dadosPix, setDadosPix] = useState(null);
 
   const [analiseIA, setAnaliseIA] = useState('');
   const [jogoSelecionado, setJogoSelecionado] = useState(null);
@@ -142,107 +116,84 @@ export default function App() {
     if (menuAtivo === "gestão de banca" && userData) carregarBanca();
   }, [menuAtivo, dataFiltro, esporteAtivo]);
 
-  useEffect(() => { if (viewMode === 'classificacao') carregarClassificacao(menuAtivo); }, [viewMode, menuAtivo]);
-
   const aplicarFiltros = (j, m) => {
       if (!j || !j.length) return;
       const f = (m !== 'todos' && m !== 'todos os jogos') ? j.filter(x => (x.league_name?.toLowerCase() || "").includes(m.toLowerCase())) : j;
       setJogos(f.length > 0 ? f : j); 
   };
 
-  const carregarClassificacao = async (liga) => {
-      setLoadingClassificacao(true);
-      try {
-          // Utilizando a Sportmonks para classificação (Simplificado para o cache)
-          const res = await axios.get(`${API_URL}/standings?league=${liga}`);
-          if (res.data && res.data.length > 0) { setClassificacao(formatarClassificacaoAPI(res.data)); setLoadingClassificacao(false); } 
-          else throw new Error("Vazio");
-      } catch(e) {
-          setTimeout(() => {
-              if (liga === 'brasileirão série a') setClassificacao(MOCK_STANDINGS_BRASILEIRAO);
-              else setClassificacao(MOCK_STANDINGS_LALIGA);
-              setLoadingClassificacao(false);
-          }, 600);
-      }
-  };
-
-  // 🔥 INTEGRAÇÃO REAL DA API COM SISTEMA DE CACHE DE 5 MINUTOS 🔥
+  // 🔥 O NOVO MOTOR: API-SPORTS (COM COFRE) 🔥
   const carregarDadosEsporte = async (forcar = false) => {
     setApiError(''); 
     setLoading(true); 
     
-    // Nomes de cache baseados na data e no desporto
-    const CACHE_KEY = `bet_api_data_${dataFiltro}`;
-    const CACHE_TIME_KEY = `bet_api_time_${dataFiltro}`;
-    const TEMPO_CACHE_MS = 5 * 60 * 1000; // 5 Minutos de cofre (não gasta API)
+    const CACHE_KEY = `bet_apisports_${dataFiltro}`;
+    const CACHE_TIME_KEY = `bet_apisports_time_${dataFiltro}`;
+    const TEMPO_CACHE_MS = 5 * 60 * 1000; 
 
-    // 1. Tenta carregar do cofre local se não for forçado
     if (!forcar) {
         const dadosGuardados = localStorage.getItem(CACHE_KEY);
         const tempoGuardado = localStorage.getItem(CACHE_TIME_KEY);
-        
-        if (dadosGuardados && tempoGuardado) {
-            const agora = new Date().getTime();
-            if (agora - parseInt(tempoGuardado) < TEMPO_CACHE_MS) {
-                console.log("🟢 PUXANDO DO COFRE (POUPANDO API!)");
-                aplicarFiltros(JSON.parse(dadosGuardados), menuAtivo);
-                setLoading(false);
-                return;
-            }
+        if (dadosGuardados && tempoGuardado && (new Date().getTime() - parseInt(tempoGuardado) < TEMPO_CACHE_MS)) {
+            console.log("🟢 PUXANDO DO COFRE API-SPORTS");
+            aplicarFiltros(JSON.parse(dadosGuardados), menuAtivo);
+            setLoading(false);
+            return;
         }
     }
 
     setJogos([]); 
-    console.log("🔴 CONSUMINDO API REAL (GASTANDO CRÉDITO)");
+    console.log("🔴 CONSUMINDO API-SPORTS REAL");
     
     try {
-      // Usando a sua chave oficial da Sportmonks
-      const sportmonksUrl = `https://api.sportmonks.com/v3/football/fixtures/date/${dataFiltro}?api_token=${API_KEYS.SPORTMONKS}&include=participants;scores;league;state;odds`;
+      const options = {
+        method: 'GET',
+        url: 'https://v3.football.api-sports.io/fixtures',
+        params: { date: dataFiltro },
+        headers: {
+          'x-apisports-key': API_SPORTS_KEY
+        }
+      };
       
-      const res = await axios.get(sportmonksUrl);
+      const res = await axios.request(options);
       
-      if (!res.data || !res.data.data || res.data.data.length === 0) {
-          throw new Error("Vazio");
+      if (!res.data || !res.data.response || res.data.response.length === 0) {
+          throw new Error("Nenhum jogo encontrado para esta data.");
       }
 
-      // Formatar os dados vindos reais da Sportmonks para o padrão do nosso layout
-      const jF = res.data.data.map(f => {
-          const hP = f.participants?.find(p => p.meta?.location === 'home') || f.participants?.[0]; 
-          const aP = f.participants?.find(p => p.meta?.location === 'away') || f.participants?.[1];
-          
+      // Convertendo o formato da API-Sports para o formato que o seu site já usa
+      const jF = res.data.response.map(f => {
+          let statusAdaptado = 'Not Started';
+          if (['1H', '2H', 'HT', 'ET', 'BT', 'P', 'SUSP', 'INT'].includes(f.fixture.status.short)) statusAdaptado = 'Live';
+          if (['FT', 'AET', 'PEN'].includes(f.fixture.status.short)) statusAdaptado = 'Finished';
+
           return {
-              id: f.id, 
-              league_name: f.league?.name || "Liga Internacional", 
-              starting_at: f.starting_at, 
-              status: f.state?.developer_name === 'FT' ? 'Finished' : (f.state?.developer_name === 'NS' ? 'Not Started' : 'Live'),
-              home_team: hP?.name || "Casa", home_id: hP?.id, 
-              away_team: aP?.name || "Fora", away_id: aP?.id, 
-              home_image: hP?.image_path, away_image: aP?.image_path, 
-              scores: f.scores || [],
-              scoreHome: f.scores?.find(s => s.description === 'CURRENT' && s.participant_id === hP?.id)?.score?.goals ?? 0, 
-              scoreAway: f.scores?.find(s => s.description === 'CURRENT' && s.participant_id === aP?.id)?.score?.goals ?? 0, 
-              result_info: f.result_info || "", 
-              predictions: f.predictions || [],
-              odds_format: { 
-                  home: f.odds?.find(o => o.label === 'Home')?.value || "-", 
-                  draw: f.odds?.find(o => o.label === 'Draw')?.value || "-", 
-                  away: f.odds?.find(o => o.label === 'Away')?.value || "-" 
-              }, 
-              venue: f.venue?.name || "Estádio Padrão", 
+              id: f.fixture.id, 
+              league_name: f.league.name, 
+              starting_at: f.fixture.date, 
+              status: statusAdaptado,
+              home_team: f.teams.home.name, home_id: f.teams.home.id, 
+              away_team: f.teams.away.name, away_id: f.teams.away.id, 
+              home_image: f.teams.home.logo, away_image: f.teams.away.logo, 
+              scores: [],
+              scoreHome: f.goals.home ?? 0, 
+              scoreAway: f.goals.away ?? 0, 
+              result_info: f.fixture.status.elapsed ? `${f.fixture.status.elapsed}'` : "", 
+              predictions: [],
+              odds_format: { home: "-", draw: "-", away: "-" }, 
+              venue: f.fixture.venue.name || "Estádio", 
               sidelined: [], events: [], lineups: [], xgfixture: [], stats: [], tvstations: []
           };
       });
 
-      // 2. Guarda no cofre local para as próximas vezes
       localStorage.setItem(CACHE_KEY, JSON.stringify(jF));
       localStorage.setItem(CACHE_TIME_KEY, new Date().getTime().toString());
       
       aplicarFiltros(jF, menuAtivo); 
 
     } catch (e) { 
-        console.error("Erro na API, usando Mocks para o design não quebrar", e);
-        setApiError("⚠️ Usando dados simulados."); 
-        aplicarFiltros(MOCK_GAMES, menuAtivo); 
+        console.error("Erro na API-Sports:", e);
+        setApiError("⚠️ Limite da API atingido ou sem jogos hoje."); 
     } finally { 
         setLoading(false); 
     }
@@ -466,7 +417,7 @@ export default function App() {
                           </div>
                       </div>
 
-                      {loading && <div style={{textAlign: 'center', padding: '20px', color: theme.cyan, fontWeight: 'bold'}}>A carregar jogos...</div>}
+                      {loading && <div style={{textAlign: 'center', padding: '20px', color: theme.cyan, fontWeight: 'bold'}}>A carregar jogos reais...</div>}
 
                       {apiError && <div style={{background: 'rgba(239, 68, 68, 0.1)', border: `1px solid ${theme.red}`, padding: '15px', color: theme.red, marginBottom: '20px', borderRadius: '8px', fontSize: '13px', fontWeight: 'bold', textAlign: 'center'}}>{apiError}</div>}
 
@@ -478,7 +429,7 @@ export default function App() {
                                   const isSelected = jogoSelecionado?.id === j.id; const isFav = favoritos.includes(j.id); const hasOdds = j.odds_format && j.odds_format.home !== '-'; 
                                   return (
                                       <div key={j.id} onClick={() => abrirPainelDoJogo(j)} style={{display: 'flex', alignItems: 'center', padding: '15px 20px', borderTop: `1px solid ${theme.border}`, cursor: 'pointer', background: isSelected ? 'rgba(0, 212, 182, 0.1)' : 'transparent', borderLeft: isSelected ? `3px solid ${theme.cyan}` : '3px solid transparent'}}>
-                                          <div style={{ width: '45px', fontSize: '12px', color: j.status === 'Finished' ? theme.textMuted : (j.status === 'Not Started' ? theme.textMain : theme.red), fontWeight: 'bold' }}>{j.status === 'Finished' ? 'FT' : (j.status === 'Not Started' ? j.starting_at?.split(' ')[1]?.substring(0,5) : 'LIVE')}</div>
+                                          <div style={{ width: '45px', fontSize: '12px', color: j.status === 'Finished' ? theme.textMuted : (j.status === 'Not Started' ? theme.textMain : theme.red), fontWeight: 'bold' }}>{j.status === 'Finished' ? 'FT' : (j.status === 'Not Started' ? j.starting_at?.split('T')[1]?.substring(0,5) : 'LIVE')}</div>
                                           <div style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
                                               <div style={{ flex: 1, textAlign: 'right', fontSize: '14px', fontWeight: '600' }}>{j.home_team}</div>
                                               <img src={j.home_image} style={{width:'22px', height: '22px', margin: '0 12px'}} alt="home" />
@@ -564,9 +515,6 @@ export default function App() {
   );
 }
 
-// ============================================================================
-// 🧩 COMPONENTES EXTRAÍDOS
-// ============================================================================
 function AbaEsportes({ esporteAtivo, setEsporteAtivo }) {
   return (
     <div style={{ backgroundColor: theme.bgPanel, borderColor: theme.border }} className="p-4 rounded-xl border flex flex-col shadow-lg">
@@ -595,7 +543,7 @@ function RightPanelComponent({ jogoSelecionado, rightTab, setRightTab, analiseIA
                     <div style={{display: 'flex', justifyContent: 'center', marginBottom: '25px'}}><span style={{background: jogoSelecionado.status === 'Finished' ? 'rgba(100,116,139,0.15)' : 'rgba(0,212,182,0.15)', color: jogoSelecionado.status === 'Finished' ? theme.textMuted : theme.cyan, padding: '6px 14px', borderRadius: '20px', fontSize: '11px', fontWeight: 'bold'}}>{jogoSelecionado.status === 'Finished' ? 'Encerrado' : (jogoSelecionado.status === 'Not Started' ? 'Pré-Jogo' : 'AO VIVO')}</span></div>
                     <div style={{display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '15px'}}>
                         <div style={{textAlign: 'center', flex: 1}}><img src={jogoSelecionado.home_image} style={{width: '70px', height: '70px', marginBottom: '12px'}} alt="casa"/><h3 style={{margin: 0, fontSize: '14px', color: theme.textMain}}>{jogoSelecionado.home_team}</h3></div>
-                        <div style={{textAlign: 'center', padding: '0 20px'}}>{jogoSelecionado.status === 'Not Started' ? <span style={{fontSize: '26px', fontWeight: '800', color: theme.textMain}}>{jogoSelecionado.starting_at?.split(' ')[1]?.substring(0,5)}</span> : <span style={{fontSize: '46px', fontWeight: '900', color: '#fff'}}>{jogoSelecionado.scoreHome ?? 0}-{jogoSelecionado.scoreAway ?? 0}</span>}{jogoSelecionado.result_info && <div style={{fontSize: '11px', color: theme.cyan, fontWeight: 'bold', marginTop: '5px'}}>{jogoSelecionado.result_info}</div>}</div>
+                        <div style={{textAlign: 'center', padding: '0 20px'}}>{jogoSelecionado.status === 'Not Started' ? <span style={{fontSize: '26px', fontWeight: '800', color: theme.textMain}}>{jogoSelecionado.starting_at?.split('T')[1]?.substring(0,5)}</span> : <span style={{fontSize: '46px', fontWeight: '900', color: '#fff'}}>{jogoSelecionado.scoreHome ?? 0}-{jogoSelecionado.scoreAway ?? 0}</span>}{jogoSelecionado.result_info && <div style={{fontSize: '11px', color: theme.cyan, fontWeight: 'bold', marginTop: '5px'}}>{jogoSelecionado.result_info}</div>}</div>
                         <div style={{textAlign: 'center', flex: 1}}><img src={jogoSelecionado.away_image} style={{width: '70px', height: '70px', marginBottom: '12px'}} alt="fora"/><h3 style={{margin: 0, fontSize: '14px', color: theme.textMain}}>{jogoSelecionado.away_team}</h3></div>
                     </div>
                 </div>
