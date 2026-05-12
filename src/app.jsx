@@ -61,17 +61,22 @@ function AdPlaceholder({ type = 'horizontal' }) {
 export default function App() {
   const [isMobile, setIsMobile] = useState(window.innerWidth <= 1024);
   
-  // 🔥 ESTADOS PARA INSTALAÇÃO DO APLICATIVO 🔥
+  // 🔥 ESTADOS PARA INSTALAÇÃO (À PROVA DE FALHAS) 🔥
   const [deferredPrompt, setDeferredPrompt] = useState(null);
   const [showInstallBtn, setShowInstallBtn] = useState(false);
+  const [showManualInstall, setShowManualInstall] = useState(false);
 
   useEffect(() => {
     const handleResize = () => setIsMobile(window.innerWidth <= 1024);
     window.addEventListener('resize', handleResize);
+    
+    // Forçar a barra a aparecer no mobile após 3 segundos
+    if (window.innerWidth <= 1024) {
+        setTimeout(() => setShowInstallBtn(true), 3000);
+    }
     return () => window.removeEventListener('resize', handleResize);
   }, []);
 
-  // 🔥 INTERCETAR O PEDIDO DE INSTALAÇÃO DO NAVEGADOR 🔥
   useEffect(() => {
     const handleBeforeInstallPrompt = (e) => {
       e.preventDefault();
@@ -84,14 +89,16 @@ export default function App() {
 
   const handleInstallClick = () => {
     if (deferredPrompt) {
+      // Se o Chrome deixar instalar automático
       deferredPrompt.prompt();
       deferredPrompt.userChoice.then((choiceResult) => {
-        if (choiceResult.outcome === 'accepted') {
-          console.log('App instalado com sucesso!');
-        }
         setDeferredPrompt(null);
         setShowInstallBtn(false);
       });
+    } else {
+      // Se for iPhone ou o Chrome bloquear, ensinamos o cliente a fazer!
+      setShowInstallBtn(false);
+      setShowManualInstall(true);
     }
   };
 
@@ -271,14 +278,37 @@ export default function App() {
           </div>
       </div>
 
-      {/* 🔥 BANNER INSTALADOR DE APLICATIVO (APARECE NO TOPO DO MOBILE) 🔥 */}
-      {showInstallBtn && isMobile && (
-          <div style={{ background: theme.cyan, color: '#000', padding: '12px 20px', display: 'flex', justifyContent: 'space-between', alignItems: 'center', zIndex: 99, boxShadow: '0 4px 15px rgba(0,212,182,0.3)' }}>
-              <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-                  <span style={{ fontSize: '20px' }}>📲</span>
-                  <span style={{ fontWeight: 'bold', fontSize: '12px' }}>Instalar Aplicativo VIP na tela inicial?</span>
+      {/* 🔥 BANNER INSTALADOR GARANTIDO (APARECE NO TOPO DO MOBILE) 🔥 */}
+      <AnimatePresence>
+          {showInstallBtn && isMobile && (
+              <motion.div initial={{ y: -50, opacity: 0 }} animate={{ y: 0, opacity: 1 }} exit={{ y: -50, opacity: 0 }} style={{ background: theme.cyan, color: '#000', padding: '12px 20px', display: 'flex', justifyContent: 'space-between', alignItems: 'center', zIndex: 99, boxShadow: '0 4px 15px rgba(0,212,182,0.3)' }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                      <span style={{ fontSize: '20px' }}>📲</span>
+                      <span style={{ fontWeight: 'bold', fontSize: '12px' }}>Instalar Aplicativo VIP?</span>
+                  </div>
+                  <div style={{ display: 'flex', gap: '10px' }}>
+                      <button onClick={handleInstallClick} style={{ background: '#000', color: theme.cyan, border: 'none', padding: '8px 15px', borderRadius: '20px', fontWeight: '900', cursor: 'pointer' }}>Instalar</button>
+                      <button onClick={() => setShowInstallBtn(false)} style={{ background: 'transparent', color: '#000', border: 'none', fontWeight: 'bold', fontSize: '16px' }}>×</button>
+                  </div>
+              </motion.div>
+          )}
+      </AnimatePresence>
+
+      {/* 🔥 MODAL DE INSTALAÇÃO MANUAL (SE O NAVEGADOR BLOQUEAR) 🔥 */}
+      {showManualInstall && (
+          <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.8)', zIndex: 1000, display: 'flex', justifyContent: 'center', alignItems: 'center', padding: '20px' }}>
+              <div style={{ background: theme.bgPanel, padding: '30px', borderRadius: '16px', border: `1px solid ${theme.cyan}`, textAlign: 'center', maxWidth: '350px' }}>
+                  <div style={{ fontSize: '40px', marginBottom: '15px' }}>📱</div>
+                  <h3 style={{ color: theme.cyan, marginTop: 0 }}>Como instalar o App</h3>
+                  <p style={{ color: theme.textMain, fontSize: '14px', lineHeight: '1.6' }}>
+                      Para instalar o BetAnalytics, siga estes 2 passos:
+                      <br/><br/>
+                      1. Toque nos <b>3 pontinhos</b> (ou no ícone de partilha) do seu navegador.
+                      <br/>
+                      2. Selecione <b>"Adicionar à Tela Inicial"</b> (Add to Home Screen).
+                  </p>
+                  <button onClick={() => setShowManualInstall(false)} style={{ width: '100%', padding: '12px', marginTop: '15px', background: theme.cyan, color: '#000', fontWeight: 'bold', border: 'none', borderRadius: '8px' }}>Entendi!</button>
               </div>
-              <button onClick={handleInstallClick} style={{ background: '#000', color: theme.cyan, border: 'none', padding: '8px 15px', borderRadius: '20px', fontWeight: '900', cursor: 'pointer' }}>Instalar</button>
           </div>
       )}
 
@@ -474,12 +504,6 @@ export default function App() {
             <button onClick={() => setFilterCentro('Ao Vivo')} style={{background: 'none', border: 'none', display: 'flex', flexDirection: 'column', alignItems: 'center', color: filterCentro === 'Ao Vivo' ? theme.red : theme.textMuted}}><span style={{fontSize: '22px'}}>🔴</span><span style={{fontSize:'10px', fontWeight:'bold'}}>Live</span></button>
             <button onClick={() => { setAbaGeralAtiva('jogador'); carregarPerfilJogador(); }} style={{background: 'none', border: 'none', display: 'flex', flexDirection: 'column', alignItems: 'center', color: theme.cyan}}><span style={{fontSize: '22px'}}>🏃</span><span style={{fontSize:'10px', fontWeight:'bold'}}>Jogador</span></button>
             <button onClick={() => setMenuAtivo('assinar pro')} style={{background: 'none', border: 'none', display: 'flex', flexDirection: 'column', alignItems: 'center', color: menuAtivo === 'assinar pro' ? theme.cyan : theme.textMuted}}><span style={{fontSize: '22px'}}>👑</span><span style={{fontSize:'10px', fontWeight:'bold'}}>PRO</span></button>
-        </div>
-      )}
-
-      {isMobile && abaGeralAtiva === 'jogador' && (
-        <div style={{ position: 'fixed', bottom: 0, left: 0, right: 0, height: '65px', background: theme.bgPanel, borderTop: `1px solid ${theme.border}`, display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 999, paddingBottom: '5px' }}>
-            <button onClick={() => setAbaGeralAtiva('dashboard')} style={{background: theme.cyan, color: '#000', border: 'none', padding: '10px 30px', borderRadius: '20px', fontWeight: 'bold'}}>⬅ Voltar ao Dashboard</button>
         </div>
       )}
 
