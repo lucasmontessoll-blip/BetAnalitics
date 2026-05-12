@@ -9,7 +9,6 @@ import dadosFut from './dados.json';
 // 🔑 CHAVE PÚBLICA DE PRODUÇÃO
 initMercadoPago('APP_USR-c05e91db-5e62-4838-8790-e73906d11dbc', { locale: 'pt-BR' });
 
-// 🔥 URL DO SEU BACKEND CORRIGIDA
 const API_URL = 'https://betanalitics-1-9stc.onrender.com';
 
 const theme = { bgApp: '#090a0f', bgPanel: '#13161f', bgHover: '#1c202d', border: '#232838', cyan: '#00d4b6', yellow: '#facc15', textMain: '#f8fafc', textMuted: '#64748b', red: '#ef4444', green: '#10b981' };
@@ -47,14 +46,54 @@ const MOCK_GAMES = RAW_GAMES.map(f => {
   }; 
 });
 
+function AdPlaceholder({ type = 'horizontal' }) {
+    const isHorizontal = type === 'horizontal';
+    return (
+        <div style={{
+            width: '100%', height: isHorizontal ? '90px' : '250px', background: 'rgba(255,255,255,0.02)', border: `1px dashed ${theme.border}`, borderRadius: '8px', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', margin: '15px 0', overflow: 'hidden'
+        }}>
+            <span style={{ fontSize: '10px', color: theme.textMuted, marginBottom: '5px', textTransform: 'uppercase', letterSpacing: '1px' }}>Publicidade</span>
+            <div style={{ fontSize: '12px', color: 'rgba(255,255,255,0.05)', fontWeight: 'bold' }}>ESPAÇO RESERVADO ADSENSE</div>
+        </div>
+    );
+}
+
 export default function App() {
   const [isMobile, setIsMobile] = useState(window.innerWidth <= 1024);
+  
+  // 🔥 ESTADOS PARA INSTALAÇÃO DO APLICATIVO 🔥
+  const [deferredPrompt, setDeferredPrompt] = useState(null);
+  const [showInstallBtn, setShowInstallBtn] = useState(false);
 
   useEffect(() => {
     const handleResize = () => setIsMobile(window.innerWidth <= 1024);
     window.addEventListener('resize', handleResize);
     return () => window.removeEventListener('resize', handleResize);
   }, []);
+
+  // 🔥 INTERCETAR O PEDIDO DE INSTALAÇÃO DO NAVEGADOR 🔥
+  useEffect(() => {
+    const handleBeforeInstallPrompt = (e) => {
+      e.preventDefault();
+      setDeferredPrompt(e);
+      setShowInstallBtn(true);
+    };
+    window.addEventListener('beforeinstallprompt', handleBeforeInstallPrompt);
+    return () => window.removeEventListener('beforeinstallprompt', handleBeforeInstallPrompt);
+  }, []);
+
+  const handleInstallClick = () => {
+    if (deferredPrompt) {
+      deferredPrompt.prompt();
+      deferredPrompt.userChoice.then((choiceResult) => {
+        if (choiceResult.outcome === 'accepted') {
+          console.log('App instalado com sucesso!');
+        }
+        setDeferredPrompt(null);
+        setShowInstallBtn(false);
+      });
+    }
+  };
 
   const [esporteAtivo, setEsporteAtivo] = useState('Futebol');
   const [menuAtivo, setMenuAtivo] = useState('todos'); 
@@ -232,6 +271,17 @@ export default function App() {
           </div>
       </div>
 
+      {/* 🔥 BANNER INSTALADOR DE APLICATIVO (APARECE NO TOPO DO MOBILE) 🔥 */}
+      {showInstallBtn && isMobile && (
+          <div style={{ background: theme.cyan, color: '#000', padding: '12px 20px', display: 'flex', justifyContent: 'space-between', alignItems: 'center', zIndex: 99, boxShadow: '0 4px 15px rgba(0,212,182,0.3)' }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                  <span style={{ fontSize: '20px' }}>📲</span>
+                  <span style={{ fontWeight: 'bold', fontSize: '12px' }}>Instalar Aplicativo VIP na tela inicial?</span>
+              </div>
+              <button onClick={handleInstallClick} style={{ background: '#000', color: theme.cyan, border: 'none', padding: '8px 15px', borderRadius: '20px', fontWeight: '900', cursor: 'pointer' }}>Instalar</button>
+          </div>
+      )}
+
       <div style={{display: 'flex', flex: 1, overflow: 'hidden', paddingBottom: isMobile ? '65px' : '0'}}>
           {abaGeralAtiva === 'jogador' && jogadorAberto ? (
             <div style={{ flex: 1, overflowY: 'auto', background: theme.bgApp, padding: '40px', display: 'flex', justifyContent: 'center' }}>
@@ -275,13 +325,15 @@ export default function App() {
                               ))}
                           </div>
                       )}
+                      
+                      {/* 💸 ANÚNCIO LATERAL (SÓ PARA NÃO VIPs) 💸 */}
+                      {!userData?.is_vip && <AdPlaceholder type="vertical" />}
                   </nav>
               </aside>
             )}
 
             <div className="custom-scrollbar" style={{ flex: 1, overflowY: 'auto', background: theme.bgApp, padding: isMobile ? '10px' : '20px 25px' }}>
               
-              {/* 🔥 MUDANÇA PARA MOBILE: MENU LIGAS/ESPORTES NO TOPO 🔥 */}
               {isMobile && (
                   <div style={{ marginBottom: '20px' }}>
                       <div style={{ display: 'flex', padding: '6px', gap: '5px', background: '#0f111a', borderRadius: '8px', border: `1px solid ${theme.border}`, marginBottom: '12px' }}>
@@ -289,7 +341,7 @@ export default function App() {
                           <button onClick={() => setMenuAtivo('Esportes')} style={{ flex: 1, padding: '10px', fontSize: '13px', fontWeight: 'bold', borderRadius: '6px', background: menuAtivo === 'Esportes' ? '#1c202d' : 'transparent', color: menuAtivo === 'Esportes' ? '#fff' : theme.textMuted, cursor: 'pointer', border: 'none' }}>ESPORTES</button>
                       </div>
                       
-                      <div style={{ display: 'flex', gap: '10px', overflowX: 'auto', paddingBottom: '5px', scrollbarWidth: 'none', msOverflowStyle: 'none' }}>
+                      <div style={{ display: 'flex', gap: '10px', overflowX: 'auto', paddingBottom: '5px', scrollbarWidth: 'none' }}>
                           {menuAtivo === 'Esportes' ? (
                               listaEsportesFino.map(e => (
                                   <button key={e.name} onClick={() => setEsporteAtivo(e.name)} style={{ whiteSpace: 'nowrap', flexShrink: 0, padding: '8px 16px', borderRadius: '20px', background: esporteAtivo === e.name ? theme.cyan : theme.bgPanel, color: esporteAtivo === e.name ? '#000' : theme.textMain, border: `1px solid ${esporteAtivo === e.name ? theme.cyan : theme.border}`, display: 'flex', alignItems: 'center', gap: '8px', fontWeight: 'bold', fontSize: '13px', cursor: 'pointer' }}>
@@ -307,12 +359,14 @@ export default function App() {
                   </div>
               )}
 
-              {/* 🔥 MUDANÇA: ABAS (PARTIDAS/CLASSIFICAÇÃO) NA MESMA LINHA NO MOBILE 🔥 */}
-              <div style={{ display: 'flex', gap: '10px', marginBottom: '20px', flexWrap: isMobile ? 'nowrap' : 'wrap', overflowX: 'auto', scrollbarWidth: 'none', msOverflowStyle: 'none' }}>
+              <div style={{ display: 'flex', gap: '10px', marginBottom: '20px', flexWrap: isMobile ? 'nowrap' : 'wrap', overflowX: 'auto', scrollbarWidth: 'none' }}>
                   <button onClick={() => setViewMode('jogos')} style={{ whiteSpace: 'nowrap', flexShrink: 0, padding: '12px 25px', borderRadius: '8px', background: viewMode === 'jogos' ? 'rgba(0,212,182,0.1)' : theme.bgPanel, color: viewMode === 'jogos' ? theme.cyan : theme.textMuted, border: `1px solid ${viewMode === 'jogos' ? theme.cyan : theme.border}`, fontWeight: 'bold', cursor: 'pointer' }}>⚽ Partidas</button>
                   <button onClick={() => setViewMode('classificacao')} style={{ whiteSpace: 'nowrap', flexShrink: 0, padding: '12px 25px', borderRadius: '8px', background: viewMode === 'classificacao' ? 'rgba(0,212,182,0.1)' : theme.bgPanel, color: viewMode === 'classificacao' ? theme.cyan : theme.textMuted, border: `1px solid ${viewMode === 'classificacao' ? theme.cyan : theme.border}`, fontWeight: 'bold', cursor: 'pointer' }}>🏆 Classificação</button>
                   <button onClick={() => setViewMode('agenda')} style={{ whiteSpace: 'nowrap', flexShrink: 0, padding: '12px 25px', borderRadius: '8px', background: viewMode === 'agenda' ? 'rgba(0,212,182,0.1)' : theme.bgPanel, color: viewMode === 'agenda' ? theme.cyan : theme.textMuted, border: `1px solid ${viewMode === 'agenda' ? theme.cyan : theme.border}`, fontWeight: 'bold', cursor: 'pointer' }}>🗓️ Recentes e Futuras</button>
               </div>
+
+              {/* 💸 ANÚNCIO NO FEED CENTRAL (SÓ PARA NÃO VIPs) 💸 */}
+              {!userData?.is_vip && <AdPlaceholder type="horizontal" />}
 
               {viewMode === 'jogos' && (
                   <>
@@ -400,12 +454,12 @@ export default function App() {
               )}
             </div>
 
-            {!isMobile && <RightPanelComponent jogoSelecionado={jogoSelecionado} rightTab={rightTab} setRightTab={setRightTab} analiseIA={analiseIA} estatisticas={estatisticas} carregarPerfilJogador={carregarPerfilJogador} setAbaGeralAtiva={setAbaGeralAtiva} isMobile={false}/>}
+            {!isMobile && <RightPanelComponent jogoSelecionado={jogoSelecionado} rightTab={rightTab} setRightTab={setRightTab} analiseIA={analiseIA} estatisticas={estatisticas} carregarPerfilJogador={carregarPerfilJogador} setAbaGeralAtiva={setAbaGeralAtiva} isMobile={false} userData={userData}/>}
 
             {isMobile && jogoSelecionado && (
                 <motion.div initial={{ opacity: 0, y: 100 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: 100 }} style={{position: 'fixed', top: 0, left: 0, right: 0, bottom: '65px', background: theme.bgApp, zIndex: 100, display: 'flex', flexDirection: 'column'}}>
                     <button onClick={() => setJogoSelecionado(null)} style={{background: theme.bgPanel, color: theme.cyan, padding: '15px', border: 'none', borderBottom: `1px solid ${theme.border}`, fontWeight: 'bold'}}><span style={{fontSize:'18px', marginRight: '8px'}}>⬇</span> Fechar Detalhes</button>
-                    <RightPanelComponent jogoSelecionado={jogoSelecionado} rightTab={rightTab} setRightTab={setRightTab} analiseIA={analiseIA} estatisticas={estatisticas} carregarPerfilJogador={carregarPerfilJogador} setAbaGeralAtiva={setAbaGeralAtiva} isMobile={true}/>
+                    <RightPanelComponent jogoSelecionado={jogoSelecionado} rightTab={rightTab} setRightTab={setRightTab} analiseIA={analiseIA} estatisticas={estatisticas} carregarPerfilJogador={carregarPerfilJogador} setAbaGeralAtiva={setAbaGeralAtiva} isMobile={true} userData={userData}/>
                 </motion.div>
             )}
           </>
@@ -456,7 +510,7 @@ function AbaEsportes({ esporteAtivo, setEsporteAtivo }) {
   );
 }
 
-function RightPanelComponent({ jogoSelecionado, rightTab, setRightTab, analiseIA, estatisticas, carregarPerfilJogador, setAbaGeralAtiva, isMobile }) {
+function RightPanelComponent({ jogoSelecionado, rightTab, setRightTab, analiseIA, estatisticas, carregarPerfilJogador, setAbaGeralAtiva, isMobile, userData }) {
     if (!jogoSelecionado) return ( <div style={{ width: isMobile ? '100%' : '420px', background: theme.bgApp, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', color: theme.textMuted, padding: '30px' }}><div style={{fontSize: '30px', marginBottom: '20px'}}>🏟️</div><h3>Análise de Partida</h3><p style={{fontSize: '13px', textAlign: 'center'}}>Selecione uma partida para ver os detalhes.</p></div> );
     return (
         <div className="right-panel custom-scrollbar" style={{ width: isMobile ? '100%' : '420px', background: theme.bgApp, overflowY: 'auto', padding: isMobile ? '0' : '15px' }}>
@@ -469,6 +523,10 @@ function RightPanelComponent({ jogoSelecionado, rightTab, setRightTab, analiseIA
                         <div style={{textAlign: 'center', flex: 1}}><img src={jogoSelecionado.away_image} style={{width: '70px', height: '70px', marginBottom: '12px'}} alt="fora"/><h3 style={{margin: 0, fontSize: '14px', color: theme.textMain}}>{jogoSelecionado.away_team}</h3></div>
                     </div>
                 </div>
+                
+                {/* 💸 ANÚNCIO NO DETALHE DO JOGO (SÓ PARA NÃO VIPs) 💸 */}
+                {!userData?.is_vip && <div style={{padding: '0 20px'}}><AdPlaceholder type="horizontal" /></div>}
+
                 <div style={{display: 'flex', borderBottom: `1px solid ${theme.border}`, borderTop: `1px solid ${theme.border}`, background: 'rgba(19, 22, 31, 0.8)', overflowX: 'auto', scrollbarWidth: 'none'}}>
                     {['Detalhes', 'Análise IA', 'Escalações', 'Probs', 'Estatísticas', 'Estações de TV'].map(tab => ( <div key={tab} onClick={() => setRightTab(tab)} style={{padding: '16px 12px', cursor: 'pointer', color: rightTab === tab ? theme.cyan : theme.textMuted, fontWeight: 'bold', fontSize: '11px', borderBottom: rightTab === tab ? `2px solid ${theme.cyan}` : '2px solid transparent', whiteSpace: 'nowrap', textAlign: 'center', textTransform: 'uppercase'}}>{tab}</div> ))}
                 </div>
@@ -495,12 +553,10 @@ function ClassificacaoPanel({ menuAtivo, loadingClassificacao, classificacao }) 
     return ( <motion.div initial={{opacity: 0}} animate={{opacity: 1}} style={{background: theme.bgPanel, borderRadius: '12px', border: `1px solid ${theme.border}`, overflow: 'hidden', padding: '20px'}}>{menuAtivo === 'todos' || menuAtivo === 'todos os jogos' || menuAtivo === 'esportes' ? ( <div style={{textAlign: 'center', color: theme.textMuted, padding: '40px 0'}}><span style={{fontSize: '30px', display: 'block', marginBottom: '10px'}}>🏆</span>Selecione uma liga no menu lateral.</div> ) : loadingClassificacao ? ( <div style={{textAlign: 'center', color: theme.cyan, padding: '40px 0', fontWeight: 'bold'}}>Calculando...</div> ) : ( <div style={{overflowX: 'auto'}}><table style={{width: '100%', borderCollapse: 'collapse', textAlign: 'left', color: theme.textMain, fontSize: '13px'}}><thead><tr style={{borderBottom: `1px solid ${theme.border}`, color: theme.textMuted}}><th>#</th><th>Equipe</th><th>P</th><th>J</th><th>V</th><th>E</th><th>D</th><th>SG</th></tr></thead><tbody>{classificacao.map((t, i) => (<tr key={i} style={{borderBottom: `1px solid rgba(255,255,255,0.02)`}}><td style={{padding: '12px 8px', color: theme.cyan}}>{t.position}</td><td style={{padding: '12px 8px', display: 'flex', alignItems: 'center', gap: '10px'}}><img src={t.logo} style={{width: '24px'}} alt="" />{t.team_name}</td><td>{t.points}</td><td>{t.matches_played}</td><td>{t.won}</td><td>{t.draw}</td><td>{t.lost}</td><td>{t.goal_diff}</td></tr>))}</tbody></table></div> )}</motion.div> );
 }
 
-// 🔥 MODAL (V7) - A FORÇADORA DE PIX E CARTÕES 🔥
 function ModalsExtras({ menuAtivo, form, setForm, setMenuAtivo, setUserData }) {
   const [passo, setPasso] = useState(1);
   const [loading, setLoading] = useState(false);
   const [dadosPix, setDadosPix] = useState(null);
-  
   const API = "https://betanalitics-1-9stc.onrender.com";
 
   const initialization = useMemo(() => ({ amount: 29.90, payer: { email: form.email } }), [form.email]);
@@ -518,9 +574,7 @@ function ModalsExtras({ menuAtivo, form, setForm, setMenuAtivo, setUserData }) {
                     if (setUserData) { setUserData({ email: form.email, is_vip: true }); localStorage.setItem('bet_sessao_ativa', form.email); }
                     setMenuAtivo('todos');
                 }
-            } catch (err) { 
-                console.log("Aguardando pagamento..."); 
-            }
+            } catch (err) { console.log("Aguardando pagamento..."); }
         }, 3000);
     }
     return () => clearInterval(intervalId);
@@ -532,60 +586,27 @@ function ModalsExtras({ menuAtivo, form, setForm, setMenuAtivo, setUserData }) {
   };
 
   async function gerarPix() {
-    if (!form.nome || !form.email || form.cpf.length !== 11) {
-        return alert("⚠️ ERRO: Por favor, preencha o seu Nome, E-mail e digite exatamente 11 números no CPF.");
-    }
-
+    if (!form.nome || !form.email || form.cpf.length !== 11) return alert("⚠️ ERRO: Preencha os dados corretamente.");
     try {
       setLoading(true);
-      
-      const payload = {
-        transaction_amount: 29.90,
-        payment_method_id: "pix",
-        payer: { 
-          email: form.email, 
-          first_name: form.nome, 
-          identification: { 
-            type: "CPF",
-            number: form.cpf.replace(/\D/g, "") 
-          } 
-        }
-      };
-
+      const payload = { transaction_amount: 29.90, payment_method_id: "pix", payer: { email: form.email, first_name: form.nome, identification: { type: "CPF", number: form.cpf.replace(/\D/g, "") } } };
       const { data } = await axios.post(`${API}/api/processar-pagamento`, payload);
-
-      if (data.qr_code_base64 || data.qr_code) {
-        setDadosPix(data);
-        setPasso(2); 
-      } else {
-        alert("O Banco aceitou o pedido, mas bloqueou a imagem do QR Code. Resposta completa do Banco: " + JSON.stringify(data));
-      }
-    } catch (e) {
-      alert("❌ ERRO DO BANCO: " + (e?.response?.data?.error || JSON.stringify(e?.response?.data) || e.message));
-    } finally {
-      setLoading(false);
-    }
+      if (data.qr_code_base64 || data.qr_code) { setDadosPix(data); setPasso(2); }
+    } catch (e) { alert("❌ ERRO DO BANCO"); } finally { setLoading(false); }
   }
 
   const onSubmitCartao = async (formData) => {
       return new Promise((resolve, reject) => {
-          axios.post(`${API}/api/processar-pagamento`, {
-              ...formData, 
-              transaction_amount: 29.90,
-              payer: { email: form.email, first_name: form.nome, identification: { type: "CPF", number: form.cpf.replace(/\D/g, "") } }
-          })
+          axios.post(`${API}/api/processar-pagamento`, { ...formData, transaction_amount: 29.90, payer: { email: form.email, first_name: form.nome, identification: { type: "CPF", number: form.cpf.replace(/\D/g, "") } } })
           .then(res => {
               if (res.data.status === 'approved') {
-                  alert("🎉 Pagamento Aprovado! Bem-vindo ao VIP PRO!");
+                  alert("🎉 Pagamento Aprovado!");
                   if (setUserData) { setUserData({ email: form.email, is_vip: true }); localStorage.setItem('bet_sessao_ativa', form.email); }
                   setMenuAtivo('todos');
-              } else { alert(`❌ Pagamento recusado. Motivo: ${res.data.status_detail}`); }
+              } else { alert("❌ Pagamento recusado."); }
               resolve();
           })
-          .catch(err => {
-              alert("⚠️ ERRO DO BANCO: " + (err.response?.data?.error || err.message));
-              reject();
-          });
+          .catch(err => { reject(); });
       });
   };
 
@@ -594,25 +615,18 @@ function ModalsExtras({ menuAtivo, form, setForm, setMenuAtivo, setUserData }) {
   return (
     <div style={{position:"fixed", inset:0, background:"#000a", display:"flex", justifyContent:"center", alignItems:"center", zIndex: 1000}}>
       <div style={{background:"#13161f", padding:30, borderRadius:10, width:'90%', maxWidth: 450, maxHeight: '90vh', overflowY: 'auto', display: "flex", flexDirection: "column", gap: "15px", color: "#fff"}}>
-        
         <button onClick={() => setMenuAtivo('todos')} style={{alignSelf: 'flex-start', background: 'none', border: 'none', color: '#64748b', cursor: 'pointer', fontWeight: 'bold'}}>⬅ Cancelar</button>
 
         {passo === 1 && (
           <motion.div initial={{opacity:0}} animate={{opacity:1}} style={{display: 'flex', flexDirection: 'column', gap: '15px'}}>
-            <h2 style={{margin: 0, color: "#00d4b6"}}>Assinar VIP PRO 👑 (V7)</h2>
-            <p style={{fontSize: '12px', color: theme.textMuted, margin: 0}}>Preencha os dados e escolha como quer pagar:</p>
-            
+            <h2 style={{margin: 0, color: "#00d4b6"}}>Assinar VIP PRO 👑</h2>
             <input placeholder="Seu Nome Completo" value={form.nome} style={{padding: '14px', borderRadius: '6px', border: '1px solid #232838', background: '#090a0f', color: '#fff'}} onChange={e=>setForm({...form,nome:e.target.value})} />
             <input placeholder="Seu E-mail" value={form.email} style={{padding: '14px', borderRadius: '6px', border: '1px solid #232838', background: '#090a0f', color: '#fff'}} onChange={e=>setForm({...form,email:e.target.value})} />
-            <input placeholder="Seu CPF (Exatamente 11 números)" value={form.cpf} maxLength={11} style={{padding: '14px', borderRadius: '6px', border: '1px solid #232838', background: '#090a0f', color: '#fff'}} onChange={e=>setForm({...form,cpf:e.target.value.replace(/\D/g, '')})} />
-
+            <input placeholder="Seu CPF" value={form.cpf} maxLength={11} style={{padding: '14px', borderRadius: '6px', border: '1px solid #232838', background: '#090a0f', color: '#fff'}} onChange={e=>setForm({...form,cpf:e.target.value.replace(/\D/g, '')})} />
             <div style={{height: '1px', background: theme.border, margin: '10px 0'}}></div>
-
             <button onClick={gerarPix} disabled={loading} style={{padding: '18px', background: '#00d4b6', color: '#000', fontWeight: 'bold', border: 'none', borderRadius: '8px', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '10px'}}>
                 <span style={{fontSize: '20px'}}>💠</span> {loading ? "A processar..." : "Pagar com PIX Rápido"}
             </button>
-             
-            {/* 💳 BOTÃO DE CARTÃO COM OS SELOS DE CONFIANÇA EM BAIXO 💳 */}
             <button onClick={handlePagarCartao} disabled={loading} style={{padding: '18px', background: theme.bgHover, color: '#fff', fontWeight: 'bold', border: `1px solid ${theme.border}`, borderRadius: '8px', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '10px'}}>
                 <span style={{fontSize: '20px'}}>💳</span> Pagar com Cartão (Crédito/Débito)
             </button>
@@ -621,41 +635,29 @@ function ModalsExtras({ menuAtivo, form, setForm, setMenuAtivo, setUserData }) {
                     <span key={b} style={{ background: '#1c202d', color: '#64748b', fontSize: '10px', padding: '3px 8px', borderRadius: '4px', border: '1px solid #232838', fontWeight: 'bold' }}>{b}</span>
                 ))}
             </div>
-            
           </motion.div>
         )}
 
         {passo === 2 && dadosPix && (
           <motion.div initial={{opacity:0}} animate={{opacity:1}} style={{display: 'flex', flexDirection: 'column', gap: '15px'}}>
             <h3 style={{margin: 0, color: "#00d4b6", textAlign: 'center'}}>PIX Gerado!</h3>
-            <p style={{textAlign: 'center', fontSize: '12px', color: '#64748b', margin: 0}}>Escaneie ou copie a linha abaixo para concluir. <br/><b>Aguardando pagamento... ⏳</b></p>
-
             <img src={`data:image/jpeg;base64,${dadosPix.qr_code_base64}`} style={{width:"100%", maxWidth: '250px', alignSelf: 'center', borderRadius: '8px', border: '3px solid #fff'}} alt="QR Code" />
             <textarea value={dadosPix.qr_code} readOnly style={{padding: '12px', fontSize: '11px', background: '#090a0f', color: '#64748b', border: '1px solid #232838', borderRadius: '6px', resize: 'none'}} rows={4} />
-
-            <button onClick={()=>{ navigator.clipboard.writeText(dadosPix.qr_code); alert("Linha digitável copiada!"); }} style={{padding: '15px', background: '#00d4b6', color: '#000', fontWeight: 'bold', border: 'none', borderRadius: '6px', cursor: 'pointer'}}>
-              Copiar Linha PIX
-            </button>
+            <button onClick={()=>{ navigator.clipboard.writeText(dadosPix.qr_code); alert("Linha copiada!"); }} style={{padding: '15px', background: '#00d4b6', color: '#000', fontWeight: 'bold', border: 'none', borderRadius: '6px', cursor: 'pointer'}}>Copiar Linha PIX</button>
           </motion.div>
         )}
 
         {passo === 3 && (
           <motion.div initial={{opacity:0}} animate={{opacity:1}} style={{display: 'flex', flexDirection: 'column', gap: '10px'}}>
             <h3 style={{margin: 0, color: "#fff", textAlign: 'center'}}>Pagar com Cartão</h3>
-            
-            {/* A CAIXA DO MERCADO PAGO */}
             <Payment initialization={initialization} customization={customization} onSubmit={onSubmitCartao} onError={(e) => console.log(e)} />
-            
-            {/* SELOS DE CONFIANÇA VISUAIS DE DÉBITO ABAIXO DO QUADRO - IGUAL À SUA IMAGEM */}
             <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '15px', marginTop: '-10px', marginBottom: '15px', background: '#1c202d', padding: '15px 10px', borderRadius: '8px', border: `1px solid ${theme.border}` }}>
                 <span style={{ fontSize: '13px', color: theme.textMuted }}>Também aceitamos as principais redes de débito:</span>
                 <div style={{ display: 'flex', justifyContent: 'center', gap: '20px', flexWrap: 'wrap' }}>
-                    {/* Visa Débito */}
                     <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
                         <div style={{ background: '#fff', width: '34px', height: '34px', borderRadius: '50%', display: 'flex', justifyContent: 'center', alignItems: 'center', fontWeight: '900', color: '#1a1f36', fontSize: '9px', fontStyle: 'italic' }}>VISA</div>
                         <span style={{ color: '#fff', fontSize: '15px', fontWeight: '500' }}>Débito</span>
                     </div>
-                    {/* Mastercard Débito */}
                     <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
                         <div style={{ background: '#fff', width: '34px', height: '34px', borderRadius: '50%', display: 'flex', justifyContent: 'center', alignItems: 'center', position: 'relative' }}>
                             <div style={{ width: '16px', height: '16px', background: '#eb001b', borderRadius: '50%', position: 'absolute', left: '3px' }}></div>
@@ -663,7 +665,6 @@ function ModalsExtras({ menuAtivo, form, setForm, setMenuAtivo, setUserData }) {
                         </div>
                         <span style={{ color: '#fff', fontSize: '15px', fontWeight: '500' }}>Débito</span>
                     </div>
-                    {/* Elo Débito */}
                     <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
                         <div style={{ background: '#1c202d', border: '1px solid #232838', width: '34px', height: '34px', borderRadius: '50%', display: 'flex', justifyContent: 'center', alignItems: 'center' }}>
                             <div style={{ width: '18px', height: '18px', border: '3px solid #00d4b6', borderRadius: '50%', borderTopColor: '#facc15', borderRightColor: '#ef4444' }}></div>
@@ -672,11 +673,9 @@ function ModalsExtras({ menuAtivo, form, setForm, setMenuAtivo, setUserData }) {
                     </div>
                 </div>
             </div>
-
             <button onClick={() => setPasso(1)} style={{padding: '12px', background: 'transparent', color: '#64748b', border: `1px solid ${theme.border}`, borderRadius: '6px', cursor: 'pointer'}}>Voltar aos métodos</button>
           </motion.div>
         )}
-
       </div>
     </div>
   );
