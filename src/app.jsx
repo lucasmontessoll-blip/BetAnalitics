@@ -6,7 +6,15 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { initMercadoPago, Payment } from '@mercadopago/sdk-react'; 
 import dadosFut from './dados.json'; 
 
-// 🔑 CHAVE PÚBLICA DE PRODUÇÃO
+// 🔑 CHAVES DE API REAIS (SISTEMA DE PRODUÇÃO)
+const API_KEYS = {
+  SPORTMONKS: "JKJwDddEtELZAXJGxvosV9TminjNwU0vjlU3FREkDCuVR897eGqScPHo8u83",
+  API_SPORTS: "AD696F6FCFF1E3A6C16295A93925FA20",
+  FOOTBALL_DATA: "4fdbad40c44545a9ae3460ecb45b4c44",
+  ODDS_API: "d2c5d74895758310d2e91f0691c26c0cd48df32067ef0cb3168c467b3898fab5"
+};
+
+// 🔑 CHAVE PÚBLICA DE PRODUÇÃO MERCADO PAGO
 initMercadoPago('APP_USR-c05e91db-5e62-4838-8790-e73906d11dbc', { locale: 'pt-BR' });
 
 const API_URL = 'https://betanalitics-1-9stc.onrender.com';
@@ -29,8 +37,7 @@ const MOCK_STANDINGS_LALIGA = [{position:1,team_name:"Real Madrid",logo:"https:/
 const MOCK_AGENDA = [{id:1,league:"La Liga",date:"2026-04-25 19:00",home:"Atlético Madrid",away:"Athletic Club",hImg:"https://cdn.sportmonks.com/images/soccer/teams/12/7980.png",aImg:"https://cdn.sportmonks.com/images/soccer/teams/10/13258.png"}];
 
 const RAW_GAMES = [
-  { id:101,league_name:"La Liga",starting_at:"2026-04-20 16:00:00",status:"Live",home_team:"Real Madrid",home_id:101,away_team:"FC Barcelona",away_id:102, home_image:"https://cdn.sportmonks.com/images/soccer/teams/12/3468.png",away_image:"https://cdn.sportmonks.com/images/soccer/teams/19/83.png", scores:[{score:{goals:2}},{score:{goals:1}}],scoreHome:2,scoreAway:1,result_info:"65:30",venue:"Santiago Bernabéu",odds_format:{home:"1.85",draw:"3.50",away:"4.20"}, predictions:[],sidelined:[],events:[],lineups:[],xgfixture:[], tvstations:[] },
-  {"id":19439520,"league":{"name":"La Liga"},"starting_at":"2026-03-14 15:15:00","state":{"developer_name":"FT"},"venue":{"name":"Riyadh Air Metropolitano"},"participants":[{"id":7980,"name":"Atlético Madrid","image_path":"https://cdn.sportmonks.com/images/soccer/teams/12/7980.png","meta":{"location":"home"}},{"id":106,"name":"Getafe","image_path":"https://cdn.sportmonks.com/images/soccer/teams/10/106.png","meta":{"location":"away"}}],"scores":[{"participant_id":7980,"score":{"goals":1},"description":"CURRENT"},{"participant_id":106,"score":{"goals":0},"description":"CURRENT"}],"events":[],"sidelined":[],"statistics":[]}
+  { id:101,league_name:"La Liga",starting_at:"2026-04-20 16:00:00",status:"Live",home_team:"Real Madrid",home_id:101,away_team:"FC Barcelona",away_id:102, home_image:"https://cdn.sportmonks.com/images/soccer/teams/12/3468.png",away_image:"https://cdn.sportmonks.com/images/soccer/teams/19/83.png", scores:[{score:{goals:2}},{score:{goals:1}}],scoreHome:2,scoreAway:1,result_info:"65:30",venue:"Santiago Bernabéu",odds_format:{home:"1.85",draw:"3.50",away:"4.20"}, predictions:[],sidelined:[],events:[],lineups:[],xgfixture:[], tvstations:[] }
 ];
 
 const MOCK_GAMES = RAW_GAMES.map(f => {
@@ -49,9 +56,7 @@ const MOCK_GAMES = RAW_GAMES.map(f => {
 function AdPlaceholder({ type = 'horizontal' }) {
     const isHorizontal = type === 'horizontal';
     return (
-        <div style={{
-            width: '100%', height: isHorizontal ? '90px' : '250px', background: 'rgba(255,255,255,0.02)', border: `1px dashed ${theme.border}`, borderRadius: '8px', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', margin: '15px 0', overflow: 'hidden'
-        }}>
+        <div style={{ width: '100%', height: isHorizontal ? '90px' : '250px', background: 'rgba(255,255,255,0.02)', border: `1px dashed ${theme.border}`, borderRadius: '8px', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', margin: '15px 0', overflow: 'hidden' }}>
             <span style={{ fontSize: '10px', color: theme.textMuted, marginBottom: '5px', textTransform: 'uppercase', letterSpacing: '1px' }}>Publicidade</span>
             <div style={{ fontSize: '12px', color: 'rgba(255,255,255,0.05)', fontWeight: 'bold' }}>ESPAÇO RESERVADO ADSENSE</div>
         </div>
@@ -60,8 +65,6 @@ function AdPlaceholder({ type = 'horizontal' }) {
 
 export default function App() {
   const [isMobile, setIsMobile] = useState(window.innerWidth <= 1024);
-  
-  // 🔥 ESTADOS PARA INSTALAÇÃO (À PROVA DE FALHAS) 🔥
   const [deferredPrompt, setDeferredPrompt] = useState(null);
   const [showInstallBtn, setShowInstallBtn] = useState(false);
   const [showManualInstall, setShowManualInstall] = useState(false);
@@ -69,36 +72,22 @@ export default function App() {
   useEffect(() => {
     const handleResize = () => setIsMobile(window.innerWidth <= 1024);
     window.addEventListener('resize', handleResize);
-    
-    // Forçar a barra a aparecer no mobile após 3 segundos
-    if (window.innerWidth <= 1024) {
-        setTimeout(() => setShowInstallBtn(true), 3000);
-    }
+    if (window.innerWidth <= 1024) { setTimeout(() => setShowInstallBtn(true), 3000); }
     return () => window.removeEventListener('resize', handleResize);
   }, []);
 
   useEffect(() => {
-    const handleBeforeInstallPrompt = (e) => {
-      e.preventDefault();
-      setDeferredPrompt(e);
-      setShowInstallBtn(true);
-    };
+    const handleBeforeInstallPrompt = (e) => { e.preventDefault(); setDeferredPrompt(e); setShowInstallBtn(true); };
     window.addEventListener('beforeinstallprompt', handleBeforeInstallPrompt);
     return () => window.removeEventListener('beforeinstallprompt', handleBeforeInstallPrompt);
   }, []);
 
   const handleInstallClick = () => {
     if (deferredPrompt) {
-      // Se o Chrome deixar instalar automático
       deferredPrompt.prompt();
-      deferredPrompt.userChoice.then((choiceResult) => {
-        setDeferredPrompt(null);
-        setShowInstallBtn(false);
-      });
+      deferredPrompt.userChoice.then((choiceResult) => { setDeferredPrompt(null); setShowInstallBtn(false); });
     } else {
-      // Se for iPhone ou o Chrome bloquear, ensinamos o cliente a fazer!
-      setShowInstallBtn(false);
-      setShowManualInstall(true);
+      setShowInstallBtn(false); setShowManualInstall(true);
     }
   };
 
@@ -108,7 +97,6 @@ export default function App() {
   const [jogos, setJogos] = useState([]);
   const [apiError, setApiError] = useState(''); 
   const [loading, setLoading] = useState(false);
-  const cacheAPI = useRef({});
   const [busca, setBusca] = useState('');
   const [dataFiltro, setDataFiltro] = useState(getLocalYYYYMMDD());
   
@@ -165,6 +153,7 @@ export default function App() {
   const carregarClassificacao = async (liga) => {
       setLoadingClassificacao(true);
       try {
+          // Utilizando a Sportmonks para classificação (Simplificado para o cache)
           const res = await axios.get(`${API_URL}/standings?league=${liga}`);
           if (res.data && res.data.length > 0) { setClassificacao(formatarClassificacaoAPI(res.data)); setLoadingClassificacao(false); } 
           else throw new Error("Vazio");
@@ -177,26 +166,86 @@ export default function App() {
       }
   };
 
+  // 🔥 INTEGRAÇÃO REAL DA API COM SISTEMA DE CACHE DE 5 MINUTOS 🔥
   const carregarDadosEsporte = async (forcar = false) => {
-    setApiError(''); setLoading(true); const cK = `${dataFiltro}_${menuAtivo}_${esporteAtivo}`;
-    if (!forcar && cacheAPI.current[cK]) { aplicarFiltros(cacheAPI.current[cK], menuAtivo); setLoading(false); return; }
+    setApiError(''); 
+    setLoading(true); 
+    
+    // Nomes de cache baseados na data e no desporto
+    const CACHE_KEY = `bet_api_data_${dataFiltro}`;
+    const CACHE_TIME_KEY = `bet_api_time_${dataFiltro}`;
+    const TEMPO_CACHE_MS = 5 * 60 * 1000; // 5 Minutos de cofre (não gasta API)
+
+    // 1. Tenta carregar do cofre local se não for forçado
+    if (!forcar) {
+        const dadosGuardados = localStorage.getItem(CACHE_KEY);
+        const tempoGuardado = localStorage.getItem(CACHE_TIME_KEY);
+        
+        if (dadosGuardados && tempoGuardado) {
+            const agora = new Date().getTime();
+            if (agora - parseInt(tempoGuardado) < TEMPO_CACHE_MS) {
+                console.log("🟢 PUXANDO DO COFRE (POUPANDO API!)");
+                aplicarFiltros(JSON.parse(dadosGuardados), menuAtivo);
+                setLoading(false);
+                return;
+            }
+        }
+    }
+
     setJogos([]); 
+    console.log("🔴 CONSUMINDO API REAL (GASTANDO CRÉDITO)");
+    
     try {
-      const res = await axios.get(`${API_URL}/match?date=${dataFiltro}`);
-      let bF = Array.isArray(res.data) ? res.data : (res.data?.fixtures || (res.data?.id ? [res.data] : []));
-      if (!bF.length) throw new Error("Vazio");
-      const jF = bF.map(f => {
-          const hP = f.participants?.find(p => p.meta?.location === 'home') || f.participants?.[0]; const aP = f.participants?.find(p => p.meta?.location === 'away') || f.participants?.[1];
+      // Usando a sua chave oficial da Sportmonks
+      const sportmonksUrl = `https://api.sportmonks.com/v3/football/fixtures/date/${dataFiltro}?api_token=${API_KEYS.SPORTMONKS}&include=participants;scores;league;state;odds`;
+      
+      const res = await axios.get(sportmonksUrl);
+      
+      if (!res.data || !res.data.data || res.data.data.length === 0) {
+          throw new Error("Vazio");
+      }
+
+      // Formatar os dados vindos reais da Sportmonks para o padrão do nosso layout
+      const jF = res.data.data.map(f => {
+          const hP = f.participants?.find(p => p.meta?.location === 'home') || f.participants?.[0]; 
+          const aP = f.participants?.find(p => p.meta?.location === 'away') || f.participants?.[1];
+          
           return {
-              id: f.id, league_name: f.league?.name || "Liga", starting_at: f.starting_at, status: f.state?.developer_name === 'FT' ? 'Finished' : (f.state?.developer_name === 'NS' ? 'Not Started' : 'Live'),
-              home_team: hP?.name, home_id: hP?.id, away_team: aP?.name, away_id: aP?.id, home_image: hP?.image_path, away_image: aP?.image_path, scores: f.scores || [],
-              scoreHome: f.scores?.find(s => s.description === 'CURRENT' && s.participant_id === hP?.id)?.score?.goals ?? 0, scoreAway: f.scores?.find(s => s.description === 'CURRENT' && s.participant_id === aP?.id)?.score?.goals ?? 0, result_info: f.result_info, predictions: f.predictions || [],
-              odds_format: { home: f.odds?.find(o => o.label === 'Home')?.value || "-", draw: f.odds?.find(o => o.label === 'Draw')?.value || "-", away: f.odds?.find(o => o.label === 'Away')?.value || "-" }, venue: f.venue?.name || "N/A", sidelined: f.sidelined?.map(s => ({ name: s.sideline?.player?.display_name || "Jogador", reason: s.sideline?.type?.name || "Desfalque", teamId: s.participant_id })) || [],
-              events: f.events || [], lineups: f.lineups || [], xgfixture: f.xgfixture || [], stats: processarTrends(f.trends || f.statistics, hP?.id, aP?.id), tvstations: extrairTVs(f)
+              id: f.id, 
+              league_name: f.league?.name || "Liga Internacional", 
+              starting_at: f.starting_at, 
+              status: f.state?.developer_name === 'FT' ? 'Finished' : (f.state?.developer_name === 'NS' ? 'Not Started' : 'Live'),
+              home_team: hP?.name || "Casa", home_id: hP?.id, 
+              away_team: aP?.name || "Fora", away_id: aP?.id, 
+              home_image: hP?.image_path, away_image: aP?.image_path, 
+              scores: f.scores || [],
+              scoreHome: f.scores?.find(s => s.description === 'CURRENT' && s.participant_id === hP?.id)?.score?.goals ?? 0, 
+              scoreAway: f.scores?.find(s => s.description === 'CURRENT' && s.participant_id === aP?.id)?.score?.goals ?? 0, 
+              result_info: f.result_info || "", 
+              predictions: f.predictions || [],
+              odds_format: { 
+                  home: f.odds?.find(o => o.label === 'Home')?.value || "-", 
+                  draw: f.odds?.find(o => o.label === 'Draw')?.value || "-", 
+                  away: f.odds?.find(o => o.label === 'Away')?.value || "-" 
+              }, 
+              venue: f.venue?.name || "Estádio Padrão", 
+              sidelined: [], events: [], lineups: [], xgfixture: [], stats: [], tvstations: []
           };
       });
-      cacheAPI.current[cK] = jF; aplicarFiltros(jF, menuAtivo); 
-    } catch (e) { setApiError("⚠️ Servidor Offline. Carregando Mocks."); cacheAPI.current[cK] = MOCK_GAMES; aplicarFiltros(MOCK_GAMES, menuAtivo); } finally { setLoading(false); }
+
+      // 2. Guarda no cofre local para as próximas vezes
+      localStorage.setItem(CACHE_KEY, JSON.stringify(jF));
+      localStorage.setItem(CACHE_TIME_KEY, new Date().getTime().toString());
+      
+      aplicarFiltros(jF, menuAtivo); 
+
+    } catch (e) { 
+        console.error("Erro na API, usando Mocks para o design não quebrar", e);
+        setApiError("⚠️ Usando dados simulados."); 
+        aplicarFiltros(MOCK_GAMES, menuAtivo); 
+    } finally { 
+        setLoading(false); 
+    }
   };
 
   const carregarPerfilJogador = async () => {
@@ -278,7 +327,6 @@ export default function App() {
           </div>
       </div>
 
-      {/* 🔥 BANNER INSTALADOR GARANTIDO (APARECE NO TOPO DO MOBILE) 🔥 */}
       <AnimatePresence>
           {showInstallBtn && isMobile && (
               <motion.div initial={{ y: -50, opacity: 0 }} animate={{ y: 0, opacity: 1 }} exit={{ y: -50, opacity: 0 }} style={{ background: theme.cyan, color: '#000', padding: '12px 20px', display: 'flex', justifyContent: 'space-between', alignItems: 'center', zIndex: 99, boxShadow: '0 4px 15px rgba(0,212,182,0.3)' }}>
@@ -294,7 +342,6 @@ export default function App() {
           )}
       </AnimatePresence>
 
-      {/* 🔥 MODAL DE INSTALAÇÃO MANUAL (SE O NAVEGADOR BLOQUEAR) 🔥 */}
       {showManualInstall && (
           <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.8)', zIndex: 1000, display: 'flex', justifyContent: 'center', alignItems: 'center', padding: '20px' }}>
               <div style={{ background: theme.bgPanel, padding: '30px', borderRadius: '16px', border: `1px solid ${theme.cyan}`, textAlign: 'center', maxWidth: '350px' }}>
@@ -355,8 +402,6 @@ export default function App() {
                               ))}
                           </div>
                       )}
-                      
-                      {/* 💸 ANÚNCIO LATERAL (SÓ PARA NÃO VIPs) 💸 */}
                       {!userData?.is_vip && <AdPlaceholder type="vertical" />}
                   </nav>
               </aside>
@@ -395,7 +440,6 @@ export default function App() {
                   <button onClick={() => setViewMode('agenda')} style={{ whiteSpace: 'nowrap', flexShrink: 0, padding: '12px 25px', borderRadius: '8px', background: viewMode === 'agenda' ? 'rgba(0,212,182,0.1)' : theme.bgPanel, color: viewMode === 'agenda' ? theme.cyan : theme.textMuted, border: `1px solid ${viewMode === 'agenda' ? theme.cyan : theme.border}`, fontWeight: 'bold', cursor: 'pointer' }}>🗓️ Recentes e Futuras</button>
               </div>
 
-              {/* 💸 ANÚNCIO NO FEED CENTRAL (SÓ PARA NÃO VIPs) 💸 */}
               {!userData?.is_vip && <AdPlaceholder type="horizontal" />}
 
               {viewMode === 'jogos' && (
@@ -422,9 +466,11 @@ export default function App() {
                           </div>
                       </div>
 
+                      {loading && <div style={{textAlign: 'center', padding: '20px', color: theme.cyan, fontWeight: 'bold'}}>A carregar jogos...</div>}
+
                       {apiError && <div style={{background: 'rgba(239, 68, 68, 0.1)', border: `1px solid ${theme.red}`, padding: '15px', color: theme.red, marginBottom: '20px', borderRadius: '8px', fontSize: '13px', fontWeight: 'bold', textAlign: 'center'}}>{apiError}</div>}
 
-                      {Object.keys(jogosAgrupados).length === 0 ? <div style={{padding: '60px 20px', color: theme.textMuted, textAlign: 'center', background: theme.bgPanel, borderRadius: '12px', border: `1px dashed ${theme.border}`}}>Nenhuma partida encontrada.</div> :
+                      {!loading && Object.keys(jogosAgrupados).length === 0 ? <div style={{padding: '60px 20px', color: theme.textMuted, textAlign: 'center', background: theme.bgPanel, borderRadius: '12px', border: `1px dashed ${theme.border}`}}>Nenhuma partida encontrada para esta data.</div> :
                       Object.entries(jogosAgrupados).map(([leagueName, games]) => (
                           <div key={leagueName} style={{marginBottom: '25px', background: theme.bgPanel, borderRadius: '12px', border: `1px solid ${theme.border}`, overflow: 'hidden'}}>
                               <div style={{padding: '15px 20px', background: theme.bgHover, fontWeight: 'bold'}}>{leagueName}</div>
@@ -507,6 +553,12 @@ export default function App() {
         </div>
       )}
 
+      {isMobile && abaGeralAtiva === 'jogador' && (
+        <div style={{ position: 'fixed', bottom: 0, left: 0, right: 0, height: '65px', background: theme.bgPanel, borderTop: `1px solid ${theme.border}`, display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 999, paddingBottom: '5px' }}>
+            <button onClick={() => setAbaGeralAtiva('dashboard')} style={{background: theme.cyan, color: '#000', border: 'none', padding: '10px 30px', borderRadius: '20px', fontWeight: 'bold'}}>⬅ Voltar ao Dashboard</button>
+        </div>
+      )}
+
       <AuthModal showLoginMenu={showLoginMenu} setShowLoginMenu={setShowLoginMenu} authMode={authMode} setAuthMode={setAuthMode} loginEmail={loginEmail} setLoginEmail={setLoginEmail} loginSenha={loginSenha} setLoginSenha={setLoginSenha} handleLogin={handleLogin} handleCadastro={handleCadastro} />
     </div>
   );
@@ -548,7 +600,6 @@ function RightPanelComponent({ jogoSelecionado, rightTab, setRightTab, analiseIA
                     </div>
                 </div>
                 
-                {/* 💸 ANÚNCIO NO DETALHE DO JOGO (SÓ PARA NÃO VIPs) 💸 */}
                 {!userData?.is_vip && <div style={{padding: '0 20px'}}><AdPlaceholder type="horizontal" /></div>}
 
                 <div style={{display: 'flex', borderBottom: `1px solid ${theme.border}`, borderTop: `1px solid ${theme.border}`, background: 'rgba(19, 22, 31, 0.8)', overflowX: 'auto', scrollbarWidth: 'none'}}>
