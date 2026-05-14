@@ -9,6 +9,9 @@ import dadosFut from './dados.json';
 // 🔑 A SUA NOVA CHAVE DA API-SPORTS
 const API_SPORTS_KEY = "7ff15d43907d5138e48674b29ab56a65";
 
+// 🔥 E-MAILS COM ACESSO VIP AUTOMÁTICO (Adicione o seu aqui) 🔥
+const EMAILS_VIP_MESTRE = ['admin@nexus.com']; 
+
 // 🔑 CHAVE PÚBLICA DE PRODUÇÃO MERCADO PAGO
 initMercadoPago('APP_USR-c05e91db-5e62-4838-8790-e73906d11dbc', { locale: 'pt-BR' });
 
@@ -23,11 +26,12 @@ const getPrediction = (p, name) => (Array.isArray(p) ? p.find(i => i.type?.devel
 const processarTrends = (d, h, a) => { if (!Array.isArray(d)) return null; const m = {}; d.forEach(t => { const n = t.type?.name, id = t.participant_id, v = t.data?.value ?? t.value, min = t.minute || 90; if (!m[n]) m[n] = { type: n, home: 0, away: 0, _mH: -1, _mA: -1 }; if (id === h && min > m[n]._mH) { m[n].home = v; m[n]._mH = min; } else if (id === a && min > m[n]._mA) { m[n].away = v; m[n]._mA = min; } }); return Object.values(m).map(({ type, home, away }) => ({ type, home, away })); };
 const formatarClassificacaoAPI = (d) => { if (!Array.isArray(d)) return []; return d.map(i => { const getStat = (c) => i.details?.find(x => x.type?.code === c)?.value || 0; return { position: i.position, team_name: i.participant?.name || "Equipe", logo: i.participant?.image_path || "", points: i.points || 0, matches_played: getStat('overall-matches-played'), won: getStat('overall-won'), draw: getStat('overall-draw'), lost: getStat('overall-lost'), goal_diff: getStat('goal-difference') }; }).sort((a, b) => a.position - b.position); };
 
+const extrairTVs = (f) => { if (!Array.isArray(f.tvstations)) return []; const tvs = []; const ids = new Set(); f.tvstations.forEach(t => { if (t?.tvstation && !ids.has(t.tvstation.id) && t.tvstation.name) { ids.add(t.tvstation.id); tvs.push({ id: t.tvstation.id, name: t.tvstation.name, image: t.tvstation.image_path, url: t.tvstation.url }); } }); return tvs; };
+
 // 🔥 FOCADO 100% NO FUTEBOL 🔥
 const listaEsportesFino = [
   {name:'FUTEBOL',icon:'⚽'}
 ];
-
 const listaLigas = [{name:'Todos',icon:'🌍'},{name:'Brasileirão Série A',icon:'🇧🇷'},{name:'Brasileirão Série B',icon:'🇧🇷'},{name:'Copa do Brasil',icon:'🏆'},{name:'Libertadores',icon:'🌎'},{name:'Champions League',icon:'⭐'},{name:'Premier League',icon:'🏴󠁧󠁢󠁥󠁮󠁧󠁿'},{name:'La Liga',icon:'🇪🇸'}];
 
 const MOCK_AGENDA = [{id:1,league:"La Liga",date:"2026-04-25 19:00",home:"Atlético Madrid",away:"Athletic Club",hImg:"https://cdn.sportmonks.com/images/soccer/teams/12/7980.png",aImg:"https://cdn.sportmonks.com/images/soccer/teams/10/13258.png"}];
@@ -104,13 +108,15 @@ export default function App() {
 
   const diasSemana = getWeekDays(dataFiltro);
 
+  // 🔄 VERIFICAÇÃO DE SESSÃO COM REGRA VIP MESTRE
   useEffect(() => {
-    const usr = localStorage.getItem('bet_sessao_ativa');
-    if (usr) {
-        if (usr === 'admin@nexus.com') { setUserData({ email: 'admin@nexus.com', is_vip: true }); } 
-        else {
-            let bL = {}; try { bL = JSON.parse(localStorage.getItem('bet_users') || '{}'); } catch(e) { localStorage.removeItem('bet_users'); }
-            if (bL[usr]) setUserData({ email: bL[usr].email, is_vip: bL[usr].is_vip });
+    const emailSalvo = localStorage.getItem('bet_sessao_ativa');
+    if (emailSalvo) {
+        if (EMAILS_VIP_MESTRE.includes(emailSalvo.toLowerCase().trim())) {
+            setUserData({ email: emailSalvo, is_vip: true });
+        } else {
+            let users = {}; try { users = JSON.parse(localStorage.getItem('bet_users') || '{}'); } catch(e) {}
+            if (users[emailSalvo]) setUserData(users[emailSalvo]);
         }
     }
   }, []);
@@ -120,13 +126,20 @@ export default function App() {
     if (menuAtivo === "gestão de banca" && userData) carregarBanca();
   }, [menuAtivo, dataFiltro, esporteAtivo]);
 
+  useEffect(() => { if (viewMode === 'classificacao') carregarClassificacao(menuAtivo); }, [viewMode, menuAtivo]);
+
   const aplicarFiltros = (j, m) => {
       if (!j || !j.length) return;
       const f = (m !== 'todos' && m !== 'todos os jogos') ? j.filter(x => (x.league_name?.toLowerCase() || "").includes(m.toLowerCase())) : j;
       setJogos(f.length > 0 ? f : j); 
   };
 
-  // 🔥 O NOVO MOTOR: API-SPORTS (COM ESCUDO ANTI-ESTOURO) 🔥
+  const carregarClassificacao = async (liga) => {
+      setLoadingClassificacao(true);
+      setTimeout(() => { setLoadingClassificacao(false); }, 600);
+  };
+
+  // 🔥 O NOVO MOTOR: API-SPORTS (COM ESCUDO ANTI-ESTOURO 10 MINUTOS) 🔥
   const carregarDadosEsporte = async (forcar = false) => {
     setApiError(''); 
     setLoading(true); 
@@ -154,9 +167,7 @@ export default function App() {
         method: 'GET',
         url: 'https://v3.football.api-sports.io/fixtures',
         params: { date: dataFiltro },
-        headers: {
-          'x-apisports-key': API_SPORTS_KEY
-        }
+        headers: { 'x-apisports-key': API_SPORTS_KEY }
       };
       
       const res = await axios.request(options);
@@ -215,14 +226,30 @@ export default function App() {
   const carregarBanca = async () => { try { const res = await axios.get(`${API_URL}/banca/${userData.email}`); setBancaData(res.data?.historico || []); } catch (e) { setBancaData([]); } };
 
   const handleLogin = async () => {
-    const e = loginEmail.trim(); if (!e || !loginSenha) return alert("❌ E-mail/Senha.");
-    if (e === 'admin@nexus.com') { setUserData({ email: 'admin@nexus.com', is_vip: true }); localStorage.setItem('bet_sessao_ativa', e); setShowLoginMenu(false); return; }
+    const emailDigitado = loginEmail.trim().toLowerCase();
+    if (!emailDigitado || !loginSenha) return alert("❌ Preencha E-mail e Senha.");
+    
+    // REGRA DE OURO: SE O EMAIL ESTIVER NA LISTA MESTRE, É VIP NA HORA
+    if (EMAILS_VIP_MESTRE.includes(emailDigitado)) {
+        const adminUser = { email: emailDigitado, is_vip: true };
+        setUserData(adminUser);
+        localStorage.setItem('bet_sessao_ativa', emailDigitado);
+        setShowLoginMenu(false);
+        return;
+    }
+
     let bL = {}; try { bL = JSON.parse(localStorage.getItem('bet_users') || '{}'); } catch(err) {}
-    if (bL[e] && bL[e].password === loginSenha) { setUserData(bL[e]); localStorage.setItem('bet_sessao_ativa', e); setShowLoginMenu(false); } else alert("❌ E-mail/Senha incorretos.");
+    if (bL[emailDigitado] && bL[emailDigitado].password === loginSenha) {
+        setUserData(bL[emailDigitado]);
+        localStorage.setItem('bet_sessao_ativa', emailDigitado);
+        setShowLoginMenu(false);
+    } else {
+        alert("❌ E-mail ou Senha incorretos.");
+    }
   };
 
   const handleCadastro = async () => {
-    const e = loginEmail.trim(); if (!e || !loginSenha) return alert("❌ E-mail/Senha.");
+    const e = loginEmail.trim().toLowerCase(); if (!e || !loginSenha) return alert("❌ E-mail/Senha.");
     let bL = {}; try { bL = JSON.parse(localStorage.getItem('bet_users') || '{}'); } catch(err) {}
     if (bL[e]) return alert("❌ E-mail já existe!");
     bL[e] = { email: e, password: loginSenha, is_vip: false }; localStorage.setItem('bet_users', JSON.stringify(bL));
@@ -264,7 +291,7 @@ export default function App() {
           </div>
           <div style={{ display: 'flex', alignItems: 'center', gap: '20px' }}>
             <div style={{ position: 'relative' }}>
-                <button onClick={() => setShowProfileMenu(!showProfileMenu)} style={{ background: 'rgba(0,212,182,0.1)', color: theme.cyan, border: `1px solid ${theme.cyan}`, borderRadius: '50%', width: '40px', height: '40px', cursor: 'pointer' }}>👤</button>
+                <button onClick={() => setShowProfileMenu(!showProfileMenu)} style={{ background: 'rgba(0,212,182,0.1)', color: theme.cyan, border: `1px solid ${theme.cyan}`, borderRadius: '50%', width: '40px', height: '40px', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '18px' }}>{userData?.is_vip ? '👑' : '👤'}</button>
                 <AnimatePresence>
                 {showProfileMenu && (
                     <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{opacity: 0}} style={{ position: 'absolute', top: '55px', right: 0, background: 'rgba(21,24,32,0.95)', border: `1px solid ${theme.border}`, borderRadius: '12px', padding: '15px', width: '240px' }}>
