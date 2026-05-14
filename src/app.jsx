@@ -6,8 +6,8 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { initMercadoPago, Payment } from '@mercadopago/sdk-react'; 
 import dadosFut from './dados.json'; 
 
-// 🔑 CHAVE DA API-SPORTS (O NOVO MOTOR!)
-const API_SPORTS_KEY = "AD696F6FCFF1E3A6C16295A93925FA20";
+// 🔑 A SUA NOVA CHAVE DA API-SPORTS
+const API_SPORTS_KEY = "7ff15d43907d5138e48674b29ab56a65";
 
 // 🔑 CHAVE PÚBLICA DE PRODUÇÃO MERCADO PAGO
 initMercadoPago('APP_USR-c05e91db-5e62-4838-8790-e73906d11dbc', { locale: 'pt-BR' });
@@ -23,7 +23,11 @@ const getPrediction = (p, name) => (Array.isArray(p) ? p.find(i => i.type?.devel
 const processarTrends = (d, h, a) => { if (!Array.isArray(d)) return null; const m = {}; d.forEach(t => { const n = t.type?.name, id = t.participant_id, v = t.data?.value ?? t.value, min = t.minute || 90; if (!m[n]) m[n] = { type: n, home: 0, away: 0, _mH: -1, _mA: -1 }; if (id === h && min > m[n]._mH) { m[n].home = v; m[n]._mH = min; } else if (id === a && min > m[n]._mA) { m[n].away = v; m[n]._mA = min; } }); return Object.values(m).map(({ type, home, away }) => ({ type, home, away })); };
 const formatarClassificacaoAPI = (d) => { if (!Array.isArray(d)) return []; return d.map(i => { const getStat = (c) => i.details?.find(x => x.type?.code === c)?.value || 0; return { position: i.position, team_name: i.participant?.name || "Equipe", logo: i.participant?.image_path || "", points: i.points || 0, matches_played: getStat('overall-matches-played'), won: getStat('overall-won'), draw: getStat('overall-draw'), lost: getStat('overall-lost'), goal_diff: getStat('goal-difference') }; }).sort((a, b) => a.position - b.position); };
 
-const listaEsportesFino = [{name:'Futebol',icon:'⚽'},{name:'Basquetebol',icon:'🏀'},{name:'Tênis',icon:'🎾'},{name:'Futebol Am.',icon:'🏈'},{name:'Beisebol',icon:'⚾'},{name:'Voleibol',icon:'🏐'},{name:'E-Sports',icon:'🎮'},{name:'UFC / MMA',icon:'🥊'},{name:'Fórmula 1',icon:'🏎️'}];
+// 🔥 FOCADO 100% NO FUTEBOL 🔥
+const listaEsportesFino = [
+  {name:'FUTEBOL',icon:'⚽'}
+];
+
 const listaLigas = [{name:'Todos',icon:'🌍'},{name:'Brasileirão Série A',icon:'🇧🇷'},{name:'Brasileirão Série B',icon:'🇧🇷'},{name:'Copa do Brasil',icon:'🏆'},{name:'Libertadores',icon:'🌎'},{name:'Champions League',icon:'⭐'},{name:'Premier League',icon:'🏴󠁧󠁢󠁥󠁮󠁧󠁿'},{name:'La Liga',icon:'🇪🇸'}];
 
 const MOCK_AGENDA = [{id:1,league:"La Liga",date:"2026-04-25 19:00",home:"Atlético Madrid",away:"Athletic Club",hImg:"https://cdn.sportmonks.com/images/soccer/teams/12/7980.png",aImg:"https://cdn.sportmonks.com/images/soccer/teams/10/13258.png"}];
@@ -66,7 +70,7 @@ export default function App() {
     }
   };
 
-  const [esporteAtivo, setEsporteAtivo] = useState('Futebol');
+  const [esporteAtivo, setEsporteAtivo] = useState('FUTEBOL');
   const [menuAtivo, setMenuAtivo] = useState('todos'); 
   const [userData, setUserData] = useState(null);
   const [jogos, setJogos] = useState([]);
@@ -122,20 +126,20 @@ export default function App() {
       setJogos(f.length > 0 ? f : j); 
   };
 
-  // 🔥 O NOVO MOTOR: API-SPORTS (COM COFRE) 🔥
+  // 🔥 O NOVO MOTOR: API-SPORTS (COM ESCUDO ANTI-ESTOURO) 🔥
   const carregarDadosEsporte = async (forcar = false) => {
     setApiError(''); 
     setLoading(true); 
     
     const CACHE_KEY = `bet_apisports_${dataFiltro}`;
     const CACHE_TIME_KEY = `bet_apisports_time_${dataFiltro}`;
-    const TEMPO_CACHE_MS = 5 * 60 * 1000; 
+    const TEMPO_CACHE_MS = 10 * 60 * 1000; // 10 MINUTOS DE PROTEÇÃO 🛡️
 
     if (!forcar) {
         const dadosGuardados = localStorage.getItem(CACHE_KEY);
         const tempoGuardado = localStorage.getItem(CACHE_TIME_KEY);
         if (dadosGuardados && tempoGuardado && (new Date().getTime() - parseInt(tempoGuardado) < TEMPO_CACHE_MS)) {
-            console.log("🟢 PUXANDO DO COFRE API-SPORTS");
+            console.log("🟢 PUXANDO DO COFRE (PROTEÇÃO DE API ATIVA)");
             aplicarFiltros(JSON.parse(dadosGuardados), menuAtivo);
             setLoading(false);
             return;
@@ -161,7 +165,6 @@ export default function App() {
           throw new Error("Nenhum jogo encontrado para esta data.");
       }
 
-      // Convertendo o formato da API-Sports para o formato que o seu site já usa
       const jF = res.data.response.map(f => {
           let statusAdaptado = 'Not Started';
           if (['1H', '2H', 'HT', 'ET', 'BT', 'P', 'SUSP', 'INT'].includes(f.fixture.status.short)) statusAdaptado = 'Live';
