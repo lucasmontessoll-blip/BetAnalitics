@@ -98,7 +98,6 @@ export default function App() {
 
   const diasSemana = getWeekDays(dataFiltro);
 
-  // 🔄 VERIFICAÇÃO DE SESSÃO COM REGRA VIP MESTRE
   useEffect(() => {
     const emailSalvo = localStorage.getItem('bet_sessao_ativa');
     if (emailSalvo) {
@@ -118,10 +117,30 @@ export default function App() {
 
   useEffect(() => { if (viewMode === 'classificacao') carregarClassificacao(menuAtivo); }, [viewMode, menuAtivo]);
 
+  // 🔥 TRADUTOR INTELIGENTE DE LIGAS (CORRIGIDO SÉRIE A) 🔥
   const aplicarFiltros = (j, m) => {
-      if (!j || !j.length) return;
-      const f = (m !== 'todos' && m !== 'todos os jogos') ? j.filter(x => (x.league_name?.toLowerCase() || "").includes(m.toLowerCase())) : j;
-      setJogos(f.length > 0 ? f : j); 
+      if (!j || !j.length) { setJogos([]); return; }
+      const menuNormalizado = m.toLowerCase();
+      
+      if (menuNormalizado === 'todos' || menuNormalizado === 'todos os jogos') {
+          setJogos(j); return;
+      }
+
+      const f = j.filter(x => {
+          const ln = (x.league_name || "").toLowerCase();
+          const lc = (x.league_country || "").toLowerCase();
+          
+          if (menuNormalizado === 'brasileirão série a') return ln.includes('serie a') && lc === 'brazil';
+          if (menuNormalizado === 'brasileirão série b') return ln.includes('serie b') && lc === 'brazil';
+          if (menuNormalizado === 'copa do brasil') return ln.includes('copa do brasil');
+          if (menuNormalizado === 'libertadores') return ln.includes('libertadores');
+          if (menuNormalizado === 'champions league') return ln.includes('champions league');
+          if (menuNormalizado === 'premier league') return ln.includes('premier league');
+          if (menuNormalizado === 'la liga') return ln.includes('la liga') || ln.includes('primera division');
+          
+          return ln.includes(menuNormalizado);
+      });
+      setJogos(f); 
   };
 
   const carregarClassificacao = async (liga) => {
@@ -129,11 +148,8 @@ export default function App() {
       setTimeout(() => { setLoadingClassificacao(false); }, 600);
   };
 
-  // 🔥 O NOVO MOTOR: API-SPORTS (COM ESCUDO ANTI-ESTOURO 10 MINUTOS) 🔥
   const carregarDadosEsporte = async (forcar = false) => {
-    setApiError(''); 
-    setLoading(true); 
-    
+    setApiError(''); setLoading(true); 
     const CACHE_KEY = `bet_apisports_${dataFiltro}`;
     const CACHE_TIME_KEY = `bet_apisports_time_${dataFiltro}`;
     const TEMPO_CACHE_MS = 10 * 60 * 1000; 
@@ -143,8 +159,7 @@ export default function App() {
         const tempoGuardado = localStorage.getItem(CACHE_TIME_KEY);
         if (dadosGuardados && tempoGuardado && (new Date().getTime() - parseInt(tempoGuardado) < TEMPO_CACHE_MS)) {
             aplicarFiltros(JSON.parse(dadosGuardados), menuAtivo);
-            setLoading(false);
-            return;
+            setLoading(false); return;
         }
     }
 
@@ -162,13 +177,11 @@ export default function App() {
           if (['FT', 'AET', 'PEN'].includes(f.fixture.status.short)) statusAdaptado = 'Finished';
 
           return {
-              id: f.fixture.id, league_name: f.league.name, starting_at: f.fixture.date, status: statusAdaptado,
+              id: f.fixture.id, league_name: f.league.name, league_country: f.league.country, starting_at: f.fixture.date, status: statusAdaptado,
               home_team: f.teams.home.name, home_id: f.teams.home.id, away_team: f.teams.away.name, away_id: f.teams.away.id, 
               home_image: f.teams.home.logo, away_image: f.teams.away.logo, 
               scoreHome: f.goals.home ?? 0, scoreAway: f.goals.away ?? 0, result_info: f.fixture.status.elapsed ? `${f.fixture.status.elapsed}'` : "", 
               odds_format: { home: "-", draw: "-", away: "-" }, venue: f.fixture.venue.name || "Estádio", 
-              
-              // Novos dados internos
               probs_calculadas: null, analise_texto: null, lineups_reais: null, stats_reais: null
           };
       });
@@ -180,55 +193,35 @@ export default function App() {
     } catch (e) { setApiError("⚠️ Sem cobertura para hoje."); } finally { setLoading(false); }
   };
 
-  // 🔥 SISTEMA INTELIGENTE DE PAINEL VIP (ANÁLISE, PROBS E ESCALAÇÕES) 🔥
   const abrirPainelDoJogo = async (j) => {
     if(!userData?.is_vip) { alert("🔒 VIP PRO requerido."); setShowProfileMenu(true); return; }
-    
-    // Se já buscou os dados antes e guardou no objeto do jogo (Economia de API!)
-    if (j.probs_calculadas) {
-        setJogoSelecionado(j);
-        setRightTab('Análise IA');
-        setAnaliseIA(j.analise_texto);
-        return;
-    }
+    if (j.probs_calculadas) { setJogoSelecionado(j); setRightTab('Análise IA'); setAnaliseIA(j.analise_texto); return; }
 
-    setJogoSelecionado(j); 
-    setRightTab('Análise IA'); 
-    setAnaliseIA("⚡ Extraindo Inteligência e Probabilidades da API-Sports...\nPor favor, aguarde."); 
+    setJogoSelecionado(j); setRightTab('Análise IA'); setAnaliseIA("⚡ Extraindo Inteligência e Probabilidades da API-Sports...\nPor favor, aguarde."); 
 
     try {
       const HEADERS = { 'x-apisports-key': API_SPORTS_KEY };
-      
-      // 1. CHAMA AS PREVISÕES (PROBS E IA)
       const resPred = await axios.get(`https://v3.football.api-sports.io/predictions?fixture=${j.id}`, { headers: HEADERS });
       const predData = resPred.data.response[0];
       
-      let probs = null;
-      let textoIA = "O modelo matemático não conseguiu processar este jogo devido à falta de histórico de confrontos.";
-      
+      let probs = null; let textoIA = "O modelo matemático não conseguiu processar este jogo devido à falta de histórico.";
       if (predData) {
           const perc = predData.predictions.percent;
           probs = { home: parseInt(perc.home), draw: parseInt(perc.draw), away: parseInt(perc.away) };
-          
           let bttsStatus = predData.predictions.btts ? "SIM" : "NÃO";
-          
-          textoIA = `🤖 ANÁLISE DE SISTEMA CONCLUÍDA\n\n📌 PALPITE OFICIAL:\n${predData.predictions.advice}\n\n📊 PROBABILIDADES MATEMÁTICAS:\nCasa: ${perc.home} | Empate: ${perc.draw} | Fora: ${perc.away}\nAmbas Marcam (BTTS): ${bttsStatus}\n\n⚔️ COMPARAÇÃO DE FORÇAS:\nAtaque Casa: ${predData.comparison.att.home} \nAtaque Fora: ${predData.comparison.att.away}\nDefesa Casa: ${predData.comparison.def.home} \nDefesa Fora: ${predData.comparison.def.away}\n\n💡 Dica de IA: O mercado ${predData.predictions.under_over} golos tem forte tendência com base nos últimos embates.`;
+          textoIA = `🤖 ANÁLISE DE SISTEMA CONCLUÍDA\n\n📌 PALPITE OFICIAL:\n${predData.predictions.advice}\n\n📊 PROBABILIDADES MATEMÁTICAS:\nCasa: ${perc.home} | Empate: ${perc.draw} | Fora: ${perc.away}\nAmbas Marcam (BTTS): ${bttsStatus}\n\n⚔️ COMPARAÇÃO DE FORÇAS:\nAtaque Casa: ${predData.comparison.att.home} \nAtaque Fora: ${predData.comparison.att.away}\nDefesa Casa: ${predData.comparison.def.home} \nDefesa Fora: ${predData.comparison.def.away}\n\n💡 Dica de IA: O mercado ${predData.predictions.under_over} golos tem forte tendência.`;
       }
 
-      // 2. CHAMA AS ESCALAÇÕES (LINEUPS)
       const resLineups = await axios.get(`https://v3.football.api-sports.io/fixtures/lineups?fixture=${j.id}`, { headers: HEADERS });
       const lineupsData = resLineups.data.response;
-      
       let escalacoesFinais = [];
       if (lineupsData && lineupsData.length === 2) {
           lineupsData[0].startXI.forEach((p, idx) => escalacoesFinais.push({ team_id: lineupsData[0].team.id, name: p.player.name, number: p.player.number, pos: idx }));
           lineupsData[1].startXI.forEach((p, idx) => escalacoesFinais.push({ team_id: lineupsData[1].team.id, name: p.player.name, number: p.player.number, pos: idx }));
       }
 
-      // 3. CHAMA AS ESTATÍSTICAS DO JOGO
       const resStats = await axios.get(`https://v3.football.api-sports.io/fixtures/statistics?fixture=${j.id}`, { headers: HEADERS });
       const statsData = resStats.data.response;
-      
       let estatisticasFinais = [];
       if (statsData && statsData.length === 2) {
           statsData[0].statistics.forEach(sH => {
@@ -237,24 +230,18 @@ export default function App() {
           });
       }
 
-      // Atualiza o jogo na memória principal para não gastar API de novo
       const jogoAtualizado = { ...j, probs_calculadas: probs, analise_texto: textoIA, lineups_reais: escalacoesFinais, stats_reais: estatisticasFinais };
-      
       setJogos(prevJogos => prevJogos.map(oldJ => oldJ.id === j.id ? jogoAtualizado : oldJ));
-      setJogoSelecionado(jogoAtualizado);
-      setAnaliseIA(textoIA);
+      setJogoSelecionado(jogoAtualizado); setAnaliseIA(textoIA);
 
-    } catch (e) { setAnaliseIA("⚠️ A API-Sports não possui dados táticos ou previsões disponíveis para esta liga neste exato momento."); }
+    } catch (e) { setAnaliseIA("⚠️ A API-Sports não possui dados táticos ou previsões disponíveis para este jogo no momento."); }
   };
 
   const carregarPerfilJogador = async () => {
     if (!userData?.is_vip) { alert("🔒 VIP PRO requerido."); setShowProfileMenu(true); return; }
     const { display_name, image_path, height, weight, date_of_birth, latest } = dadosFut;
     const statsRecentes = latest[0]?.xglineup || [];
-    setJogadorAberto({
-        nome: display_name, foto: image_path, nascimento: date_of_birth, altura: height, peso: weight,
-        statsRecentes: statsRecentes, ultimoJogo: latest[0]?.fixture?.name || "Partida"
-    });
+    setJogadorAberto({ nome: display_name, foto: image_path, nascimento: date_of_birth, altura: height, peso: weight, statsRecentes: statsRecentes, ultimoJogo: latest[0]?.fixture?.name || "Partida" });
   };
 
   const carregarBanca = async () => { try { const res = await axios.get(`${API_URL}/banca/${userData.email}`); setBancaData(res.data?.historico || []); } catch (e) { setBancaData([]); } };
@@ -262,19 +249,12 @@ export default function App() {
   const handleLogin = async () => {
     const emailDigitado = loginEmail.trim().toLowerCase();
     if (!emailDigitado || !loginSenha) return alert("❌ Preencha E-mail e Senha.");
-    
     if (EMAILS_VIP_MESTRE.includes(emailDigitado)) {
-        setUserData({ email: emailDigitado, is_vip: true });
-        localStorage.setItem('bet_sessao_ativa', emailDigitado);
-        setShowLoginMenu(false);
-        return;
+        setUserData({ email: emailDigitado, is_vip: true }); localStorage.setItem('bet_sessao_ativa', emailDigitado); setShowLoginMenu(false); return;
     }
-
     let bL = {}; try { bL = JSON.parse(localStorage.getItem('bet_users') || '{}'); } catch(err) {}
     if (bL[emailDigitado] && bL[emailDigitado].password === loginSenha) {
-        setUserData(bL[emailDigitado]);
-        localStorage.setItem('bet_sessao_ativa', emailDigitado);
-        setShowLoginMenu(false);
+        setUserData(bL[emailDigitado]); localStorage.setItem('bet_sessao_ativa', emailDigitado); setShowLoginMenu(false);
     } else { alert("❌ E-mail ou Senha incorretos."); }
   };
 
@@ -288,6 +268,7 @@ export default function App() {
 
   const toggleFavorito = (e, id) => { e.stopPropagation(); setFavoritos(p => p.includes(id) ? p.filter(f => f !== id) : [...p, id]); };
 
+  // APLICAÇÃO DA BARRA DE PESQUISA NOS JOGOS
   let jogosFiltrados = (Array.isArray(jogos) ? jogos : []).filter(j => {
     let mB = (j.home_team||"").toLowerCase().includes(busca.toLowerCase()) || (j.away_team||"").toLowerCase().includes(busca.toLowerCase());
     let mF = filterCentro === 'Ao Vivo' ? j.status?.toLowerCase().includes('live') : filterCentro === 'Próximo' ? !j.status?.toLowerCase().includes('finished') : filterCentro === 'Terminado' ? j.status?.toLowerCase().includes('finished') : true;
@@ -410,6 +391,18 @@ export default function App() {
 
             <div className="custom-scrollbar" style={{ flex: 1, overflowY: 'auto', background: theme.bgApp, padding: isMobile ? '10px' : '20px 25px' }}>
               
+              {/* 🔥 BARRA DE PESQUISA GLOBAL (EXATAMENTE ONDE PEDIU) 🔥 */}
+              <div style={{ marginBottom: '20px', position: 'relative' }}>
+                  <span style={{ position: 'absolute', left: '15px', top: '50%', transform: 'translateY(-50%)', color: theme.textMuted }}>🔍</span>
+                  <input 
+                      type="text"
+                      placeholder="Pesquisar por equipa (ex: Real Madrid, Flamengo)..." 
+                      value={busca}
+                      onChange={e => setBusca(e.target.value)}
+                      style={{ width: '100%', padding: '14px 15px 14px 45px', background: theme.bgPanel, border: `1px solid ${theme.border}`, borderRadius: '12px', color: theme.textMain, outline: 'none', fontSize: '14px' }}
+                  />
+              </div>
+
               {isMobile && (
                   <div style={{ marginBottom: '20px' }}>
                       <div style={{ display: 'flex', padding: '6px', gap: '5px', background: '#0f111a', borderRadius: '8px', border: `1px solid ${theme.border}`, marginBottom: '12px' }}>
@@ -469,14 +462,14 @@ export default function App() {
                       {loading && <div style={{textAlign: 'center', padding: '20px', color: theme.cyan, fontWeight: 'bold'}}>A carregar jogos reais da API-Sports...</div>}
                       {apiError && <div style={{background: 'rgba(239, 68, 68, 0.1)', border: `1px solid ${theme.red}`, padding: '15px', color: theme.red, marginBottom: '20px', borderRadius: '8px', fontSize: '13px', fontWeight: 'bold', textAlign: 'center'}}>{apiError}</div>}
 
-                      {!loading && Object.keys(jogosAgrupados).length === 0 ? <div style={{padding: '60px 20px', color: theme.textMuted, textAlign: 'center', background: theme.bgPanel, borderRadius: '12px', border: `1px dashed ${theme.border}`}}>Nenhuma partida encontrada para esta data.</div> :
+                      {!loading && Object.keys(jogosAgrupados).length === 0 ? <div style={{padding: '60px 20px', color: theme.textMuted, textAlign: 'center', background: theme.bgPanel, borderRadius: '12px', border: `1px dashed ${theme.border}`}}>Nenhuma partida encontrada para esta busca.</div> :
                       Object.entries(jogosAgrupados).map(([leagueName, games]) => (
                           <div key={leagueName} style={{marginBottom: '25px', background: theme.bgPanel, borderRadius: '12px', border: `1px solid ${theme.border}`, overflow: 'hidden'}}>
-                              <div style={{padding: '15px 20px', background: theme.bgHover, fontWeight: 'bold'}}>{leagueName}</div>
+                              <div style={{padding: '15px 20px', background: theme.bgHover, fontWeight: 'bold', borderBottom: `1px solid ${theme.border}`}}>{leagueName}</div>
                               {games.map(j => {
                                   const isSelected = jogoSelecionado?.id === j.id; const isFav = favoritos.includes(j.id);
                                   return (
-                                      <div key={j.id} onClick={() => abrirPainelDoJogo(j)} style={{display: 'flex', alignItems: 'center', padding: '15px 20px', borderTop: `1px solid ${theme.border}`, cursor: 'pointer', background: isSelected ? 'rgba(0, 212, 182, 0.1)' : 'transparent', borderLeft: isSelected ? `3px solid ${theme.cyan}` : '3px solid transparent'}}>
+                                      <div key={j.id} onClick={() => abrirPainelDoJogo(j)} style={{display: 'flex', alignItems: 'center', padding: '15px 20px', borderBottom: `1px solid ${theme.border}`, cursor: 'pointer', background: isSelected ? 'rgba(0, 212, 182, 0.1)' : 'transparent', borderLeft: isSelected ? `3px solid ${theme.cyan}` : '3px solid transparent'}}>
                                           <div style={{ width: '45px', fontSize: '12px', color: j.status === 'Finished' ? theme.textMuted : (j.status === 'Not Started' ? theme.textMain : theme.red), fontWeight: 'bold' }}>{j.status === 'Finished' ? 'FT' : (j.status === 'Not Started' ? j.starting_at?.split('T')[1]?.substring(0,5) : 'LIVE')}</div>
                                           <div style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
                                               <div style={{ flex: 1, textAlign: 'right', fontSize: '14px', fontWeight: '600' }}>{j.home_team}</div>
