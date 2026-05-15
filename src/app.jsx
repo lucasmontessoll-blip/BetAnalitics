@@ -166,8 +166,17 @@ export default function App() {
     setJogos([]); 
     
     try {
-      const options = { method: 'GET', url: 'https://v3.football.api-sports.io/fixtures', params: { date: dataFiltro }, headers: { 'x-apisports-key': API_SPORTS_KEY } };
-      const res = await axios.request(options);
+      
+      const options = {
+        method: 'GET',
+        url: 'https://v3.football.api-sports.io/fixtures',
+        params: { 
+            date: dataFiltro,
+            timezone: 'America/Sao_Paulo' // 🔥 FORÇANDO O HORÁRIO DO BRASIL 🔥
+        },
+        headers: { 'x-apisports-key': API_SPORTS_KEY }
+      };
+        const res = await axios.request(options);
       
       if (!res.data || !res.data.response || res.data.response.length === 0) throw new Error("Vazio");
 
