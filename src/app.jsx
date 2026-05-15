@@ -147,21 +147,20 @@ export default function App() {
               id: f.fixture.id, league_name: f.league.name, league_country: f.league.country, starting_at: f.fixture.date, status: st,
               home_team: f.teams.home.name, home_id: f.teams.home.id, away_team: f.teams.away.name, away_id: f.teams.away.id, 
               home_image: f.teams.home.logo, away_image: f.teams.away.logo, scoreHome: f.goals.home ?? 0, scoreAway: f.goals.away ?? 0, result_info: f.fixture.status.elapsed ? `${f.fixture.status.elapsed}'` : "", venue: f.fixture.venue.name || "Estádio", 
-              dados_vip_baixados: false // Flag para saber se já baixamos IA/Odds/Lineups
+              dados_vip_baixados: false
           };
       });
       localStorage.setItem(CACHE_KEY, JSON.stringify(jF)); localStorage.setItem(CACHE_TIME_KEY, new Date().getTime().toString()); aplicarFiltros(jF, menuAtivo); 
     } catch (e) { setApiError("⚠️ Sem cobertura para hoje."); } finally { setLoading(false); }
   };
 
-  // 🔥 SUPER MOTOR VIP (PROMISES SIMULTÂNEAS PARA NÃO TRAVAR) 🔥
+  // 🔥 SUPER MOTOR VIP (PROMISES SIMULTÂNEAS COM PARSER BLINDADO) 🔥
   const abrirPainelDoJogo = async (j) => {
     if(!userData?.is_vip) { alert("🔒 VIP PRO requerido."); setShowProfileMenu(true); return; }
     
     setRightTab('Análise IA'); 
     if (j.dados_vip_baixados) { setJogoSelecionado(j); return; } // Cache em Memória Ativo
 
-    // Mostrar Pop-up de carregamento e estrutura base enquanto baixa
     const tempJogo = { ...j, is_loading_vip: true };
     setJogoSelecionado(tempJogo);
 
@@ -169,7 +168,6 @@ export default function App() {
       const HEADERS = { 'x-apisports-key': API_SPORTS_KEY };
       const PARAMS = { fixture: j.id };
 
-      // Faz as 5 chamadas de Elite ao mesmo tempo para ser rápido (Promise.all)
       const [resPred, resLineups, resStats, resPlayers, resOdds] = await Promise.all([
           axios.get('https://v3.football.api-sports.io/predictions', { params: PARAMS, headers: HEADERS }).catch(()=>({data:{response:[]}})),
           axios.get('https://v3.football.api-sports.io/fixtures/lineups', { params: PARAMS, headers: HEADERS }).catch(()=>({data:{response:[]}})),
@@ -184,11 +182,17 @@ export default function App() {
       const dPlayers = resPlayers.data.response || [];
       const dOdds = resOdds.data.response[0] || null;
 
-      // 1. Processar IA e H2H
+      // 1. Processar IA e H2H (Correção das Percentagens)
       let analiseData = { probs: null, advice: "Análise indisponível.", formHome: '', formAway: '', h2h_msg: '', avg_goals: '' };
       if (dPred) {
-          analiseData.probs = { home: dPred.predictions.percent.home, draw: dPred.predictions.percent.draw, away: dPred.predictions.percent.away, btts: dPred.predictions.btts ? "SIM" : "NÃO" };
-          analiseData.advice = dPred.predictions.advice;
+          const perc = dPred.predictions?.percent || {};
+          analiseData.probs = { 
+              home: parseInt(perc.home) || 0, 
+              draw: parseInt(perc.draw) || 0, 
+              away: parseInt(perc.away) || 0, 
+              btts: dPred.predictions?.btts ? "SIM" : "NÃO" 
+          };
+          analiseData.advice = dPred.predictions?.advice || "Sem palpite claro.";
           analiseData.formHome = dPred.teams?.home?.league?.form || '';
           analiseData.formAway = dPred.teams?.away?.league?.form || '';
           analiseData.avg_goals = `Média Casa (Marcos: ${dPred.teams?.home?.last_5?.goals?.for?.average || '0'}) | Fora (Marcos: ${dPred.teams?.away?.last_5?.goals?.for?.average || '0'})`;
@@ -198,44 +202,70 @@ export default function App() {
           analiseData.h2h_msg = `Nos últimos ${Math.min((dPred.h2h || []).length, 5)} confrontos diretos: ${vitoriasH} Vitórias Casa, ${vitoriasA} Vitórias Fora e ${empates} Empates.`;
       }
 
-      // 2. Processar Escalações, Tática e Treinador
+      // 2. Processar Escalações e Treinador (Buscador Dinâmico Blindado)
       let taticas = { home: 'N/A', away: 'N/A', coachHome: 'N/A', coachAway: 'N/A' };
       let escalacoesFinais = []; let subsFinais = [];
-      if (dLineups.length === 2) {
-          taticas.home = dLineups[0].formation || 'N/A'; taticas.away = dLineups[1].formation || 'N/A';
-          taticas.coachHome = dLineups[0].coach?.name || 'N/A'; taticas.coachAway = dLineups[1].coach?.name || 'N/A';
-          dLineups[0].startXI.forEach((p, idx) => escalacoesFinais.push({ team_id: dLineups[0].team.id, name: p.player.name, number: p.player.number, pos: idx }));
-          dLineups[1].startXI.forEach((p, idx) => escalacoesFinais.push({ team_id: dLineups[1].team.id, name: p.player.name, number: p.player.number, pos: idx }));
-          dLineups[0].substitutes.forEach((p, idx) => subsFinais.push({ team_id: dLineups[0].team.id, name: p.player.name, number: p.player.number }));
-          dLineups[1].substitutes.forEach((p, idx) => subsFinais.push({ team_id: dLineups[1].team.id, name: p.player.name, number: p.player.number }));
+      if (dLineups && dLineups.length > 0) {
+          const homeLineup = dLineups.find(l => l.team.id === j.home_id);
+          const awayLineup = dLineups.find(l => l.team.id === j.away_id);
+          
+          if (homeLineup) {
+              taticas.home = homeLineup.formation || 'N/A';
+              taticas.coachHome = homeLineup.coach?.name || 'N/A';
+              (homeLineup.startXI || []).forEach((p, idx) => escalacoesFinais.push({ team_id: j.home_id, name: p.player.name, number: p.player.number, pos: idx }));
+              (homeLineup.substitutes || []).forEach((p, idx) => subsFinais.push({ team_id: j.home_id, name: p.player.name, number: p.player.number }));
+          }
+          if (awayLineup) {
+              taticas.away = awayLineup.formation || 'N/A';
+              taticas.coachAway = awayLineup.coach?.name || 'N/A';
+              (awayLineup.startXI || []).forEach((p, idx) => escalacoesFinais.push({ team_id: j.away_id, name: p.player.name, number: p.player.number, pos: idx }));
+              (awayLineup.substitutes || []).forEach((p, idx) => subsFinais.push({ team_id: j.away_id, name: p.player.name, number: p.player.number }));
+          }
       }
 
-      // 3. Processar Estatísticas Gerais e de Jogadores (Notas)
+      // 3. Processar Estatísticas Gerais (Buscador Dinâmico Blindado)
       let estatisticasFinais = [];
-      if (dStats.length === 2) {
-          dStats[0].statistics.forEach(sH => {
-              const sA = dStats[1].statistics.find(s => s.type === sH.type);
-              estatisticasFinais.push({ type: sH.type, home: parseInt(sH.value) || 0, away: parseInt(sA ? sA.value : 0) || 0 });
+      if (dStats && dStats.length > 0) {
+          const homeStats = dStats.find(s => s.team.id === j.home_id)?.statistics || [];
+          const awayStats = dStats.find(s => s.team.id === j.away_id)?.statistics || [];
+          
+          homeStats.forEach(sH => {
+              const sA = awayStats.find(s => s.type === sH.type);
+              let valH = sH.value; let valA = sA ? sA.value : 0;
+              // Limpar símbolos se existirem
+              if (typeof valH === 'string' && valH.includes('%')) valH = parseInt(valH);
+              if (typeof valA === 'string' && valA.includes('%')) valA = parseInt(valA);
+              estatisticasFinais.push({ type: sH.type, home: parseInt(valH) || 0, away: parseInt(valA) || 0 });
           });
       }
+
+      // 4. Notas dos Jogadores
       let topJogadores = [];
-      if (dPlayers.length === 2) {
-          const allPlayers = [...dPlayers[0].players, ...dPlayers[1].players].map(p => ({
-              name: p.player.name, team_logo: p.statistics[0].team.logo, rating: parseFloat(p.statistics[0].games.rating || 0).toFixed(1), shots: p.statistics[0].shots.total || 0, passes: p.statistics[0].passes.accuracy || 0
-          })).sort((a, b) => b.rating - a.rating).filter(p => p.rating > 0).slice(0, 4); // Pega os 4 melhores em campo
+      if (dPlayers && dPlayers.length > 0) {
+          const homeP = dPlayers.find(p => p.team.id === j.home_id)?.players || [];
+          const awayP = dPlayers.find(p => p.team.id === j.away_id)?.players || [];
+          const allPlayers = [...homeP, ...awayP].map(p => {
+              const stats = p.statistics[0] || {};
+              return {
+                  name: p.player.name, 
+                  team_logo: stats.team?.logo || '', 
+                  rating: parseFloat(stats.games?.rating || 0).toFixed(1), 
+                  shots: stats.shots?.total || 0, 
+                  passes: stats.passes?.accuracy || 0
+              };
+          }).sort((a, b) => b.rating - a.rating).filter(p => p.rating > 0).slice(0, 4); 
           topJogadores = allPlayers;
       }
 
-      // 4. Processar Odds Reais (Casas de Apostas)
+      // 5. Processar Odds Reais (Casas de Apostas)
       let oddsProcessadas = { match_winner: null, goals_ou: null, btts: null };
       if (dOdds && dOdds.bookmakers && dOdds.bookmakers.length > 0) {
-          const bookie = dOdds.bookmakers[0]; // Pega a Bet365/1xBet disponível
+          const bookie = dOdds.bookmakers.find(b => b.id === 8) || dOdds.bookmakers[0]; // Bet365 ou 1ª disponível
           oddsProcessadas.match_winner = bookie.bets.find(b => b.name === 'Match Winner')?.values || [];
           oddsProcessadas.goals_ou = bookie.bets.find(b => b.name === 'Goals Over/Under' && b.values.some(v => String(v.value).includes('2.5')))?.values || [];
           oddsProcessadas.btts = bookie.bets.find(b => b.name === 'Both Teams Score')?.values || [];
       }
 
-      // 5. Atualiza o estado
       const jogoAtualizado = { 
           ...j, dados_vip_baixados: true, is_loading_vip: false,
           analise_ia: analiseData, taticas_treinadores: taticas,
@@ -450,7 +480,7 @@ export default function App() {
   );
 }
 
-// 🔥 NOVO COMPONENTE DO PAINEL DIREITO (COM TUDO O QUE A API TEM DIREITO) 🔥
+// 🔥 NOVO COMPONENTE DO PAINEL DIREITO (COM TUDO O QUE A API TEM DIREITO E BLINDADO) 🔥
 function RightPanelComponent({ jogoSelecionado, rightTab, setRightTab, isMobile, userData }) {
     if (!jogoSelecionado) return ( <div style={{ width: isMobile ? '100%' : '420px', background: theme.bgApp, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', color: theme.textMuted, padding: '30px' }}><div style={{fontSize: '30px', marginBottom: '20px'}}>🏟️</div><h3>Análise VIP</h3><p style={{fontSize: '13px', textAlign: 'center'}}>Selecione uma partida.</p></div> );
     
@@ -501,7 +531,7 @@ function RightPanelComponent({ jogoSelecionado, rightTab, setRightTab, isMobile,
                                 </motion.div> 
                             )}
                             
-                            {/* 📊 PROBABILIDADES E ODDS REAIS */}
+                            {/* 📊 PROBABILIDADES E ODDS REAIS BLINDADAS */}
                             {rightTab === 'Probs' && ( 
                                 <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }}>
                                     {jogoSelecionado.analise_ia?.probs ? ( 
@@ -514,7 +544,9 @@ function RightPanelComponent({ jogoSelecionado, rightTab, setRightTab, isMobile,
                                                     <div style={{width: `${jogoSelecionado.analise_ia.probs.away}%`, background: theme.yellow}}></div>
                                                 </div>
                                                 <div style={{display: 'flex', justifyContent: 'space-between', fontSize: '11px', fontWeight: 'bold'}}>
-                                                    <span style={{color: theme.cyan}}>Casa: {jogoSelecionado.analise_ia.probs.home}%</span><span style={{color: theme.textMuted}}>Emp: {jogoSelecionado.analise_ia.probs.draw}%</span><span style={{color: theme.yellow}}>Fora: {jogoSelecionado.analise_ia.probs.away}%</span>
+                                                    <span style={{color: theme.cyan}}>Casa: {jogoSelecionado.analise_ia.probs.home}%</span>
+                                                    <span style={{color: theme.textMuted}}>Emp: {jogoSelecionado.analise_ia.probs.draw}%</span>
+                                                    <span style={{color: theme.yellow}}>Fora: {jogoSelecionado.analise_ia.probs.away}%</span>
                                                 </div>
                                             </div>
 
@@ -542,7 +574,7 @@ function RightPanelComponent({ jogoSelecionado, rightTab, setRightTab, isMobile,
                                 </motion.div> 
                             )}
                             
-                            {/* 🏃 ESCALAÇÕES - COM TREINADOR E TÁTICA E RESERVAS */}
+                            {/* 🏃 ESCALAÇÕES - BUSCADOR DINÂMICO E BLINDADO */}
                             {rightTab === 'Escalações' && ( 
                                 <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }}>
                                     {jogoSelecionado.lineups_reais && jogoSelecionado.lineups_reais.length > 0 ? ( 
@@ -577,14 +609,13 @@ function RightPanelComponent({ jogoSelecionado, rightTab, setRightTab, isMobile,
                                                 </div>
                                             </div>
                                         </> 
-                                    ) : <div style={{textAlign: 'center', padding: '40px 0', color: theme.textMuted, fontSize: '13px'}}>Escalações não divulgadas.</div>}
+                                    ) : <div style={{textAlign: 'center', padding: '40px 0', color: theme.textMuted, fontSize: '13px'}}>Escalações oficiais ainda não foram divulgadas.</div>}
                                 </motion.div> 
                             )}
 
-                            {/* 📈 ESTATÍSTICAS E DESTAQUES DE JOGADORES */}
+                            {/* 📈 ESTATÍSTICAS E DESTAQUES DE JOGADORES - BLINDADAS */}
                             {rightTab === 'Estatísticas' && ( 
                                 <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }}>
-                                    {/* MELHORES JOGADORES (NOTAS) */}
                                     {jogoSelecionado.top_jogadores && jogoSelecionado.top_jogadores.length > 0 && (
                                         <div style={{marginBottom: '20px'}}>
                                             <h4 style={{fontSize: '11px', color: theme.textMuted, textTransform: 'uppercase', marginBottom: '10px'}}>Destaques da Partida (Notas)</h4>
@@ -608,7 +639,7 @@ function RightPanelComponent({ jogoSelecionado, rightTab, setRightTab, isMobile,
                                                 return <StatRow key={index} label={labelPt} home={s.home} away={s.away} /> 
                                             })}
                                         </div> 
-                                    ) : <div style={{textAlign: 'center', padding: '40px 0', color: theme.textMuted, fontSize: '13px'}}>Estatísticas em processamento.</div>}
+                                    ) : <div style={{textAlign: 'center', padding: '40px 0', color: theme.textMuted, fontSize: '13px'}}>A aguardar o início da partida para gerar estatísticas.</div>}
                                 </motion.div> 
                             )}
                         </>
