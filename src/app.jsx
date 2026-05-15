@@ -22,19 +22,10 @@ const theme = { bgApp: '#090a0f', bgPanel: '#13161f', bgHover: '#1c202d', border
 const getLocalYYYYMMDD = () => { const d = new Date(); d.setMinutes(d.getMinutes() - d.getTimezoneOffset()); return d.toISOString().split('T')[0]; };
 const getWeekDays = (b) => Array.from({length: 7}, (_, i) => { const d = new Date(b + "T12:00:00Z"); d.setDate(d.getDate() + i - 3); return { iso: d.toISOString().split('T')[0], nome: ['DOM','SEG','TER','QUA','QUI','SEX','SÁB'][d.getDay()], dia: `${String(d.getDate()).padStart(2, '0')}/${String(d.getMonth()+1).padStart(2, '0')}` }; });
 const generateMockMomentum = () => Array.from({length: 46}, (_, i) => ({ time: i * 2, pressao: Math.floor(Math.random() * 100) - 50 }));
-const getPrediction = (p, name) => (Array.isArray(p) ? p.find(i => i.type?.developer_name === name)?.predictions || null : null);
-const processarTrends = (d, h, a) => { if (!Array.isArray(d)) return null; const m = {}; d.forEach(t => { const n = t.type?.name, id = t.participant_id, v = t.data?.value ?? t.value, min = t.minute || 90; if (!m[n]) m[n] = { type: n, home: 0, away: 0, _mH: -1, _mA: -1 }; if (id === h && min > m[n]._mH) { m[n].home = v; m[n]._mH = min; } else if (id === a && min > m[n]._mA) { m[n].away = v; m[n]._mA = min; } }); return Object.values(m).map(({ type, home, away }) => ({ type, home, away })); };
-const formatarClassificacaoAPI = (d) => { if (!Array.isArray(d)) return []; return d.map(i => { const getStat = (c) => i.details?.find(x => x.type?.code === c)?.value || 0; return { position: i.position, team_name: i.participant?.name || "Equipe", logo: i.participant?.image_path || "", points: i.points || 0, matches_played: getStat('overall-matches-played'), won: getStat('overall-won'), draw: getStat('overall-draw'), lost: getStat('overall-lost'), goal_diff: getStat('goal-difference') }; }).sort((a, b) => a.position - b.position); };
-
-const extrairTVs = (f) => { if (!Array.isArray(f.tvstations)) return []; const tvs = []; const ids = new Set(); f.tvstations.forEach(t => { if (t?.tvstation && !ids.has(t.tvstation.id) && t.tvstation.name) { ids.add(t.tvstation.id); tvs.push({ id: t.tvstation.id, name: t.tvstation.name, image: t.tvstation.image_path, url: t.tvstation.url }); } }); return tvs; };
 
 // 🔥 FOCADO 100% NO FUTEBOL 🔥
-const listaEsportesFino = [
-  {name:'FUTEBOL',icon:'⚽'}
-];
+const listaEsportesFino = [{name:'FUTEBOL',icon:'⚽'}];
 const listaLigas = [{name:'Todos',icon:'🌍'},{name:'Brasileirão Série A',icon:'🇧🇷'},{name:'Brasileirão Série B',icon:'🇧🇷'},{name:'Copa do Brasil',icon:'🏆'},{name:'Libertadores',icon:'🌎'},{name:'Champions League',icon:'⭐'},{name:'Premier League',icon:'🏴󠁧󠁢󠁥󠁮󠁧󠁿'},{name:'La Liga',icon:'🇪🇸'}];
-
-const MOCK_AGENDA = [{id:1,league:"La Liga",date:"2026-04-25 19:00",home:"Atlético Madrid",away:"Athletic Club",hImg:"https://cdn.sportmonks.com/images/soccer/teams/12/7980.png",aImg:"https://cdn.sportmonks.com/images/soccer/teams/10/13258.png"}];
 
 function AdPlaceholder({ type = 'horizontal' }) {
     const isHorizontal = type === 'horizontal';
@@ -86,7 +77,7 @@ export default function App() {
   const [viewMode, setViewMode] = useState('jogos'); 
   const [classificacao, setClassificacao] = useState([]);
   const [loadingClassificacao, setLoadingClassificacao] = useState(false);
-  const [rightTab, setRightTab] = useState('Detalhes'); 
+  const [rightTab, setRightTab] = useState('Análise IA'); 
   const [filterCentro, setFilterCentro] = useState('Todos');
 
   const [authMode, setAuthMode] = useState('login'); 
@@ -100,7 +91,6 @@ export default function App() {
   const [analiseIA, setAnaliseIA] = useState('');
   const [jogoSelecionado, setJogoSelecionado] = useState(null);
   const [bancaData, setBancaData] = useState([]);
-  const [estatisticas, setEstatisticas] = useState(null);
   const [favoritos, setFavoritos] = useState([]);
   
   const [jogadorAberto, setJogadorAberto] = useState(null);
@@ -146,13 +136,12 @@ export default function App() {
     
     const CACHE_KEY = `bet_apisports_${dataFiltro}`;
     const CACHE_TIME_KEY = `bet_apisports_time_${dataFiltro}`;
-    const TEMPO_CACHE_MS = 10 * 60 * 1000; // 10 MINUTOS DE PROTEÇÃO 🛡️
+    const TEMPO_CACHE_MS = 10 * 60 * 1000; 
 
     if (!forcar) {
         const dadosGuardados = localStorage.getItem(CACHE_KEY);
         const tempoGuardado = localStorage.getItem(CACHE_TIME_KEY);
         if (dadosGuardados && tempoGuardado && (new Date().getTime() - parseInt(tempoGuardado) < TEMPO_CACHE_MS)) {
-            console.log("🟢 PUXANDO DO COFRE (PROTEÇÃO DE API ATIVA)");
             aplicarFiltros(JSON.parse(dadosGuardados), menuAtivo);
             setLoading(false);
             return;
@@ -160,21 +149,12 @@ export default function App() {
     }
 
     setJogos([]); 
-    console.log("🔴 CONSUMINDO API-SPORTS REAL");
     
     try {
-      const options = {
-        method: 'GET',
-        url: 'https://v3.football.api-sports.io/fixtures',
-        params: { date: dataFiltro },
-        headers: { 'x-apisports-key': API_SPORTS_KEY }
-      };
-      
+      const options = { method: 'GET', url: 'https://v3.football.api-sports.io/fixtures', params: { date: dataFiltro }, headers: { 'x-apisports-key': API_SPORTS_KEY } };
       const res = await axios.request(options);
       
-      if (!res.data || !res.data.response || res.data.response.length === 0) {
-          throw new Error("Nenhum jogo encontrado para esta data.");
-      }
+      if (!res.data || !res.data.response || res.data.response.length === 0) throw new Error("Vazio");
 
       const jF = res.data.response.map(f => {
           let statusAdaptado = 'Not Started';
@@ -182,35 +162,89 @@ export default function App() {
           if (['FT', 'AET', 'PEN'].includes(f.fixture.status.short)) statusAdaptado = 'Finished';
 
           return {
-              id: f.fixture.id, 
-              league_name: f.league.name, 
-              starting_at: f.fixture.date, 
-              status: statusAdaptado,
-              home_team: f.teams.home.name, home_id: f.teams.home.id, 
-              away_team: f.teams.away.name, away_id: f.teams.away.id, 
+              id: f.fixture.id, league_name: f.league.name, starting_at: f.fixture.date, status: statusAdaptado,
+              home_team: f.teams.home.name, home_id: f.teams.home.id, away_team: f.teams.away.name, away_id: f.teams.away.id, 
               home_image: f.teams.home.logo, away_image: f.teams.away.logo, 
-              scores: [],
-              scoreHome: f.goals.home ?? 0, 
-              scoreAway: f.goals.away ?? 0, 
-              result_info: f.fixture.status.elapsed ? `${f.fixture.status.elapsed}'` : "", 
-              predictions: [],
-              odds_format: { home: "-", draw: "-", away: "-" }, 
-              venue: f.fixture.venue.name || "Estádio", 
-              sidelined: [], events: [], lineups: [], xgfixture: [], stats: [], tvstations: []
+              scoreHome: f.goals.home ?? 0, scoreAway: f.goals.away ?? 0, result_info: f.fixture.status.elapsed ? `${f.fixture.status.elapsed}'` : "", 
+              odds_format: { home: "-", draw: "-", away: "-" }, venue: f.fixture.venue.name || "Estádio", 
+              
+              // Novos dados internos
+              probs_calculadas: null, analise_texto: null, lineups_reais: null, stats_reais: null
           };
       });
 
       localStorage.setItem(CACHE_KEY, JSON.stringify(jF));
       localStorage.setItem(CACHE_TIME_KEY, new Date().getTime().toString());
-      
       aplicarFiltros(jF, menuAtivo); 
 
-    } catch (e) { 
-        console.error("Erro na API-Sports:", e);
-        setApiError("⚠️ Limite da API atingido ou sem jogos hoje."); 
-    } finally { 
-        setLoading(false); 
+    } catch (e) { setApiError("⚠️ Sem cobertura para hoje."); } finally { setLoading(false); }
+  };
+
+  // 🔥 SISTEMA INTELIGENTE DE PAINEL VIP (ANÁLISE, PROBS E ESCALAÇÕES) 🔥
+  const abrirPainelDoJogo = async (j) => {
+    if(!userData?.is_vip) { alert("🔒 VIP PRO requerido."); setShowProfileMenu(true); return; }
+    
+    // Se já buscou os dados antes e guardou no objeto do jogo (Economia de API!)
+    if (j.probs_calculadas) {
+        setJogoSelecionado(j);
+        setRightTab('Análise IA');
+        setAnaliseIA(j.analise_texto);
+        return;
     }
+
+    setJogoSelecionado(j); 
+    setRightTab('Análise IA'); 
+    setAnaliseIA("⚡ Extraindo Inteligência e Probabilidades da API-Sports...\nPor favor, aguarde."); 
+
+    try {
+      const HEADERS = { 'x-apisports-key': API_SPORTS_KEY };
+      
+      // 1. CHAMA AS PREVISÕES (PROBS E IA)
+      const resPred = await axios.get(`https://v3.football.api-sports.io/predictions?fixture=${j.id}`, { headers: HEADERS });
+      const predData = resPred.data.response[0];
+      
+      let probs = null;
+      let textoIA = "O modelo matemático não conseguiu processar este jogo devido à falta de histórico de confrontos.";
+      
+      if (predData) {
+          const perc = predData.predictions.percent;
+          probs = { home: parseInt(perc.home), draw: parseInt(perc.draw), away: parseInt(perc.away) };
+          
+          let bttsStatus = predData.predictions.btts ? "SIM" : "NÃO";
+          
+          textoIA = `🤖 ANÁLISE DE SISTEMA CONCLUÍDA\n\n📌 PALPITE OFICIAL:\n${predData.predictions.advice}\n\n📊 PROBABILIDADES MATEMÁTICAS:\nCasa: ${perc.home} | Empate: ${perc.draw} | Fora: ${perc.away}\nAmbas Marcam (BTTS): ${bttsStatus}\n\n⚔️ COMPARAÇÃO DE FORÇAS:\nAtaque Casa: ${predData.comparison.att.home} \nAtaque Fora: ${predData.comparison.att.away}\nDefesa Casa: ${predData.comparison.def.home} \nDefesa Fora: ${predData.comparison.def.away}\n\n💡 Dica de IA: O mercado ${predData.predictions.under_over} golos tem forte tendência com base nos últimos embates.`;
+      }
+
+      // 2. CHAMA AS ESCALAÇÕES (LINEUPS)
+      const resLineups = await axios.get(`https://v3.football.api-sports.io/fixtures/lineups?fixture=${j.id}`, { headers: HEADERS });
+      const lineupsData = resLineups.data.response;
+      
+      let escalacoesFinais = [];
+      if (lineupsData && lineupsData.length === 2) {
+          lineupsData[0].startXI.forEach((p, idx) => escalacoesFinais.push({ team_id: lineupsData[0].team.id, name: p.player.name, number: p.player.number, pos: idx }));
+          lineupsData[1].startXI.forEach((p, idx) => escalacoesFinais.push({ team_id: lineupsData[1].team.id, name: p.player.name, number: p.player.number, pos: idx }));
+      }
+
+      // 3. CHAMA AS ESTATÍSTICAS DO JOGO
+      const resStats = await axios.get(`https://v3.football.api-sports.io/fixtures/statistics?fixture=${j.id}`, { headers: HEADERS });
+      const statsData = resStats.data.response;
+      
+      let estatisticasFinais = [];
+      if (statsData && statsData.length === 2) {
+          statsData[0].statistics.forEach(sH => {
+              const sA = statsData[1].statistics.find(s => s.type === sH.type);
+              estatisticasFinais.push({ type: sH.type, home: parseInt(sH.value) || 0, away: parseInt(sA ? sA.value : 0) || 0 });
+          });
+      }
+
+      // Atualiza o jogo na memória principal para não gastar API de novo
+      const jogoAtualizado = { ...j, probs_calculadas: probs, analise_texto: textoIA, lineups_reais: escalacoesFinais, stats_reais: estatisticasFinais };
+      
+      setJogos(prevJogos => prevJogos.map(oldJ => oldJ.id === j.id ? jogoAtualizado : oldJ));
+      setJogoSelecionado(jogoAtualizado);
+      setAnaliseIA(textoIA);
+
+    } catch (e) { setAnaliseIA("⚠️ A API-Sports não possui dados táticos ou previsões disponíveis para esta liga neste exato momento."); }
   };
 
   const carregarPerfilJogador = async () => {
@@ -229,10 +263,8 @@ export default function App() {
     const emailDigitado = loginEmail.trim().toLowerCase();
     if (!emailDigitado || !loginSenha) return alert("❌ Preencha E-mail e Senha.");
     
-    // REGRA DE OURO: SE O EMAIL ESTIVER NA LISTA MESTRE, É VIP NA HORA
     if (EMAILS_VIP_MESTRE.includes(emailDigitado)) {
-        const adminUser = { email: emailDigitado, is_vip: true };
-        setUserData(adminUser);
+        setUserData({ email: emailDigitado, is_vip: true });
         localStorage.setItem('bet_sessao_ativa', emailDigitado);
         setShowLoginMenu(false);
         return;
@@ -243,9 +275,7 @@ export default function App() {
         setUserData(bL[emailDigitado]);
         localStorage.setItem('bet_sessao_ativa', emailDigitado);
         setShowLoginMenu(false);
-    } else {
-        alert("❌ E-mail ou Senha incorretos.");
-    }
+    } else { alert("❌ E-mail ou Senha incorretos."); }
   };
 
   const handleCadastro = async () => {
@@ -254,16 +284,6 @@ export default function App() {
     if (bL[e]) return alert("❌ E-mail já existe!");
     bL[e] = { email: e, password: loginSenha, is_vip: false }; localStorage.setItem('bet_users', JSON.stringify(bL));
     setUserData({ email: e, is_vip: false }); localStorage.setItem('bet_sessao_ativa', e); setShowLoginMenu(false); alert("✅ Conta criada!");
-  };
-
-  const abrirPainelDoJogo = async (j) => {
-    if(!userData?.is_vip) { alert("🔒 VIP PRO requerido."); setShowProfileMenu(true); return; }
-    setJogoSelecionado(j); setRightTab('Detalhes'); setAnaliseIA("⚡ A IA de BetAnalytics está processando o EV+..."); setEstatisticas(null);
-    if(j.id <= 10) { setTimeout(() => { setAnaliseIA("⚡ IA identificou alto valor (EV+) no Over 2.5."); setEstatisticas(j.stats || []); }, 1000); return; }
-    try {
-      axios.post(`${API_URL}/analise-ia`, { email: userData?.email, jogo: j }).then(res => setAnaliseIA(res.data?.relatorio || "Análise concluída."));
-      if (j.stats?.length > 0) setEstatisticas(j.stats); else axios.get(`${API_URL}/futebol/estatisticas/${j.id}`).then(res => setEstatisticas(res.data)).catch(() => {});
-    } catch (e) { setAnaliseIA("Erro geral."); }
   };
 
   const toggleFavorito = (e, id) => { e.stopPropagation(); setFavoritos(p => p.includes(id) ? p.filter(f => f !== id) : [...p, id]); };
@@ -418,7 +438,6 @@ export default function App() {
               <div style={{ display: 'flex', gap: '10px', marginBottom: '20px', flexWrap: isMobile ? 'nowrap' : 'wrap', overflowX: 'auto', scrollbarWidth: 'none' }}>
                   <button onClick={() => setViewMode('jogos')} style={{ whiteSpace: 'nowrap', flexShrink: 0, padding: '12px 25px', borderRadius: '8px', background: viewMode === 'jogos' ? 'rgba(0,212,182,0.1)' : theme.bgPanel, color: viewMode === 'jogos' ? theme.cyan : theme.textMuted, border: `1px solid ${viewMode === 'jogos' ? theme.cyan : theme.border}`, fontWeight: 'bold', cursor: 'pointer' }}>⚽ Partidas</button>
                   <button onClick={() => setViewMode('classificacao')} style={{ whiteSpace: 'nowrap', flexShrink: 0, padding: '12px 25px', borderRadius: '8px', background: viewMode === 'classificacao' ? 'rgba(0,212,182,0.1)' : theme.bgPanel, color: viewMode === 'classificacao' ? theme.cyan : theme.textMuted, border: `1px solid ${viewMode === 'classificacao' ? theme.cyan : theme.border}`, fontWeight: 'bold', cursor: 'pointer' }}>🏆 Classificação</button>
-                  <button onClick={() => setViewMode('agenda')} style={{ whiteSpace: 'nowrap', flexShrink: 0, padding: '12px 25px', borderRadius: '8px', background: viewMode === 'agenda' ? 'rgba(0,212,182,0.1)' : theme.bgPanel, color: viewMode === 'agenda' ? theme.cyan : theme.textMuted, border: `1px solid ${viewMode === 'agenda' ? theme.cyan : theme.border}`, fontWeight: 'bold', cursor: 'pointer' }}>🗓️ Recentes e Futuras</button>
               </div>
 
               {!userData?.is_vip && <AdPlaceholder type="horizontal" />}
@@ -447,8 +466,7 @@ export default function App() {
                           </div>
                       </div>
 
-                      {loading && <div style={{textAlign: 'center', padding: '20px', color: theme.cyan, fontWeight: 'bold'}}>A carregar jogos reais...</div>}
-
+                      {loading && <div style={{textAlign: 'center', padding: '20px', color: theme.cyan, fontWeight: 'bold'}}>A carregar jogos reais da API-Sports...</div>}
                       {apiError && <div style={{background: 'rgba(239, 68, 68, 0.1)', border: `1px solid ${theme.red}`, padding: '15px', color: theme.red, marginBottom: '20px', borderRadius: '8px', fontSize: '13px', fontWeight: 'bold', textAlign: 'center'}}>{apiError}</div>}
 
                       {!loading && Object.keys(jogosAgrupados).length === 0 ? <div style={{padding: '60px 20px', color: theme.textMuted, textAlign: 'center', background: theme.bgPanel, borderRadius: '12px', border: `1px dashed ${theme.border}`}}>Nenhuma partida encontrada para esta data.</div> :
@@ -456,7 +474,7 @@ export default function App() {
                           <div key={leagueName} style={{marginBottom: '25px', background: theme.bgPanel, borderRadius: '12px', border: `1px solid ${theme.border}`, overflow: 'hidden'}}>
                               <div style={{padding: '15px 20px', background: theme.bgHover, fontWeight: 'bold'}}>{leagueName}</div>
                               {games.map(j => {
-                                  const isSelected = jogoSelecionado?.id === j.id; const isFav = favoritos.includes(j.id); const hasOdds = j.odds_format && j.odds_format.home !== '-'; 
+                                  const isSelected = jogoSelecionado?.id === j.id; const isFav = favoritos.includes(j.id);
                                   return (
                                       <div key={j.id} onClick={() => abrirPainelDoJogo(j)} style={{display: 'flex', alignItems: 'center', padding: '15px 20px', borderTop: `1px solid ${theme.border}`, cursor: 'pointer', background: isSelected ? 'rgba(0, 212, 182, 0.1)' : 'transparent', borderLeft: isSelected ? `3px solid ${theme.cyan}` : '3px solid transparent'}}>
                                           <div style={{ width: '45px', fontSize: '12px', color: j.status === 'Finished' ? theme.textMuted : (j.status === 'Not Started' ? theme.textMain : theme.red), fontWeight: 'bold' }}>{j.status === 'Finished' ? 'FT' : (j.status === 'Not Started' ? j.starting_at?.split('T')[1]?.substring(0,5) : 'LIVE')}</div>
@@ -467,13 +485,6 @@ export default function App() {
                                               <img src={j.away_image} style={{width:'22px', height: '22px', margin: '0 12px'}} alt="away" />
                                               <div style={{ flex: 1, textAlign: 'left', fontSize: '14px', fontWeight: '600' }}>{j.away_team}</div>
                                           </div>
-                                          {!isMobile && (
-                                              <div style={{display: 'flex', gap: '8px', marginLeft: '25px'}}>
-                                                  {['home', 'draw', 'away'].map(oddType => (
-                                                      <div key={oddType} style={{ background: hasOdds ? theme.bgApp : theme.bgHover, border: `1px solid ${theme.border}`, padding: '8px', borderRadius: '6px', width: '50px', textAlign: 'center', color: hasOdds ? theme.textMain : theme.textMuted, fontSize: '12px', fontWeight: 'bold' }}>{hasOdds ? j.odds_format[oddType] : '🔒'}</div>
-                                                  ))}
-                                              </div>
-                                          )}
                                           <div onClick={(e) => toggleFavorito(e, j.id)} style={{fontSize: '20px', color: isFav ? theme.yellow : theme.border, marginLeft: '20px'}}>{isFav ? '★' : '☆'}</div>
                                       </div>
                                   )
@@ -483,40 +494,17 @@ export default function App() {
                   </>
               )}
 
-              {viewMode === 'agenda' && (
-                  <motion.div initial={{opacity: 0}} animate={{opacity: 1}} style={{background: theme.bgPanel, borderRadius: '12px', border: `1px solid ${theme.border}`, padding: '20px'}}>
-                      <h2 style={{color: theme.cyan, marginBottom: '20px', display: 'flex', alignItems: 'center', gap: '10px'}}><span style={{fontSize: '24px'}}>🗓️</span> Próximos Jogos: Atlético de Madrid</h2>
-                      <div style={{display: 'flex', flexDirection: 'column', gap: '10px'}}>
-                          {MOCK_AGENDA.map((jogo) => (
-                              <div key={jogo.id} style={{display: 'flex', alignItems: 'center', padding: '15px 20px', background: theme.bgApp, border: `1px solid ${theme.border}`, borderRadius: '8px', gap: '15px'}}>
-                                  <div style={{width: '120px'}}>
-                                      <div style={{fontSize: '12px', color: theme.cyan, fontWeight: 'bold'}}>{jogo.date.split(' ')[0].split('-').reverse().join('/')}</div>
-                                      <div style={{fontSize: '10px', color: theme.textMuted}}>{jogo.league}</div>
-                                  </div>
-                                  <div style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                                      <div style={{ flex: 1, textAlign: 'right', fontSize: '14px', fontWeight: '600', color: theme.textMain }}>{jogo.home}</div>
-                                      <img src={jogo.hImg} style={{width:'24px', height: '24px', margin: '0 12px'}} alt="home" />
-                                      <div style={{ fontSize: '14px', fontWeight: 'bold', color: theme.textMuted, margin: '0 10px' }}>vs</div>
-                                      <img src={jogo.aImg} style={{width:'24px', height: '24px', margin: '0 12px'}} alt="away" />
-                                      <div style={{ flex: 1, textAlign: 'left', fontSize: '14px', fontWeight: '600', color: theme.textMain }}>{jogo.away}</div>
-                                  </div>
-                              </div>
-                          ))}
-                      </div>
-                  </motion.div>
-              )}
-
               {viewMode === 'classificacao' && (
                   <ClassificacaoPanel menuAtivo={menuAtivo} loadingClassificacao={loadingClassificacao} classificacao={classificacao} />
               )}
             </div>
 
-            {!isMobile && <RightPanelComponent jogoSelecionado={jogoSelecionado} rightTab={rightTab} setRightTab={setRightTab} analiseIA={analiseIA} estatisticas={estatisticas} carregarPerfilJogador={carregarPerfilJogador} setAbaGeralAtiva={setAbaGeralAtiva} isMobile={false} userData={userData}/>}
+            {!isMobile && <RightPanelComponent jogoSelecionado={jogoSelecionado} rightTab={rightTab} setRightTab={setRightTab} analiseIA={analiseIA} isMobile={false} userData={userData}/>}
 
             {isMobile && jogoSelecionado && (
                 <motion.div initial={{ opacity: 0, y: 100 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: 100 }} style={{position: 'fixed', top: 0, left: 0, right: 0, bottom: '65px', background: theme.bgApp, zIndex: 100, display: 'flex', flexDirection: 'column'}}>
                     <button onClick={() => setJogoSelecionado(null)} style={{background: theme.bgPanel, color: theme.cyan, padding: '15px', border: 'none', borderBottom: `1px solid ${theme.border}`, fontWeight: 'bold'}}><span style={{fontSize:'18px', marginRight: '8px'}}>⬇</span> Fechar Detalhes</button>
-                    <RightPanelComponent jogoSelecionado={jogoSelecionado} rightTab={rightTab} setRightTab={setRightTab} analiseIA={analiseIA} estatisticas={estatisticas} carregarPerfilJogador={carregarPerfilJogador} setAbaGeralAtiva={setAbaGeralAtiva} isMobile={true} userData={userData}/>
+                    <RightPanelComponent jogoSelecionado={jogoSelecionado} rightTab={rightTab} setRightTab={setRightTab} analiseIA={analiseIA} isMobile={true} userData={userData}/>
                 </motion.div>
             )}
           </>
@@ -564,8 +552,10 @@ function AbaEsportes({ esporteAtivo, setEsporteAtivo }) {
   );
 }
 
-function RightPanelComponent({ jogoSelecionado, rightTab, setRightTab, analiseIA, estatisticas, carregarPerfilJogador, setAbaGeralAtiva, isMobile, userData }) {
-    if (!jogoSelecionado) return ( <div style={{ width: isMobile ? '100%' : '420px', background: theme.bgApp, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', color: theme.textMuted, padding: '30px' }}><div style={{fontSize: '30px', marginBottom: '20px'}}>🏟️</div><h3>Análise de Partida</h3><p style={{fontSize: '13px', textAlign: 'center'}}>Selecione uma partida para ver os detalhes.</p></div> );
+// 🔥 COMPONENTE QUE DESENHA AS NOVAS ABAS DE IA, PROBS, ESCALAÇÕES 🔥
+function RightPanelComponent({ jogoSelecionado, rightTab, setRightTab, analiseIA, isMobile, userData }) {
+    if (!jogoSelecionado) return ( <div style={{ width: isMobile ? '100%' : '420px', background: theme.bgApp, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', color: theme.textMuted, padding: '30px' }}><div style={{fontSize: '30px', marginBottom: '20px'}}>🏟️</div><h3>Análise de Partida</h3><p style={{fontSize: '13px', textAlign: 'center'}}>Selecione uma partida para ver os detalhes VIP.</p></div> );
+    
     return (
         <div className="right-panel custom-scrollbar" style={{ width: isMobile ? '100%' : '420px', background: theme.bgApp, overflowY: 'auto', padding: isMobile ? '0' : '15px' }}>
             <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} style={{background: theme.bgPanel, borderRadius: '16px', border: `1px solid ${theme.border}`, overflow: 'hidden'}}>
@@ -578,18 +568,93 @@ function RightPanelComponent({ jogoSelecionado, rightTab, setRightTab, analiseIA
                     </div>
                 </div>
                 
-                {!userData?.is_vip && <div style={{padding: '0 20px'}}><AdPlaceholder type="horizontal" /></div>}
-
                 <div style={{display: 'flex', borderBottom: `1px solid ${theme.border}`, borderTop: `1px solid ${theme.border}`, background: 'rgba(19, 22, 31, 0.8)', overflowX: 'auto', scrollbarWidth: 'none'}}>
-                    {['Detalhes', 'Análise IA', 'Escalações', 'Probs', 'Estatísticas', 'Estações de TV'].map(tab => ( <div key={tab} onClick={() => setRightTab(tab)} style={{padding: '16px 12px', cursor: 'pointer', color: rightTab === tab ? theme.cyan : theme.textMuted, fontWeight: 'bold', fontSize: '11px', borderBottom: rightTab === tab ? `2px solid ${theme.cyan}` : '2px solid transparent', whiteSpace: 'nowrap', textAlign: 'center', textTransform: 'uppercase'}}>{tab}</div> ))}
+                    {['Análise IA', 'Probs', 'Estatísticas', 'Escalações'].map(tab => ( <div key={tab} onClick={() => setRightTab(tab)} style={{padding: '16px 12px', cursor: 'pointer', color: rightTab === tab ? theme.cyan : theme.textMuted, fontWeight: 'bold', fontSize: '11px', borderBottom: rightTab === tab ? `2px solid ${theme.cyan}` : '2px solid transparent', whiteSpace: 'nowrap', textAlign: 'center', textTransform: 'uppercase', flex: 1}}>{tab}</div> ))}
                 </div>
+                
                 <div style={{padding: '20px'}}>
-                    {rightTab === 'Análise IA' && ( <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }}><div style={{display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '15px'}}><span style={{fontSize: '18px'}}>🤖</span><h4 style={{color: theme.textMain, margin: 0}}>Análise IA</h4></div><div style={{background: 'rgba(0, 212, 182, 0.05)', padding: '16px', borderRadius: '12px', border: `1px solid rgba(0, 212, 182, 0.2)`}}><div style={{fontSize: '13px', lineHeight: '1.6', color: '#cbd5e1', whiteSpace: 'pre-wrap'}}>⚡ {analiseIA}</div></div></motion.div> )}
-                    {rightTab === 'Estações de TV' && ( <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }}><div style={{fontSize: '12px', color: theme.textMain, marginBottom: '15px', fontWeight: 'bold'}}>📺 Transmissões Oficiais (Canais)</div>{jogoSelecionado.tvstations?.length > 0 ? ( <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: '10px' }}>{jogoSelecionado.tvstations.map(tv => ( <a key={tv.id} href={tv.url || '#'} target="_blank" rel="noreferrer" style={{ display: 'flex', alignItems: 'center', gap: '10px', background: theme.bgApp, padding: '10px', borderRadius: '8px', border: `1px solid ${theme.border}`, textDecoration: 'none', color: theme.textMain }}><img src={tv.image} style={{ width: '24px', height: '24px', objectFit: 'contain' }} alt="tv" /><span style={{ fontSize: '11px', fontWeight: 'bold', overflow: 'hidden', whiteSpace: 'nowrap', textOverflow: 'ellipsis' }}>{tv.name}</span></a> ))}</div> ) : <div style={{textAlign: 'center', padding: '40px 0', color: theme.textMuted, fontSize: '13px', background: theme.bgApp, borderRadius: '12px', border: `1px dashed ${theme.border}`}}>Nenhuma transmissão.</div>}</motion.div> )}
-                    {rightTab === 'Detalhes' && ( <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }}><div style={{background: theme.bgApp, borderRadius: '12px', padding: '16px', marginBottom: '25px', border: `1px solid ${theme.border}`}}><div style={{fontSize: '11px', color: theme.textMuted, marginBottom: '12px', fontWeight: 'bold', textTransform: 'uppercase'}}>Local da Partida</div><div style={{display: 'flex', alignItems: 'center', gap: '10px', fontSize: '13px', color: theme.textMain}}><span style={{fontSize: '18px'}}>🏟️</span> <span style={{fontWeight: '500'}}>{jogoSelecionado.venue}</span></div></div>{jogoSelecionado.events?.length > 0 && ( <div style={{marginBottom: '25px'}}><div style={{fontSize: '12px', color: theme.textMain, marginBottom: '15px', fontWeight: 'bold'}}>⏱️ Timeline do Jogo</div><div style={{display: 'flex', flexDirection: 'column', gap: '10px', position: 'relative'}}><div style={{position: 'absolute', top: 0, bottom: 0, left: '19px', width: '2px', background: theme.border}}></div>{[...(jogoSelecionado.events || [])].sort((a,b)=>(a.minute || 0) - (b.minute || 0)).map(ev => { const isHome = ev.participant_id === jogoSelecionado.home_id; const isSub = ev.type?.code?.includes('sub'); const icon = ev.type?.code?.includes('goal') ? '⚽' : ev.type?.code?.includes('yellow') ? '🟨' : ev.type?.code?.includes('red') ? '🟥' : isSub ? '🔄' : '📌'; return ( <div key={ev.id} style={{display: 'flex', alignItems: 'center', gap: '15px', zIndex: 1}}><div style={{width: '40px', height: '24px', background: theme.bgApp, border: `1px solid ${theme.border}`, borderRadius: '12px', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '10px', color: theme.cyan}}>{ev.minute}'</div><div style={{background: theme.bgHover, padding: '10px 15px', borderRadius: '8px', flex: 1, display: 'flex', justifyContent: 'space-between', alignItems: 'center', border: `1px solid ${theme.border}`}}><div style={{fontSize: '12px', color: theme.textMain}}><span style={{marginRight: '8px', fontSize: '14px'}}>{icon}</span>{isSub && ev.related_player_name ? <span>{ev.related_player_name} <span style={{color: theme.green}}>⬆</span> <span style={{color: theme.textMuted, fontSize: '10px'}}>{ev.player_name} ⬇</span></span> : (ev.player_name || 'Jogador')}</div><div style={{fontSize: '10px', color: isHome ? theme.cyan : theme.yellow}}>{isHome ? 'CASA' : 'FORA'}</div></div></div> ) })}</div></div> )}</motion.div> )}
-                    {rightTab === 'Estatísticas' && ( <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }}><div style={{height: '150px', width: '100%', marginBottom: '25px', background: theme.bgApp, padding: '10px', borderRadius: '12px', border: `1px solid ${theme.border}`}}><ResponsiveContainer width="100%" height="100%"><LineChart data={generateMockMomentum()}><XAxis dataKey="time" hide /><YAxis domain={[-60, 60]} hide /><Line type="stepAfter" dataKey="pressao" stroke={theme.cyan} strokeWidth={2} dot={false} /></LineChart></ResponsiveContainer></div>{(estatisticas || jogoSelecionado.stats) && Array.isArray(estatisticas || jogoSelecionado.stats) ? ( <div style={{background: theme.bgApp, padding: '20px', borderRadius: '12px', border: `1px solid ${theme.border}`}}>{(estatisticas || jogoSelecionado.stats).map((s, index) => { if(!s) return null; let type = s.type?.name || s.type || 'Dado'; let typeStr = String(type); let home = s.home || s.value || s.data?.value || 0; let away = s.away || s.value || s.data?.value || 0; const labelPt = typeStr.replace('Ball Possession %', 'Posse de Bola').replace('Total Shots', 'Chutes').replace('Corner Kicks', 'Escanteios'); return <StatRow key={index} label={labelPt} home={home} away={away} isPercent={typeStr.includes('Possession') || typeStr.includes('%')} /> })}</div> ) : <div style={{textAlign: 'center', padding: '40px 0', color: theme.textMuted, fontSize: '12px'}}>Aguardando Dados...</div>}</motion.div> )}
-                    {rightTab === 'Probs' && ( <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }}>{jogoSelecionado.predictions?.length > 0 ? ( <>{getPrediction(jogoSelecionado.predictions, 'FULLTIME_RESULT_PROBABILITY') && ( <div style={{marginBottom: '25px', background: theme.bgApp, padding: '18px', borderRadius: '12px', border: `1px solid ${theme.border}`}}><div style={{fontSize: '11px', color: theme.textMuted, marginBottom: '12px', fontWeight: 'bold'}}>Resultado Final (1X2)</div><div style={{display: 'flex', height: '12px', borderRadius: '6px', overflow: 'hidden', marginBottom: '12px'}}><div style={{width: `${getPrediction(jogoSelecionado.predictions, 'FULLTIME_RESULT_PROBABILITY').home}%`, background: theme.cyan}}></div><div style={{width: `${getPrediction(jogoSelecionado.predictions, 'FULLTIME_RESULT_PROBABILITY').draw}%`, background: theme.textMuted}}></div><div style={{width: `${getPrediction(jogoSelecionado.predictions, 'FULLTIME_RESULT_PROBABILITY').away}%`, background: theme.yellow}}></div></div><div style={{display: 'flex', justifyContent: 'space-between', fontSize: '11px', fontWeight: 'bold'}}><span style={{color: theme.cyan}}>Casa: {getPrediction(jogoSelecionado.predictions, 'FULLTIME_RESULT_PROBABILITY').home}%</span><span style={{color: theme.textMuted}}>Emp: {getPrediction(jogoSelecionado.predictions, 'FULLTIME_RESULT_PROBABILITY').draw}%</span><span style={{color: theme.yellow}}>Fora: {getPrediction(jogoSelecionado.predictions, 'FULLTIME_RESULT_PROBABILITY').away}%</span></div></div> )}{getPrediction(jogoSelecionado.predictions, 'BTTS_PROBABILITY') && ( <div style={{marginBottom: '25px', background: theme.bgApp, padding: '18px', borderRadius: '12px', border: `1px solid ${theme.border}`}}><div style={{fontSize: '11px', color: theme.textMuted, marginBottom: '12px', fontWeight: 'bold'}}>Ambas Marcam (BTTS)</div><div style={{display: 'flex', justifyContent: 'space-between'}}><div style={{color: theme.green, fontWeight: '800'}}>{getPrediction(jogoSelecionado.predictions, 'BTTS_PROBABILITY').yes}% SIM</div><div style={{color: theme.red, fontWeight: '800'}}>{getPrediction(jogoSelecionado.predictions, 'BTTS_PROBABILITY').no}% NÃO</div></div></div> )}</> ) : <div style={{textAlign: 'center', padding: '40px 0', color: theme.textMuted, fontSize: '13px'}}>Modelos indisponíveis.</div>}</motion.div> )}
-                    {rightTab === 'Escalações' && ( <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }}>{jogoSelecionado.lineups?.length > 0 ? ( <div style={{display: 'flex', gap: '15px'}}><div style={{flex: 1}}><div style={{fontSize: '12px', color: theme.cyan, marginBottom: '15px', fontWeight: 'bold', textAlign: 'center'}}>{jogoSelecionado.home_team}</div>{jogoSelecionado.lineups.filter(l => l.team_id === jogoSelecionado.home_id && l.formation_position).sort((a,b)=>a.formation_position - b.formation_position).map(p => ( <div key={p.id} onClick={() => { setAbaGeralAtiva('jogador'); carregarPerfilJogador(); }} style={{cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '10px', background: theme.bgApp, padding: '10px', borderRadius: '8px', marginBottom: '8px', border: `1px solid ${theme.border}`}}><span style={{width: '24px', height: '24px', borderRadius: '4px', background: theme.bgHover, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '11px', color: theme.textMain}}>{p.jersey_number || '-'}</span><span style={{fontSize: '12px', color: theme.textMuted, overflow: 'hidden'}}>{p.player_name}</span></div> ))}</div><div style={{flex: 1}}><div style={{fontSize: '12px', color: theme.yellow, marginBottom: '15px', fontWeight: 'bold', textAlign: 'center'}}>{jogoSelecionado.away_team}</div>{jogoSelecionado.lineups.filter(l => l.team_id === jogoSelecionado.away_id && l.formation_position).sort((a,b)=>a.formation_position - b.formation_position).map(p => ( <div key={p.id} onClick={() => { setAbaGeralAtiva('jogador'); carregarPerfilJogador(); }} style={{cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '10px', background: theme.bgApp, padding: '10px', borderRadius: '8px', marginBottom: '8px', border: `1px solid ${theme.border}`, flexDirection: 'row-reverse'}}><span style={{width: '24px', height: '24px', borderRadius: '4px', background: theme.bgHover, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '11px', color: theme.textMain}}>{p.jersey_number || '-'}</span><span style={{fontSize: '12px', color: theme.textMuted, overflow: 'hidden'}}>{p.player_name}</span></div> ))}</div></div> ) : <div style={{textAlign: 'center', padding: '40px 0', color: theme.textMuted, fontSize: '13px', background: theme.bgApp, borderRadius: '12px', border: `1px dashed ${theme.border}`}}>Escalações ainda não divulgadas.</div>}</motion.div> )}
+                    
+                    {/* 🤖 ABA DE ANÁLISE IA */}
+                    {rightTab === 'Análise IA' && ( 
+                        <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }}>
+                            <div style={{display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '15px'}}><span style={{fontSize: '18px'}}>🤖</span><h4 style={{color: theme.textMain, margin: 0}}>Análise IA Premium</h4></div>
+                            <div style={{background: 'rgba(0, 212, 182, 0.05)', padding: '16px', borderRadius: '12px', border: `1px solid rgba(0, 212, 182, 0.2)`}}>
+                                <div style={{fontSize: '13px', lineHeight: '1.6', color: '#cbd5e1', whiteSpace: 'pre-wrap'}}>{analiseIA}</div>
+                            </div>
+                        </motion.div> 
+                    )}
+                    
+                    {/* 📊 ABA DE PROBABILIDADES */}
+                    {rightTab === 'Probs' && ( 
+                        <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }}>
+                            {jogoSelecionado.probs_calculadas ? ( 
+                                <>
+                                    <div style={{marginBottom: '25px', background: theme.bgApp, padding: '18px', borderRadius: '12px', border: `1px solid ${theme.border}`}}>
+                                        <div style={{fontSize: '11px', color: theme.textMuted, marginBottom: '12px', fontWeight: 'bold', textTransform: 'uppercase'}}>Vencedor da Partida (1X2)</div>
+                                        <div style={{display: 'flex', height: '16px', borderRadius: '8px', overflow: 'hidden', marginBottom: '12px'}}>
+                                            <div style={{width: `${jogoSelecionado.probs_calculadas.home}%`, background: theme.cyan}}></div>
+                                            <div style={{width: `${jogoSelecionado.probs_calculadas.draw}%`, background: theme.textMuted}}></div>
+                                            <div style={{width: `${jogoSelecionado.probs_calculadas.away}%`, background: theme.yellow}}></div>
+                                        </div>
+                                        <div style={{display: 'flex', justifyContent: 'space-between', fontSize: '11px', fontWeight: 'bold'}}>
+                                            <span style={{color: theme.cyan}}>Casa: {jogoSelecionado.probs_calculadas.home}%</span>
+                                            <span style={{color: theme.textMuted}}>Emp: {jogoSelecionado.probs_calculadas.draw}%</span>
+                                            <span style={{color: theme.yellow}}>Fora: {jogoSelecionado.probs_calculadas.away}%</span>
+                                        </div>
+                                    </div>
+                                    <div style={{marginBottom: '25px', background: theme.bgApp, padding: '18px', borderRadius: '12px', border: `1px solid ${theme.border}`}}>
+                                        <div style={{fontSize: '11px', color: theme.textMuted, marginBottom: '12px', fontWeight: 'bold', textTransform: 'uppercase'}}>Mercado de Golos (Under/Over)</div>
+                                        <div style={{display: 'flex', justifyContent: 'space-between', alignItems: 'center', background: theme.bgHover, padding: '12px', borderRadius: '8px'}}>
+                                            <span style={{fontSize: '12px', fontWeight: 'bold'}}>Ambas Marcam (BTTS)</span>
+                                            <span style={{color: analiseIA.includes('SIM') ? theme.green : theme.red, fontWeight: '800'}}>{analiseIA.includes('SIM') ? "ALTA PROBABILIDADE" : "BAIXA PROBABILIDADE"}</span>
+                                        </div>
+                                    </div>
+                                </> 
+                            ) : <div style={{textAlign: 'center', padding: '40px 0', color: theme.textMuted, fontSize: '13px'}}>O modelo de IA ainda está a recolher dados para este jogo.</div>}
+                        </motion.div> 
+                    )}
+                    
+                    {/* 🏃 ABA DE ESCALAÇÕES */}
+                    {rightTab === 'Escalações' && ( 
+                        <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }}>
+                            {jogoSelecionado.lineups_reais && jogoSelecionado.lineups_reais.length > 0 ? ( 
+                                <div style={{display: 'flex', gap: '15px'}}>
+                                    <div style={{flex: 1}}>
+                                        <div style={{fontSize: '12px', color: theme.cyan, marginBottom: '15px', fontWeight: 'bold', textAlign: 'center'}}>{jogoSelecionado.home_team}</div>
+                                        {jogoSelecionado.lineups_reais.filter(l => l.team_id === jogoSelecionado.home_id).map((p, idx) => ( 
+                                            <div key={idx} style={{display: 'flex', alignItems: 'center', gap: '10px', background: theme.bgApp, padding: '10px', borderRadius: '8px', marginBottom: '8px', border: `1px solid ${theme.border}`}}>
+                                                <span style={{width: '24px', height: '24px', borderRadius: '4px', background: theme.bgHover, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '11px', color: theme.textMain}}>{p.number || '-'}</span>
+                                                <span style={{fontSize: '12px', color: theme.textMuted, overflow: 'hidden'}}>{p.name}</span>
+                                            </div> 
+                                        ))}
+                                    </div>
+                                    <div style={{flex: 1}}>
+                                        <div style={{fontSize: '12px', color: theme.yellow, marginBottom: '15px', fontWeight: 'bold', textAlign: 'center'}}>{jogoSelecionado.away_team}</div>
+                                        {jogoSelecionado.lineups_reais.filter(l => l.team_id === jogoSelecionado.away_id).map((p, idx) => ( 
+                                            <div key={idx} style={{display: 'flex', alignItems: 'center', gap: '10px', background: theme.bgApp, padding: '10px', borderRadius: '8px', marginBottom: '8px', border: `1px solid ${theme.border}`, flexDirection: 'row-reverse'}}>
+                                                <span style={{width: '24px', height: '24px', borderRadius: '4px', background: theme.bgHover, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '11px', color: theme.textMain}}>{p.number || '-'}</span>
+                                                <span style={{fontSize: '12px', color: theme.textMuted, overflow: 'hidden'}}>{p.name}</span>
+                                            </div> 
+                                        ))}
+                                    </div>
+                                </div> 
+                            ) : <div style={{textAlign: 'center', padding: '40px 0', color: theme.textMuted, fontSize: '13px', background: theme.bgApp, borderRadius: '12px', border: `1px dashed ${theme.border}`}}>Escalações oficiais ainda não foram divulgadas pelo treinador.</div>}
+                        </motion.div> 
+                    )}
+
+                    {/* 📈 ABA DE ESTATÍSTICAS REAIS */}
+                    {rightTab === 'Estatísticas' && ( 
+                        <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }}>
+                            {jogoSelecionado.stats_reais && jogoSelecionado.stats_reais.length > 0 ? ( 
+                                <div style={{background: theme.bgApp, padding: '20px', borderRadius: '12px', border: `1px solid ${theme.border}`}}>
+                                    {jogoSelecionado.stats_reais.map((s, index) => { 
+                                        const labelPt = s.type.replace('Ball Possession', 'Posse de Bola (%)').replace('Total Shots', 'Total de Remates').replace('Shots on Goal', 'Remates à Baliza').replace('Fouls', 'Faltas').replace('Corner Kicks', 'Cantos').replace('Yellow Cards', 'Cartões Amarelos').replace('Red Cards', 'Cartões Vermelhos'); 
+                                        return <StatRow key={index} label={labelPt} home={s.home} away={s.away} /> 
+                                    })}
+                                </div> 
+                            ) : <div style={{textAlign: 'center', padding: '40px 0', color: theme.textMuted, fontSize: '13px'}}>A aguardar o início da partida para gerar estatísticas.</div>}
+                        </motion.div> 
+                    )}
                 </div>
             </motion.div>
         </div>
@@ -599,7 +664,7 @@ function RightPanelComponent({ jogoSelecionado, rightTab, setRightTab, analiseIA
 function StatRow({ label, home, away }) {
   const homeVal = Number(home) || 0; const awayVal = Number(away) || 0; const total = homeVal + awayVal;
   const homeP = total > 0 ? Math.round((homeVal/total)*100) : 50; const awayP = total > 0 ? Math.round((awayVal/total)*100) : 50;
-  return ( <div style={{ margin: '15px 0' }}><div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '11px', color: theme.textMuted, marginBottom: '6px' }}><span>{homeVal}</span><span style={{fontWeight: 'bold', textTransform: 'uppercase'}}>{label}</span><span>{awayVal}</span></div><div style={{ display: 'flex', gap: '6px' }}><div style={{ flex: 1, height: '6px', backgroundColor: theme.border, display: 'flex', justifyContent: 'flex-end', borderRadius: '3px' }}><div style={{ width: `${homeP}%`, backgroundColor: theme.cyan }}/></div><div style={{ flex: 1, height: '6px', backgroundColor: theme.border, borderRadius: '3px' }}><div style={{ width: `${awayP}%`, backgroundColor: theme.yellow }}/></div></div></div> );
+  return ( <div style={{ margin: '15px 0' }}><div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '11px', color: theme.textMuted, marginBottom: '6px' }}><span>{label.includes('%') ? `${homeVal}%` : homeVal}</span><span style={{fontWeight: 'bold', textTransform: 'uppercase', textAlign: 'center'}}>{label}</span><span>{label.includes('%') ? `${awayVal}%` : awayVal}</span></div><div style={{ display: 'flex', gap: '6px' }}><div style={{ flex: 1, height: '6px', backgroundColor: theme.border, display: 'flex', justifyContent: 'flex-end', borderRadius: '3px' }}><div style={{ width: `${homeP}%`, backgroundColor: theme.cyan }}/></div><div style={{ flex: 1, height: '6px', backgroundColor: theme.border, borderRadius: '3px' }}><div style={{ width: `${awayP}%`, backgroundColor: theme.yellow }}/></div></div></div> );
 }
 
 function ClassificacaoPanel({ menuAtivo, loadingClassificacao, classificacao }) {
