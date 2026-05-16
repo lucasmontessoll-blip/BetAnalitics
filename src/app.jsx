@@ -5,28 +5,29 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { initMercadoPago, Payment } from '@mercadopago/sdk-react'; 
 import dadosFut from './dados.json'; 
 
-// 🔑 CHAVES E CONFIGURAÇÕES VIP
+// 🔑 CHAVES E CONFIGURAÇÕES DO MOTOR VIP
 const API_SPORTS_KEY = "7ff15d43907d5138e48674b29ab56a65";
 const EMAILS_VIP_MESTRE = ['admin@nexus.com']; 
 initMercadoPago('APP_USR-c05e91db-5e62-4838-8790-e73906d11dbc', { locale: 'pt-BR' });
 const API_URL = 'https://betanalitics-1-9stc.onrender.com';
 
-// 🎨 TEMA SOFASCORE/FLASHSCORE
+// 🎨 NOVO TEMA PREMIUM EXATO (SOFASCORE/FLASHSCORE)
 const theme = { bgApp: '#121212', bgSidebar: '#1a1a1a', bgPanel: '#222222', bgHover: '#2a2a2a', border: '#333333', accent: '#ffb800', blue: '#2563eb', green: '#22c55e', red: '#ef4444', textMain: '#ffffff', textMuted: '#a0a0a0' };
 
 const getLocalYYYYMMDD = () => { const d = new Date(); d.setMinutes(d.getMinutes() - d.getTimezoneOffset()); return d.toISOString().split('T')[0]; };
 const getWeekDays = (b) => Array.from({length: 7}, (_, i) => { const d = new Date(b + "T12:00:00Z"); d.setDate(d.getDate() + i - 3); return { iso: d.toISOString().split('T')[0], nome: ['DOM','SEG','TER','QUA','QUI','SEX','SÁB'][d.getDay()], dia: `${String(d.getDate()).padStart(2, '0')}/${String(d.getMonth()+1).padStart(2, '0')}` }; });
 const generateMomentum = () => Array.from({length: 90}, (_, i) => ({ time: i, pressaoHome: Math.max(0, Math.sin(i/5)*50 + Math.random()*50), pressaoAway: Math.max(0, Math.cos(i/4)*40 + Math.random()*40) }));
 
+// 🔥 LIGAS CRAVADAS COM IDs OFICIAIS (Fim do bug dos acentos)
 const listaLigas = [
-  {name:'Todos os Jogos',icon:'🌍'},
-  {name:'Brasileirão Série A',icon:'🇧🇷'},
-  {name:'Brasileirão Série B',icon:'🇧🇷'},
-  {name:'Copa do Brasil',icon:'🏆'},
-  {name:'Libertadores',icon:'🌎'},
-  {name:'Champions League',icon:'⭐'},
-  {name:'Premier League',icon:'🏴󠁧󠁢󠁥󠁮󠁧󠁿'},
-  {name:'La Liga',icon:'🇪🇸'}
+  {name:'Todos os Jogos', icon:'🌍', id: null},
+  {name:'Serie A', icon:'🇧🇷', id: 71},
+  {name:'Liga dos Campeões', icon:'⭐', id: 2},
+  {name:'Copa Libertadores', icon:'🌎', id: 13},
+  {name:'La Liga', icon:'🇪🇸', id: 140},
+  {name:'Premier League', icon:'🏴󠁧󠁢󠁥󠁮󠁧󠁿', id: 39},
+  {name:'Copa do Brasil', icon:'🏆', id: 73},
+  {name:'Serie B', icon:'🇧🇷', id: 72}
 ];
 
 const SkeletonMatch = () => ( <motion.div animate={{ opacity: [0.3, 0.7, 0.3] }} transition={{ repeat: Infinity, duration: 1.5 }} style={{ background: theme.bgPanel, padding: '10px 15px', borderRadius: '8px', marginBottom: '8px', display: 'flex', alignItems: 'center' }}> <div style={{ width: '40px', height: '12px', background: theme.bgHover, borderRadius: '4px' }}></div> <div style={{ flex: 1, display: 'flex', justifyContent: 'space-between', padding: '0 20px' }}> <div style={{ width: '30%', height: '12px', background: theme.bgHover, borderRadius: '4px' }}></div> <div style={{ width: '40px', height: '24px', background: theme.bgHover, borderRadius: '6px' }}></div> <div style={{ width: '30%', height: '12px', background: theme.bgHover, borderRadius: '4px' }}></div> </div> </motion.div> );
@@ -35,7 +36,8 @@ const renderForm = (fS) => { if (!fS) return <span style={{color: theme.textMute
 
 export default function App() {
   const [isMobile, setIsMobile] = useState(window.innerWidth <= 1024);
-  const [menuAtivo, setMenuAtivo] = useState('todos os jogos'); 
+  const [ligaAtivaId, setLigaAtivaId] = useState(null); 
+  const [menuAtivo, setMenuAtivo] = useState('Todos os Jogos'); 
   const [userData, setUserData] = useState(null); 
   const [jogos, setJogos] = useState([]); 
   const [loading, setLoading] = useState(false); 
@@ -60,98 +62,49 @@ export default function App() {
 
   const diasSemana = getWeekDays(dataFiltro);
 
-  useEffect(() => { 
-      const hR = () => setIsMobile(window.innerWidth <= 1024); 
-      window.addEventListener('resize', hR); 
-      return () => window.removeEventListener('resize', hR); 
-  }, []);
+  useEffect(() => { const hR = () => setIsMobile(window.innerWidth <= 1024); window.addEventListener('resize', hR); return () => window.removeEventListener('resize', hR); }, []);
+  useEffect(() => { const em = localStorage.getItem('bet_sessao_ativa'); if (em) { if (EMAILS_VIP_MESTRE.includes(em.toLowerCase().trim())) setUserData({ email: em, is_vip: true }); else { try { const us = JSON.parse(localStorage.getItem('bet_users')||'{}'); if(us[em]) setUserData(us[em]); }catch(e){} } } }, []);
+  useEffect(() => { if (menuAtivo !== "assinar pro") carregarDadosEsporte(false); }, [dataFiltro]);
+  useEffect(() => { if (viewMode === 'classificacao') carregarClassificacao(); }, [viewMode, ligaAtivaId]);
 
-  useEffect(() => { 
-      const em = localStorage.getItem('bet_sessao_ativa'); 
-      if (em) { 
-          if (EMAILS_VIP_MESTRE.includes(em.toLowerCase().trim())) setUserData({ email: em, is_vip: true }); 
-          else { try { const us = JSON.parse(localStorage.getItem('bet_users')||'{}'); if(us[em]) setUserData(us[em]); }catch(e){} } 
-      } 
-  }, []);
-
-  useEffect(() => { if (menuAtivo !== "assinar pro") carregarDadosEsporte(false); }, [menuAtivo, dataFiltro]);
-  useEffect(() => { if (viewMode === 'classificacao') carregarClassificacao(menuAtivo); }, [viewMode, menuAtivo]);
-
-  const aplicarFiltros = (j, m) => { 
+  const aplicarFiltros = (j, lId) => { 
       if (!j?.length) return setJogos([]); 
-      const mn = m.toLowerCase(); 
       setJogos(j.filter(x => { 
-          const ln = (x.league_name||"").toLowerCase(); const lc = (x.league_country||"").toLowerCase(); 
+          const ln = (x.league_name||"").toLowerCase(); 
           const isFem = ln.includes('women') || ln.includes('feminino') || ln.includes('femenina') || ln.includes('liga f');
           if (generoAtivo === 'Masculino' && isFem) return false; 
           if (generoAtivo === 'Feminino' && !isFem) return false;
-          
-          if (mn === 'todos os jogos' || mn === 'todos') return true; 
-          if (mn === 'brasileirão série a') return ln.includes('serie a') && lc === 'brazil'; 
-          if (mn === 'brasileirão série b') return ln.includes('serie b') && lc === 'brazil';
-          if (mn === 'copa do brasil') return ln.includes('copa do brasil'); 
-          if (mn === 'libertadores') return ln.includes('libertadores');
-          if (mn === 'champions league') return ln.includes('champions league'); 
-          if (mn === 'premier league') return ln.includes('premier league');
-          if (mn === 'la liga') return ln.includes('la liga') || ln.includes('primera division');
-          return ln.includes(mn); 
+          if (lId === null) return true; 
+          return x.league_id === lId; 
       })); 
   };
 
-  // 🔥 MOTOR DE CLASSIFICAÇÃO BLINDADO (IDs e Temporadas Cravadas)
-  const carregarClassificacao = async (lN) => { 
-      if (lN === 'todos os jogos' || lN === 'todos') return; 
+  // 🔥 MOTOR DE CLASSIFICAÇÃO BLINDADO (Com base no ID exato)
+  const carregarClassificacao = async () => { 
+      if (!ligaAtivaId) { setClassificacao([]); return; }
       setLoadingClassificacao(true); 
       try {
-          const mapIds = { 
-              'brasileirão série a': 71, 'brasileirão série b': 72, 
-              'copa do brasil': 73, 'libertadores': 13, 
-              'champions league': 2, 'premier league': 39, 'la liga': 140 
-          };
-          
-          let lid = mapIds[lN];
-          if (!lid) throw new Error("Liga não suportada para classificação");
-
-          // Cálculo exato de temporada: Ligas Europeias começam num ano e acabam noutro.
           let sid = new Date().getFullYear();
-          const ligasEuropeias = [39, 140, 2];
-          if (ligasEuropeias.includes(lid) && new Date().getMonth() < 7) {
-              sid -= 1; // Ajuste para a época 2025/2026
+          // Ligas europeias (Premier League, La Liga, Champions) viram o ano em Agosto
+          if ([39, 140, 2].includes(ligaAtivaId) && new Date().getMonth() < 7) {
+              sid -= 1; 
           }
-
-          const res = await axios.get('https://v3.football.api-sports.io/standings', { 
-              params: { league: lid, season: sid }, 
-              headers: { 'x-apisports-key': API_SPORTS_KEY } 
-          });
-
-          if(res.data.errors && Object.keys(res.data.errors).length > 0) throw new Error("Limite API");
-
+          const res = await axios.get('https://v3.football.api-sports.io/standings', { params: { league: ligaAtivaId, season: sid }, headers: { 'x-apisports-key': API_SPORTS_KEY } });
           const tableData = res.data.response[0]?.league?.standings[0] || [];
-          setClassificacao(tableData.map(t => ({ 
-              pos: t.rank, team_id: t.team.id, team_name: t.team.name, logo: t.team.logo, 
-              pts: t.points, p: t.all.played, w: t.all.win, d: t.all.draw, l: t.all.lose, gd: t.goalsDiff 
-          })));
-      } catch (e) { 
-          setClassificacao([]); 
-      } finally { 
-          setLoadingClassificacao(false); 
-      }
+          setClassificacao(tableData.map(t => ({ pos: t.rank, team_id: t.team.id, team_name: t.team.name, logo: t.team.logo, pts: t.points, p: t.all.played, w: t.all.win, d: t.all.draw, l: t.all.lose, gd: t.goalsDiff })));
+      } catch (e) { setClassificacao([]); } finally { setLoadingClassificacao(false); }
   };
 
   const carregarDadosEsporte = async (forcar = false) => {
     setLoading(true); const CK = `bet_api_${dataFiltro}`; const CTK = `bet_time_${dataFiltro}`;
-    if (!forcar) { const ds = localStorage.getItem(CK); const ts = localStorage.getItem(CTK); if (ds && ts && (new Date().getTime() - parseInt(ts) < 43200000)) { aplicarFiltros(JSON.parse(ds), menuAtivo); setLoading(false); return; } }
+    if (!forcar) { const ds = localStorage.getItem(CK); const ts = localStorage.getItem(CTK); if (ds && ts && (new Date().getTime() - parseInt(ts) < 43200000)) { aplicarFiltros(JSON.parse(ds), ligaAtivaId); setLoading(false); return; } }
     try {
       const res = await axios.get('https://v3.football.api-sports.io/fixtures', { params: { date: dataFiltro, timezone: 'America/Sao_Paulo' }, headers: { 'x-apisports-key': API_SPORTS_KEY } });
       const jF = (res.data?.response||[]).map(f => {
           let st = 'Not Started'; if (['1H', '2H', 'HT', 'ET', 'BT', 'P', 'SUSP', 'INT'].includes(f.fixture.status.short)) st = 'Live'; if (['FT', 'AET', 'PEN'].includes(f.fixture.status.short)) st = 'Finished';
-          return { 
-              id: f.fixture.id, league_id: f.league.id, league_season: f.league.season, league_name: f.league.name, league_country: f.league.country, league_flag: f.league.flag, 
-              starting_at: f.fixture.date, status: st, time_elapsed: f.fixture.status.elapsed, home_team: f.teams.home.name, home_id: f.teams.home.id, away_team: f.teams.away.name, away_id: f.teams.away.id, 
-              home_image: f.teams.home.logo, away_image: f.teams.away.logo, scoreHome: f.goals.home ?? null, scoreAway: f.goals.away ?? null, dados_vip: false 
-          };
+          return { id: f.fixture.id, league_id: f.league.id, league_season: f.league.season, league_name: f.league.name, league_country: f.league.country, league_flag: f.league.flag, starting_at: f.fixture.date, status: st, time_elapsed: f.fixture.status.elapsed, home_team: f.teams.home.name, home_id: f.teams.home.id, away_team: f.teams.away.name, away_id: f.teams.away.id, home_image: f.teams.home.logo, away_image: f.teams.away.logo, scoreHome: f.goals.home ?? null, scoreAway: f.goals.away ?? null, dados_vip: false };
       });
-      localStorage.setItem(CK, JSON.stringify(jF)); localStorage.setItem(CTK, new Date().getTime().toString()); aplicarFiltros(jF, menuAtivo); 
+      localStorage.setItem(CK, JSON.stringify(jF)); localStorage.setItem(CTK, new Date().getTime().toString()); aplicarFiltros(jF, ligaAtivaId); 
     } catch (e) {} finally { setLoading(false); }
   };
 
@@ -161,27 +114,13 @@ export default function App() {
     setJogoSelecionado({ ...j, is_loading: true });
     try {
       const HDR = { 'x-apisports-key': API_SPORTS_KEY }; const PRM = { fixture: j.id }; const isAoVivo = j.status !== 'Not Started';
-      const reqs = [ 
-          axios.get('https://v3.football.api-sports.io/predictions',{params:PRM,headers:HDR}).catch(()=>({data:{response:[]}})), 
-          axios.get('https://v3.football.api-sports.io/fixtures/lineups',{params:PRM,headers:HDR}).catch(()=>({data:{response:[]}})), 
-          axios.get('https://v3.football.api-sports.io/odds',{params:PRM,headers:HDR}).catch(()=>({data:{response:[]}})) 
-      ];
-      if (isAoVivo) { 
-          reqs.push(axios.get('https://v3.football.api-sports.io/fixtures/statistics',{params:PRM,headers:HDR}).catch(()=>({data:{response:[]}}))); 
-          reqs.push(axios.get('https://v3.football.api-sports.io/fixtures/players',{params:PRM,headers:HDR}).catch(()=>({data:{response:[]}}))); 
-      }
+      const reqs = [ axios.get('https://v3.football.api-sports.io/predictions',{params:PRM,headers:HDR}).catch(()=>({data:{response:[]}})), axios.get('https://v3.football.api-sports.io/fixtures/lineups',{params:PRM,headers:HDR}).catch(()=>({data:{response:[]}})), axios.get('https://v3.football.api-sports.io/odds',{params:PRM,headers:HDR}).catch(()=>({data:{response:[]}})) ];
+      if (isAoVivo) { reqs.push(axios.get('https://v3.football.api-sports.io/fixtures/statistics',{params:PRM,headers:HDR}).catch(()=>({data:{response:[]}}))); reqs.push(axios.get('https://v3.football.api-sports.io/fixtures/players',{params:PRM,headers:HDR}).catch(()=>({data:{response:[]}}))); }
       const res = await Promise.all(reqs);
-      const dP = res[0].data?.response?.[0]||null; 
-      const dL = res[1].data?.response||[]; 
-      const dO = res[2].data?.response?.[0]?.bookmakers?.find(b=>b.id===8)||res[2].data?.response?.[0]?.bookmakers?.[0]||null; 
-      const dS = isAoVivo?res[3].data?.response||[]:[]; 
-      const dPl = isAoVivo?res[4].data?.response||[]:[];
+      const dP = res[0].data?.response?.[0]||null; const dL = res[1].data?.response||[]; const dO = res[2].data?.response?.[0]?.bookmakers?.find(b=>b.id===8)||res[2].data?.response?.[0]?.bookmakers?.[0]||null; const dS = isAoVivo?res[3].data?.response||[]:[]; const dPl = isAoVivo?res[4].data?.response||[]:[];
 
       let oddW = dO?.bets?.find(b=>b.name==='Match Winner')?.values||[]; let probH=33, probD=34, probA=33;
-      if(oddW.length>=3){ 
-          const oH=parseFloat(oddW.find(o=>o.value==='Home')?.odd||0); const oD=parseFloat(oddW.find(o=>o.value==='Draw')?.odd||0); const oA=parseFloat(oddW.find(o=>o.value==='Away')?.odd||0); 
-          if(oH>0&&oD>0&&oA>0){ const m=(1/oH)+(1/oD)+(1/oA); probH=Math.round(((1/oH)/m)*100); probD=Math.round(((1/oD)/m)*100); probA=Math.round(((1/oA)/m)*100); probH+=(100-(probH+probD+probA)); } 
-      }
+      if(oddW.length>=3){ const oH=parseFloat(oddW.find(o=>o.value==='Home')?.odd||0); const oD=parseFloat(oddW.find(o=>o.value==='Draw')?.odd||0); const oA=parseFloat(oddW.find(o=>o.value==='Away')?.odd||0); if(oH>0&&oD>0&&oA>0){ const m=(1/oH)+(1/oD)+(1/oA); probH=Math.round(((1/oH)/m)*100); probD=Math.round(((1/oD)/m)*100); probA=Math.round(((1/oA)/m)*100); probH+=(100-(probH+probD+probA)); } }
       else if(dP?.predictions?.percent){ probH=parseInt(dP.predictions.percent.home)||33; probD=parseInt(dP.predictions.percent.draw)||34; probA=parseInt(dP.predictions.percent.away)||33; }
 
       let h2hStr = "-"; if (dP?.h2h) { let wH=0, d=0, wA=0; dP.h2h.slice(0,5).forEach(x=>{if(x.teams.home.winner)wH++;else if(x.teams.away.winner)wA++;else d++;}); h2hStr=`${wH} Vit. Casa | ${d} Emp | ${wA} Vit. Fora`; }
@@ -189,17 +128,14 @@ export default function App() {
       const vS = { home: dS.find(x=>x.team.id===j.home_id)?.statistics||[], away: dS.find(x=>x.team.id===j.away_id)?.statistics||[] };
       const sts = vS.home.map(h=>{ const a=vS.away.find(x=>x.type===h.type); return { type: h.type, h: parseInt(h.value)||0, a: parseInt(a?.value)||0 }; });
 
-      let topJogadores = []; 
-      if (dPl.length > 0) { 
-          const homeP = dPl.find(p => p.team.id === j.home_id)?.players || []; const awayP = dPl.find(p => p.team.id === j.away_id)?.players || []; 
-          topJogadores = [...homeP, ...awayP].map(p => { const stats = p.statistics[0] || {}; return { name: p.player.name, team_logo: stats.team?.logo || '', rating: parseFloat(stats.games?.rating || 0).toFixed(1), shots: stats.shots?.total || 0, passes: stats.passes?.accuracy || 0 }; }).sort((a, b) => b.rating - a.rating).filter(p => p.rating > 0).slice(0, 4); 
-      }
+      let topJogadores = []; if (dPl.length > 0) { const homeP = dPl.find(p => p.team.id === j.home_id)?.players || []; const awayP = dPl.find(p => p.team.id === j.away_id)?.players || []; topJogadores = [...homeP, ...awayP].map(p => { const stats = p.statistics[0] || {}; return { name: p.player.name, team_logo: stats.team?.logo || '', rating: parseFloat(stats.games?.rating || 0).toFixed(1), shots: stats.shots?.total || 0, passes: stats.passes?.accuracy || 0 }; }).sort((a, b) => b.rating - a.rating).filter(p => p.rating > 0).slice(0, 4); }
 
       const jU = { ...j, dados_vip: true, is_loading: false, probs: {h:probH, d:probD, a:probA}, odds: oddW, advice: dP?.predictions?.advice||"-", fH: dP?.teams?.home?.league?.form||'', fA: dP?.teams?.away?.league?.form||'', h2h: h2hStr, tatH: vL.home?.formation||'-', tatA: vL.away?.formation||'-', coachH: vL.home?.coach?.name||'-', coachA: vL.away?.coach?.name||'-', linH: vL.home?.startXI||[], linA: vL.away?.startXI||[], subsH: vL.home?.substitutes||[], subsA: vL.away?.substitutes||[], stats_reais: sts, top_jogadores: topJogadores };
-      setJogos(pJ => { const nJ = pJ.map(o => o.id === j.id ? jU : o); localStorage.setItem(`bet_api_${dataFiltro}`, JSON.stringify(nJ)); return nJ; }); 
-      setJogoSelecionado(jU);
+      setJogos(pJ => { const nJ = pJ.map(o => o.id === j.id ? jU : o); localStorage.setItem(`bet_api_${dataFiltro}`, JSON.stringify(nJ)); return nJ; }); setJogoSelecionado(jU);
     } catch (e) { setJogoSelecionado({ ...j, is_loading: false, err: true, dados_vip: true }); }
   };
+
+  const carregarPerfilJogador = async () => { if (!userData?.is_vip) { alert("🔒 VIP PRO requerido."); setShowProfileMenu(true); return; } setJogadorAberto({ nome: dadosFut.display_name, foto: dadosFut.image_path, nascimento: dadosFut.date_of_birth, altura: dadosFut.height, peso: dadosFut.weight, statsRecentes: dadosFut.latest[0]?.xglineup || [], ultimoJogo: dadosFut.latest[0]?.fixture?.name || "Partida" }); };
 
   const handleLogin = async () => {
     const e = loginEmail.trim().toLowerCase(); if (!e || !loginSenha) return alert("❌ Preencha E-mail e Senha.");
@@ -218,28 +154,26 @@ export default function App() {
   let jFilt = (jogos||[]).filter(j => { 
       let mB = (j.home_team||"").toLowerCase().includes(busca.toLowerCase()) || (j.away_team||"").toLowerCase().includes(busca.toLowerCase()); 
       let mF = filterCentro === 'Ao Vivo' ? j.status==='Live' : filterCentro === 'Próximo' ? j.status==='Not Started' : filterCentro === 'Terminado' ? j.status==='Finished' : true; 
-      const isFem = (j.league_name||"").toLowerCase().includes('women')||(j.league_name||"").toLowerCase().includes('feminino')||(j.league_name||"").toLowerCase().includes('liga f'); 
-      let mG = generoAtivo === 'Todos' ? true : generoAtivo === 'Feminino' ? isFem : !isFem; 
-      return mB && mF && mG; 
+      return mB && mF; 
   }).sort((a,b) => new Date(a.starting_at||0) - new Date(b.starting_at||0));
   
   const jGrp = jFilt.reduce((a, j) => { const ln = `${j.league_name} - ${j.league_country}`; if (!a[ln]) a[ln] = { flag: j.league_flag, games: [] }; a[ln].games.push(j); return a; }, {});
 
-  useEffect(() => { const ds = localStorage.getItem(`bet_api_${dataFiltro}`); if(ds) aplicarFiltros(JSON.parse(ds), menuAtivo); }, [generoAtivo, menuAtivo]);
+  useEffect(() => { const ds = localStorage.getItem(`bet_api_${dataFiltro}`); if(ds) aplicarFiltros(JSON.parse(ds), ligaAtivaId); }, [generoAtivo, ligaAtivaId]);
 
   return (
     <div style={{ display: 'flex', height: '100vh', background: theme.bgApp, color: theme.textMain, fontFamily: 'Inter, sans-serif' }}>
       
-      {/* ⬅️ SIDEBAR (LIGAS) */}
+      {/* ⬅️ SIDEBAR (LIGAS COM ID) */}
       {!isMobile && (
         <aside style={{ width: '260px', background: theme.bgSidebar, display: 'flex', flexDirection: 'column', borderRight: `1px solid ${theme.border}` }}>
             <div style={{ padding: '20px' }}>
-                <div style={{ background: theme.bgHover, borderRadius: '20px', padding: '10px 15px', display: 'flex', alignItems: 'center', gap: '10px' }}><span style={{color: theme.textMuted}}>🔍</span><input type="text" placeholder="Pesquisar" value={busca} onChange={e=>setBusca(e.target.value)} style={{ background:'transparent', border:'none', color:'#fff', outline:'none', width:'100%', fontSize:'13px' }}/></div>
+                <div style={{ background: theme.bgHover, borderRadius: '20px', padding: '10px 15px', display: 'flex', alignItems: 'center', gap: '10px' }}><span style={{color: theme.textMuted}}>🔍</span><input type="text" placeholder="Pesquisar equipa..." value={busca} onChange={e=>setBusca(e.target.value)} style={{ background:'transparent', border:'none', color:'#fff', outline:'none', width:'100%', fontSize:'13px' }}/></div>
             </div>
             <div style={{ padding: '0 20px', fontSize: '11px', color: theme.textMuted, fontWeight: 'bold', textTransform: 'uppercase', marginBottom: '10px' }}>Principais Ligas</div>
             <div style={{ overflowY: 'auto', flex: 1, padding: '0 10px' }} className="custom-scrollbar">
                 {listaLigas.map(l => (
-                    <button key={l.name} onClick={()=>{setMenuAtivo(l.name.toLowerCase()); setViewMode('jogos');}} style={{ width:'100%', padding:'10px', background: menuAtivo===l.name.toLowerCase()?theme.bgPanel:'transparent', color: menuAtivo===l.name.toLowerCase()?theme.accent:theme.textMain, border:'none', borderRadius:'8px', textAlign:'left', display:'flex', alignItems:'center', gap:'12px', cursor:'pointer', fontWeight:'500' }}><span>{l.icon}</span> {l.name}</button>
+                    <button key={l.name} onClick={()=>{setMenuAtivo(l.name); setLigaAtivaId(l.id); setViewMode('jogos');}} style={{ width:'100%', padding:'10px', background: menuAtivo===l.name?theme.bgPanel:'transparent', color: menuAtivo===l.name?theme.accent:theme.textMain, border:'none', borderRadius:'8px', textAlign:'left', display:'flex', alignItems:'center', gap:'12px', cursor:'pointer', fontWeight:'500' }}><span>{l.icon}</span> {l.name}</button>
                 ))}
             </div>
         </aside>
@@ -308,11 +242,11 @@ export default function App() {
                       </div>
                   </div>
               ))}
-              {viewMode === 'classificacao' && <ClassificacaoPanel menuAtivo={menuAtivo} loadingClassificacao={loadingClassificacao} classificacao={classificacao} jogosHoje={jogos} jogoSelecionado={jogoSelecionado} />}
+              {viewMode === 'classificacao' && <ClassificacaoPanel menuAtivo={menuAtivo} ligaAtivaId={ligaAtivaId} loadingClassificacao={loadingClassificacao} classificacao={classificacao} jogosHoje={jogos} jogoSelecionado={jogoSelecionado} />}
           </div>
       </main>
 
-      {/* 📲 PAINEL DIREITO VIP (Estatísticas, Probs, H2H, Escalações) */}
+      {/* 📲 PAINEL DIREITO VIP */}
       {(jogoSelecionado && !isMobile && abaGeralAtiva === 'dashboard') && <RightPanelComponent jogoSelecionado={jogoSelecionado} rightTab={rightTab} setRightTab={setRightTab} />}
       {isMobile && jogoSelecionado && abaGeralAtiva === 'dashboard' && (
           <motion.div initial={{ opacity: 0, y: 100 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: 100 }} style={{position: 'fixed', top: 0, left: 0, right: 0, bottom: '65px', background: theme.bgApp, zIndex: 100, display: 'flex', flexDirection: 'column'}}>
@@ -321,14 +255,13 @@ export default function App() {
           </motion.div>
       )}
 
-      {/* MODALS DE PAGAMENTO PIX/MERCADO PAGO E LOGIN */}
+      {/* MODALS EXTRAS E LOGIN */}
       <ModalsExtras menuAtivo={menuAtivo} form={form} setForm={setForm} setMenuAtivo={setMenuAtivo} setUserData={setUserData} />
       <AuthModal showLoginMenu={showLoginMenu} setShowLoginMenu={setShowLoginMenu} authMode={authMode} setAuthMode={setAuthMode} loginEmail={loginEmail} setLoginEmail={setLoginEmail} loginSenha={loginSenha} setLoginSenha={setLoginSenha} handleLogin={handleLogin} handleCadastro={handleCadastro} />
       
-      {/* MENU MOBILE BOTTOM */}
       {isMobile && (
         <div style={{ position: 'fixed', bottom: 0, left: 0, right: 0, height: '65px', background: theme.bgPanel, borderTop: `1px solid ${theme.border}`, display: 'flex', alignItems: 'center', justifyContent: 'space-around', zIndex: 999 }}>
-            <button onClick={() => {setAbaGeralAtiva('dashboard'); setMenuAtivo('todos os jogos');}} style={{background: 'none', border: 'none', color: abaGeralAtiva === 'dashboard' ? theme.blue : theme.textMuted, fontSize:'22px'}}>🏠</button>
+            <button onClick={() => {setAbaGeralAtiva('dashboard'); setMenuAtivo('Todos os Jogos'); setLigaAtivaId(null);}} style={{background: 'none', border: 'none', color: abaGeralAtiva === 'dashboard' ? theme.blue : theme.textMuted, fontSize:'22px'}}>🏠</button>
             <button onClick={() => setMenuAtivo('assinar pro')} style={{background: 'none', border: 'none', color: menuAtivo === 'assinar pro' ? theme.accent : theme.textMuted, fontSize:'22px'}}>👑</button>
         </div>
       )}
@@ -337,13 +270,13 @@ export default function App() {
 }
 
 // -----------------------------------------------------------------------------
-// COMPONENTES AUXILIARES
+// COMPONENTES AUXILIARES BLINDADOS
 // -----------------------------------------------------------------------------
 
-function ClassificacaoPanel({ menuAtivo, loadingClassificacao, classificacao, jogosHoje, jogoSelecionado }) {
+function ClassificacaoPanel({ menuAtivo, ligaAtivaId, loadingClassificacao, classificacao, jogosHoje, jogoSelecionado }) {
     return ( 
       <motion.div initial={{opacity: 0}} animate={{opacity: 1}} style={{background: theme.bgPanel, borderRadius: '12px', border: `1px solid ${theme.border}`, overflow: 'hidden', padding: '20px', width:'100%'}}>
-        {menuAtivo === 'todos os jogos' || menuAtivo === 'todos' ? ( <div style={{textAlign: 'center', color: theme.textMuted, padding: '40px 0'}}>🌍 Selecione uma liga específica no menu lateral para carregar a classificação oficial.</div> ) : loadingClassificacao ? ( <div style={{textAlign: 'center', color: theme.blue, padding: '40px 0', fontWeight:'bold'}}>A baixar Tabela Oficial da API...</div> ) : classificacao.length === 0 ? (<div style={{textAlign: 'center', color: theme.textMuted, padding: '40px 0'}}>⚠️ Dados de classificação indisponíveis para a liga selecionada hoje.</div>) : ( 
+        {!ligaAtivaId ? ( <div style={{textAlign: 'center', color: theme.textMuted, padding: '40px 0'}}>🌍 Selecione uma liga específica no menu lateral (ex: Serie A, Premier League) para carregar a classificação oficial.</div> ) : loadingClassificacao ? ( <div style={{textAlign: 'center', color: theme.blue, padding: '40px 0', fontWeight:'bold'}}>A baixar Tabela Oficial da API...</div> ) : classificacao.length === 0 ? (<div style={{textAlign: 'center', color: theme.textMuted, padding: '40px 0'}}>⚠️ Dados de classificação indisponíveis para a liga selecionada hoje.</div>) : ( 
           <div style={{overflowX: 'auto'}}>
             <table style={{width: '100%', borderCollapse: 'collapse', textAlign: 'left', color: theme.textMain, fontSize: '13px'}}>
               <thead><tr style={{borderBottom: `1px solid ${theme.border}`, color: theme.textMuted, background:theme.bgSidebar}}><th style={{padding:'12px 8px'}}>#</th><th>Equipe</th><th>Pts</th><th>J</th><th>V</th><th>E</th><th>D</th><th>SG</th><th style={{textAlign: 'center'}}>Status Hoje</th><th style={{textAlign: 'center'}}>Cartões Hoje</th></tr></thead>
@@ -473,6 +406,7 @@ function RightPanelComponent({ jogoSelecionado, rightTab, setRightTab, isMobile 
     );
 }
 
+// 🔥 SISTEMA DE PIX MANUAL E AUTOMÁTICO
 function ModalsExtras({ menuAtivo, form, setForm, setMenuAtivo, setUserData }) {
   const [passo, setPasso] = useState(1); const [loading, setLoading] = useState(false); const [dadosPix, setDadosPix] = useState(null);
   
@@ -485,7 +419,7 @@ function ModalsExtras({ menuAtivo, form, setForm, setMenuAtivo, setUserData }) {
           if (res.data.status === 'approved') {
             clearInterval(inv); alert("🎉 Pagamento PIX Aprovado! Bem-vindo ao VIP PRO!");
             if (setUserData) { setUserData({ email: form.email, is_vip: true }); localStorage.setItem('bet_sessao_ativa', form.email); }
-            setMenuAtivo('todos os jogos'); setPasso(1);
+            setMenuAtivo('Todos os Jogos'); setPasso(1);
           }
         } catch (err) {}
       }, 3000);
@@ -510,7 +444,7 @@ function ModalsExtras({ menuAtivo, form, setForm, setMenuAtivo, setUserData }) {
   return (
     <div style={{position:"fixed", inset:0, background:"rgba(0,0,0,0.85)", display:"flex", justifyContent:"center", alignItems:"center", zIndex: 1000}}>
       <div style={{background:theme.bgPanel, padding:30, borderRadius:12, width:'95%', maxWidth: 450, maxHeight:'90vh', overflowY:'auto', display: "flex", flexDirection: "column", gap: "15px", color: "#fff", border:`1px solid ${theme.border}`}}>
-        <button onClick={() => { setMenuAtivo('todos os jogos'); setPasso(1); }} style={{alignSelf: 'flex-start', background: 'none', border: 'none', color: theme.textMuted, cursor: 'pointer', fontWeight: 'bold', fontSize:'13px'}}>⬅ Cancelar</button>
+        <button onClick={() => { setMenuAtivo('Todos os Jogos'); setPasso(1); }} style={{alignSelf: 'flex-start', background: 'none', border: 'none', color: theme.textMuted, cursor: 'pointer', fontWeight: 'bold', fontSize:'13px'}}>⬅ Cancelar</button>
         {passo === 1 && (
           <motion.div initial={{opacity:0}} animate={{opacity:1}} style={{display: 'flex', flexDirection: 'column', gap: '15px'}}>
             <h2 style={{margin: 0, color: theme.accent, fontSize:'20px'}}>Assinar Acesso VIP PRO 👑</h2>
