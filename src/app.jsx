@@ -23,13 +23,13 @@ const listaLigas = [
   {name:'Libertadores',icon:'🌎'},{name:'Champions League',icon:'⭐'},{name:'Premier League',icon:'🏴󠁧󠁢󠁥󠁮󠁧󠁿'},{name:'La Liga',icon:'🇪🇸'}
 ];
 
-const SkeletonMatch = () => ( <motion.div animate={{ opacity: [0.3, 0.7, 0.3] }} transition={{ repeat: Infinity, duration: 1.5 }} style={{ background: theme.bgPanel, padding: '10px 15px', borderRadius: '8px', marginBottom: '8px', display: 'flex', alignItems: 'center' }}> <div style={{ width: '30%', height: '12px', background: theme.bgHover, borderRadius: '4px' }}></div> <div style={{ width: '40px', height: '24px', background: theme.bgHover, borderRadius: '6px', margin: '0 15px' }}></div> <div style={{ width: '30%', height: '12px', background: theme.bgHover, borderRadius: '4px' }}></div> </motion.div> );
+const SkeletonMatch = () => ( <motion.div animate={{ opacity: [0.3, 0.7, 0.3] }} transition={{ repeat: Infinity, duration: 1.5 }} style={{ background: theme.bgPanel, padding: '10px 15px', borderRadius: '8px', marginBottom: '8px', display: 'flex', alignItems: 'center' }}> <div style={{ width: '40px', height: '12px', background: theme.bgHover, borderRadius: '4px' }}></div> <div style={{ flex: 1, display: 'flex', justifyContent: 'space-between', padding: '0 20px' }}> <div style={{ width: '30%', height: '12px', background: theme.bgHover, borderRadius: '4px' }}></div> <div style={{ width: '40px', height: '24px', background: theme.bgHover, borderRadius: '6px' }}></div> <div style={{ width: '30%', height: '12px', background: theme.bgHover, borderRadius: '4px' }}></div> </div> </motion.div> );
 const SkeletonVIP = () => ( <motion.div animate={{ opacity: [0.3, 0.7, 0.3] }} transition={{ repeat: Infinity, duration: 1.5 }} style={{ padding: '20px' }}> <div style={{ width: '100%', height: '80px', background: theme.bgHover, borderRadius: '12px', marginBottom: '15px' }}></div> <div style={{ width: '100%', height: '150px', background: theme.bgHover, borderRadius: '12px', marginBottom: '15px' }}></div> <div style={{ width: '100%', height: '150px', background: theme.bgHover, borderRadius: '12px' }}></div> </motion.div> );
 const renderForm = (fS) => { if (!fS) return <span style={{color: theme.textMuted, fontSize: '10px'}}>-</span>; return fS.split('').map((c, i) => ( <span key={i} style={{ display: 'inline-block', width: '14px', height: '14px', borderRadius: '3px', background: c === 'W' ? theme.green : c === 'D' ? theme.textMuted : theme.red, color: '#fff', fontSize: '9px', textAlign: 'center', lineHeight: '14px', margin: '0 1px', fontWeight: 'bold' }}>{c}</span> )); };
 
 export default function App() {
   const [isMobile, setIsMobile] = useState(window.innerWidth <= 1024);
-  const [menuAtivo, setMenuAtivo] = useState('todos os jogos'); const [userData, setUserData] = useState(null); const [jogos, setJogos] = useState([]); const [loading, setLoading] = useState(false); const [busca, setBusca] = useState(''); const [dataFiltro, setDataFiltro] = useState(getLocalYYYYMMDD()); const [viewMode, setViewMode] = useState('jogos'); const [classificacao, setClassificacao] = useState([]); const [loadingClassificacao, setLoadingClassificacao] = useState(false); const [rightTab, setRightTab] = useState('Estatísticas'); const [filterCentro, setFilterCentro] = useState('Todos'); const [showLoginMenu, setShowLoginMenu] = useState(false); const [jogoSelecionado, setJogoSelecionado] = useState(null); const [favoritos, setFavoritos] = useState([]); const [generoAtivo, setGeneroAtivo] = useState('Masculino'); const [authMode, setAuthMode] = useState('login'); const [loginEmail, setLoginEmail] = useState(''); const [loginSenha, setLoginSenha] = useState(''); const [form, setForm] = useState({ nome: '', email: '', cpf: '' }); const [showProfileMenu, setShowProfileMenu] = useState(false); const [abaGeralAtiva, setAbaGeralAtiva] = useState('dashboard'); const [jogadorAberto, setJogadorAberto] = useState(null);
+  const [menuAtivo, setMenuAtivo] = useState('todos os jogos'); const [userData, setUserData] = useState(null); const [jogos, setJogos] = useState([]); const [loading, setLoading] = useState(false); const [busca, setBusca} = useState(''); const [dataFiltro, setDataFiltro] = useState(getLocalYYYYMMDD()); const [viewMode, setViewMode] = useState('jogos'); const [classificacao, setClassificacao] = useState([]); const [loadingClassificacao, setLoadingClassificacao] = useState(false); const [rightTab, setRightTab] = useState('Estatísticas'); const [filterCentro, setFilterCentro] = useState('Todos'); const [showLoginMenu, setShowLoginMenu] = useState(false); const [jogoSelecionado, setJogoSelecionado] = useState(null); const [favoritos, setFavoritos] = useState([]); const [generoAtivo, setGeneroAtivo] = useState('Masculino'); const [authMode, setAuthMode] = useState('login'); const [loginEmail, setLoginEmail] = useState(''); const [loginSenha, setLoginSenha] = useState(''); const [form, setForm] = useState({ nome: '', email: '', cpf: '' }); const [showProfileMenu, setShowProfileMenu] = useState(false); const [abaGeralAtiva, setAbaGeralAtiva] = useState('dashboard'); const [jogadorAberto, setJogadorAberto] = useState(null);
 
   const diasSemana = getWeekDays(dataFiltro);
 
@@ -107,6 +107,8 @@ export default function App() {
     } catch (e) { setJogoSelecionado({ ...j, is_loading: false, err: true, dados_vip: true }); }
   };
 
+  const carregarPerfilJogador = async () => { if (!userData?.is_vip) { alert("🔒 VIP PRO requerido."); setShowProfileMenu(true); return; } setJogadorAberto({ nome: dadosFut.display_name, foto: dadosFut.image_path, nascimento: dadosFut.date_of_birth, altura: dadosFut.height, peso: dadosFut.weight, statsRecentes: dadosFut.latest[0]?.xglineup || [], ultimoJogo: dadosFut.latest[0]?.fixture?.name || "Partida" }); };
+
   const handleLogin = async () => {
     const e = loginEmail.trim().toLowerCase(); if (!e || !loginSenha) return alert("❌ Preencha E-mail e Senha.");
     if (EMAILS_VIP_MESTRE.includes(e)) { setUserData({ email: e, is_vip: true }); localStorage.setItem('bet_sessao_ativa', e); setShowLoginMenu(false); return; }
@@ -119,7 +121,15 @@ export default function App() {
     if (bL[e]) return alert("❌ E-mail já existe!"); bL[e] = { email: e, password: loginSenha, is_vip: false }; localStorage.setItem('bet_users', JSON.stringify(bL)); setUserData({ email: e, is_vip: false }); localStorage.setItem('bet_sessao_ativa', e); setShowLoginMenu(false); alert("✅ Conta criada!");
   };
 
-  let jFilt = (jogos||[]).filter(j => { let mB = (j.home_team||"").toLowerCase().includes(busca.toLowerCase()) || (j.away_team||"").toLowerCase().includes(busca.toLowerCase()); let mF = filterCentro === 'Ao Vivo' ? j.status==='Live' : filterCentro === 'Próximo' ? j.status==='Not Started' : filterCentro === 'Terminado' ? j.status==='Finished' : true; const isFem = (j.league_name||"").toLowerCase().includes('women')||(j.league_name||"").toLowerCase().includes('feminino')||(j.league_name||"").toLowerCase().includes('liga f'); let mG = generoAtivo === 'Todos' ? true : generoAtivo === 'Feminino' ? isFem : !isFem; return mB && mF && mG; }).sort((a,b) => new Date(a.starting_at||0) - new Date(b.starting_at||0));
+  const toggleFavorito = (e, id) => { e.stopPropagation(); setFavoritos(p => p.includes(id) ? p.filter(f => f !== id) : [...p, id]); };
+
+  let jFilt = (jogos||[]).filter(j => { 
+      let mB = (j.home_team||"").toLowerCase().includes(busca.toLowerCase()) || (j.away_team||"").toLowerCase().includes(busca.toLowerCase()); 
+      let mF = filterCentro === 'Ao Vivo' ? j.status==='Live' : filterCentro === 'Próximo' ? j.status==='Not Started' : filterCentro === 'Terminado' ? j.status==='Finished' : true; 
+      const isFem = (j.league_name||"").toLowerCase().includes('women')||(j.league_name||"").toLowerCase().includes('feminino')||(j.league_name||"").toLowerCase().includes('liga f'); 
+      let mG = generoAtivo === 'Todos' ? true : generoAtivo === 'Feminino' ? isFem : !isFem; 
+      return mB && mF && mG; 
+  }).sort((a,b) => new Date(a.starting_at||0) - new Date(b.starting_at||0));
   const jGrp = jFilt.reduce((a, j) => { const ln = `${j.league_name} - ${j.league_country}`; if (!a[ln]) a[ln] = { flag: j.league_flag, games: [] }; a[ln].games.push(j); return a; }, {});
 
   useEffect(() => { const ds = localStorage.getItem(`bet_api_${dataFiltro}`); if(ds) aplicarFiltros(JSON.parse(ds), menuAtivo); }, [generoAtivo, menuAtivo]);
@@ -202,11 +212,11 @@ export default function App() {
                       </div>
                   </div>
               ))}
-              {viewMode === 'classificacao' && <ClassificacaoPanel menuAtivo={menuAtivo} loadingClassificacao={loadingClassificacao} classificacao={classificacao} jogosHoje={jogos} />}
+              {viewMode === 'classificacao' && <ClassificacaoPanel menuAtivo={menuAtivo} loadingClassificacao={loadingClassificacao} classificacao={classificacao} jogosHoje={jogos} jogoSelecionado={jogoSelecionado} />}
           </div>
       </main>
 
-      {(jogoSelecionado && !isMobile) && <RightPanelComponent jogoSelecionado={jogoSelecionado} rightTab={rightTab} setRightTab={setRightTab} />}
+      {(jogoSelecionado && !isMobile && abaGeralAtiva === 'dashboard') && <RightPanelComponent jogoSelecionado={jogoSelecionado} rightTab={rightTab} setRightTab={setRightTab} />}
       {isMobile && jogoSelecionado && (
           <motion.div initial={{ opacity: 0, y: 100 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: 100 }} style={{position: 'fixed', top: 0, left: 0, right: 0, bottom: '65px', background: theme.bgApp, zIndex: 100, display: 'flex', flexDirection: 'column'}}>
               <button onClick={() => setJogoSelecionado(null)} style={{background: theme.bgPanel, color: theme.textMain, padding: '15px', border: 'none', borderBottom: `1px solid ${theme.border}`, fontWeight: 'bold'}}>⬇ Fechar</button>
@@ -221,12 +231,12 @@ export default function App() {
 }
 
 // -----------------------------------------------------------------------------
-// ARRUADO E REDESENHADO: TABELA DE CLASSIFICAÇÃO COM DADOS REAIS E CARTÕES VIVOS
+// RESTAURADA E CORRIGIDA: TABELA DE CLASSIFICAÇÃO COM DADOS REAIS
 // -----------------------------------------------------------------------------
-function ClassificacaoPanel({ menuAtivo, loadingClassificacao, classificacao, jogosHoje }) {
+function ClassificacaoPanel({ menuAtivo, loadingClassificacao, classificacao, jogosHoje, jogoSelecionado }) {
     return ( 
       <motion.div initial={{opacity: 0}} animate={{opacity: 1}} style={{background: theme.bgPanel, borderRadius: '12px', border: `1px solid ${theme.border}`, overflow: 'hidden', padding: '20px', width:'100%'}}>
-        {menuAtivo === 'todos os jogos' || menuAtivo === 'todos' ? ( <div style={{textAlign: 'center', color: theme.textMuted, padding: '40px 0'}}>🌍 Selecione uma liga específica no menu lateral para carregar a classificação real.</div> ) : loadingClassificacao ? ( <div style={{textAlign: 'center', color: theme.accent, padding: '40px 0', fontWeight:'bold'}}>Calculando Tabela Oficial em tempo real...</div> ) : classificacao.length === 0 ? (<div style={{textAlign: 'center', color: theme.textMuted, padding: '40px 0'}}>⚠️ Dados de classificação indisponíveis para esta liga hoje.</div>) : ( 
+        {menuAtivo === 'todos os jogos' || menuAtivo === 'todos' ? ( <div style={{textAlign: 'center', color: theme.textMuted, padding: '40px 0'}}>🌍 Selecione uma liga específica no menu lateral para carregar a classificação real.</div> ) : loadingClassificacao ? ( <div style={{textAlign: 'center', color: theme.blue, padding: '40px 0', fontWeight:'bold'}}>A carregar Tabela Oficial em tempo real...</div> ) : classificacao.length === 0 ? (<div style={{textAlign: 'center', color: theme.textMuted, padding: '40px 0'}}>⚠️ Dados de classificação indisponíveis para esta liga hoje.</div>) : ( 
           <div style={{overflowX: 'auto'}}>
             <table style={{width: '100%', borderCollapse: 'collapse', textAlign: 'left', color: theme.textMain, fontSize: '13px'}}>
               <thead><tr style={{borderBottom: `1px solid ${theme.border}`, color: theme.textMuted, background:theme.bgSidebar}}><th style={{padding:'12px 8px'}}>#</th><th>Equipe</th><th>Pts</th><th>J</th><th>V</th><th>E</th><th>D</th><th>SG</th><th style={{textAlign: 'center'}}>Status Hoje</th><th style={{textAlign: 'center'}}>Cartões Hoje</th></tr></thead>
@@ -242,7 +252,8 @@ function ClassificacaoPanel({ menuAtivo, loadingClassificacao, classificacao, jo
                           cartoesTxt = `${yell}🟨 ${red}🟥`;
                       } else if (jogoHoje.status === 'Finished') { statusTxt = 'Finalizado'; } else { statusTxt = `Hoje ${jogoHoje.starting_at?.split('T')[1]?.substring(0,5)}`; }
                   }
-                  return ( <tr key={i} style={{borderBottom: `1px solid rgba(255,255,255,0.05)`, background: jogoSelecionado?.home_id === t.team_id || jogoSelecionado?.away_id === t.team_id ? 'rgba(37,99,235,0.05)' : 'transparent'}}><td style={{padding: '12px 8px', color: theme.blue, fontWeight:'bold'}}>{t.pos}</td><td style={{padding: '12px 8px', display: 'flex', alignItems: 'center', gap: '10px'}}><img src={t.logo} style={{width: '20px', height:'20px'}} alt="" />{t.team_name}</td><td style={{fontWeight:'bold'}}>{t.pts}</td><td>{t.p}</td><td>{t.w}</td><td>{t.d}</td><td>{t.l}</td><td>{t.gd}</td><td style={{textAlign: 'center', fontSize: '11px'}}>{statusTxt}</td><td style={{textAlign: 'center', fontSize: '12px'}}>{cartoesTxt}</td></tr> )
+                  const isMatchTeam = jogoSelecionado?.home_id === t.team_id || jogoSelecionado?.away_id === t.team_id;
+                  return ( <tr key={i} style={{borderBottom: `1px solid rgba(255,255,255,0.05)`, background: isMatchTeam ? 'rgba(37,99,235,0.08)' : 'transparent'}}><td style={{padding: '12px 8px', color: theme.blue, fontWeight:'bold'}}>{t.pos}</td><td style={{padding: '12px 8px', display: 'flex', alignItems: 'center', gap: '10px'}}><img src={t.logo} style={{width: '20px', height:'20px'}} alt="" />{t.team_name}</td><td style={{fontWeight:'bold'}}>{t.pts}</td><td>{t.p}</td><td>{t.w}</td><td>{t.d}</td><td>{t.l}</td><td>{t.gd}</td><td style={{textAlign: 'center', fontSize: '11px'}}>{statusTxt}</td><td style={{textAlign: 'center', fontSize: '12px'}}>{cartoesTxt}</td></tr> )
                 })}
               </tbody>
             </table>
@@ -356,7 +367,7 @@ function RightPanelComponent({ jogoSelecionado, rightTab, setRightTab, isMobile 
 }
 
 // -----------------------------------------------------------------------------
-// RESTAURADO: SISTEMA COMPLETO DE MODAL COM PAGAMENTO PIX AUTOMÁTICO VIA ENDPOINT
+// RESTAURADO: CHECKOUT COMPLETO COM SUPORTE TOTAL A PIX DINÂMICO VIA ENDPOINT
 // -----------------------------------------------------------------------------
 function ModalsExtras({ menuAtivo, form, setForm, setMenuAtivo, setUserData }) {
   const [passo, setPasso] = useState(1); const [loading, setLoading] = useState(false); const [dadosPix, setDadosPix] = useState(null);
@@ -413,14 +424,14 @@ function ModalsExtras({ menuAtivo, form, setForm, setMenuAtivo, setUserData }) {
             <p style={{fontSize:'12px', color:theme.textMuted, textAlign:'center', margin:0}}>Abra o aplicativo do seu banco, escolha "Pagar via Pix" e cole o código abaixo, ou escaneie a imagem:</p>
             <img src={`data:image/jpeg;base64,${dadosPix.qr_code_base64}`} style={{width:"180px", height:'180px', borderRadius: '8px', border: '5px solid #fff'}} alt="QR Code Pix" />
             <textarea value={dadosPix.qr_code} readOnly style={{width:'100%', padding: '10px', fontSize: '11px', background: theme.bgApp, color: theme.textMuted, border: `1px solid ${theme.border}`, borderRadius: '6px', resize: 'none', fontFamily:'monospace'}} rows={3} />
-            <button onClick={()=>{ navigator.clipboard.writeText(dadosPix.qr_code); alert("Código Pix copiado com sucesso!"); }} style={{width:'100%', padding: '14px', background: theme.accent, color: '#000', fontWeight: 'bold', border: 'none', borderRadius: '6px', cursor: 'pointer', fontSize:'14px'}}>Copiar Código Pix</button>
-            <div style={{fontSize:'11px', color:theme.blue, animation:'pulse 1.5s infinite'}}>⏱️ Aguardando confirmação do banco automaticamente...</div>
+            <button onClick={()=>{ navigator.clipboard.writeText(dadosPix.qr_code); alert("Código Pix copiado!"); }} style={{width:'100%', padding: '14px', background: theme.accent, color: '#000', fontWeight: 'bold', border: 'none', borderRadius: '6px', cursor: 'pointer', fontSize:'14px'}}>Copiar Código Pix</button>
+            <div style={{fontSize:'11px', color:theme.blue}}>⏱️ A aguardar confirmação do banco automaticamente...</div>
           </motion.div>
         )}
         {passo === 3 && (
           <motion.div initial={{opacity:0}} animate={{opacity:1}} style={{display: 'flex', flexDirection: 'column', gap: '12px'}}>
             <h3 style={{margin: 0, color: "#fff", textAlign: 'center', fontSize:'16px'}}>Checkout Seguro (Mercado Pago)</h3>
-            <Payment initialization={initialization} customization={customization} onSubmit={() => alert("Processando dados de cartão...")} />
+            <Payment initialization={initialization} customization={customization} onSubmit={() => alert("A processar transação...")} />
             <button onClick={() => setPasso(1)} style={{padding: '10px', background: 'transparent', color: theme.textMuted, border: `1px solid ${theme.border}`, borderRadius: '6px', cursor: 'pointer', fontSize:'12px'}}>Voltar para o PIX</button>
           </motion.div>
         )}
