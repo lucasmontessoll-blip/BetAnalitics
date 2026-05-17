@@ -6,12 +6,13 @@ import { initMercadoPago, Payment } from '@mercadopago/sdk-react';
 import dadosFut from './dados.json'; 
 
 // 🔑 CHAVES E CONFIGURAÇÕES DO MOTOR VIP
+// ATENÇÃO: Se a sua conta estiver suspensa, troque esta chave por uma nova para a classificação voltar a funcionar.
 const API_SPORTS_KEY = "7ff15d43907d5138e48674b29ab56a65";
 const EMAILS_VIP_MESTRE = ['admin@nexus.com']; 
 initMercadoPago('APP_USR-c05e91db-5e62-4838-8790-e73906d11dbc', { locale: 'pt-BR' });
 const API_URL = 'https://betanalitics-1-9stc.onrender.com';
 
-// 🎨 TEMA PREMIUM EXATO (SOFASCORE/FLASHSCORE)
+// 🎨 TEMA PREMIUM EXATO
 const theme = { bgApp: '#121212', bgSidebar: '#1a1a1a', bgPanel: '#222222', bgHover: '#2a2a2a', border: '#333333', accent: '#ffb800', blue: '#2563eb', green: '#22c55e', red: '#ef4444', textMain: '#ffffff', textMuted: '#a0a0a0' };
 
 const getLocalYYYYMMDD = () => { const d = new Date(); d.setMinutes(d.getMinutes() - d.getTimezoneOffset()); return d.toISOString().split('T')[0]; };
@@ -22,11 +23,14 @@ const listaLigas = [
   {name:'Todos os Jogos', icon:'🌍', id: null}, {name:'Serie A', icon:'🇧🇷', id: 71}, {name:'Liga dos Campeões', icon:'⭐', id: 2}, {name:'Copa Libertadores', icon:'🌎', id: 13}, {name:'La Liga', icon:'🇪🇸', id: 140}, {name:'Premier League', icon:'🏴󠁧󠁢󠁥󠁮󠁧󠁿', id: 39}, {name:'Copa do Brasil', icon:'🏆', id: 73}, {name:'Serie B', icon:'🇧🇷', id: 72}
 ];
 
+// Mapeamento infalível de temporadas (Europa 2025, Brasil/América 2026)
+const mapaTemporadas = { 71: 2026, 72: 2026, 73: 2026, 13: 2026, 2: 2025, 39: 2025, 140: 2025 };
+
 const SkeletonMatch = () => ( <motion.div animate={{ opacity: [0.3, 0.7, 0.3] }} transition={{ repeat: Infinity, duration: 1.5 }} style={{ background: theme.bgPanel, padding: '10px 15px', borderRadius: '8px', marginBottom: '8px', display: 'flex', alignItems: 'center' }}> <div style={{ width: '40px', height: '12px', background: theme.bgHover, borderRadius: '4px' }}></div> <div style={{ flex: 1, display: 'flex', justifyContent: 'space-between', padding: '0 20px' }}> <div style={{ width: '30%', height: '12px', background: theme.bgHover, borderRadius: '4px' }}></div> <div style={{ width: '40px', height: '24px', background: theme.bgHover, borderRadius: '6px' }}></div> <div style={{ width: '30%', height: '12px', background: theme.bgHover, borderRadius: '4px' }}></div> </div> </motion.div> );
 const SkeletonVIP = () => ( <motion.div animate={{ opacity: [0.3, 0.7, 0.3] }} transition={{ repeat: Infinity, duration: 1.5 }} style={{ padding: '20px' }}> <div style={{ width: '100%', height: '80px', background: theme.bgHover, borderRadius: '12px', marginBottom: '15px' }}></div> <div style={{ width: '100%', height: '150px', background: theme.bgHover, borderRadius: '12px', marginBottom: '15px' }}></div> <div style={{ width: '100%', height: '150px', background: theme.bgHover, borderRadius: '12px' }}></div> </motion.div> );
 const renderForm = (fS) => { if (!fS) return <span style={{color: theme.textMuted, fontSize: '10px'}}>-</span>; return fS.split('').map((c, i) => ( <span key={i} style={{ display: 'inline-block', width: '14px', height: '14px', borderRadius: '3px', background: c === 'W' ? theme.green : c === 'D' ? theme.textMuted : theme.red, color: '#fff', fontSize: '9px', textAlign: 'center', lineHeight: '14px', margin: '0 1px', fontWeight: 'bold' }}>{c}</span> )); };
 
-// 🔥 NOVO MOTOR MATEMÁTICO PROPRIETÁRIO BETANALYTICS (Ignora Bet365)
+// 🔥 MOTOR MATEMÁTICO PROPRIETÁRIO BETANALYTICS (Ignora Bet365 e usa Estatísticas Puras)
 const calcularAlgoritmoBetAnalytics = (predData) => {
     if(!predData) return { h: 33, d: 34, a: 33 };
     const getFormScore = (form) => { if(!form) return 1; return form.split('').reduce((acc, char) => acc + (char==='W'?3:char==='D'?1:0), 0); };
@@ -64,6 +68,7 @@ export default function App() {
   const [viewMode, setViewMode] = useState('jogos'); 
   const [classificacao, setClassificacao] = useState([]); 
   const [loadingClassificacao, setLoadingClassificacao] = useState(false); 
+  const [erroDaClassificacao, setErroDaClassificacao] = useState(''); // NOVO: Detetor de Erro de API
   const [rightTab, setRightTab] = useState('Estatísticas'); 
   const [filterCentro, setFilterCentro] = useState('Todos'); 
   const [showLoginMenu, setShowLoginMenu] = useState(false); 
@@ -76,7 +81,6 @@ export default function App() {
   const [form, setForm] = useState({ nome: '', email: '', cpf: '' }); 
   const [showProfileMenu, setShowProfileMenu] = useState(false); 
   const [abaGeralAtiva, setAbaGeralAtiva] = useState('dashboard'); 
-  const [jogadorAberto, setJogadorAberto] = useState(null);
 
   const diasSemana = getWeekDays(dataFiltro);
 
@@ -103,15 +107,26 @@ export default function App() {
   };
 
   const carregarClassificacao = async () => { 
-      if (!ligaAtivaId) { setClassificacao([]); return; }
+      if (!ligaAtivaId) { setClassificacao([]); setErroDaClassificacao(''); return; }
       setLoadingClassificacao(true); 
+      setErroDaClassificacao('');
       try {
-          let sid = new Date().getFullYear();
-          if ([39, 140, 2].includes(ligaAtivaId) && new Date().getMonth() < 7) { sid -= 1; }
+          const sid = mapaTemporadas[ligaAtivaId] || new Date().getFullYear();
           const res = await axios.get('https://v3.football.api-sports.io/standings', { params: { league: ligaAtivaId, season: sid }, headers: { 'x-apisports-key': API_SPORTS_KEY } });
+          
+          if (res.data.errors && Object.keys(res.data.errors).length > 0) {
+              setErroDaClassificacao("⚠️ Erro na API: Limite de consultas diárias excedido ou Chave Suspensa.");
+              setClassificacao([]);
+              setLoadingClassificacao(false);
+              return;
+          }
+
           const tableData = res.data.response[0]?.league?.standings[0] || [];
           setClassificacao(tableData.map(t => ({ pos: t.rank, team_id: t.team.id, team_name: t.team.name, logo: t.team.logo, pts: t.points, p: t.all.played, w: t.all.win, d: t.all.draw, l: t.all.lose, gd: t.goalsDiff })));
-      } catch (e) { setClassificacao([]); } finally { setLoadingClassificacao(false); }
+      } catch (e) { 
+          setErroDaClassificacao("⚠️ Falha ao contactar o servidor da API. Verifique a sua ligação.");
+          setClassificacao([]); 
+      } finally { setLoadingClassificacao(false); }
   };
 
   const carregarDadosEsporte = async (forcar = false) => {
@@ -129,7 +144,8 @@ export default function App() {
 
   const abrirPainelDoJogo = async (j) => {
     if(!userData?.is_vip) { setShowProfileMenu(true); return alert("🔒 Acesso VIP PRO requerido."); }
-    setRightTab('Estatísticas'); if (j.dados_vip) return setJogoSelecionado(j); 
+    setRightTab('% Probs'); // Alterei aqui para abrir a aba do Motor Matemático por defeito!
+    if (j.dados_vip) return setJogoSelecionado(j); 
     setJogoSelecionado({ ...j, is_loading: true });
     try {
       const HDR = { 'x-apisports-key': API_SPORTS_KEY }; const PRM = { fixture: j.id }; const isAoVivo = j.status !== 'Not Started';
@@ -138,7 +154,7 @@ export default function App() {
       const res = await Promise.all(reqs);
       const dP = res[0].data?.response?.[0]||null; const dL = res[1].data?.response||[]; const dO = res[2].data?.response?.[0]?.bookmakers?.find(b=>b.id===8)||res[2].data?.response?.[0]?.bookmakers?.[0]||null; const dS = isAoVivo?res[3].data?.response||[]:[]; const dPl = isAoVivo?res[4].data?.response||[]:[];
 
-      // MATEMÁTICA PROPRIETÁRIA EM AÇÃO AQUI
+      // O SEU MOTOR MATEMÁTICO É EXECUTADO AQUI
       const probabilidadeReal = calcularAlgoritmoBetAnalytics(dP);
       let oddW = dO?.bets?.find(b=>b.name==='Match Winner')?.values||[];
 
@@ -187,7 +203,7 @@ export default function App() {
          <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.3, duration: 0.5 }} style={{ fontSize: '32px', fontWeight: '900', letterSpacing: '2px', textShadow: `0 0 20px ${theme.blue}` }}>
             BET<span style={{ color: theme.blue }}>ANALYTICS</span>
          </motion.div>
-         <div style={{ marginTop: '30px', fontSize: '10px', color: theme.textMuted, textTransform: 'uppercase', letterSpacing: '3px' }}>A iniciar Motor Algorítmico...</div>
+         <div style={{ marginTop: '30px', fontSize: '10px', color: theme.textMuted, textTransform: 'uppercase', letterSpacing: '3px' }}>A iniciar Motor Matemático...</div>
          <div style={{ width: '200px', height: '4px', background: theme.bgHover, marginTop: '10px', borderRadius: '4px', overflow: 'hidden' }}>
             <motion.div animate={{ width: ['0%', '100%'] }} transition={{ duration: 2.2, ease: "easeInOut" }} style={{ height: '100%', background: theme.blue, boxShadow: `0 0 10px ${theme.blue}` }} />
          </div>
@@ -276,7 +292,7 @@ export default function App() {
                       </div>
                   </div>
               ))}
-              {viewMode === 'classificacao' && <ClassificacaoPanel menuAtivo={menuAtivo} ligaAtivaId={ligaAtivaId} loadingClassificacao={loadingClassificacao} classificacao={classificacao} jogosHoje={jogos} jogoSelecionado={jogoSelecionado} />}
+              {viewMode === 'classificacao' && <ClassificacaoPanel menuAtivo={menuAtivo} ligaAtivaId={ligaAtivaId} loadingClassificacao={loadingClassificacao} classificacao={classificacao} jogosHoje={jogos} jogoSelecionado={jogoSelecionado} erroDaClassificacao={erroDaClassificacao} />}
           </div>
       </main>
 
@@ -307,10 +323,18 @@ export default function App() {
 // COMPONENTES AUXILIARES BLINDADOS
 // -----------------------------------------------------------------------------
 
-function ClassificacaoPanel({ menuAtivo, ligaAtivaId, loadingClassificacao, classificacao, jogosHoje, jogoSelecionado }) {
+function ClassificacaoPanel({ menuAtivo, ligaAtivaId, loadingClassificacao, classificacao, jogosHoje, jogoSelecionado, erroDaClassificacao }) {
     return ( 
       <motion.div initial={{opacity: 0}} animate={{opacity: 1}} style={{background: theme.bgPanel, borderRadius: '12px', border: `1px solid ${theme.border}`, overflow: 'hidden', padding: '20px', width:'100%'}}>
-        {!ligaAtivaId ? ( <div style={{textAlign: 'center', color: theme.textMuted, padding: '40px 0'}}>🌍 Selecione uma liga específica no menu lateral (ex: Serie A, Premier League) para carregar a classificação oficial.</div> ) : loadingClassificacao ? ( <div style={{textAlign: 'center', color: theme.blue, padding: '40px 0', fontWeight:'bold'}}>A baixar Tabela Oficial da API...</div> ) : classificacao.length === 0 ? (<div style={{textAlign: 'center', color: theme.textMuted, padding: '40px 0'}}>⚠️ Dados de classificação indisponíveis para a liga selecionada hoje.</div>) : ( 
+        {!ligaAtivaId ? ( 
+            <div style={{textAlign: 'center', color: theme.textMuted, padding: '40px 0'}}>🌍 Selecione uma liga específica no menu lateral para carregar a classificação.</div> 
+        ) : loadingClassificacao ? ( 
+            <div style={{textAlign: 'center', color: theme.blue, padding: '40px 0', fontWeight:'bold'}}>A baixar Tabela Oficial da API...</div> 
+        ) : erroDaClassificacao ? (
+            <div style={{textAlign: 'center', color: theme.red, padding: '40px 0', fontWeight:'bold'}}>{erroDaClassificacao}</div>
+        ) : classificacao.length === 0 ? (
+            <div style={{textAlign: 'center', color: theme.textMuted, padding: '40px 0'}}>⚠️ Dados de classificação indisponíveis para a liga selecionada hoje.</div>
+        ) : ( 
           <div style={{overflowX: 'auto'}}>
             <table style={{width: '100%', borderCollapse: 'collapse', textAlign: 'left', color: theme.textMain, fontSize: '13px'}}>
               <thead><tr style={{borderBottom: `1px solid ${theme.border}`, color: theme.textMuted, background:theme.bgSidebar}}><th style={{padding:'12px 8px'}}>#</th><th>Equipe</th><th>Pts</th><th>J</th><th>V</th><th>E</th><th>D</th><th>SG</th><th style={{textAlign: 'center'}}>Status Hoje</th><th style={{textAlign: 'center'}}>Cartões Hoje</th></tr></thead>
@@ -351,7 +375,7 @@ function RightPanelComponent({ jogoSelecionado, rightTab, setRightTab, isMobile 
                     </div>
                 </div>
                 <div style={{ display: 'flex', background: theme.bgSidebar, padding: '10px', gap: '5px', overflowX: 'auto' }} className="custom-scrollbar">
-                    {[{n:'Estatísticas',i:'📊'}, {n:'% Probs',i:'🎯'}, {n:'H2H',i:'⚔️'}, {n:'Escalações',i:'🏃'}].map(t => (
+                    {[{n:'% Probs',i:'🎯'}, {n:'Estatísticas',i:'📊'}, {n:'H2H',i:'⚔️'}, {n:'Escalações',i:'🏃'}].map(t => (
                         <button key={t.n} onClick={() => setRightTab(t.n)} style={{ flex: 1, whiteSpace: 'nowrap', padding: '8px 12px', background: rightTab === t.n ? theme.bgHover : 'transparent', color: rightTab === t.n ? '#fff' : theme.textMuted, border: `1px solid ${rightTab === t.n ? theme.border : 'transparent'}`, borderRadius: '20px', fontSize: '11px', cursor: 'pointer', fontWeight:'bold' }}>{t.i} {t.n}</button>
                     ))}
                 </div>
@@ -391,15 +415,17 @@ function RightPanelComponent({ jogoSelecionado, rightTab, setRightTab, isMobile 
                                 )}
                                 {rightTab === '% Probs' && (
                                     <>
-                                        {/* AQUI ESTÁ O NOVO TÍTULO DO SEU MOTOR PROPRIETÁRIO */}
+                                        {/* TÍTULO DO MOTOR MATEMÁTICO PROPRIETÁRIO */}
                                         <div style={{ background: theme.bgSidebar, padding: '15px', borderRadius: '12px', marginBottom: '15px', border: `1px solid ${theme.blue}` }}>
                                             <div style={{ fontSize: '11px', color: theme.blue, marginBottom: '15px', fontWeight: '900', textTransform: 'uppercase' }}>⚙️ ALGORITMO PROPRIETÁRIO BETANALYTICS</div>
                                             <div style={{ display: 'flex', height: '8px', borderRadius: '4px', overflow: 'hidden', marginBottom: '10px' }}><div style={{width: `${jogoSelecionado.probs?.h||33}%`, background: theme.blue}}></div><div style={{width: `${jogoSelecionado.probs?.d||34}%`, background: theme.textMuted}}></div><div style={{width: `${jogoSelecionado.probs?.a||33}%`, background: theme.accent}}></div></div>
                                             <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '12px', fontWeight: 'bold' }}><span style={{color: theme.blue}}>Casa {jogoSelecionado.probs?.h||33}%</span><span style={{color: theme.textMuted}}>Emp {jogoSelecionado.probs?.d||34}%</span><span style={{color: theme.accent}}>Fora {jogoSelecionado.probs?.a||33}%</span></div>
                                         </div>
+
+                                        {/* TEXTO ALTERADO COMO PEDIDO */}
                                         {jogoSelecionado.odds?.length > 0 && (
                                             <div style={{ background: theme.bgSidebar, padding: '15px', borderRadius: '12px', marginBottom: '15px' }}>
-                                                <div style={{ fontSize: '11px', color: theme.textMuted, marginBottom: '10px', fontWeight: 'bold' }}>ODDS REAIS DO MERCADO (BET365)</div>
+                                                <div style={{ fontSize: '11px', color: theme.textMuted, marginBottom: '10px', fontWeight: 'bold' }}>ODDS REAIS DO MERCADO</div>
                                                 <div style={{ display: 'flex', gap: '10px' }}>{['Home','Draw','Away'].map((v, idx) => ( <div key={v} style={{ flex: 1, background: theme.bgPanel, padding: '10px', borderRadius: '8px', textAlign: 'center', border: `1px solid ${theme.border}` }}><div style={{ fontSize: '9px', color: theme.textMuted, marginBottom: '4px' }}>{v==='Home'?'1':v==='Draw'?'X':'2'}</div><div style={{ fontSize: '14px', fontWeight: 'bold', color: idx===0?theme.blue:idx===2?theme.accent:'#fff' }}>{jogoSelecionado.odds.find(o=>o.value===v)?.odd || '-'}</div></div> ))}</div>
                                             </div>
                                         )}
