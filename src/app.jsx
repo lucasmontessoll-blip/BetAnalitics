@@ -11,30 +11,48 @@ const EMAILS_VIP_MESTRE = ['admin@nexus.com'];
 initMercadoPago('APP_USR-c05e91db-5e62-4838-8790-e73906d11dbc', { locale: 'pt-BR' });
 const API_URL = 'https://betanalitics-1-9stc.onrender.com';
 
-// 🎨 NOVO TEMA PREMIUM EXATO (SOFASCORE/FLASHSCORE)
+// 🎨 TEMA PREMIUM EXATO (SOFASCORE/FLASHSCORE)
 const theme = { bgApp: '#121212', bgSidebar: '#1a1a1a', bgPanel: '#222222', bgHover: '#2a2a2a', border: '#333333', accent: '#ffb800', blue: '#2563eb', green: '#22c55e', red: '#ef4444', textMain: '#ffffff', textMuted: '#a0a0a0' };
 
 const getLocalYYYYMMDD = () => { const d = new Date(); d.setMinutes(d.getMinutes() - d.getTimezoneOffset()); return d.toISOString().split('T')[0]; };
 const getWeekDays = (b) => Array.from({length: 7}, (_, i) => { const d = new Date(b + "T12:00:00Z"); d.setDate(d.getDate() + i - 3); return { iso: d.toISOString().split('T')[0], nome: ['DOM','SEG','TER','QUA','QUI','SEX','SÁB'][d.getDay()], dia: `${String(d.getDate()).padStart(2, '0')}/${String(d.getMonth()+1).padStart(2, '0')}` }; });
 const generateMomentum = () => Array.from({length: 90}, (_, i) => ({ time: i, pressaoHome: Math.max(0, Math.sin(i/5)*50 + Math.random()*50), pressaoAway: Math.max(0, Math.cos(i/4)*40 + Math.random()*40) }));
 
-// 🔥 LIGAS CRAVADAS COM IDs OFICIAIS (Fim do bug dos acentos)
 const listaLigas = [
-  {name:'Todos os Jogos', icon:'🌍', id: null},
-  {name:'Serie A', icon:'🇧🇷', id: 71},
-  {name:'Liga dos Campeões', icon:'⭐', id: 2},
-  {name:'Copa Libertadores', icon:'🌎', id: 13},
-  {name:'La Liga', icon:'🇪🇸', id: 140},
-  {name:'Premier League', icon:'🏴󠁧󠁢󠁥󠁮󠁧󠁿', id: 39},
-  {name:'Copa do Brasil', icon:'🏆', id: 73},
-  {name:'Serie B', icon:'🇧🇷', id: 72}
+  {name:'Todos os Jogos', icon:'🌍', id: null}, {name:'Serie A', icon:'🇧🇷', id: 71}, {name:'Liga dos Campeões', icon:'⭐', id: 2}, {name:'Copa Libertadores', icon:'🌎', id: 13}, {name:'La Liga', icon:'🇪🇸', id: 140}, {name:'Premier League', icon:'🏴󠁧󠁢󠁥󠁮󠁧󠁿', id: 39}, {name:'Copa do Brasil', icon:'🏆', id: 73}, {name:'Serie B', icon:'🇧🇷', id: 72}
 ];
 
 const SkeletonMatch = () => ( <motion.div animate={{ opacity: [0.3, 0.7, 0.3] }} transition={{ repeat: Infinity, duration: 1.5 }} style={{ background: theme.bgPanel, padding: '10px 15px', borderRadius: '8px', marginBottom: '8px', display: 'flex', alignItems: 'center' }}> <div style={{ width: '40px', height: '12px', background: theme.bgHover, borderRadius: '4px' }}></div> <div style={{ flex: 1, display: 'flex', justifyContent: 'space-between', padding: '0 20px' }}> <div style={{ width: '30%', height: '12px', background: theme.bgHover, borderRadius: '4px' }}></div> <div style={{ width: '40px', height: '24px', background: theme.bgHover, borderRadius: '6px' }}></div> <div style={{ width: '30%', height: '12px', background: theme.bgHover, borderRadius: '4px' }}></div> </div> </motion.div> );
 const SkeletonVIP = () => ( <motion.div animate={{ opacity: [0.3, 0.7, 0.3] }} transition={{ repeat: Infinity, duration: 1.5 }} style={{ padding: '20px' }}> <div style={{ width: '100%', height: '80px', background: theme.bgHover, borderRadius: '12px', marginBottom: '15px' }}></div> <div style={{ width: '100%', height: '150px', background: theme.bgHover, borderRadius: '12px', marginBottom: '15px' }}></div> <div style={{ width: '100%', height: '150px', background: theme.bgHover, borderRadius: '12px' }}></div> </motion.div> );
 const renderForm = (fS) => { if (!fS) return <span style={{color: theme.textMuted, fontSize: '10px'}}>-</span>; return fS.split('').map((c, i) => ( <span key={i} style={{ display: 'inline-block', width: '14px', height: '14px', borderRadius: '3px', background: c === 'W' ? theme.green : c === 'D' ? theme.textMuted : theme.red, color: '#fff', fontSize: '9px', textAlign: 'center', lineHeight: '14px', margin: '0 1px', fontWeight: 'bold' }}>{c}</span> )); };
 
+// 🔥 NOVO MOTOR MATEMÁTICO PROPRIETÁRIO BETANALYTICS (Ignora Bet365)
+const calcularAlgoritmoBetAnalytics = (predData) => {
+    if(!predData) return { h: 33, d: 34, a: 33 };
+    const getFormScore = (form) => { if(!form) return 1; return form.split('').reduce((acc, char) => acc + (char==='W'?3:char==='D'?1:0), 0); };
+    const homeForm = getFormScore(predData.teams?.home?.league?.form); const awayForm = getFormScore(predData.teams?.away?.league?.form);
+    const homeGoals = predData.teams?.home?.last_5?.goals?.for?.total || 1; const awayGoals = predData.teams?.away?.last_5?.goals?.for?.total || 1;
+    const homeDefesa = predData.teams?.home?.last_5?.goals?.against?.total || 1; const awayDefesa = predData.teams?.away?.last_5?.goals?.against?.total || 1; 
+
+    let homeH2H = 1, awayH2H = 1, drawH2H = 1;
+    if(predData.h2h && predData.h2h.length > 0) {
+        predData.h2h.slice(0,5).forEach(m => {
+            if(m.teams.home.winner) homeH2H += 2.5; else if(m.teams.away.winner) awayH2H += 2.5; else drawH2H += 1.5;
+        });
+    }
+
+    let scoreH = (homeForm * 1.5) + (homeGoals * 2) - (homeDefesa * 0.5) + (homeH2H * 1.2) + 2; 
+    let scoreA = (awayForm * 1.5) + (awayGoals * 2) - (awayDefesa * 0.5) + (awayH2H * 1.2);
+    let scoreD = ((homeForm + awayForm) / 2.5) + drawH2H; 
+    if (Math.abs(scoreH - scoreA) < 4) scoreD *= 1.6; 
+    scoreH = Math.max(scoreH, 1); scoreA = Math.max(scoreA, 1); scoreD = Math.max(scoreD, 1);
+    const total = scoreH + scoreA + scoreD;
+
+    return { h: Math.round((scoreH / total) * 100), d: Math.round((scoreD / total) * 100), a: Math.round((scoreA / total) * 100) };
+};
+
 export default function App() {
+  const [showSplash, setShowSplash] = useState(true);
   const [isMobile, setIsMobile] = useState(window.innerWidth <= 1024);
   const [ligaAtivaId, setLigaAtivaId] = useState(null); 
   const [menuAtivo, setMenuAtivo] = useState('Todos os Jogos'); 
@@ -62,6 +80,11 @@ export default function App() {
 
   const diasSemana = getWeekDays(dataFiltro);
 
+  useEffect(() => {
+    const timer = setTimeout(() => setShowSplash(false), 2500);
+    return () => clearTimeout(timer);
+  }, []);
+
   useEffect(() => { const hR = () => setIsMobile(window.innerWidth <= 1024); window.addEventListener('resize', hR); return () => window.removeEventListener('resize', hR); }, []);
   useEffect(() => { const em = localStorage.getItem('bet_sessao_ativa'); if (em) { if (EMAILS_VIP_MESTRE.includes(em.toLowerCase().trim())) setUserData({ email: em, is_vip: true }); else { try { const us = JSON.parse(localStorage.getItem('bet_users')||'{}'); if(us[em]) setUserData(us[em]); }catch(e){} } } }, []);
   useEffect(() => { if (menuAtivo !== "assinar pro") carregarDadosEsporte(false); }, [dataFiltro]);
@@ -79,16 +102,12 @@ export default function App() {
       })); 
   };
 
-  // 🔥 MOTOR DE CLASSIFICAÇÃO BLINDADO (Com base no ID exato)
   const carregarClassificacao = async () => { 
       if (!ligaAtivaId) { setClassificacao([]); return; }
       setLoadingClassificacao(true); 
       try {
           let sid = new Date().getFullYear();
-          // Ligas europeias (Premier League, La Liga, Champions) viram o ano em Agosto
-          if ([39, 140, 2].includes(ligaAtivaId) && new Date().getMonth() < 7) {
-              sid -= 1; 
-          }
+          if ([39, 140, 2].includes(ligaAtivaId) && new Date().getMonth() < 7) { sid -= 1; }
           const res = await axios.get('https://v3.football.api-sports.io/standings', { params: { league: ligaAtivaId, season: sid }, headers: { 'x-apisports-key': API_SPORTS_KEY } });
           const tableData = res.data.response[0]?.league?.standings[0] || [];
           setClassificacao(tableData.map(t => ({ pos: t.rank, team_id: t.team.id, team_name: t.team.name, logo: t.team.logo, pts: t.points, p: t.all.played, w: t.all.win, d: t.all.draw, l: t.all.lose, gd: t.goalsDiff })));
@@ -119,9 +138,9 @@ export default function App() {
       const res = await Promise.all(reqs);
       const dP = res[0].data?.response?.[0]||null; const dL = res[1].data?.response||[]; const dO = res[2].data?.response?.[0]?.bookmakers?.find(b=>b.id===8)||res[2].data?.response?.[0]?.bookmakers?.[0]||null; const dS = isAoVivo?res[3].data?.response||[]:[]; const dPl = isAoVivo?res[4].data?.response||[]:[];
 
-      let oddW = dO?.bets?.find(b=>b.name==='Match Winner')?.values||[]; let probH=33, probD=34, probA=33;
-      if(oddW.length>=3){ const oH=parseFloat(oddW.find(o=>o.value==='Home')?.odd||0); const oD=parseFloat(oddW.find(o=>o.value==='Draw')?.odd||0); const oA=parseFloat(oddW.find(o=>o.value==='Away')?.odd||0); if(oH>0&&oD>0&&oA>0){ const m=(1/oH)+(1/oD)+(1/oA); probH=Math.round(((1/oH)/m)*100); probD=Math.round(((1/oD)/m)*100); probA=Math.round(((1/oA)/m)*100); probH+=(100-(probH+probD+probA)); } }
-      else if(dP?.predictions?.percent){ probH=parseInt(dP.predictions.percent.home)||33; probD=parseInt(dP.predictions.percent.draw)||34; probA=parseInt(dP.predictions.percent.away)||33; }
+      // MATEMÁTICA PROPRIETÁRIA EM AÇÃO AQUI
+      const probabilidadeReal = calcularAlgoritmoBetAnalytics(dP);
+      let oddW = dO?.bets?.find(b=>b.name==='Match Winner')?.values||[];
 
       let h2hStr = "-"; if (dP?.h2h) { let wH=0, d=0, wA=0; dP.h2h.slice(0,5).forEach(x=>{if(x.teams.home.winner)wH++;else if(x.teams.away.winner)wA++;else d++;}); h2hStr=`${wH} Vit. Casa | ${d} Emp | ${wA} Vit. Fora`; }
       const vL = { home: dL.find(x=>x.team.id===j.home_id)||null, away: dL.find(x=>x.team.id===j.away_id)||null };
@@ -130,12 +149,10 @@ export default function App() {
 
       let topJogadores = []; if (dPl.length > 0) { const homeP = dPl.find(p => p.team.id === j.home_id)?.players || []; const awayP = dPl.find(p => p.team.id === j.away_id)?.players || []; topJogadores = [...homeP, ...awayP].map(p => { const stats = p.statistics[0] || {}; return { name: p.player.name, team_logo: stats.team?.logo || '', rating: parseFloat(stats.games?.rating || 0).toFixed(1), shots: stats.shots?.total || 0, passes: stats.passes?.accuracy || 0 }; }).sort((a, b) => b.rating - a.rating).filter(p => p.rating > 0).slice(0, 4); }
 
-      const jU = { ...j, dados_vip: true, is_loading: false, probs: {h:probH, d:probD, a:probA}, odds: oddW, advice: dP?.predictions?.advice||"-", fH: dP?.teams?.home?.league?.form||'', fA: dP?.teams?.away?.league?.form||'', h2h: h2hStr, tatH: vL.home?.formation||'-', tatA: vL.away?.formation||'-', coachH: vL.home?.coach?.name||'-', coachA: vL.away?.coach?.name||'-', linH: vL.home?.startXI||[], linA: vL.away?.startXI||[], subsH: vL.home?.substitutes||[], subsA: vL.away?.substitutes||[], stats_reais: sts, top_jogadores: topJogadores };
+      const jU = { ...j, dados_vip: true, is_loading: false, probs: probabilidadeReal, odds: oddW, advice: dP?.predictions?.advice||"-", fH: dP?.teams?.home?.league?.form||'', fA: dP?.teams?.away?.league?.form||'', h2h: h2hStr, tatH: vL.home?.formation||'-', tatA: vL.away?.formation||'-', coachH: vL.home?.coach?.name||'-', coachA: vL.away?.coach?.name||'-', linH: vL.home?.startXI||[], linA: vL.away?.startXI||[], subsH: vL.home?.substitutes||[], subsA: vL.away?.substitutes||[], stats_reais: sts, top_jogadores: topJogadores };
       setJogos(pJ => { const nJ = pJ.map(o => o.id === j.id ? jU : o); localStorage.setItem(`bet_api_${dataFiltro}`, JSON.stringify(nJ)); return nJ; }); setJogoSelecionado(jU);
     } catch (e) { setJogoSelecionado({ ...j, is_loading: false, err: true, dados_vip: true }); }
   };
-
-  const carregarPerfilJogador = async () => { if (!userData?.is_vip) { alert("🔒 VIP PRO requerido."); setShowProfileMenu(true); return; } setJogadorAberto({ nome: dadosFut.display_name, foto: dadosFut.image_path, nascimento: dadosFut.date_of_birth, altura: dadosFut.height, peso: dadosFut.weight, statsRecentes: dadosFut.latest[0]?.xglineup || [], ultimoJogo: dadosFut.latest[0]?.fixture?.name || "Partida" }); };
 
   const handleLogin = async () => {
     const e = loginEmail.trim().toLowerCase(); if (!e || !loginSenha) return alert("❌ Preencha E-mail e Senha.");
@@ -160,6 +177,23 @@ export default function App() {
   const jGrp = jFilt.reduce((a, j) => { const ln = `${j.league_name} - ${j.league_country}`; if (!a[ln]) a[ln] = { flag: j.league_flag, games: [] }; a[ln].games.push(j); return a; }, {});
 
   useEffect(() => { const ds = localStorage.getItem(`bet_api_${dataFiltro}`); if(ds) aplicarFiltros(JSON.parse(ds), ligaAtivaId); }, [generoAtivo, ligaAtivaId]);
+
+  if (showSplash) {
+    return (
+      <div style={{ display: 'flex', flexDirection: 'column', height: '100vh', justifyContent: 'center', alignItems: 'center', background: theme.bgApp, color: '#fff', fontFamily: 'Inter, sans-serif' }}>
+         <motion.div initial={{ scale: 0.5, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} transition={{ duration: 0.8, ease: "easeOut" }}>
+            <div style={{fontSize: '80px', marginBottom: '10px', textAlign: 'center'}}>⚽</div>
+         </motion.div>
+         <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.3, duration: 0.5 }} style={{ fontSize: '32px', fontWeight: '900', letterSpacing: '2px', textShadow: `0 0 20px ${theme.blue}` }}>
+            BET<span style={{ color: theme.blue }}>ANALYTICS</span>
+         </motion.div>
+         <div style={{ marginTop: '30px', fontSize: '10px', color: theme.textMuted, textTransform: 'uppercase', letterSpacing: '3px' }}>A iniciar Motor Algorítmico...</div>
+         <div style={{ width: '200px', height: '4px', background: theme.bgHover, marginTop: '10px', borderRadius: '4px', overflow: 'hidden' }}>
+            <motion.div animate={{ width: ['0%', '100%'] }} transition={{ duration: 2.2, ease: "easeInOut" }} style={{ height: '100%', background: theme.blue, boxShadow: `0 0 10px ${theme.blue}` }} />
+         </div>
+      </div>
+    );
+  }
 
   return (
     <div style={{ display: 'flex', height: '100vh', background: theme.bgApp, color: theme.textMain, fontFamily: 'Inter, sans-serif' }}>
@@ -357,8 +391,9 @@ function RightPanelComponent({ jogoSelecionado, rightTab, setRightTab, isMobile 
                                 )}
                                 {rightTab === '% Probs' && (
                                     <>
-                                        <div style={{ background: theme.bgSidebar, padding: '15px', borderRadius: '12px', marginBottom: '15px' }}>
-                                            <div style={{ fontSize: '11px', color: theme.textMuted, marginBottom: '15px', fontWeight: 'bold', textTransform: 'uppercase' }}>Probabilidade Convertida (1X2)</div>
+                                        {/* AQUI ESTÁ O NOVO TÍTULO DO SEU MOTOR PROPRIETÁRIO */}
+                                        <div style={{ background: theme.bgSidebar, padding: '15px', borderRadius: '12px', marginBottom: '15px', border: `1px solid ${theme.blue}` }}>
+                                            <div style={{ fontSize: '11px', color: theme.blue, marginBottom: '15px', fontWeight: '900', textTransform: 'uppercase' }}>⚙️ ALGORITMO PROPRIETÁRIO BETANALYTICS</div>
                                             <div style={{ display: 'flex', height: '8px', borderRadius: '4px', overflow: 'hidden', marginBottom: '10px' }}><div style={{width: `${jogoSelecionado.probs?.h||33}%`, background: theme.blue}}></div><div style={{width: `${jogoSelecionado.probs?.d||34}%`, background: theme.textMuted}}></div><div style={{width: `${jogoSelecionado.probs?.a||33}%`, background: theme.accent}}></div></div>
                                             <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '12px', fontWeight: 'bold' }}><span style={{color: theme.blue}}>Casa {jogoSelecionado.probs?.h||33}%</span><span style={{color: theme.textMuted}}>Emp {jogoSelecionado.probs?.d||34}%</span><span style={{color: theme.accent}}>Fora {jogoSelecionado.probs?.a||33}%</span></div>
                                         </div>
@@ -448,7 +483,7 @@ function ModalsExtras({ menuAtivo, form, setForm, setMenuAtivo, setUserData }) {
         {passo === 1 && (
           <motion.div initial={{opacity:0}} animate={{opacity:1}} style={{display: 'flex', flexDirection: 'column', gap: '15px'}}>
             <h2 style={{margin: 0, color: theme.accent, fontSize:'20px'}}>Assinar Acesso VIP PRO 👑</h2>
-            <p style={{fontSize:'12px', color:theme.textMuted, margin:0}}>Desbloqueie estatísticas ao vivo, gráficos de pressão e palpites do robô IA.</p>
+            <p style={{fontSize:'12px', color:theme.textMuted, margin:0}}>Desbloqueie o Algoritmo Proprietário BetAnalytics, gráficos de pressão e palpites do robô IA.</p>
             <input placeholder="Nome Completo" value={form.nome} style={{padding: '14px', borderRadius: '6px', background: theme.bgApp, color: '#fff', border:`1px solid ${theme.border}`, fontSize:'13px', outline:'none'}} onChange={e=>setForm({...form,nome:e.target.value})} />
             <input placeholder="E-mail principal" value={form.email} style={{padding: '14px', borderRadius: '6px', background: theme.bgApp, color: '#fff', border:`1px solid ${theme.border}`, fontSize:'13px', outline:'none'}} onChange={e=>setForm({...form,email:e.target.value})} />
             <input placeholder="CPF (Apenas os 11 números)" value={form.cpf} maxLength={11} style={{padding: '14px', borderRadius: '6px', background: theme.bgApp, color: '#fff', border:`1px solid ${theme.border}`, fontSize:'13px', outline:'none'}} onChange={e=>setForm({...form,cpf:e.target.value.replace(/\D/g, '')})} />
