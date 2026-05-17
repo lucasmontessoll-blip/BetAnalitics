@@ -68,7 +68,7 @@ export default function App() {
   const [viewMode, setViewMode] = useState('jogos'); 
   const [classificacao, setClassificacao] = useState([]); 
   const [loadingClassificacao, setLoadingClassificacao] = useState(false); 
-  const [erroDaClassificacao, setErroDaClassificacao] = useState(''); // NOVO: Detetor de Erro de API
+  const [erroDaClassificacao, setErroDaClassificacao] = useState(''); 
   const [rightTab, setRightTab] = useState('Estatísticas'); 
   const [filterCentro, setFilterCentro] = useState('Todos'); 
   const [showLoginMenu, setShowLoginMenu] = useState(false); 
@@ -131,7 +131,10 @@ export default function App() {
 
   const carregarDadosEsporte = async (forcar = false) => {
     setLoading(true); const CK = `bet_api_${dataFiltro}`; const CTK = `bet_time_${dataFiltro}`;
-    if (!forcar) { const ds = localStorage.getItem(CK); const ts = localStorage.getItem(CTK); if (ds && ts && (new Date().getTime() - parseInt(ts) < 43200000)) { aplicarFiltros(JSON.parse(ds), ligaAtivaId); setLoading(false); return; } }
+    
+    // 🔥 CACHE AJUSTADO PARA 30 MINUTOS (1800000 ms) AQUI 🔥
+    if (!forcar) { const ds = localStorage.getItem(CK); const ts = localStorage.getItem(CTK); if (ds && ts && (new Date().getTime() - parseInt(ts) < 1800000)) { aplicarFiltros(JSON.parse(ds), ligaAtivaId); setLoading(false); return; } }
+    
     try {
       const res = await axios.get('https://v3.football.api-sports.io/fixtures', { params: { date: dataFiltro, timezone: 'America/Sao_Paulo' }, headers: { 'x-apisports-key': API_SPORTS_KEY } });
       const jF = (res.data?.response||[]).map(f => {
@@ -144,7 +147,7 @@ export default function App() {
 
   const abrirPainelDoJogo = async (j) => {
     if(!userData?.is_vip) { setShowProfileMenu(true); return alert("🔒 Acesso VIP PRO requerido."); }
-    setRightTab('% Probs'); // Alterei aqui para abrir a aba do Motor Matemático por defeito!
+    setRightTab('% Probs'); 
     if (j.dados_vip) return setJogoSelecionado(j); 
     setJogoSelecionado({ ...j, is_loading: true });
     try {
@@ -154,7 +157,6 @@ export default function App() {
       const res = await Promise.all(reqs);
       const dP = res[0].data?.response?.[0]||null; const dL = res[1].data?.response||[]; const dO = res[2].data?.response?.[0]?.bookmakers?.find(b=>b.id===8)||res[2].data?.response?.[0]?.bookmakers?.[0]||null; const dS = isAoVivo?res[3].data?.response||[]:[]; const dPl = isAoVivo?res[4].data?.response||[]:[];
 
-      // O SEU MOTOR MATEMÁTICO É EXECUTADO AQUI
       const probabilidadeReal = calcularAlgoritmoBetAnalytics(dP);
       let oddW = dO?.bets?.find(b=>b.name==='Match Winner')?.values||[];
 
