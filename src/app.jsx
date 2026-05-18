@@ -4,6 +4,10 @@ import { LineChart, Line, ResponsiveContainer } from 'recharts';
 import { motion, AnimatePresence } from 'framer-motion';
 import { initMercadoPago, Payment } from '@mercadopago/sdk-react'; 
 
+// 🔥 IMPORTAÇÕES DO BANCO DE DADOS FIREBASE
+import { doc, setDoc, getDoc } from "firebase/firestore";
+import { db } from './firebase'; // Liga o ficheiro que acabámos de criar
+
 // 🔑 CHAVES E CONFIGURAÇÕES DO MOTOR VIP
 const API_SPORTS_KEY = "7ff15d43907d5138e48674b29ab56a65";
 const EMAILS_VIP_MESTRE = ['admin@nexus.com']; 
@@ -23,7 +27,6 @@ const listaLigas = [
 
 const mapaTemporadas = { 71: 2026, 72: 2026, 73: 2026, 13: 2026, 2: 2025, 39: 2025, 140: 2025 };
 
-// 📄 CONTEÚDO PARA APROVAÇÃO DO ADSENSE (BLOG E LEGAL)
 const artigosBlog = [
     { id: 1, titulo: "O que é Valor Esperado (EV+) nas Apostas Esportivas?", data: "15 Mai 2026", conteudo: "No universo das análises desportivas, a métrica mais importante não é a taxa de acerto, mas sim o Valor Esperado (EV). O EV+ ocorre quando a probabilidade real de um evento acontecer é maior do que a probabilidade implícita oferecida pelas odds do mercado. O nosso Algoritmo Proprietário cruza dados de forma recente, poder ofensivo e confrontos diretos para encontrar estas discrepâncias matemáticas. Apostar com EV+ significa que, a longo prazo, a matemática trabalhará a seu favor, removendo o viés emocional das decisões. É vital compreender que a variância existe, mas o foco deve ser sempre no processo analítico." },
     { id: 2, titulo: "Como a Distribuição de Poisson Modela Jogos de Futebol", data: "10 Mai 2026", conteudo: "A Distribuição de Poisson é um conceito matemático frequentemente utilizado para prever a probabilidade de um número específico de eventos ocorrer num intervalo fixo de tempo. No futebol, aplicamos esta teoria para calcular a probabilidade de uma equipa marcar x golos com base no seu poder de ataque e na força defensiva do adversário. O Motor BetAnalytics vai além do Poisson tradicional, injetando variáveis de momento (forma) e histórico (H2H) para criar uma linha de probabilidade justa. Esta abordagem analítica permite isolar o 'ruído' do mercado e focar puramente no desempenho estatístico das equipas em campo." }
@@ -33,7 +36,6 @@ const SkeletonMatch = () => ( <motion.div animate={{ opacity: [0.3, 0.7, 0.3] }}
 const SkeletonVIP = () => ( <motion.div animate={{ opacity: [0.3, 0.7, 0.3] }} transition={{ repeat: Infinity, duration: 1.5 }} style={{ padding: '20px' }}> <div style={{ width: '100%', height: '80px', background: theme.bgHover, borderRadius: '12px', marginBottom: '15px' }}></div> <div style={{ width: '100%', height: '150px', background: theme.bgHover, borderRadius: '12px', marginBottom: '15px' }}></div> <div style={{ width: '100%', height: '150px', background: theme.bgHover, borderRadius: '12px' }}></div> </motion.div> );
 const renderForm = (fS) => { if (!fS) return <span style={{color: theme.textMuted, fontSize: '10px'}}>-</span>; return fS.split('').map((c, i) => ( <span key={i} style={{ display: 'inline-block', width: '14px', height: '14px', borderRadius: '3px', background: c === 'W' ? theme.green : c === 'D' ? theme.textMuted : theme.red, color: '#fff', fontSize: '9px', textAlign: 'center', lineHeight: '14px', margin: '0 1px', fontWeight: 'bold' }}>{c}</span> )); };
 
-// 🔥 MOTOR MATEMÁTICO PROPRIETÁRIO BETANALYTICS
 const calcularAlgoritmoBetAnalytics = (predData) => {
     if(!predData) return { h: 33, d: 34, a: 33 };
     const getFormScore = (form) => { if(!form) return 1; return form.split('').reduce((acc, char) => acc + (char==='W'?3:char==='D'?1:0), 0); };
@@ -69,7 +71,7 @@ export default function App() {
   const [loading, setLoading] = useState(false); 
   const [busca, setBusca] = useState(''); 
   const [dataFiltro, setDataFiltro] = useState(getLocalYYYYMMDD()); 
-  const [viewMode, setViewMode] = useState('jogos'); // 'jogos', 'classificacao', 'blog', 'legal'
+  const [viewMode, setViewMode] = useState('jogos'); 
   const [abaLegal, setAbaLegal] = useState('termos');
   const [classificacao, setClassificacao] = useState([]); 
   const [loadingClassificacao, setLoadingClassificacao] = useState(false); 
@@ -95,7 +97,21 @@ export default function App() {
   }, []);
 
   useEffect(() => { const hR = () => setIsMobile(window.innerWidth <= 1024); window.addEventListener('resize', hR); return () => window.removeEventListener('resize', hR); }, []);
-  useEffect(() => { const em = localStorage.getItem('bet_sessao_ativa'); if (em) { if (EMAILS_VIP_MESTRE.includes(em.toLowerCase().trim())) setUserData({ email: em, is_vip: true }); else { try { const us = JSON.parse(localStorage.getItem('bet_users')||'{}'); if(us[em]) setUserData(us[em]); }catch(e){} } } }, []);
+  
+  // 🔥 BUSCAR DADOS DO VIP NO FIREBASE (NUVEM) AO INICIAR
+  useEffect(() => { 
+      const em = localStorage.getItem('bet_sessao_ativa'); 
+      if (em) { 
+          if (EMAILS_VIP_MESTRE.includes(em.toLowerCase().trim())) {
+              setUserData({ email: em, is_vip: true }); 
+          } else {
+              getDoc(doc(db, "users", em)).then(snap => {
+                  if(snap.exists()) setUserData(snap.data());
+              }).catch(err => console.error("Erro ao buscar VIP:", err));
+          } 
+      } 
+  }, []);
+
   useEffect(() => { if (menuAtivo !== "assinar pro") carregarDadosEsporte(false); }, [dataFiltro]);
   useEffect(() => { if (viewMode === 'classificacao') carregarClassificacao(); }, [viewMode, ligaAtivaId]);
 
@@ -118,26 +134,20 @@ export default function App() {
       try {
           const sid = mapaTemporadas[ligaAtivaId] || new Date().getFullYear();
           const res = await axios.get('https://v3.football.api-sports.io/standings', { params: { league: ligaAtivaId, season: sid }, headers: { 'x-apisports-key': API_SPORTS_KEY } });
-          
           if (res.data.errors && Object.keys(res.data.errors).length > 0) {
               setErroDaClassificacao("⚠️ Erro na API: Limite de consultas diárias excedido.");
-              setClassificacao([]);
-              setLoadingClassificacao(false);
-              return;
+              setClassificacao([]); setLoadingClassificacao(false); return;
           }
-
           const tableData = res.data.response[0]?.league?.standings[0] || [];
           setClassificacao(tableData.map(t => ({ pos: t.rank, team_id: t.team.id, team_name: t.team.name, logo: t.team.logo, pts: t.points, p: t.all.played, w: t.all.win, d: t.all.draw, l: t.all.lose, gd: t.goalsDiff })));
       } catch (e) { 
-          setErroDaClassificacao("⚠️ Falha ao contactar o servidor da API. Verifique a sua ligação.");
-          setClassificacao([]); 
+          setErroDaClassificacao("⚠️ Falha ao contactar o servidor da API. Verifique a sua ligação."); setClassificacao([]); 
       } finally { setLoadingClassificacao(false); }
   };
 
   const carregarDadosEsporte = async (forcar = false) => {
     setLoading(true); const CK = `bet_api_${dataFiltro}`; const CTK = `bet_time_${dataFiltro}`;
     if (!forcar) { const ds = localStorage.getItem(CK); const ts = localStorage.getItem(CTK); if (ds && ts && (new Date().getTime() - parseInt(ts) < 1800000)) { aplicarFiltros(JSON.parse(ds), ligaAtivaId); setLoading(false); return; } }
-    
     try {
       const res = await axios.get('https://v3.football.api-sports.io/fixtures', { params: { date: dataFiltro, timezone: 'America/Sao_Paulo' }, headers: { 'x-apisports-key': API_SPORTS_KEY } });
       const jF = (res.data?.response||[]).map(f => {
@@ -175,16 +185,36 @@ export default function App() {
     } catch (e) { setJogoSelecionado({ ...j, is_loading: false, err: true, dados_vip: true }); }
   };
 
+  // 🔥 LOGIN DIRETO NO FIREBASE (NUVEM)
   const handleLogin = async () => {
     const e = loginEmail.trim().toLowerCase(); if (!e || !loginSenha) return alert("❌ Preencha E-mail e Senha.");
     if (EMAILS_VIP_MESTRE.includes(e)) { setUserData({ email: e, is_vip: true }); localStorage.setItem('bet_sessao_ativa', e); setShowLoginMenu(false); return; }
-    let bL = {}; try { bL = JSON.parse(localStorage.getItem('bet_users') || '{}'); } catch(err) {}
-    if (bL[e] && bL[e].password === loginSenha) { setUserData(bL[e]); localStorage.setItem('bet_sessao_ativa', e); setShowLoginMenu(false); } else { alert("❌ E-mail ou Senha incorretos."); }
+    
+    try {
+        const userSnap = await getDoc(doc(db, "users", e));
+        if (userSnap.exists() && userSnap.data().password === loginSenha) {
+            setUserData(userSnap.data());
+            localStorage.setItem('bet_sessao_ativa', e);
+            setShowLoginMenu(false);
+        } else { alert("❌ E-mail ou Senha incorretos."); }
+    } catch (err) { alert("❌ Erro ao ligar ao servidor. Tente novamente."); }
   };
 
+  // 🔥 CADASTRO DIRETO NO FIREBASE (NUVEM)
   const handleCadastro = async () => {
-    const e = loginEmail.trim().toLowerCase(); if (!e || !loginSenha) return alert("❌ E-mail/Senha."); let bL = {}; try { bL = JSON.parse(localStorage.getItem('bet_users') || '{}'); } catch(err) {}
-    if (bL[e]) return alert("❌ E-mail já existe!"); bL[e] = { email: e, password: loginSenha, is_vip: false }; localStorage.setItem('bet_users', JSON.stringify(bL)); setUserData({ email: e, is_vip: false }); localStorage.setItem('bet_sessao_ativa', e); setShowLoginMenu(false); alert("✅ Conta criada!");
+    const e = loginEmail.trim().toLowerCase(); if (!e || !loginSenha) return alert("❌ E-mail/Senha.");
+    try {
+        const userSnap = await getDoc(doc(db, "users", e));
+        if (userSnap.exists()) return alert("❌ Este E-mail já existe!");
+        
+        const newUser = { email: e, password: loginSenha, is_vip: false };
+        await setDoc(doc(db, "users", e), newUser); // Grava na Nuvem
+        
+        setUserData(newUser);
+        localStorage.setItem('bet_sessao_ativa', e);
+        setShowLoginMenu(false);
+        alert("✅ Conta criada com sucesso na nuvem!");
+    } catch (err) { alert("❌ Erro ao criar conta no servidor."); }
   };
 
   const toggleFavorito = (e, id) => { e.stopPropagation(); setFavoritos(p => p.includes(id) ? p.filter(f => f !== id) : [...p, id]); };
@@ -312,7 +342,6 @@ export default function App() {
               
               {viewMode === 'classificacao' && <ClassificacaoPanel menuAtivo={menuAtivo} ligaAtivaId={ligaAtivaId} loadingClassificacao={loadingClassificacao} classificacao={classificacao} jogosHoje={jogos} jogoSelecionado={jogoSelecionado} erroDaClassificacao={erroDaClassificacao} />}
               
-              {/* VISTA DO BLOG */}
               {viewMode === 'blog' && (
                   <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
                       {artigosBlog.map(artigo => (
@@ -325,7 +354,6 @@ export default function App() {
                   </div>
               )}
 
-              {/* VISTA LEGAL (TERMOS E PRIVACIDADE) */}
               {viewMode === 'legal' && (
                   <div style={{ background: theme.bgPanel, border: `1px solid ${theme.border}`, borderRadius: '12px', padding: '20px' }}>
                       <div style={{ display: 'flex', gap: '10px', marginBottom: '20px', borderBottom: `1px solid ${theme.border}`, paddingBottom: '15px' }}>
@@ -346,7 +374,7 @@ export default function App() {
                       {abaLegal === 'privacidade' && (
                           <div style={{ color: theme.textMuted, fontSize: '13px', lineHeight: '1.6' }}>
                               <h3 style={{ color: '#fff' }}>Recolha e Uso de Dados</h3>
-                              <p>O BetAnalytics respeita a sua privacidade. Recolhemos apenas os dados estritamente necessários para o funcionamento da plataforma VIP PRO, nomeadamente o seu E-mail e Nome para a gestão da subscrição. Utilizamos armazenamento local (Local Storage) no seu dispositivo para acelerar o carregamento dos jogos e guardar as suas preferências de interface. Não vendemos os seus dados a terceiros em nenhuma circunstância.</p>
+                              <p>O BetAnalytics respeita a sua privacidade. Recolhemos apenas os dados estritamente necessários para o funcionamento da plataforma VIP PRO, nomeadamente o seu E-mail e Nome para a gestão da subscrição. Os dados de VIP são gravados de forma criptografada nos servidores da Google Firebase. Não vendemos os seus dados a terceiros em nenhuma circunstância.</p>
                           </div>
                       )}
 
@@ -363,7 +391,6 @@ export default function App() {
                   </div>
               )}
 
-              {/* ⚠️ RODAPÉ DE DISCLAIMER ADSENSE (Obrigatório) */}
               <div style={{ marginTop: '40px', padding: '20px', borderTop: `1px solid ${theme.border}`, textAlign: 'center', fontSize: '11px', color: theme.textMuted, lineHeight: '1.5' }}>
                   <div style={{ fontWeight: 'bold', marginBottom: '10px', color: theme.textMain }}>BetAnalytics PRO © {new Date().getFullYear()} - Todos os direitos reservados.</div>
                   <p style={{ margin: '0 0 10px 0' }}>O BetAnalytics é estritamente uma plataforma de análise de dados, desporto e estatística. <strong>NÃO somos uma casa de apostas e não aceitamos qualquer tipo de depósito financeiro para jogos de azar.</strong> O nosso algoritmo não garante lucros. O conteúdo deste site é apenas para fins informativos e de entretenimento.</p>
@@ -378,7 +405,6 @@ export default function App() {
           </div>
       </main>
 
-      {/* 📲 PAINEL DIREITO VIP E LIGAS MOBILE */}
       {(jogoSelecionado && !isMobile && abaGeralAtiva === 'dashboard') && <RightPanelComponent jogoSelecionado={jogoSelecionado} rightTab={rightTab} setRightTab={setRightTab} />}
       
       {isMobile && jogoSelecionado && abaGeralAtiva === 'dashboard' && !showMobileLigas && (
@@ -388,7 +414,6 @@ export default function App() {
           </motion.div>
       )}
 
-      {/* MENU DE LIGAS DESLIZANTE PARA MOBILE */}
       <AnimatePresence>
           {isMobile && showMobileLigas && (
               <motion.div initial={{ opacity: 0, y: 100 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: 100 }} style={{ position: 'fixed', inset: 0, bottom: '65px', background: theme.bgApp, zIndex: 998, padding: '20px', overflowY: 'auto' }} className="custom-scrollbar">
@@ -414,17 +439,14 @@ export default function App() {
       <ModalsExtras menuAtivo={menuAtivo} form={form} setForm={setForm} setMenuAtivo={setMenuAtivo} setUserData={setUserData} />
       <AuthModal showLoginMenu={showLoginMenu} setShowLoginMenu={setShowLoginMenu} authMode={authMode} setAuthMode={setAuthMode} loginEmail={loginEmail} setLoginEmail={setLoginEmail} loginSenha={loginSenha} setLoginSenha={setLoginSenha} handleLogin={handleLogin} handleCadastro={handleCadastro} />
       
-      {/* 📱 NAVEGAÇÃO INFERIOR MOBILE */}
       {isMobile && (
         <div style={{ position: 'fixed', bottom: 0, left: 0, right: 0, height: '65px', background: theme.bgPanel, borderTop: `1px solid ${theme.border}`, display: 'flex', alignItems: 'center', justifyContent: 'space-around', zIndex: 999 }}>
             <button onClick={() => {setAbaGeralAtiva('dashboard'); setViewMode('jogos'); setMenuAtivo('Todos os Jogos'); setLigaAtivaId(null); setShowMobileLigas(false);}} style={{background: 'none', border: 'none', color: abaGeralAtiva === 'dashboard' && !showMobileLigas && viewMode === 'jogos' ? theme.blue : theme.textMuted, display:'flex', flexDirection:'column', alignItems:'center', gap:'4px'}}>
                 <span style={{fontSize:'22px'}}>🏠</span><span style={{fontSize:'10px', fontWeight:'bold'}}>Início</span>
             </button>
-            
             <button onClick={() => setShowMobileLigas(true)} style={{background: 'none', border: 'none', color: showMobileLigas ? theme.blue : theme.textMuted, display:'flex', flexDirection:'column', alignItems:'center', gap:'4px'}}>
                 <span style={{fontSize:'22px'}}>🌍</span><span style={{fontSize:'10px', fontWeight:'bold'}}>Menu</span>
             </button>
-
             <button onClick={() => {setMenuAtivo('assinar pro'); setShowMobileLigas(false);}} style={{background: 'none', border: 'none', color: menuAtivo === 'assinar pro' ? theme.accent : theme.textMuted, display:'flex', flexDirection:'column', alignItems:'center', gap:'4px'}}>
                 <span style={{fontSize:'22px'}}>👑</span><span style={{fontSize:'10px', fontWeight:'bold'}}>VIP PRO</span>
             </button>
@@ -433,10 +455,6 @@ export default function App() {
     </div>
   );
 }
-
-// -----------------------------------------------------------------------------
-// COMPONENTES AUXILIARES 
-// -----------------------------------------------------------------------------
 
 function ClassificacaoPanel({ menuAtivo, ligaAtivaId, loadingClassificacao, classificacao, jogosHoje, jogoSelecionado, erroDaClassificacao }) {
     return ( 
@@ -579,7 +597,7 @@ function RightPanelComponent({ jogoSelecionado, rightTab, setRightTab, isMobile 
     );
 }
 
-// 🔥 SISTEMA DE PIX MANUAL E AUTOMÁTICO
+// 🔥 SISTEMA DE PIX MANUAL E AUTOMÁTICO (ATUALIZADO PARA FIREBASE)
 function ModalsExtras({ menuAtivo, form, setForm, setMenuAtivo, setUserData }) {
   const [passo, setPasso] = useState(1); const [loading, setLoading] = useState(false); const [dadosPix, setDadosPix] = useState(null);
   
@@ -591,7 +609,11 @@ function ModalsExtras({ menuAtivo, form, setForm, setMenuAtivo, setUserData }) {
           const res = await axios.get(`${API_URL}/status/${dadosPix.id}`);
           if (res.data.status === 'approved') {
             clearInterval(inv); alert("🎉 Pagamento PIX Aprovado! Bem-vindo ao VIP PRO!");
-            if (setUserData) { setUserData({ email: form.email, is_vip: true }); localStorage.setItem('bet_sessao_ativa', form.email); }
+            
+            // 🔥 GRAVAR O VIP NA NUVEM!
+            await setDoc(doc(db, "users", form.email), { is_vip: true }, { merge: true });
+
+            if (setUserData) { setUserData(prev => ({ ...prev, email: form.email, is_vip: true })); localStorage.setItem('bet_sessao_ativa', form.email); }
             setMenuAtivo('Todos os Jogos'); setPasso(1);
           }
         } catch (err) {}
