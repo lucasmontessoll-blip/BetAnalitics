@@ -2,22 +2,44 @@
 <html lang="pt-BR">
   <head>
     <meta charset="UTF-8" />
-    
     <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>📊</text></svg>" />
-    
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
-    
     <meta name="theme-color" content="#1a1d24" />
-    
-    <meta name="description" content="BetAnalytics PRO - A plataforma definitiva de inteligência esportiva e análise de dados para traders." />
+    <meta name="description" content="BetAnalytics PRO - A plataforma definitiva de inteligência esportiva e análise de dados." />
     <meta name="author" content="Lucas Montesso Coelho" />
     
     <title>BetAnalytics PRO | Inteligência Esportiva</title>
 
+    <meta property="og:type" content="website" />
+    <meta property="og:title" content="BetAnalytics PRO | Inteligência Esportiva" />
+    <meta property="og:description" content="Algoritmo proprietário para análise esportiva. Gráficos de pressão, % de probabilidades e estatísticas avançadas em tempo real." />
+    <meta property="og:image" content="https://images.unsplash.com/photo-1518605368461-1ee125225f27?ixlib=rb-4.0.3&auto=format&fit=crop&w=1200&q=80" />
+    <meta property="og:url" content="https://betanalitics-q0fq.onrender.com/" />
+
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;900&display=swap" rel="stylesheet">
 
+    <script async src="https://www.googletagmanager.com/gtag/js?id=G-B8QJMKD9S0"></script>
+    <script>
+      window.dataLayer = window.dataLayer || [];
+      function gtag(){dataLayer.push(arguments);}
+      gtag('js', new Date());
+      gtag('config', 'G-B8QJMKD9S0');
+    </script>
+    <script>
+      !function(f,b,e,v,n,t,s)
+      {if(f.fbq)return;n=f.fbq=function(){n.callMethod?
+      n.callMethod.apply(n,arguments):n.queue.push(arguments)};
+      if(!f._fbq)f._fbq=n;n.push=n;n.loaded=!0;n.version='2.0';
+      n.queue=[];t=b.createElement(e);t.async=!0;
+      t.src=v;s=b.getElementsByTagName(e)[0];
+      s.parentNode.insertBefore(t,s)}(window, document,'script',
+      'https://connect.facebook.net/en_US/fbevents.js');
+      // Substitua SEU_PIXEL_ID_AQUI pelo seu número do Facebook futuramente
+      fbq('init', 'SEU_PIXEL_ID_AQUI');
+      fbq('track', 'PageView');
+    </script>
     <style>
       body, html {
         margin: 0;
@@ -27,96 +49,11 @@
         font-family: 'Inter', sans-serif;
         overflow: hidden;
       }
-
-      #root {
-        height: 100%;
-      }
-
-      /* 🔥 Overlay PIX */
-      #pix-overlay {
-        position: fixed;
-        top: 0;
-        left: 0;
-        width: 100%;
-        height: 100%;
-        background: #1a1d24;
-        display: none;
-        align-items: center;
-        justify-content: center;
-        flex-direction: column;
-        z-index: 9999;
-        color: white;
-      }
-
-      #pix-overlay img {
-        width: 220px;
-        margin-top: 20px;
-      }
-
-      button {
-        padding: 12px 20px;
-        background: #00ff88;
-        border: none;
-        border-radius: 8px;
-        font-weight: bold;
-        cursor: pointer;
-      }
+      #root { height: 100%; }
     </style>
   </head>
-
   <body>
     <div id="root"></div>
-
-    <!-- 🔥 PIX UI -->
-    <div id="pix-overlay">
-      <h2>Pagamento PIX</h2>
-      <button onclick="gerarPix()">Gerar PIX</button>
-      <img id="qr" />
-      <p id="status"></p>
-    </div>
-
-    <script>
-      let paymentId = null;
-
-      function abrirPix() {
-        document.getElementById("pix-overlay").style.display = "flex";
-      }
-
-      async function gerarPix() {
-        const res = await fetch('http://localhost:3000/api/pix', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            amount: 5,
-            email: "teste@test.com"
-          })
-        });
-
-        const data = await res.json();
-
-        document.getElementById("qr").src =
-          "data:image/png;base64," + data.qr_base64;
-
-        document.getElementById("status").innerText = "Aguardando pagamento...";
-        
-        paymentId = data.id;
-      }
-
-      setInterval(async () => {
-        if (!paymentId) return;
-
-        const res = await fetch(`http://localhost:3000/api/status/${paymentId}`);
-        const data = await res.json();
-
-        if (data.status === "approved") {
-          document.getElementById("status").innerText = "✅ PAGAMENTO APROVADO!";
-        }
-      }, 5000);
-
-      // 🔥 permite chamar do React
-      window.abrirPix = abrirPix;
-    </script>
-
     <script type="module" src="/src/main.jsx"></script>
   </body>
 </html>
