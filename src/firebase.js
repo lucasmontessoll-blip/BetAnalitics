@@ -19,3 +19,5 @@ const firebaseConfig = {
 // Initialize Firebase
 const app = initializeApp(firebaseConfig);
 const analytics = getAnalytics(app);
+// 🔥 É ESTA LINHA QUE FALTA: Ela "exporta" a ligação para o app.jsx poder usar
+export const db = getFirestore(app);
