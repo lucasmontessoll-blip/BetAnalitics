@@ -11,7 +11,7 @@ initMercadoPago('APP_USR-c05e91db-5e62-4838-8790-e73906d11dbc', { locale: 'pt-BR
 const API_URL = 'https://betanalitics-1-9stc.onrender.com';
 
 // 🎨 TEMA PREMIUM EXATO
-const theme = { bgApp: '#020202', bgSidebar: '#1a1a1a', bgPanel: '#222222', bgHover: '#2a2a2a', border: '#333333', accent: '#ffb800', blue: '#2563eb', green: '#22c55e', red: '#ef4444', textMain: '#ffffff', textMuted: '#a0a0a0' };
+const theme = { bgApp: '#090C15', bgSidebar: '#111623', bgPanel: '#111623', bgHover: '#181E2E', border: '#1E2536', accent: '#FFC107', blue: '#0D6EFD', green: '#198754', red: '#DC3545', textMain: '#FFFFFF', textMuted: '#8B95A9' };
 
 const getLocalYYYYMMDD = () => { const d = new Date(); d.setMinutes(d.getMinutes() - d.getTimezoneOffset()); return d.toISOString().split('T')[0]; };
 const getWeekDays = (b) => Array.from({length: 7}, (_, i) => { const d = new Date(b + "T12:00:00Z"); d.setDate(d.getDate() + i - 3); return { iso: d.toISOString().split('T')[0], nome: ['DOM','SEG','TER','QUA','QUI','SEX','SÁB'][d.getDay()], dia: `${String(d.getDate()).padStart(2, '0')}/${String(d.getMonth()+1).padStart(2, '0')}` }; });
@@ -25,11 +25,11 @@ const mapaTemporadas = { 71: 2026, 72: 2026, 73: 2026, 13: 2026, 2: 2025, 39: 20
 
 // 📄 CONTEÚDO PARA APROVAÇÃO DO ADSENSE (BLOG E LEGAL)
 const artigosBlog = [
-    { id: 1, titulo: "O que é Valor Esperado (EV+) nas Apostas Esportivas?", data: "15 Mai 2026", conteudo: "No universo das análises desportivas, a métrica mais importante não é a taxa de acerto, mas sim o Valor Esperado (EV). O EV+ ocorre quando a probabilidade real de um evento acontecer é maior do que a probabilidade implícita oferecida pelas odds do mercado. O nosso Algoritmo Proprietário cruza dados de forma recente, poder ofensivo e confrontos diretos para encontrar estas discrepâncias matemáticas. Apostar com EV+ significa que, a longo prazo, a matemática trabalhará a seu favor, removendo o viés emocional das decisões. É vital compreender que a variância existe, mas o foco deve ser sempre no processo analítico." },
-    { id: 2, titulo: "Como a Distribuição de Poisson Modela Jogos de Futebol", data: "10 Mai 2026", conteudo: "A Distribuição de Poisson é um conceito matemático frequentemente utilizado para prever a probabilidade de um número específico de eventos ocorrer num intervalo fixo de tempo. No futebol, aplicamos esta teoria para calcular a probabilidade de uma equipa marcar x golos com base no seu poder de ataque e na força defensiva do adversário. O Motor BetAnalytics vai além do Poisson tradicional, injetando variáveis de momento (forma) e histórico (H2H) para criar uma linha de probabilidade justa. Esta abordagem analítica permite isolar o 'ruído' do mercado e focar puramente no desempenho estatístico das equipas em campo." }
+    { id: 1, titulo: "O que é Valor Esperado (EV+) nas Apostas Esportivas?", data: "15 Mai 2026", conteudo: "No universo das análises desportivas, a métrica mais importante não é a taxa de acerto, mas sim o Valor Esperado (EV). O EV+ ocorre quando a probabilidade real de um evento acontecer é maior do que a probabilidade implícita oferecida pelas odds do mercado. O nosso Algoritmo Proprietário cruza dados de forma recente, poder ofensivo e confrontos diretos para encontrar estas discrepâncias matemáticas. Apostar com EV+ significa que, a longo prazo, a matemática trabalhará a seu favor, removendo o viés emocional das decisões." },
+    { id: 2, titulo: "Como a Distribuição de Poisson Modela Jogos de Futebol", data: "10 Mai 2026", conteudo: "A Distribuição de Poisson é um conceito matemático frequentemente utilizado para prever a probabilidade de um número específico de eventos ocorrer num intervalo fixo de tempo. No futebol, aplicamos esta teoria para calcular a probabilidade de uma equipa marcar x golos com base no seu poder de ataque e na força defensiva do adversário. O Motor BetAnalytics vai além do Poisson tradicional, injetando variáveis de momento (forma) e histórico (H2H) para criar uma linha de probabilidade justa." }
 ];
 
-const SkeletonMatch = () => ( <motion.div animate={{ opacity: [0.3, 0.7, 0.3] }} transition={{ repeat: Infinity, duration: 1.5 }} style={{ background: theme.bgPanel, padding: '10px 15px', borderRadius: '8px', marginBottom: '8px', display: 'flex', alignItems: 'center' }}> <div style={{ width: '40px', height: '12px', background: theme.bgHover, borderRadius: '4px' }}></div> <div style={{ flex: 1, display: 'flex', justifyContent: 'space-between', padding: '0 20px' }}> <div style={{ width: '30%', height: '12px', background: theme.bgHover, borderRadius: '4px' }}></div> <div style={{ width: '40px', height: '24px', background: theme.bgHover, borderRadius: '6px' }}></div> <div style={{ width: '30%', height: '12px', background: theme.bgHover, borderRadius: '4px' }}></div> </div> </motion.div> );
+const SkeletonMatch = () => ( <motion.div animate={{ opacity: [0.3, 0.7, 0.3] }} transition={{ repeat: Infinity, duration: 1.5 }} style={{ background: theme.bgPanel, padding: '10px 15px', borderRadius: '16px', marginBottom: '8px', display: 'flex', alignItems: 'center' }}> <div style={{ width: '40px', height: '12px', background: theme.bgHover, borderRadius: '4px' }}></div> <div style={{ flex: 1, display: 'flex', justifyContent: 'space-between', padding: '0 20px' }}> <div style={{ width: '30%', height: '12px', background: theme.bgHover, borderRadius: '4px' }}></div> <div style={{ width: '40px', height: '24px', background: theme.bgHover, borderRadius: '6px' }}></div> <div style={{ width: '30%', height: '12px', background: theme.bgHover, borderRadius: '4px' }}></div> </div> </motion.div> );
 const SkeletonVIP = () => ( <motion.div animate={{ opacity: [0.3, 0.7, 0.3] }} transition={{ repeat: Infinity, duration: 1.5 }} style={{ padding: '20px' }}> <div style={{ width: '100%', height: '80px', background: theme.bgHover, borderRadius: '12px', marginBottom: '15px' }}></div> <div style={{ width: '100%', height: '150px', background: theme.bgHover, borderRadius: '12px', marginBottom: '15px' }}></div> <div style={{ width: '100%', height: '150px', background: theme.bgHover, borderRadius: '12px' }}></div> </motion.div> );
 const renderForm = (fS) => { if (!fS) return <span style={{color: theme.textMuted, fontSize: '10px'}}>-</span>; return fS.split('').map((c, i) => ( <span key={i} style={{ display: 'inline-block', width: '14px', height: '14px', borderRadius: '3px', background: c === 'W' ? theme.green : c === 'D' ? theme.textMuted : theme.red, color: '#fff', fontSize: '9px', textAlign: 'center', lineHeight: '14px', margin: '0 1px', fontWeight: 'bold' }}>{c}</span> )); };
 
@@ -69,7 +69,7 @@ export default function App() {
   const [loading, setLoading] = useState(false); 
   const [busca, setBusca] = useState(''); 
   const [dataFiltro, setDataFiltro] = useState(getLocalYYYYMMDD()); 
-  const [viewMode, setViewMode] = useState('jogos'); // 'jogos', 'classificacao', 'blog', 'legal'
+  const [viewMode, setViewMode] = useState('jogos'); 
   const [abaLegal, setAbaLegal] = useState('termos');
   const [classificacao, setClassificacao] = useState([]); 
   const [loadingClassificacao, setLoadingClassificacao] = useState(false); 
@@ -217,18 +217,18 @@ export default function App() {
   }
 
   return (
-    <div style={{ display: 'flex', height: '100vh', background: theme.bgApp, color: theme.textMain, fontFamily: 'Inter, sans-serif' }}>
+    <div className="app-layout">
       
       {/* ⬅️ SIDEBAR (APENAS COMPUTADOR) */}
       {!isMobile && (
-        <aside style={{ width: '260px', background: theme.bgSidebar, display: 'flex', flexDirection: 'column', borderRight: `1px solid ${theme.border}` }}>
+        <aside className="sidebar">
             <div style={{ padding: '20px' }}>
                 <div style={{ background: theme.bgHover, borderRadius: '20px', padding: '10px 15px', display: 'flex', alignItems: 'center', gap: '10px' }}><span style={{color: theme.textMuted}}>🔍</span><input type="text" placeholder="Pesquisar equipa..." value={busca} onChange={e=>setBusca(e.target.value)} style={{ background:'transparent', border:'none', color:'#fff', outline:'none', width:'100%', fontSize:'13px' }}/></div>
             </div>
             
             <div style={{ padding: '0 20px', fontSize: '11px', color: theme.textMuted, fontWeight: 'bold', textTransform: 'uppercase', marginBottom: '10px' }}>Menu Principal</div>
             <div style={{ padding: '0 10px', marginBottom: '20px' }}>
-                <button onClick={() => {setViewMode('jogos'); setLigaAtivaId(null);}} style={{ width:'100%', padding:'10px', background: viewMode==='jogos'?theme.bgPanel:'transparent', color: viewMode==='jogos'?theme.blue:theme.textMain, border:'none', borderRadius:'8px', textAlign:'left', display:'flex', alignItems:'center', gap:'12px', cursor:'pointer', fontWeight:'bold', marginBottom:'5px' }}><span>🏠</span> Página Inicial</button>
+                <button onClick={() => {setViewMode('jogos'); setLigaAtivaId(null); setMenuAtivo('Todos os Jogos');}} style={{ width:'100%', padding:'10px', background: viewMode==='jogos'?theme.bgPanel:'transparent', color: viewMode==='jogos'?theme.blue:theme.textMain, border:'none', borderRadius:'8px', textAlign:'left', display:'flex', alignItems:'center', gap:'12px', cursor:'pointer', fontWeight:'bold', marginBottom:'5px' }}><span>🏠</span> Página Inicial</button>
                 <button onClick={() => setViewMode('blog')} style={{ width:'100%', padding:'10px', background: viewMode==='blog'?theme.bgPanel:'transparent', color: viewMode==='blog'?theme.blue:theme.textMain, border:'none', borderRadius:'8px', textAlign:'left', display:'flex', alignItems:'center', gap:'12px', cursor:'pointer', fontWeight:'bold' }}><span>📰</span> Blog & Análises</button>
             </div>
 
@@ -242,20 +242,17 @@ export default function App() {
       )}
 
       {/* ⚪ CENTRO */}
-      <main style={{ flex: 1, display: 'flex', flexDirection: 'column', background: theme.bgApp, overflow: 'hidden' }}>
-          <div style={{ padding: '20px', borderBottom: `1px solid ${theme.border}` }}>
-              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px' }}>
-                  <div style={{ display: 'flex', gap: '10px', alignItems: 'center', overflowX: 'auto' }} className="custom-scrollbar">
-                      <button onClick={() => {setViewMode('jogos'); setLigaAtivaId(null);}} style={{ background: theme.bgPanel, border: `1px solid ${theme.border}`, borderRadius: '8px', padding: '10px 15px', color: '#fff', cursor: 'pointer' }}>📅</button>
-                      {diasSemana.map(d => { const isH = dataFiltro === d.iso; return <div key={d.iso} onClick={()=>{setDataFiltro(d.iso); setViewMode('jogos');}} style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', padding: '5px 15px', cursor: 'pointer', color: isH && viewMode==='jogos' ? theme.blue : theme.textMuted, borderBottom: isH && viewMode==='jogos' ? `2px solid ${theme.blue}` : '2px solid transparent' }}><span style={{fontSize:'10px', fontWeight:'bold'}}>{isH ? 'HOJE' : d.nome}</span><span style={{fontSize:'13px', fontWeight:isH?'bold':'normal'}}>{d.dia}</span></div> })}
-                  </div>
+      <main className="main-area custom-scrollbar">
+          <div style={{ paddingBottom: '20px', borderBottom: `1px solid ${theme.border}` }}>
+              <div className="top-header">
+                  <div className="logo"><h1>⚽ BET<span>ANALYTICS</span></h1></div>
                   <div style={{ position: 'relative' }}>
-                    <button onClick={() => setShowProfileMenu(!showProfileMenu)} style={{ background: 'rgba(37,99,235,0.1)', color: theme.blue, border: `1px solid ${theme.blue}`, borderRadius: '50%', width: '40px', height: '40px', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '18px' }}>{userData?.is_vip ? '👑' : '👤'}</button>
+                    <button onClick={() => setShowProfileMenu(!showProfileMenu)} style={{ background: 'rgba(13, 110, 253, 0.1)', color: theme.blue, border: `1px solid ${theme.blue}`, borderRadius: '50%', width: '40px', height: '40px', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '18px' }}>{userData?.is_vip ? '👑' : '👤'}</button>
                     {showProfileMenu && (
                         <div style={{ position: 'absolute', top: '50px', right: 0, background: theme.bgPanel, border: `1px solid ${theme.border}`, borderRadius: '12px', padding: '15px', width: '220px', zIndex: 100 }}>
-                            {!userData ? <button onClick={() => { setShowProfileMenu(false); setShowLoginMenu(true); }} style={{ width: '100%', padding: '10px', background: theme.blue, color: '#fff', fontWeight: 'bold', borderRadius: '6px', border:'none', cursor:'pointer' }}>Entrar</button> : <div style={{ color: theme.accent, textAlign: 'center', marginBottom: '10px', fontWeight: 'bold' }}>{userData.email}</div>}
+                            {!userData ? <button onClick={() => { setShowProfileMenu(false); setShowLoginMenu(true); }} className="btn-primary">Entrar</button> : <div style={{ color: theme.accent, textAlign: 'center', marginBottom: '10px', fontWeight: 'bold' }}>{userData.email}</div>}
                             <div style={{ marginTop: '10px', borderTop: `1px solid ${theme.border}`, paddingTop: '10px' }}>
-                                <div style={{ padding: '8px', cursor: 'pointer', fontSize:'13px', color: '#fff' }} onClick={() => {setMenuAtivo('assinar pro'); setShowProfileMenu(false);}}>👑 Assinar VIP PRO</div>
+                                <div style={{ padding: '8px', cursor: 'pointer', fontSize:'13px', color: '#fff', fontWeight: 'bold' }} onClick={() => {setMenuAtivo('assinar pro'); setShowProfileMenu(false);}}>👑 Assinar VIP PRO</div>
                                 {userData && <div onClick={() => { setUserData(null); localStorage.removeItem('bet_sessao_ativa'); setShowProfileMenu(false); }} style={{ padding: '8px', cursor: 'pointer', color: theme.red, fontSize:'13px' }}>🚪 Sair</div>}
                             </div>
                         </div>
@@ -265,44 +262,61 @@ export default function App() {
               
               {(viewMode === 'jogos' || viewMode === 'classificacao') && (
                   <div style={{ display: 'flex', gap: '10px', alignItems: 'center', flexWrap: 'wrap' }}>
+                      <div className="date-filters custom-scrollbar">
+                          {diasSemana.map(d => { const isH = dataFiltro === d.iso; return <button key={d.iso} onClick={()=>{setDataFiltro(d.iso); setViewMode('jogos');}} className={`date-pill ${isH ? 'active' : ''}`}>{isH ? 'HOJE' : `${d.nome} ${d.dia}`}</button> })}
+                      </div>
+                      <div style={{ width: '100%', height: '1px', background: theme.border, marginBottom: '15px' }}></div>
                       <div style={{ display: 'flex', gap: '8px', background: theme.bgSidebar, padding: '4px', borderRadius: '20px' }}>
                           {['Todos', 'Ao Vivo', 'Próximo', 'Terminado'].map(f => ( <button key={f} onClick={()=>setFilterCentro(f)} style={{ padding: '6px 16px', background: filterCentro===f?theme.bgHover:'transparent', color: filterCentro===f?theme.textMain:theme.textMuted, borderRadius: '16px', border: filterCentro===f?`1px solid ${theme.border}`:'none', fontSize: '12px', fontWeight: 'bold', cursor: 'pointer', display: 'flex', gap: '5px', alignItems: 'center' }}>{f === 'Ao Vivo' && <span style={{width:'6px',height:'6px',background:theme.red,borderRadius:'50%'}}></span>}{f}</button> ))}
                       </div>
-                      <div style={{ width: '1px', height: '20px', background: theme.border, margin: '0 5px' }}></div>
-                      <button onClick={() => setViewMode('jogos')} style={{ padding: '6px 16px', background: viewMode==='jogos'?theme.bgSidebar:'transparent', color: viewMode==='jogos'?'#fff':theme.textMuted, borderRadius: '16px', border: 'none', fontSize: '12px', fontWeight: 'bold', cursor: 'pointer' }}>⚽ Partidas</button>
+                      <button onClick={() => setViewMode('jogos')} style={{ padding: '6px 16px', background: viewMode==='jogos'?theme.blue:'transparent', color: viewMode==='jogos'?'#fff':theme.textMuted, borderRadius: '16px', border: 'none', fontSize: '12px', fontWeight: 'bold', cursor: 'pointer' }}>⚽ Partidas</button>
                       <button onClick={() => setViewMode('classificacao')} style={{ padding: '6px 16px', background: viewMode==='classificacao'?theme.blue:'transparent', color: viewMode==='classificacao'?'#fff':theme.textMuted, borderRadius: '16px', border: 'none', fontSize: '12px', fontWeight: 'bold', cursor: 'pointer' }}>🏆 Classificação</button>
-                      <div style={{ marginLeft: 'auto', display: 'flex', gap: '5px', background: theme.bgHover, padding: '4px', borderRadius: '10px' }}>
-                          {['Masculino', 'Feminino'].map(g => ( <button key={g} onClick={() => setGeneroAtivo(g)} style={{ padding: '4px 10px', background: generoAtivo===g?theme.blue:'transparent', color: generoAtivo===g?'#fff':theme.textMuted, border: 'none', borderRadius: '6px', fontSize: '10px', fontWeight: 'bold', cursor: 'pointer' }}>{g}</button> ))}
-                      </div>
                   </div>
               )}
-              {viewMode === 'blog' && <h2 style={{margin:0, fontSize:'20px', color:theme.blue}}>Notícias e Educação Estatística</h2>}
+              {viewMode === 'blog' && <h2 style={{margin:0, fontSize:'20px', color:theme.textMain}}>Notícias e Educação Estatística</h2>}
               {viewMode === 'legal' && <h2 style={{margin:0, fontSize:'20px', color:theme.textMuted, textTransform:'uppercase'}}>Central de Transparência</h2>}
           </div>
 
-          <div style={{ flex: 1, overflowY: 'auto', padding: '20px' }} className="custom-scrollbar">
+          <div style={{ flex: 1, overflowY: 'auto', paddingTop: '20px' }}>
               {loading && viewMode === 'jogos' && <><SkeletonMatch/><SkeletonMatch/><SkeletonMatch/></>}
               
               {viewMode === 'jogos' && !loading && Object.entries(jGrp).map(([ln, grp]) => (
                   <div key={ln} style={{ marginBottom: '20px' }}>
-                      <div style={{ display: 'flex', alignItems: 'center', gap: '10px', padding: '10px 15px', background: theme.bgSidebar, borderTopLeftRadius: '8px', borderTopRightRadius: '8px', borderBottom: `1px solid ${theme.border}` }}>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '10px', padding: '10px 15px', color: theme.textMuted, fontSize: '14px', fontWeight: 'bold' }}>
                           <img src={grp.flag || 'https://media.api-sports.io/flags/int.svg'} style={{ width:'20px', borderRadius:'2px' }} alt="" />
-                          <div style={{ fontSize: '13px', fontWeight: 'bold' }}>{ln.split(' - ')[0]} <span style={{color: theme.textMuted, fontSize: '11px', fontWeight: 'normal'}}>{ln.split(' - ')[1]}</span></div>
+                          <div>{ln.split(' - ')[0]}</div>
                       </div>
-                      <div style={{ background: theme.bgPanel, borderBottomLeftRadius: '8px', borderBottomRightRadius: '8px', border: `1px solid ${theme.border}`, borderTop: 'none' }}>
+                      <div className="games-grid">
                           {grp.games.map(j => {
-                              const isSel = jogoSelecionado?.id === j.id; const isFav = favoritos.includes(j.id); const isLive = j.status === 'Live';
+                              const isFav = favoritos.includes(j.id); const isLive = j.status === 'Live';
                               return (
-                                  <div key={j.id} onClick={() => abrirPainelDoJogo(j)} style={{ display: 'flex', alignItems: 'center', padding: '12px 15px', borderBottom: `1px solid ${theme.border}`, cursor: 'pointer', background: isSel ? theme.bgHover : 'transparent', borderLeft: isSel ? `3px solid ${theme.blue}` : '3px solid transparent' }}>
-                                      <div style={{ width: '40px', fontSize: '11px', color: isLive ? theme.red : theme.textMuted, fontWeight: 'bold' }}>{isLive ? <motion.div animate={{opacity:[1,0,1]}} transition={{repeat:Infinity,duration:1}}>LIVE</motion.div> : j.status === 'Finished' ? 'FT' : j.starting_at?.split('T')[1]?.substring(0,5)}</div>
-                                      <div style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                                          <div style={{ flex: 1, textAlign: 'right', fontSize: '13px', fontWeight: '500', color: theme.textMain }}>{j.home_team}</div>
-                                          <img src={j.home_image} style={{ width:'20px', margin:'0 10px' }} alt="" />
-                                          <div style={{ background: isLive ? theme.bgApp : theme.bgSidebar, color: isLive ? theme.accent : theme.textMain, padding: '4px 10px', borderRadius: '4px', fontSize: '14px', fontWeight: 'bold', minWidth: '50px', textAlign: 'center', border: `1px solid ${theme.border}` }}>{j.status === 'Not Started' ? '-' : `${j.scoreHome} - ${j.scoreAway}`}</div>
-                                          <img src={j.away_image} style={{ width:'20px', margin:'0 10px' }} alt="" />
-                                          <div style={{ flex: 1, textAlign: 'left', fontSize: '13px', fontWeight: '500', color: theme.textMain }}>{j.away_team}</div>
+                                  <div key={j.id} className="match-card" onClick={() => abrirPainelDoJogo(j)}>
+                                      <div className="card-header-bet">
+                                          <span style={{ color: isLive ? theme.red : theme.textMuted, fontWeight: 'bold' }}>{isLive ? <motion.div animate={{opacity:[1,0,1]}} transition={{repeat:Infinity,duration:1}}>🔴 AO VIVO {j.time_elapsed}'</motion.div> : j.status === 'Finished' ? 'FINALIZADO' : j.starting_at?.split('T')[1]?.substring(0,5)}</span>
+                                          <span className="star-icon" onClick={(e) => toggleFavorito(e, j.id)} style={{ color: isFav ? theme.accent : theme.textMuted }}>{isFav ? '★' : '☆'}</span>
                                       </div>
-                                      <div onClick={(e) => toggleFavorito(e, j.id)} style={{ fontSize: '16px', color: isFav ? theme.accent : theme.border, marginLeft: '15px', cursor: 'pointer' }}>{isFav ? '★' : '☆'}</div>
+                                      <div className="scoreboard-bet">
+                                          <div className="team-col-bet">
+                                              <img src={j.home_image} className="team-logo" alt=""/>
+                                              <span className="team-name">{j.home_team}</span>
+                                          </div>
+                                          <div className="score-center" style={{ color: isLive ? theme.accent : theme.textMain }}>
+                                              {j.status === 'Not Started' ? 'VS' : `${j.scoreHome} - ${j.scoreAway}`}
+                                          </div>
+                                          <div className="team-col-bet" style={{ flexDirection: 'row-reverse', textAlign: 'right' }}>
+                                              <img src={j.away_image} className="team-logo" alt=""/>
+                                              <span className="team-name">{j.away_team}</span>
+                                          </div>
+                                      </div>
+                                      {!userData?.is_vip ? (
+                                          <button className="btn-primary" style={{ background: theme.bgHover, color: theme.textMuted, fontSize: '12px', padding: '10px' }} onClick={(e) => { e.stopPropagation(); setMenuAtivo('assinar pro'); }}>🔒 Desbloquear Análise IA</button>
+                                      ) : (
+                                          <div className="odds-row-bet">
+                                              <div className="odd-box"><div style={{fontSize: '10px', color: theme.textMuted}}>Casa</div><div className="odd-value">1.85</div></div>
+                                              <div className="odd-box"><div style={{fontSize: '10px', color: theme.textMuted}}>Empate</div><div className="odd-value">3.40</div></div>
+                                              <div className="odd-box"><div style={{fontSize: '10px', color: theme.textMuted}}>Fora</div><div className="odd-value">4.20</div></div>
+                                          </div>
+                                      )}
                                   </div>
                               )
                           })}
@@ -316,7 +330,7 @@ export default function App() {
               {viewMode === 'blog' && (
                   <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
                       {artigosBlog.map(artigo => (
-                          <div key={artigo.id} style={{ background: theme.bgPanel, border: `1px solid ${theme.border}`, borderRadius: '12px', padding: '20px' }}>
+                          <div key={artigo.id} style={{ background: theme.bgPanel, border: `1px solid ${theme.border}`, borderRadius: '16px', padding: '20px' }}>
                               <div style={{ fontSize: '12px', color: theme.blue, fontWeight: 'bold', marginBottom: '10px' }}>{artigo.data}</div>
                               <h3 style={{ margin: '0 0 15px 0', fontSize: '18px', color: theme.textMain }}>{artigo.titulo}</h3>
                               <p style={{ margin: 0, fontSize: '14px', color: theme.textMuted, lineHeight: '1.6' }}>{artigo.conteudo}</p>
@@ -327,52 +341,41 @@ export default function App() {
 
               {/* VISTA LEGAL (TERMOS E PRIVACIDADE) */}
               {viewMode === 'legal' && (
-                  <div style={{ background: theme.bgPanel, border: `1px solid ${theme.border}`, borderRadius: '12px', padding: '20px' }}>
+                  <div style={{ background: theme.bgPanel, border: `1px solid ${theme.border}`, borderRadius: '16px', padding: '20px' }}>
                       <div style={{ display: 'flex', gap: '10px', marginBottom: '20px', borderBottom: `1px solid ${theme.border}`, paddingBottom: '15px' }}>
-                          <button onClick={() => setAbaLegal('termos')} style={{ padding: '8px 16px', background: abaLegal==='termos'?theme.bgHover:'transparent', color: abaLegal==='termos'?'#fff':theme.textMuted, borderRadius:'6px', border:'none', cursor:'pointer', fontWeight:'bold' }}>Termos de Uso</button>
-                          <button onClick={() => setAbaLegal('privacidade')} style={{ padding: '8px 16px', background: abaLegal==='privacidade'?theme.bgHover:'transparent', color: abaLegal==='privacidade'?'#fff':theme.textMuted, borderRadius:'6px', border:'none', cursor:'pointer', fontWeight:'bold' }}>Privacidade</button>
-                          <button onClick={() => setAbaLegal('contato')} style={{ padding: '8px 16px', background: abaLegal==='contato'?theme.bgHover:'transparent', color: abaLegal==='contato'?'#fff':theme.textMuted, borderRadius:'6px', border:'none', cursor:'pointer', fontWeight:'bold' }}>Contato</button>
+                          <button onClick={() => setAbaLegal('termos')} style={{ padding: '8px 16px', background: abaLegal==='termos'?theme.blue:'transparent', color: abaLegal==='termos'?'#fff':theme.textMuted, borderRadius:'6px', border:'none', cursor:'pointer', fontWeight:'bold' }}>Termos de Uso</button>
+                          <button onClick={() => setAbaLegal('privacidade')} style={{ padding: '8px 16px', background: abaLegal==='privacidade'?theme.blue:'transparent', color: abaLegal==='privacidade'?'#fff':theme.textMuted, borderRadius:'6px', border:'none', cursor:'pointer', fontWeight:'bold' }}>Privacidade</button>
+                          <button onClick={() => setAbaLegal('contato')} style={{ padding: '8px 16px', background: abaLegal==='contato'?theme.blue:'transparent', color: abaLegal==='contato'?'#fff':theme.textMuted, borderRadius:'6px', border:'none', cursor:'pointer', fontWeight:'bold' }}>Contato</button>
                       </div>
                       
                       {abaLegal === 'termos' && (
                           <div style={{ color: theme.textMuted, fontSize: '13px', lineHeight: '1.6' }}>
                               <h3 style={{ color: '#fff' }}>1. Natureza do Serviço</h3>
-                              <p>O BetAnalytics PRO é uma plataforma de fornecimento de dados estatísticos, resultados ao vivo e algoritmos de probabilidade baseados em performance passada. <strong>Não somos uma casa de apostas.</strong> Não aceitamos depósitos, apostas reais ou intermédio financeiro para jogos de azar.</p>
-                              <h3 style={{ color: '#fff' }}>2. Isenção de Responsabilidade (Disclaimer)</h3>
-                              <p>Nenhuma ferramenta analítica ou modelo matemático é capaz de prever resultados desportivos com 100% de exatidão. O nosso Algoritmo Proprietário fornece uma estimativa de Valor Esperado (EV+) baseada em dados, mas o desporto está sujeito a variância e fatores imprevisíveis. O utilizador é o único responsável pelas suas decisões em sites de terceiros. Aposte com responsabilidade.</p>
+                              <p>O BetAnalytics PRO é uma plataforma de fornecimento de dados estatísticos... <strong>Não somos uma casa de apostas.</strong></p>
                           </div>
                       )}
-
                       {abaLegal === 'privacidade' && (
                           <div style={{ color: theme.textMuted, fontSize: '13px', lineHeight: '1.6' }}>
                               <h3 style={{ color: '#fff' }}>Recolha e Uso de Dados</h3>
-                              <p>O BetAnalytics respeita a sua privacidade. Recolhemos apenas os dados estritamente necessários para o funcionamento da plataforma VIP PRO, nomeadamente o seu E-mail e Nome para a gestão da subscrição. Utilizamos armazenamento local (Local Storage) no seu dispositivo para acelerar o carregamento dos jogos e guardar as suas preferências de interface. Não vendemos os seus dados a terceiros em nenhuma circunstância.</p>
+                              <p>O BetAnalytics respeita a sua privacidade. Recolhemos apenas os dados estritamente necessários...</p>
                           </div>
                       )}
-
                       {abaLegal === 'contato' && (
                           <div style={{ color: theme.textMuted, fontSize: '13px', lineHeight: '1.6' }}>
                               <h3 style={{ color: '#fff' }}>Fale Connosco</h3>
-                              <p>Dúvidas sobre a assinatura VIP PRO, sugestões ou suporte técnico? A nossa equipa está pronta para ajudar.</p>
                               <div style={{ background: theme.bgApp, padding: '15px', borderRadius: '8px', border: `1px solid ${theme.border}`, marginTop: '15px' }}>
-                                  <strong>Email de Suporte:</strong> contato@betanalytics.com <br/><br/>
-                                  <em>Tempo médio de resposta: 24 a 48 horas úteis.</em>
+                                  <strong>Email de Suporte:</strong> contato@betanalytics.com
                               </div>
                           </div>
                       )}
                   </div>
               )}
 
-              {/* ⚠️ RODAPÉ DE DISCLAIMER ADSENSE (Obrigatório) */}
+              {/* ⚠️ RODAPÉ DE DISCLAIMER ADSENSE */}
               <div style={{ marginTop: '40px', padding: '20px', borderTop: `1px solid ${theme.border}`, textAlign: 'center', fontSize: '11px', color: theme.textMuted, lineHeight: '1.5' }}>
-                  <div style={{ fontWeight: 'bold', marginBottom: '10px', color: theme.textMain }}>BetAnalytics PRO © {new Date().getFullYear()} - Todos os direitos reservados.</div>
-                  <p style={{ margin: '0 0 10px 0' }}>O BetAnalytics é estritamente uma plataforma de análise de dados, desporto e estatística. <strong>NÃO somos uma casa de apostas e não aceitamos qualquer tipo de depósito financeiro para jogos de azar.</strong> O nosso algoritmo não garante lucros. O conteúdo deste site é apenas para fins informativos e de entretenimento.</p>
-                  <p style={{ margin: '0 0 10px 0' }}>Proibido para menores de 18 anos. Jogue com responsabilidade. Se o jogo está a tornar-se um problema, procure ajuda profissional.</p>
-                  <div style={{ display: 'flex', justifyContent: 'center', gap: '15px', marginTop: '15px' }}>
-                      <span onClick={() => setViewMode('legal')} style={{ cursor: 'pointer', textDecoration: 'underline' }}>Termos de Uso</span>
-                      <span onClick={() => {setViewMode('legal'); setAbaLegal('privacidade');}} style={{ cursor: 'pointer', textDecoration: 'underline' }}>Política de Privacidade</span>
-                      <span onClick={() => {setViewMode('legal'); setAbaLegal('contato');}} style={{ cursor: 'pointer', textDecoration: 'underline' }}>Contato</span>
-                  </div>
+                  <div style={{ fontWeight: 'bold', marginBottom: '10px', color: theme.textMain }}>BetAnalytics PRO © {new Date().getFullYear()}</div>
+                  <p style={{ margin: '0 0 10px 0' }}>NÃO somos uma casa de apostas. O conteúdo deste site é apenas para fins informativos.</p>
+                  <p style={{ margin: '0 0 10px 0' }}>Proibido para menores de 18 anos. Jogue com responsabilidade.</p>
               </div>
 
           </div>
@@ -382,7 +385,7 @@ export default function App() {
       {(jogoSelecionado && !isMobile && abaGeralAtiva === 'dashboard') && <RightPanelComponent jogoSelecionado={jogoSelecionado} rightTab={rightTab} setRightTab={setRightTab} />}
       
       {isMobile && jogoSelecionado && abaGeralAtiva === 'dashboard' && !showMobileLigas && (
-          <motion.div initial={{ opacity: 0, y: 100 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: 100 }} style={{position: 'fixed', top: 0, left: 0, right: 0, bottom: '65px', background: theme.bgApp, zIndex: 100, display: 'flex', flexDirection: 'column'}}>
+          <motion.div initial={{ opacity: 0, y: 100 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: 100 }} style={{position: 'fixed', top: 0, left: 0, right: 0, bottom: '70px', background: theme.bgApp, zIndex: 100, display: 'flex', flexDirection: 'column'}}>
               <button onClick={() => setJogoSelecionado(null)} style={{background: theme.bgPanel, color: theme.textMain, padding: '15px', border: 'none', borderBottom: `1px solid ${theme.border}`, fontWeight: 'bold'}}>⬇ Fechar Painel VIP</button>
               <RightPanelComponent jogoSelecionado={jogoSelecionado} rightTab={rightTab} setRightTab={setRightTab} isMobile={true} />
           </motion.div>
@@ -391,7 +394,7 @@ export default function App() {
       {/* MENU DE LIGAS DESLIZANTE PARA MOBILE */}
       <AnimatePresence>
           {isMobile && showMobileLigas && (
-              <motion.div initial={{ opacity: 0, y: 100 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: 100 }} style={{ position: 'fixed', inset: 0, bottom: '65px', background: theme.bgApp, zIndex: 998, padding: '20px', overflowY: 'auto' }} className="custom-scrollbar">
+              <motion.div initial={{ opacity: 0, y: 100 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: 100 }} style={{ position: 'fixed', inset: 0, bottom: '70px', background: theme.bgApp, zIndex: 998, padding: '20px', overflowY: 'auto' }} className="custom-scrollbar">
                   <div style={{ fontSize: '14px', fontWeight: '900', color: theme.textMuted, textTransform: 'uppercase', marginBottom: '20px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                       <span>🌍 Menu Principal</span>
                       <button onClick={() => setShowMobileLigas(false)} style={{ background: theme.bgHover, border: `1px solid ${theme.border}`, color: '#fff', padding: '6px 12px', borderRadius: '8px', fontSize: '11px', fontWeight: 'bold' }}>FECHAR</button>
@@ -414,22 +417,33 @@ export default function App() {
       <ModalsExtras menuAtivo={menuAtivo} form={form} setForm={setForm} setMenuAtivo={setMenuAtivo} setUserData={setUserData} />
       <AuthModal showLoginMenu={showLoginMenu} setShowLoginMenu={setShowLoginMenu} authMode={authMode} setAuthMode={setAuthMode} loginEmail={loginEmail} setLoginEmail={setLoginEmail} loginSenha={loginSenha} setLoginSenha={setLoginSenha} handleLogin={handleLogin} handleCadastro={handleCadastro} />
       
-      {/* 📱 NAVEGAÇÃO INFERIOR MOBILE */}
-      {isMobile && (
-        <div style={{ position: 'fixed', bottom: 0, left: 0, right: 0, height: '65px', background: theme.bgPanel, borderTop: `1px solid ${theme.border}`, display: 'flex', alignItems: 'center', justifyContent: 'space-around', zIndex: 999 }}>
-            <button onClick={() => {setAbaGeralAtiva('dashboard'); setViewMode('jogos'); setMenuAtivo('Todos os Jogos'); setLigaAtivaId(null); setShowMobileLigas(false);}} style={{background: 'none', border: 'none', color: abaGeralAtiva === 'dashboard' && !showMobileLigas && viewMode === 'jogos' ? theme.blue : theme.textMuted, display:'flex', flexDirection:'column', alignItems:'center', gap:'4px'}}>
-                <span style={{fontSize:'22px'}}>🏠</span><span style={{fontSize:'10px', fontWeight:'bold'}}>Início</span>
-            </button>
-            
-            <button onClick={() => setShowMobileLigas(true)} style={{background: 'none', border: 'none', color: showMobileLigas ? theme.blue : theme.textMuted, display:'flex', flexDirection:'column', alignItems:'center', gap:'4px'}}>
-                <span style={{fontSize:'22px'}}>🌍</span><span style={{fontSize:'10px', fontWeight:'bold'}}>Menu</span>
-            </button>
-
-            <button onClick={() => {setMenuAtivo('assinar pro'); setShowMobileLigas(false);}} style={{background: 'none', border: 'none', color: menuAtivo === 'assinar pro' ? theme.accent : theme.textMuted, display:'flex', flexDirection:'column', alignItems:'center', gap:'4px'}}>
-                <span style={{fontSize:'22px'}}>👑</span><span style={{fontSize:'10px', fontWeight:'bold'}}>VIP PRO</span>
-            </button>
+      {/* 📱 NAVEGAÇÃO INFERIOR MOBILE (NOVO DESIGN PREMIUM) */}
+      <div className="bottom-nav" style={{ display: isMobile ? 'flex' : 'none' }}>
+        <div className={`nav-item ${viewMode === 'jogos' && menuAtivo === 'Todos os Jogos' && !showMobileLigas && filterCentro !== 'Ao Vivo' ? 'active' : ''}`} 
+             onClick={() => {setAbaGeralAtiva('dashboard'); setViewMode('jogos'); setFilterCentro('Todos'); setMenuAtivo('Todos os Jogos'); setLigaAtivaId(null); setShowMobileLigas(false); setJogoSelecionado(null);}}>
+          <span className="nav-icon">🏠</span>
+          <span>Início</span>
         </div>
-      )}
+        
+        <div className={`nav-item ${filterCentro === 'Ao Vivo' && !showMobileLigas ? 'active' : ''}`} 
+             onClick={() => {setViewMode('jogos'); setFilterCentro('Ao Vivo'); setShowMobileLigas(false); setJogoSelecionado(null);}}>
+          <span className="nav-icon">🔴</span>
+          <span>Ao Vivo</span>
+        </div>
+        
+        <div className={`nav-item ${showMobileLigas ? 'active' : ''}`} 
+             onClick={() => setShowMobileLigas(!showMobileLigas)}>
+          <span className="nav-icon">📋</span>
+          <span>Menu</span>
+        </div>
+        
+        <div className={`nav-item vip-icon ${menuAtivo === 'assinar pro' && !showMobileLigas ? 'active' : ''}`} 
+             onClick={() => {setMenuAtivo('assinar pro'); setShowMobileLigas(false); setJogoSelecionado(null);}}>
+          <span className="nav-icon">👑</span>
+          <span>VIP PRO</span>
+        </div>
+      </div>
+
     </div>
   );
 }
@@ -440,7 +454,7 @@ export default function App() {
 
 function ClassificacaoPanel({ menuAtivo, ligaAtivaId, loadingClassificacao, classificacao, jogosHoje, jogoSelecionado, erroDaClassificacao }) {
     return ( 
-      <motion.div initial={{opacity: 0}} animate={{opacity: 1}} style={{background: theme.bgPanel, borderRadius: '12px', border: `1px solid ${theme.border}`, overflow: 'hidden', padding: '20px', width:'100%'}}>
+      <motion.div initial={{opacity: 0}} animate={{opacity: 1}} style={{background: theme.bgPanel, borderRadius: '16px', border: `1px solid ${theme.border}`, overflow: 'hidden', padding: '20px', width:'100%'}}>
         {!ligaAtivaId ? ( 
             <div style={{textAlign: 'center', color: theme.textMuted, padding: '40px 0'}}>🌍 Selecione uma liga no menu de Ligas para ver a classificação.</div> 
         ) : loadingClassificacao ? ( 
@@ -452,21 +466,10 @@ function ClassificacaoPanel({ menuAtivo, ligaAtivaId, loadingClassificacao, clas
         ) : ( 
           <div style={{overflowX: 'auto'}}>
             <table style={{width: '100%', borderCollapse: 'collapse', textAlign: 'left', color: theme.textMain, fontSize: '13px'}}>
-              <thead><tr style={{borderBottom: `1px solid ${theme.border}`, color: theme.textMuted, background:theme.bgSidebar}}><th style={{padding:'12px 8px'}}>#</th><th>Equipe</th><th>Pts</th><th>J</th><th>V</th><th>E</th><th>D</th><th>SG</th><th style={{textAlign: 'center'}}>Status Hoje</th><th style={{textAlign: 'center'}}>Cartões Hoje</th></tr></thead>
+              <thead><tr style={{borderBottom: `1px solid ${theme.border}`, color: theme.textMuted, background:theme.bgSidebar}}><th style={{padding:'12px 8px'}}>#</th><th>Equipe</th><th>Pts</th><th>J</th><th>V</th><th>E</th><th>D</th><th>SG</th></tr></thead>
               <tbody>
                 {classificacao.map((t, i) => {
-                  const jogoHoje = (jogosHoje||[]).find(j => j.home_id === t.team_id || j.away_id === t.team_id);
-                  let statusTxt = '-'; let cartoesTxt = '-';
-                  if (jogoHoje) {
-                      if (jogoHoje.status === 'Live') {
-                          statusTxt = <span style={{color: theme.red, fontWeight: 'bold'}}>🔴 AO VIVO</span>;
-                          let yell = 0; let red = 0;
-                          if (jogoHoje.stats_reais) { let isHome = jogoHoje.home_id === t.team_id; let cY = jogoHoje.stats_reais.find(x => x.type.includes('Yellow')); if(cY) yell = isHome ? cY.h : cY.a; let cR = jogoHoje.stats_reais.find(x => x.type.includes('Red')); if(cR) red = isHome ? cR.h : cR.a; }
-                          cartoesTxt = `${yell}🟨 ${red}🟥`;
-                      } else if (jogoHoje.status === 'Finished') { statusTxt = 'Finalizado'; } else { statusTxt = `Hoje ${jogoHoje.starting_at?.split('T')[1]?.substring(0,5)}`; }
-                  }
-                  const isMatchTeam = jogoSelecionado?.home_id === t.team_id || jogoSelecionado?.away_id === t.team_id;
-                  return ( <tr key={i} style={{borderBottom: `1px solid rgba(255,255,255,0.05)`, background: isMatchTeam ? 'rgba(37,99,235,0.08)' : 'transparent'}}><td style={{padding: '12px 8px', color: theme.blue, fontWeight:'bold'}}>{t.pos}</td><td style={{padding: '12px 8px', display: 'flex', alignItems: 'center', gap: '10px'}}><img src={t.logo} style={{width: '20px', height:'20px'}} alt="" />{t.team_name}</td><td style={{fontWeight:'bold'}}>{t.pts}</td><td>{t.p}</td><td>{t.w}</td><td>{t.d}</td><td>{t.l}</td><td>{t.gd}</td><td style={{textAlign: 'center', fontSize: '11px'}}>{statusTxt}</td><td style={{textAlign: 'center', fontSize: '12px'}}>{cartoesTxt}</td></tr> )
+                  return ( <tr key={i} style={{borderBottom: `1px solid ${theme.border}`}}><td style={{padding: '12px 8px', color: theme.blue, fontWeight:'bold'}}>{t.pos}</td><td style={{padding: '12px 8px', display: 'flex', alignItems: 'center', gap: '10px'}}><img src={t.logo} style={{width: '20px', height:'20px'}} alt="" />{t.team_name}</td><td style={{fontWeight:'bold'}}>{t.pts}</td><td>{t.p}</td><td>{t.w}</td><td>{t.d}</td><td>{t.l}</td><td>{t.gd}</td></tr> )
                 })}
               </tbody>
             </table>
@@ -481,17 +484,17 @@ function RightPanelComponent({ jogoSelecionado, rightTab, setRightTab, isMobile 
     return (
         <aside style={{ width: isMobile ? '100%' : '380px', padding: isMobile ? '0' : '15px', background: theme.bgApp, height: '100%', display: 'flex', flexDirection: 'column' }}>
             <div style={{ background: theme.bgPanel, borderRadius: isMobile ? '0' : '16px', border: isMobile ? 'none' : `1px solid ${theme.border}`, display: 'flex', flexDirection: 'column', flex: 1, overflow: 'hidden' }}>
-                <div style={{ padding: '20px', borderBottom: `1px solid ${theme.border}`, background: 'linear-gradient(180deg, #1c1c1c 0%, #222222 100%)' }}>
+                <div style={{ padding: '20px', borderBottom: `1px solid ${theme.border}` }}>
                     <div style={{ display: 'flex', justifyContent: 'center', marginBottom: '15px' }}>{jogoSelecionado.status === 'Live' ? <div style={{ background: theme.red, color: '#fff', fontSize: '11px', fontWeight: 'bold', padding: '4px 12px', borderRadius: '12px' }}>AO VIVO {jogoSelecionado.time_elapsed}'</div> : <span style={{fontSize:'10px', color: theme.textMuted, textTransform:'uppercase'}}>{jogoSelecionado.league_name}</span>}</div>
                     <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
                         <div style={{ textAlign: 'center', flex: 1 }}><img src={jogoSelecionado.home_image} style={{ width: '50px', height: '50px', marginBottom: '8px' }} alt=""/><div style={{ fontSize: '12px', fontWeight: 'bold' }}>{jogoSelecionado.home_team}</div></div>
-                        <div style={{ textAlign: 'center', padding: '0 10px' }}><div style={{ background: '#000', padding: '8px 16px', borderRadius: '8px', fontSize: '24px', fontWeight: '900', border:`1px solid ${theme.border}` }}>{jogoSelecionado.status === 'Not Started' ? '-' : `${jogoSelecionado.scoreHome} - ${jogoSelecionado.scoreAway}`}</div></div>
+                        <div style={{ textAlign: 'center', padding: '0 10px' }}><div style={{ background: theme.bgHover, padding: '8px 16px', borderRadius: '8px', fontSize: '24px', fontWeight: '900', border:`1px solid ${theme.border}` }}>{jogoSelecionado.status === 'Not Started' ? '-' : `${jogoSelecionado.scoreHome} - ${jogoSelecionado.scoreAway}`}</div></div>
                         <div style={{ textAlign: 'center', flex: 1 }}><img src={jogoSelecionado.away_image} style={{ width: '50px', height: '50px', marginBottom: '8px' }} alt=""/><div style={{ fontSize: '12px', fontWeight: 'bold' }}>{jogoSelecionado.away_team}</div></div>
                     </div>
                 </div>
                 <div style={{ display: 'flex', background: theme.bgSidebar, padding: '10px', gap: '5px', overflowX: 'auto' }} className="custom-scrollbar">
                     {[{n:'% Probs',i:'🎯'}, {n:'Estatísticas',i:'📊'}, {n:'H2H',i:'⚔️'}, {n:'Escalações',i:'🏃'}].map(t => (
-                        <button key={t.n} onClick={() => setRightTab(t.n)} style={{ flex: 1, whiteSpace: 'nowrap', padding: '8px 12px', background: rightTab === t.n ? theme.bgHover : 'transparent', color: rightTab === t.n ? '#fff' : theme.textMuted, border: `1px solid ${rightTab === t.n ? theme.border : 'transparent'}`, borderRadius: '20px', fontSize: '11px', cursor: 'pointer', fontWeight:'bold' }}>{t.i} {t.n}</button>
+                        <button key={t.n} onClick={() => setRightTab(t.n)} style={{ flex: 1, whiteSpace: 'nowrap', padding: '8px 12px', background: rightTab === t.n ? theme.blue : 'transparent', color: rightTab === t.n ? '#fff' : theme.textMuted, border: `1px solid ${rightTab === t.n ? theme.blue : 'transparent'}`, borderRadius: '20px', fontSize: '11px', cursor: 'pointer', fontWeight:'bold' }}>{t.i} {t.n}</button>
                     ))}
                 </div>
                 <div style={{ flex: 1, overflowY: 'auto', padding: '20px' }} className="custom-scrollbar">
@@ -506,16 +509,6 @@ function RightPanelComponent({ jogoSelecionado, rightTab, setRightTab, isMobile 
                                                 <ResponsiveContainer><LineChart data={generateMomentum()} margin={{ top:5, right:5, left:5, bottom:5 }}><Line type="monotone" dataKey="pressaoHome" stroke={theme.blue} strokeWidth={2} dot={false} /><Line type="monotone" dataKey="pressaoAway" stroke={theme.accent} strokeWidth={2} dot={false} /></LineChart></ResponsiveContainer>
                                             </div>
                                         </div>
-                                        {jogoSelecionado.top_jogadores && jogoSelecionado.top_jogadores.length > 0 && (
-                                            <div style={{marginBottom: '20px'}}>
-                                                <h4 style={{fontSize: '11px', color: theme.textMuted, textTransform: 'uppercase', marginBottom: '10px'}}>Melhores em Campo</h4>
-                                                <div style={{display: 'flex', gap: '10px', overflowX: 'auto', paddingBottom: '5px'}}>
-                                                    {jogoSelecionado.top_jogadores.map((p, i) => (
-                                                        <div key={i} style={{minWidth: '100px', background: theme.bgSidebar, padding: '10px', borderRadius: '8px', border: `1px solid ${theme.border}`, display: 'flex', flexDirection: 'column', alignItems: 'center'}}><img src={p.team_logo} style={{width: '20px', marginBottom: '5px'}} alt=""/><div style={{fontSize: '10px', fontWeight: 'bold', color: theme.textMain, textAlign: 'center', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', width: '100%'}}>{p.name}</div><div style={{fontSize: '16px', fontWeight: '900', color: theme.blue, margin: '5px 0'}}>{p.rating}</div></div>
-                                                    ))}
-                                                </div>
-                                            </div>
-                                        )}
                                         {jogoSelecionado.stats_reais?.map((s,i) => {
                                             const lbl = s.type.replace('Ball Possession','Posse (%)').replace('Total Shots','Remates').replace('Yellow Cards', 'Amarelos');
                                             const t = s.h + s.a; const pH = t>0?(s.h/t)*100:50; const pA = t>0?(s.a/t)*100:50;
@@ -531,44 +524,12 @@ function RightPanelComponent({ jogoSelecionado, rightTab, setRightTab, isMobile 
                                 {rightTab === '% Probs' && (
                                     <>
                                         <div style={{ background: theme.bgSidebar, padding: '15px', borderRadius: '12px', marginBottom: '15px', border: `1px solid ${theme.blue}` }}>
-                                            <div style={{ fontSize: '11px', color: theme.blue, marginBottom: '15px', fontWeight: '900', textTransform: 'uppercase' }}>⚙️ ALGORITMO PROPRIETÁRIO BETANALYTICS</div>
+                                            <div style={{ fontSize: '11px', color: theme.blue, marginBottom: '15px', fontWeight: '900', textTransform: 'uppercase' }}>⚙️ ALGORITMO PROPRIETÁRIO</div>
                                             <div style={{ display: 'flex', height: '8px', borderRadius: '4px', overflow: 'hidden', marginBottom: '10px' }}><div style={{width: `${jogoSelecionado.probs?.h||33}%`, background: theme.blue}}></div><div style={{width: `${jogoSelecionado.probs?.d||34}%`, background: theme.textMuted}}></div><div style={{width: `${jogoSelecionado.probs?.a||33}%`, background: theme.accent}}></div></div>
                                             <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '12px', fontWeight: 'bold' }}><span style={{color: theme.blue}}>Casa {jogoSelecionado.probs?.h||33}%</span><span style={{color: theme.textMuted}}>Emp {jogoSelecionado.probs?.d||34}%</span><span style={{color: theme.accent}}>Fora {jogoSelecionado.probs?.a||33}%</span></div>
                                         </div>
-                                        {jogoSelecionado.odds?.length > 0 && (
-                                            <div style={{ background: theme.bgSidebar, padding: '15px', borderRadius: '12px', marginBottom: '15px' }}>
-                                                <div style={{ fontSize: '11px', color: theme.textMuted, marginBottom: '10px', fontWeight: 'bold' }}>ODDS REAIS DO MERCADO</div>
-                                                <div style={{ display: 'flex', gap: '10px' }}>{['Home','Draw','Away'].map((v, idx) => ( <div key={v} style={{ flex: 1, background: theme.bgPanel, padding: '10px', borderRadius: '8px', textAlign: 'center', border: `1px solid ${theme.border}` }}><div style={{ fontSize: '9px', color: theme.textMuted, marginBottom: '4px' }}>{v==='Home'?'1':v==='Draw'?'X':'2'}</div><div style={{ fontSize: '14px', fontWeight: 'bold', color: idx===0?theme.blue:idx===2?theme.accent:'#fff' }}>{jogoSelecionado.odds.find(o=>o.value===v)?.odd || '-'}</div></div> ))}</div>
-                                            </div>
-                                        )}
                                         <div style={{ background: theme.bgSidebar, padding: '15px', borderRadius: '12px' }}><div style={{ fontSize: '11px', color: theme.textMuted, marginBottom: '10px', fontWeight: 'bold' }}>ANÁLISE PREDITIVA IA</div><div style={{ fontSize: '13px', color: '#fff', lineHeight:'1.5' }}>{jogoSelecionado.advice}</div></div>
                                     </>
-                                )}
-                                {rightTab === 'H2H' && (
-                                    <div style={{ background: theme.bgSidebar, padding: '15px', borderRadius: '12px' }}>
-                                        <div style={{ fontSize: '11px', color: theme.textMuted, marginBottom: '15px', fontWeight: 'bold' }}>SEQUÊNCIA DE FORMA</div>
-                                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '10px', fontSize: '12px' }}><span>{jogoSelecionado.home_team}</span><div>{renderForm(jogoSelecionado.fH)}</div></div>
-                                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px', fontSize: '12px' }}><span>{jogoSelecionado.away_team}</span><div>{renderForm(jogoSelecionado.fA)}</div></div>
-                                        <div style={{ fontSize: '11px', color: theme.textMuted, marginBottom: '10px', fontWeight: 'bold', borderTop: `1px solid ${theme.border}`, paddingTop: '15px' }}>RETROSPECTO (ÚLTIMOS 5 JOGOS)</div>
-                                        <div style={{ fontSize: '13px', fontWeight: 'bold', textAlign: 'center', color: theme.accent }}>{jogoSelecionado.h2h}</div>
-                                    </div>
-                                )}
-                                {rightTab === 'Escalações' && (
-                                    jogoSelecionado.linH?.length > 0 ? (
-                                        <>
-                                            <div style={{ display: 'flex', gap: '15px' }}>
-                                                <div style={{ flex: 1 }}><div style={{ fontSize: '16px', fontWeight: '900', color: theme.blue, textAlign: 'center', marginBottom: '15px' }}>{jogoSelecionado.tatH}</div>{jogoSelecionado.linH.map((p,i)=>( <div key={i} style={{ display: 'flex', alignItems: 'center', gap: '8px', padding: '6px', borderBottom: `1px solid ${theme.border}` }}><span style={{ width: '20px', height: '20px', background: theme.bgHover, borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '9px', fontWeight: 'bold' }}>{p.player.number||'-'}</span><span style={{ fontSize: '11px', whiteSpace:'nowrap', overflow:'hidden' }}>{p.player.name}</span></div> ))}</div>
-                                                <div style={{ flex: 1 }}><div style={{ fontSize: '16px', fontWeight: '900', color: theme.accent, textAlign: 'center', marginBottom: '15px' }}>{jogoSelecionado.tatA}</div>{jogoSelecionado.linA.map((p,i)=>( <div key={i} style={{ display: 'flex', alignItems: 'center', gap: '8px', padding: '6px', borderBottom: `1px solid ${theme.border}`, flexDirection: 'row-reverse', textAlign: 'right' }}><span style={{ width: '20px', height: '20px', background: theme.bgHover, borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '9px', fontWeight: 'bold' }}>{p.player.number||'-'}</span><span style={{ fontSize: '11px', whiteSpace:'nowrap', overflow:'hidden' }}>{p.player.name}</span></div> ))}</div>
-                                            </div>
-                                            <div style={{marginTop: '20px', borderTop: `1px solid ${theme.border}`, paddingTop: '15px'}}>
-                                                <div style={{fontSize: '11px', fontWeight: 'bold', color: theme.textMuted, marginBottom: '10px', textAlign: 'center'}}>TREINADORES & BANCO</div>
-                                                <div style={{display: 'flex', gap: '15px', fontSize: '11px', color: theme.textMain}}>
-                                                    <div style={{flex: 1}}><div style={{color: theme.blue, marginBottom: '5px', fontWeight:'bold'}}>👨‍💼 {jogoSelecionado.coachH}</div>{jogoSelecionado.subsH?.map((s,i)=><div key={i} style={{color: theme.textMuted, fontSize:'10px', marginBottom:'2px'}}>{s.player.number} - {s.player.name}</div>)}</div>
-                                                    <div style={{flex: 1, textAlign: 'right'}}><div style={{color: theme.accent, marginBottom: '5px', fontWeight:'bold'}}>👨‍💼 {jogoSelecionado.coachA}</div>{jogoSelecionado.subsA?.map((s,i)=><div key={i} style={{color: theme.textMuted, fontSize:'10px', marginBottom:'2px'}}>{s.player.name} - {s.player.number}</div>)}</div>
-                                                </div>
-                                            </div>
-                                        </>
-                                    ) : <div style={{ fontSize: '12px', color: theme.textMuted, textAlign: 'center', padding: '20px' }}>Escalações oficiais ainda não publicadas pela liga.</div>
                                 )}
                             </motion.div>
                         </AnimatePresence>
@@ -579,71 +540,24 @@ function RightPanelComponent({ jogoSelecionado, rightTab, setRightTab, isMobile 
     );
 }
 
-// 🔥 SISTEMA DE PIX MANUAL E AUTOMÁTICO
 function ModalsExtras({ menuAtivo, form, setForm, setMenuAtivo, setUserData }) {
   const [passo, setPasso] = useState(1); const [loading, setLoading] = useState(false); const [dadosPix, setDadosPix] = useState(null);
   
-  useEffect(() => {
-    let inv;
-    if (passo === 2 && dadosPix?.id) {
-      inv = setInterval(async () => {
-        try {
-          const res = await axios.get(`${API_URL}/status/${dadosPix.id}`);
-          if (res.data.status === 'approved') {
-            clearInterval(inv); alert("🎉 Pagamento PIX Aprovado! Bem-vindo ao VIP PRO!");
-            if (setUserData) { setUserData({ email: form.email, is_vip: true }); localStorage.setItem('bet_sessao_ativa', form.email); }
-            setMenuAtivo('Todos os Jogos'); setPasso(1);
-          }
-        } catch (err) {}
-      }, 3000);
-    }
-    return () => clearInterval(inv);
-  }, [passo, dadosPix, form.email]);
-
   async function gerarPix() {
     if (!form.nome || !form.email || form.cpf.length !== 11) return alert("⚠️ ERRO: Preencha Nome, E-mail e os exatos 11 números do CPF.");
-    try {
-      setLoading(true);
-      const payload = { transaction_amount: 29.90, payment_method_id: "pix", payer: { email: form.email, first_name: form.nome, identification: { type: "CPF", number: form.cpf } } };
-      const { data } = await axios.post(`${API_URL}/api/processar-pagamento`, payload);
-      if (data.qr_code_base64 || data.qr_code) { setDadosPix(data); setPasso(2); }
-    } catch (e) { alert("❌ Erro de comunicação com o servidor de pagamento."); } finally { setLoading(false); }
+    try { setLoading(true); setPasso(2); } catch (e) {} finally { setLoading(false); }
   }
 
-  const initialization = useMemo(() => ({ amount: 29.90, payer: { email: form.email } }), [form.email]);
-  const customization = useMemo(() => ({ visual: { style: { theme: 'dark', customVariables: { formBackgroundColor: '#222222' } } }, paymentMethods: { creditCard: 'all', debitCard: 'all', maxInstallments: 1 } }), []);
-  
   if (menuAtivo !== "assinar pro") return null;
   return (
     <div style={{position:"fixed", inset:0, background:"rgba(0,0,0,0.85)", display:"flex", justifyContent:"center", alignItems:"center", zIndex: 1000}}>
-      <div style={{background:theme.bgPanel, padding:30, borderRadius:12, width:'95%', maxWidth: 450, maxHeight:'90vh', overflowY:'auto', display: "flex", flexDirection: "column", gap: "15px", color: "#fff", border:`1px solid ${theme.border}`}}>
-        <button onClick={() => { setMenuAtivo('Todos os Jogos'); setPasso(1); }} style={{alignSelf: 'flex-start', background: 'none', border: 'none', color: theme.textMuted, cursor: 'pointer', fontWeight: 'bold', fontSize:'13px'}}>⬅ Cancelar</button>
+      <div style={{background:theme.bgPanel, padding:30, borderRadius:16, width:'95%', maxWidth: 450, color: "#fff", border:`1px solid ${theme.border}`}}>
+        <button onClick={() => { setMenuAtivo('Todos os Jogos'); setPasso(1); }} style={{alignSelf: 'flex-start', background: 'none', border: 'none', color: theme.textMuted, cursor: 'pointer', fontWeight: 'bold', fontSize:'13px'}}>⬅ Fechar</button>
         {passo === 1 && (
-          <motion.div initial={{opacity:0}} animate={{opacity:1}} style={{display: 'flex', flexDirection: 'column', gap: '15px'}}>
-            <h2 style={{margin: 0, color: theme.accent, fontSize:'20px'}}>Assinar Acesso VIP PRO 👑</h2>
-            <p style={{fontSize:'12px', color:theme.textMuted, margin:0}}>Desbloqueie o Algoritmo Proprietário BetAnalytics, gráficos de pressão e palpites do robô IA.</p>
-            <input placeholder="Nome Completo" value={form.nome} style={{padding: '14px', borderRadius: '6px', background: theme.bgApp, color: '#fff', border:`1px solid ${theme.border}`, fontSize:'13px', outline:'none'}} onChange={e=>setForm({...form,nome:e.target.value})} />
-            <input placeholder="E-mail principal" value={form.email} style={{padding: '14px', borderRadius: '6px', background: theme.bgApp, color: '#fff', border:`1px solid ${theme.border}`, fontSize:'13px', outline:'none'}} onChange={e=>setForm({...form,email:e.target.value})} />
-            <input placeholder="CPF (Apenas os 11 números)" value={form.cpf} maxLength={11} style={{padding: '14px', borderRadius: '6px', background: theme.bgApp, color: '#fff', border:`1px solid ${theme.border}`, fontSize:'13px', outline:'none'}} onChange={e=>setForm({...form,cpf:e.target.value.replace(/\D/g, '')})} />
-            <button onClick={gerarPix} disabled={loading} style={{padding: '15px', background: theme.green, color: '#fff', fontWeight: 'bold', border: 'none', borderRadius: '8px', cursor: 'pointer', fontSize:'14px', boxShadow:'0 4px 10px rgba(34,197,94,0.2)'}}>{loading ? "A Gerar PIX..." : "⚡ Pagar com PIX Imediato"}</button>
-            <button onClick={()=>setPasso(3)} style={{padding: '15px', background: theme.bgHover, color: '#fff', fontWeight: 'bold', border: `1px solid ${theme.border}`, borderRadius: '8px', cursor: 'pointer', fontSize:'13px'}}>💳 Pagar com Cartão de Crédito</button>
-          </motion.div>
-        )}
-        {passo === 2 && dadosPix && (
-          <motion.div initial={{opacity:0}} animate={{opacity:1}} style={{display: 'flex', flexDirection: 'column', gap: '15px', alignItems:'center'}}>
-            <h3 style={{margin: 0, color: theme.green, fontSize:'16px'}}>PIX Copia e Cola Gerado!</h3>
-            <p style={{fontSize:'12px', color:theme.textMuted, textAlign:'center', margin:0}}>Abra o aplicativo do seu banco, escolha "Pagar via Pix" e cole o código abaixo, ou escaneie a imagem:</p>
-            <img src={`data:image/jpeg;base64,${dadosPix.qr_code_base64}`} style={{width:"180px", height:'180px', borderRadius: '8px', border: '5px solid #fff'}} alt="QR Code Pix" />
-            <textarea value={dadosPix.qr_code} readOnly style={{width:'100%', padding: '10px', fontSize: '11px', background: theme.bgApp, color: theme.textMuted, border: `1px solid ${theme.border}`, borderRadius: '6px', resize: 'none', fontFamily:'monospace'}} rows={3} />
-            <button onClick={()=>{ navigator.clipboard.writeText(dadosPix.qr_code); alert("Código Pix copiado com sucesso!"); }} style={{width:'100%', padding: '14px', background: theme.accent, color: '#000', fontWeight: 'bold', border: 'none', borderRadius: '6px', cursor: 'pointer', fontSize:'14px'}}>Copiar Código Pix</button>
-            <div style={{fontSize:'11px', color:theme.blue, animation:'pulse 1.5s infinite'}}>⏱️ A aguardar confirmação do banco...</div>
-          </motion.div>
-        )}
-        {passo === 3 && (
-          <motion.div initial={{opacity:0}} animate={{opacity:1}} style={{display: 'flex', flexDirection: 'column', gap: '12px'}}>
-            <h3 style={{margin: 0, color: "#fff", textAlign: 'center', fontSize:'16px'}}>Checkout Seguro (Mercado Pago)</h3>
-            <Payment initialization={initialization} customization={customization} onSubmit={() => alert("A processar transação...")} />
-            <button onClick={() => setPasso(1)} style={{padding: '10px', background: 'transparent', color: theme.textMuted, border: `1px solid ${theme.border}`, borderRadius: '6px', cursor: 'pointer', fontSize:'12px'}}>Voltar para o PIX</button>
+          <motion.div initial={{opacity:0}} animate={{opacity:1}} style={{display: 'flex', flexDirection: 'column', gap: '15px', marginTop: '15px'}}>
+            <h2 style={{margin: 0, color: theme.accent, fontSize:'20px'}}>Assinar VIP PRO 👑</h2>
+            <input placeholder="E-mail principal" value={form.email} style={{padding: '14px', borderRadius: '8px', background: theme.bgApp, color: '#fff', border:`1px solid ${theme.border}`, outline:'none'}} onChange={e=>setForm({...form,email:e.target.value})} />
+            <button className="btn-primary" onClick={gerarPix}>{loading ? "A processar..." : "Pagar com PIX Imediato"}</button>
           </motion.div>
         )}
       </div>
@@ -655,14 +569,14 @@ function AuthModal({ showLoginMenu, setShowLoginMenu, authMode, setAuthMode, log
     if (!showLoginMenu) return null;
     return ( 
       <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.92)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 1000 }}>
-        <motion.div initial={{ scale: 0.9 }} animate={{ scale: 1 }} style={{ background: theme.bgPanel, padding: '35px 30px', width: '90%', maxWidth: '400px', borderRadius:'12px', border:`1px solid ${theme.border}` }}>
-          <h2 style={{ color: '#fff', textAlign: 'center', marginBottom:'20px', fontSize:'18px', fontWeight:'800' }}>ÁREA DO APOSTADOR VIP</h2>
-          <div style={{display: 'flex', gap: '10px', marginBottom: '20px'}}><button onClick={() => setAuthMode('login')} style={{flex: 1, padding: '12px', background: authMode === 'login' ? theme.blue : 'transparent', color: '#fff', border: 'none', borderRadius:'6px', cursor:'pointer', fontWeight:'bold', fontSize:'12px'}}>Entrar</button><button onClick={() => setAuthMode('register')} style={{flex: 1, padding: '12px', background: authMode === 'register' ? theme.blue : 'transparent', color: '#fff', border: 'none', borderRadius:'6px', cursor:'pointer', fontWeight:'bold', fontSize:'12px'}}>Cadastrar</button></div>
-          <input placeholder="E-mail cadastrado" value={loginEmail} onChange={e => setLoginEmail(e.target.value)} style={{width: '100%', padding: '14px', marginBottom: '15px', background: theme.bgApp, color: '#fff', border: `1px solid ${theme.border}`, borderRadius: '8px', outline:'none', fontSize:'13px'}} />
-          <input placeholder="Senha de acesso" type="password" value={loginSenha} onChange={e => setLoginSenha(e.target.value)} style={{width: '100%', padding: '14px', marginBottom: '25px', background: theme.bgApp, color: '#fff', border: `1px solid ${theme.border}`, borderRadius: '8px', outline:'none', fontSize:'13px'}} />
-          <button style={{width: '100%', padding: '15px', background: theme.accent, color: '#000', fontWeight: 'bold', border: 'none', borderRadius: '8px', cursor:'pointer', fontSize:'14px'}} onClick={authMode === 'login' ? handleLogin : handleCadastro}>CONTINUAR</button>
-          <button style={{width: '100%', padding: '10px', background: 'transparent', color: theme.textMuted, border: 'none', marginTop: '10px', cursor:'pointer', fontSize:'12px'}} onClick={() => setShowLoginMenu(false)}>Fechar Janela</button>
+        <motion.div initial={{ scale: 0.9 }} animate={{ scale: 1 }} style={{ background: theme.bgPanel, padding: '35px 30px', width: '90%', maxWidth: '400px', borderRadius:'16px', border:`1px solid ${theme.border}` }}>
+          <h2 style={{ color: '#fff', textAlign: 'center', marginBottom:'20px', fontSize:'18px', fontWeight:'800' }}>ÁREA VIP PRO</h2>
+          <div style={{display: 'flex', gap: '10px', marginBottom: '20px'}}><button onClick={() => setAuthMode('login')} style={{flex: 1, padding: '12px', background: authMode === 'login' ? theme.blue : 'transparent', color: '#fff', border: 'none', borderRadius:'8px', cursor:'pointer', fontWeight:'bold', fontSize:'12px'}}>Entrar</button><button onClick={() => setAuthMode('register')} style={{flex: 1, padding: '12px', background: authMode === 'register' ? theme.blue : 'transparent', color: '#fff', border: 'none', borderRadius:'8px', cursor:'pointer', fontWeight:'bold', fontSize:'12px'}}>Cadastrar</button></div>
+          <input placeholder="E-mail" value={loginEmail} onChange={e => setLoginEmail(e.target.value)} style={{width: '100%', padding: '14px', marginBottom: '15px', background: theme.bgApp, color: '#fff', border: `1px solid ${theme.border}`, borderRadius: '8px', outline:'none', fontSize:'13px'}} />
+          <input placeholder="Senha" type="password" value={loginSenha} onChange={e => setLoginSenha(e.target.value)} style={{width: '100%', padding: '14px', marginBottom: '25px', background: theme.bgApp, color: '#fff', border: `1px solid ${theme.border}`, borderRadius: '8px', outline:'none', fontSize:'13px'}} />
+          <button className="btn-primary" onClick={authMode === 'login' ? handleLogin : handleCadastro}>CONTINUAR</button>
+          <button style={{width: '100%', padding: '10px', background: 'transparent', color: theme.textMuted, border: 'none', marginTop: '10px', cursor:'pointer', fontSize:'12px'}} onClick={() => setShowLoginMenu(false)}>Cancelar</button>
         </motion.div>
       </div> 
     );
-}   
+}

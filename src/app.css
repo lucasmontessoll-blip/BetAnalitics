@@ -1,68 +1,88 @@
 /* =========================================================
-   App.css - BETANALYTICS (DARK THEME & RESPONSIVO)
+   App.css - BETANALYTICS (NOVO DESIGN MOBILE PREMIUM)
 ========================================================= */
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap');
 
 * { margin: 0; padding: 0; box-sizing: border-box; }
 
+:root {
+  --bg-dark: #090C15;         /* Fundo escuro azulado */
+  --card-bg: #111623;         /* Fundo dos cartões */
+  --card-border: #1E2536;     /* Borda suave */
+  --blue-primary: #0D6EFD;    /* Azul dos botões */
+  --gold-vip: #FFC107;        /* Dourado VIP */
+  --text-main: #FFFFFF;
+  --text-muted: #8B95A9;
+  --green-win: #198754;
+  --red-loss: #DC3545;
+}
+
 body {
-  font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-  background-color: #0a0a0a; 
-  color: #ffffff;
+  font-family: 'Inter', sans-serif;
+  background-color: var(--bg-dark); 
+  color: var(--text-main);
   overflow: hidden; 
   -webkit-font-smoothing: antialiased;
 }
 
-input:focus, button:focus { outline: none; }
+/* Ocultar scrollbar para um visual mais limpo em mobile */
+.custom-scrollbar::-webkit-scrollbar { display: none; }
 
-.custom-scrollbar::-webkit-scrollbar { width: 5px; height: 5px; }
-.custom-scrollbar::-webkit-scrollbar-track { background: transparent; }
-.custom-scrollbar::-webkit-scrollbar-thumb { background: #2d313a; border-radius: 10px; }
-.custom-scrollbar:hover::-webkit-scrollbar-thumb { background: #ffdf1b; }
+.app-layout { display: flex; height: 100vh; overflow: hidden; flex-direction: column; }
 
-.app-layout { display: flex; height: 100vh; overflow: hidden; }
-.sidebar { width: 260px; background: #121212; border-right: 1px solid #222; display: flex; flex-direction: column; overflow-y: auto; }
-.main-area { flex: 1; display: flex; flex-direction: column; background: #0a0a0a; overflow-y: auto; padding: 20px; }
-
-.top-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 30px; }
-.logo h1 { margin: 0; font-size: 24px; color: #fff; }
-
-.btn-outline { background: transparent; border: 1px solid #444; color: #fff; padding: 8px 16px; border-radius: 6px; cursor: pointer; font-weight: bold; transition: 0.2s; display: inline-flex; align-items: center; justify-content: center; }
-.btn-outline:hover { border-color: #ffdf1b; color: #ffdf1b; }
-.btn-primary { background: #ffdf1b; color: #000; border: none; padding: 10px 20px; border-radius: 6px; cursor: pointer; font-weight: bold; transition: 0.2s; }
-.btn-primary:hover { background: #e6c817; }
-
-.games-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(320px, 1fr)); gap: 20px; }
-.match-card { background: #1a1a1a; border: 1px solid #333; border-radius: 10px; overflow: hidden; display: flex; flex-direction: column; transition: transform 0.2s; }
-.match-card:hover { border-color: #ffdf1b; transform: translateY(-3px); box-shadow: 0 5px 15px rgba(255, 223, 27, 0.1); }
-.card-header-bet { display: flex; justify-content: space-between; align-items: center; padding: 12px 15px; background: #121212; border-bottom: 1px solid #333; font-size: 12px; font-weight: bold; color: #aaa; }
-.card-body-bet { padding: 20px 15px; flex: 1; }
-.scoreboard-bet { display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; }
-.team-col-bet { display: flex; align-items: center; gap: 10px; flex: 1; overflow: hidden;}
-.team-logo { width: 32px; height: 32px; object-fit: contain; background: #fff; border-radius: 50%; padding: 2px;}
-.team-name { font-size: 14px; font-weight: bold; color: #fff; text-align: center; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-.score-center { font-size: 24px; font-weight: 900; padding: 0 15px; color: #fff; }
-
-.odds-row-bet { display: flex; gap: 10px; margin-top: 15px; }
-.odd-box { flex: 1; background: #121212; border: 1px solid #333; padding: 10px; border-radius: 6px; text-align: center; }
-.odd-label { display: block; font-size: 11px; color: #888; margin-bottom: 5px; }
-.odd-value { display: block; font-size: 14px; font-weight: bold; color: #fff; }
-.card-footer-bet { background: #ffdf1b; color: #000; border: none; padding: 15px; font-weight: bold; cursor: pointer; text-align: center; transition: 0.2s; width: 100%; font-size: 14px; }
-.card-footer-bet:hover { background: #e6c817; }
-.footer-locked { background: #121212; color: #666; cursor: not-allowed; border-top: 1px solid #333; }
-
-.expander-container { background: #121212; border: 1px solid #333; padding: 15px; border-radius: 8px; display: flex; flex-direction: column; gap: 10px; }
-.expander-container input { background: #1a1a1a; border: 1px solid #444; color: #fff; padding: 10px; border-radius: 6px; outline: none; }
-.menu-item { padding: 12px 15px; margin-bottom: 4px; border-radius: 6px; color: #aaa; cursor: pointer; font-weight: 600; transition: 0.2s; }
-.menu-item:hover { background: #1a1a1a; color: #fff; }
-.menu-item.active { background: #ffdf1b; color: #000; }
-
-.live-pulse { color: #ff4747 !important; font-weight: 900 !important; animation: pulse 1.5s infinite; }
-@keyframes pulse { 0% { opacity: 1; } 50% { opacity: 0.5; } 100% { opacity: 1; } }
-
+/* Esconder sidebar no mobile para usar a barra inferior */
 @media (max-width: 1024px) {
-  body { overflow-y: auto; }
-  .app-layout { flex-direction: column; height: auto; }
   .sidebar { display: none !important; }
-  .main-area { padding: 10px; }
-} 
+  .main-area { padding-bottom: 80px !important; /* Espaço para o menu inferior */ }
+}
+
+.sidebar { width: 260px; background: var(--bg-dark); border-right: 1px solid var(--card-border); }
+.main-area { flex: 1; background: var(--bg-dark); overflow-y: auto; padding: 15px; }
+
+/* Top Header simplificado */
+.top-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; }
+.logo h1 { font-size: 20px; font-weight: 800; display: flex; align-items: center; gap: 8px;}
+.logo span { color: var(--blue-primary); }
+
+/* Botões */
+.btn-primary { background: var(--blue-primary); color: #fff; border: none; padding: 12px 20px; border-radius: 8px; cursor: pointer; font-weight: 700; width: 100%; transition: 0.2s; }
+.btn-primary:hover { opacity: 0.9; }
+.btn-vip { background: var(--gold-vip); color: #000; border: none; padding: 8px 15px; border-radius: 20px; font-weight: 800; font-size: 12px; display: inline-flex; align-items: center; gap: 5px;}
+
+/* Filtros de Data estilo Pílula */
+.date-filters { display: flex; gap: 10px; overflow-x: auto; margin-bottom: 20px; padding-bottom: 5px; }
+.date-pill { background: transparent; border: 1px solid var(--card-border); color: var(--text-muted); padding: 8px 16px; border-radius: 20px; font-size: 13px; font-weight: 600; white-space: nowrap; }
+.date-pill.active { background: var(--blue-primary); color: #fff; border-color: var(--blue-primary); }
+
+/* Grid de Jogos (Mais parecido com Mobile) */
+.games-grid { display: flex; flex-direction: column; gap: 15px; }
+
+/* Cartão do Jogo Premium */
+.match-card { background: var(--card-bg); border: 1px solid var(--card-border); border-radius: 16px; padding: 15px; display: flex; flex-direction: column; position: relative; }
+.card-header-bet { font-size: 12px; font-weight: 600; color: var(--text-muted); margin-bottom: 15px; display: flex; justify-content: space-between; }
+.star-icon { color: var(--text-muted); font-size: 16px; }
+
+/* Times e Placar */
+.scoreboard-bet { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; }
+.team-col-bet { display: flex; align-items: center; gap: 12px; width: 40%; }
+.team-logo { width: 28px; height: 28px; object-fit: contain; }
+.team-name { font-size: 14px; font-weight: 600; white-space: nowrap; }
+.score-center { font-size: 20px; font-weight: 800; width: 20%; text-align: center; }
+
+/* Caixas de Odds (Estilo retangular limpo) */
+.odds-row-bet { display: flex; justify-content: space-between; gap: 10px; }
+.odd-box { flex: 1; background: #181E2E; border-radius: 8px; padding: 10px; text-align: center; border: 1px solid transparent; transition: 0.2s; }
+.odd-box:hover { border-color: var(--blue-primary); }
+.odd-value { font-size: 13px; font-weight: 700; color: var(--text-main); }
+
+/* Barra de Navegação Inferior (Exclusiva Mobile) */
+.bottom-nav { position: fixed; bottom: 0; left: 0; right: 0; background: var(--card-bg); border-top: 1px solid var(--card-border); display: flex; justify-content: space-around; padding: 12px 0 25px 0; z-index: 1000; }
+.nav-item { display: flex; flex-direction: column; align-items: center; gap: 5px; color: var(--text-muted); font-size: 11px; font-weight: 600; cursor: pointer; }
+.nav-item.active { color: var(--blue-primary); }
+.nav-icon { font-size: 20px; }
+.nav-item.vip-icon { color: var(--gold-vip); }
+
+/* Banner Assinatura VIP */
+.vip-banner { background: linear-gradient(135deg, #111623 0%, #1a2235 100%); border: 1px solid var(--gold-vip); border-radius: 16px; padding: 20px; display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; position: relative; overflow: hidden; }
+.vip-banner h3 { color: #fff; font-size: 18px; font-weight: 800; margin-bottom: 5px; }
+.vip-banner p { color: var(--text-muted); font-size: 12px; }
