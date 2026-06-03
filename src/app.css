@@ -65,4 +65,4 @@ input:focus, button:focus { outline: none; }
   .app-layout { flex-direction: column; height: auto; }
   .sidebar { display: none !important; }
   .main-area { padding: 10px; }
-}
+} 
