@@ -1,8 +1,10 @@
 import React, { useState, useEffect, useMemo } from 'react';
+import './app.css'; // <--- ESTA É A LINHA MÁGICA QUE FALTAVA!
 import axios from 'axios';
 import { LineChart, Line, ResponsiveContainer } from 'recharts';
 import { motion, AnimatePresence } from 'framer-motion';
 import { initMercadoPago, Payment } from '@mercadopago/sdk-react'; 
+// ... resto do código continua igual ...
 
 // 🔑 CHAVES E CONFIGURAÇÕES DO MOTOR VIP
 const API_SPORTS_KEY = "7ff15d43907d5138e48674b29ab56a65";
