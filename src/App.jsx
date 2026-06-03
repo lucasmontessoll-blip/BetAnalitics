@@ -9,7 +9,7 @@ import { initMercadoPago, Payment } from '@mercadopago/sdk-react';
 const API_SPORTS_KEY = "7ff15d43907d5138e48674b29ab56a65";
 const EMAILS_VIP_MESTRE = ['admin@nexus.com']; 
 initMercadoPago('APP_USR-c05e91db-5e62-4838-8790-e73906d11dbc', { locale: 'pt-BR' });
-const API_URL = 'https://betanalitics-q0fq.onrender.com';
+const API_URL = 'https://betanalitics-1-9stc.onrender.com';
 
 // 🎨 TEMA PREMIUM EXATO
 const theme = { bgApp: '#090C15', bgSidebar: '#111623', bgPanel: '#111623', bgHover: '#181E2E', border: '#1E2536', accent: '#FFC107', blue: '#0D6EFD', green: '#198754', red: '#DC3545', textMain: '#FFFFFF', textMuted: '#8B95A9' };
@@ -587,8 +587,15 @@ function ModalsExtras({ menuAtivo, form, setForm, setMenuAtivo, setUserData }) {
     } finally { setLoading(false); }
   }
 
-  // 3. Configuração Cartões (Mercado Pago)
-  const initialization = useMemo(() => ({ amount: 29.90, payer: { email: form.email } }), [form.email]);
+  // 3. Configuração Cartões (Mercado Pago) COM A CORREÇÃO 'individual'
+  const initialization = useMemo(() => ({ 
+    amount: 29.90, 
+    payer: { 
+      email: form.email,
+      entityType: 'individual' 
+    } 
+  }), [form.email]);
+
   const customization = useMemo(() => ({ visual: { style: { theme: 'dark', customVariables: { formBackgroundColor: '#111623' } } }, paymentMethods: { creditCard: 'all', debitCard: 'all', maxInstallments: 1 } }), []);
 
   if (menuAtivo !== "assinar pro") return null;
