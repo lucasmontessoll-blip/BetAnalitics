@@ -9,6 +9,8 @@ import { initMercadoPago, Payment } from '@mercadopago/sdk-react';
 const API_SPORTS_KEY = "7ff15d43907d5138e48674b29ab56a65";
 const EMAILS_VIP_MESTRE = ['admin@nexus.com']; 
 initMercadoPago('APP_USR-c05e91db-5e62-4838-8790-e73906d11dbc', { locale: 'pt-BR' });
+
+// ⚠️ ATENÇÃO: ESTE É O LINK DO SEU MOTOR BACKEND. SE ELE TIVER MUDADO NO RENDER, ATUALIZE AQUI!
 const API_URL = 'https://betanalitics-1-9stc.onrender.com';
 
 // 🎨 TEMA PREMIUM EXATO
@@ -570,7 +572,7 @@ function ModalsExtras({ menuAtivo, form, setForm, setMenuAtivo, setUserData }) {
     return () => clearInterval(inv);
   }, [passo, dadosPix, form.email]);
 
-  // 2. Gerador de PIX
+  // 2. Gerador de PIX (VERSÃO DETETIVE PARA MOSTRAR O ERRO REAL)
   async function gerarPix() {
     if (!form.nome || !form.email || form.cpf.length !== 11) return alert("⚠️ ERRO: Preencha Nome, E-mail e os exatos 11 números do CPF.");
     try { 
@@ -583,19 +585,21 @@ function ModalsExtras({ menuAtivo, form, setForm, setMenuAtivo, setUserData }) {
       const { data } = await axios.post(`${API_URL}/api/processar-pagamento`, payload);
       if (data.qr_code_base64 || data.qr_code) { setDadosPix(data); setPasso(2); }
     } catch (e) { 
-      alert("❌ Erro de comunicação com o servidor."); 
+      console.error("ERRO COMPLETO:", e);
+      // Aqui vamos capturar a mensagem real de erro do servidor
+      const detalheErro = e.response?.data?.message || e.response?.data?.error || e.message;
+      alert(`❌ ERRO REAL: ${detalheErro}\n(Olhe o painel F12 - Console para ver os detalhes)`); 
     } finally { setLoading(false); }
   }
 
-  // 3. Configuração Cartões (Mercado Pago) COM A CORREÇÃO 'individual'
+  // 3. Configuração Cartões (Mercado Pago) - COM CORREÇÃO 'entityType'
   const initialization = useMemo(() => ({ 
     amount: 29.90, 
     payer: { 
-      email: form.email,
-      entityType: 'individual' 
+        email: form.email,
+        entityType: 'individual'
     } 
   }), [form.email]);
-
   const customization = useMemo(() => ({ visual: { style: { theme: 'dark', customVariables: { formBackgroundColor: '#111623' } } }, paymentMethods: { creditCard: 'all', debitCard: 'all', maxInstallments: 1 } }), []);
 
   if (menuAtivo !== "assinar pro") return null;
