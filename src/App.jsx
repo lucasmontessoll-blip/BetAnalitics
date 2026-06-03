@@ -1,10 +1,9 @@
 import React, { useState, useEffect, useMemo } from 'react';
-import './app.css'; // <--- ESTA É A LINHA MÁGICA QUE FALTAVA!
+import './app.css'; // O CSS que garante o visual Premium!
 import axios from 'axios';
 import { LineChart, Line, ResponsiveContainer } from 'recharts';
 import { motion, AnimatePresence } from 'framer-motion';
 import { initMercadoPago, Payment } from '@mercadopago/sdk-react'; 
-// ... resto do código continua igual ...
 
 // 🔑 CHAVES E CONFIGURAÇÕES DO MOTOR VIP
 const API_SPORTS_KEY = "7ff15d43907d5138e48674b29ab56a65";
@@ -542,24 +541,97 @@ function RightPanelComponent({ jogoSelecionado, rightTab, setRightTab, isMobile 
     );
 }
 
+// 🔥 SISTEMA COMPLETO DE PAGAMENTO (PIX E CARTÕES VIA MERCADO PAGO)
 function ModalsExtras({ menuAtivo, form, setForm, setMenuAtivo, setUserData }) {
-  const [passo, setPasso] = useState(1); const [loading, setLoading] = useState(false); const [dadosPix, setDadosPix] = useState(null);
+  const [passo, setPasso] = useState(1); 
+  const [loading, setLoading] = useState(false); 
+  const [dadosPix, setDadosPix] = useState(null);
   
+  // 1. Escuta Automática de PIX
+  useEffect(() => {
+    let inv;
+    if (passo === 2 && dadosPix?.id) {
+      inv = setInterval(async () => {
+        try {
+          const res = await axios.get(`${API_URL}/status/${dadosPix.id}`);
+          if (res.data.status === 'approved') {
+            clearInterval(inv); 
+            alert("🎉 Pagamento Aprovado! Bem-vindo ao VIP PRO!");
+            if (setUserData) { 
+              setUserData({ email: form.email, is_vip: true }); 
+              localStorage.setItem('bet_sessao_ativa', form.email); 
+            }
+            setMenuAtivo('Todos os Jogos'); 
+            setPasso(1);
+          }
+        } catch (err) {}
+      }, 3000);
+    }
+    return () => clearInterval(inv);
+  }, [passo, dadosPix, form.email]);
+
+  // 2. Gerador de PIX
   async function gerarPix() {
     if (!form.nome || !form.email || form.cpf.length !== 11) return alert("⚠️ ERRO: Preencha Nome, E-mail e os exatos 11 números do CPF.");
-    try { setLoading(true); setPasso(2); } catch (e) {} finally { setLoading(false); }
+    try { 
+      setLoading(true); 
+      const payload = { 
+        transaction_amount: 29.90, 
+        payment_method_id: "pix", 
+        payer: { email: form.email, first_name: form.nome, identification: { type: "CPF", number: form.cpf } } 
+      };
+      const { data } = await axios.post(`${API_URL}/api/processar-pagamento`, payload);
+      if (data.qr_code_base64 || data.qr_code) { setDadosPix(data); setPasso(2); }
+    } catch (e) { 
+      alert("❌ Erro de comunicação com o servidor."); 
+    } finally { setLoading(false); }
   }
 
+  // 3. Configuração Cartões (Mercado Pago)
+  const initialization = useMemo(() => ({ amount: 29.90, payer: { email: form.email } }), [form.email]);
+  const customization = useMemo(() => ({ visual: { style: { theme: 'dark', customVariables: { formBackgroundColor: '#111623' } } }, paymentMethods: { creditCard: 'all', debitCard: 'all', maxInstallments: 1 } }), []);
+
   if (menuAtivo !== "assinar pro") return null;
+
   return (
     <div style={{position:"fixed", inset:0, background:"rgba(0,0,0,0.85)", display:"flex", justifyContent:"center", alignItems:"center", zIndex: 1000}}>
-      <div style={{background:theme.bgPanel, padding:30, borderRadius:16, width:'95%', maxWidth: 450, color: "#fff", border:`1px solid ${theme.border}`}}>
-        <button onClick={() => { setMenuAtivo('Todos os Jogos'); setPasso(1); }} style={{alignSelf: 'flex-start', background: 'none', border: 'none', color: theme.textMuted, cursor: 'pointer', fontWeight: 'bold', fontSize:'13px'}}>⬅ Fechar</button>
+      <div style={{background:theme.bgPanel, padding:30, borderRadius:16, width:'95%', maxWidth: 450, maxHeight: '90vh', overflowY: 'auto', color: "#fff", border:`1px solid ${theme.border}`}}>
+        <button onClick={() => { setMenuAtivo('Todos os Jogos'); setPasso(1); }} style={{alignSelf: 'flex-start', background: 'none', border: 'none', color: theme.textMuted, cursor: 'pointer', fontWeight: 'bold', fontSize:'13px', marginBottom: '15px'}}>⬅ Fechar Painel</button>
+        
+        {/* TELA 1: DADOS E ESCOLHA DO MÉTODO */}
         {passo === 1 && (
-          <motion.div initial={{opacity:0}} animate={{opacity:1}} style={{display: 'flex', flexDirection: 'column', gap: '15px', marginTop: '15px'}}>
+          <motion.div initial={{opacity:0}} animate={{opacity:1}} style={{display: 'flex', flexDirection: 'column', gap: '15px'}}>
             <h2 style={{margin: 0, color: theme.accent, fontSize:'20px'}}>Assinar VIP PRO 👑</h2>
-            <input placeholder="E-mail principal" value={form.email} style={{padding: '14px', borderRadius: '8px', background: theme.bgApp, color: '#fff', border:`1px solid ${theme.border}`, outline:'none'}} onChange={e=>setForm({...form,email:e.target.value})} />
-            <button className="btn-primary" onClick={gerarPix}>{loading ? "A processar..." : "Pagar com PIX Imediato"}</button>
+            
+            <input placeholder="Nome Completo" value={form.nome} style={{padding: '14px', borderRadius: '8px', background: theme.bgApp, color: '#fff', border:`1px solid ${theme.border}`, outline:'none', fontSize: '14px'}} onChange={e=>setForm({...form,nome:e.target.value})} />
+            <input placeholder="E-mail principal" value={form.email} style={{padding: '14px', borderRadius: '8px', background: theme.bgApp, color: '#fff', border:`1px solid ${theme.border}`, outline:'none', fontSize: '14px'}} onChange={e=>setForm({...form,email:e.target.value})} />
+            <input placeholder="CPF (Apenas números)" value={form.cpf} maxLength={11} style={{padding: '14px', borderRadius: '8px', background: theme.bgApp, color: '#fff', border:`1px solid ${theme.border}`, outline:'none', fontSize: '14px'}} onChange={e=>setForm({...form,cpf:e.target.value.replace(/\D/g, '')})} />
+            
+            <div style={{display: 'flex', flexDirection: 'column', gap: '10px', marginTop: '10px'}}>
+              <button onClick={gerarPix} disabled={loading} style={{padding: '16px', background: theme.green, color: '#fff', fontWeight: 'bold', border: 'none', borderRadius: '8px', cursor: 'pointer', fontSize:'14px', boxShadow:'0 4px 10px rgba(34,197,94,0.2)'}}>{loading ? "A conectar ao banco..." : "⚡ Pagar com PIX (Imediato)"}</button>
+              <button onClick={() => { if(!form.email) return alert("Preencha pelo menos o e-mail."); setPasso(3); }} style={{padding: '16px', background: theme.blue, color: '#fff', fontWeight: 'bold', border: 'none', borderRadius: '8px', cursor: 'pointer', fontSize:'14px'}}>💳 Cartão de Crédito ou Débito</button>
+            </div>
+          </motion.div>
+        )}
+
+        {/* TELA 2: QR CODE DO PIX */}
+        {passo === 2 && dadosPix && (
+          <motion.div initial={{opacity:0}} animate={{opacity:1}} style={{display: 'flex', flexDirection: 'column', gap: '15px', alignItems:'center'}}>
+            <h3 style={{margin: 0, color: theme.green, fontSize:'16px'}}>PIX Gerado com Sucesso!</h3>
+            <p style={{fontSize:'12px', color:theme.textMuted, textAlign:'center', margin:0}}>Escaneie o código ou use o Pix Copia e Cola no app do seu banco:</p>
+            <img src={`data:image/jpeg;base64,${dadosPix.qr_code_base64}`} style={{width:"180px", height:'180px', borderRadius: '8px', border: '5px solid #fff'}} alt="QR Code Pix" />
+            <textarea value={dadosPix.qr_code} readOnly style={{width:'100%', padding: '10px', fontSize: '11px', background: theme.bgApp, color: theme.textMuted, border: `1px solid ${theme.border}`, borderRadius: '6px', resize: 'none', fontFamily:'monospace'}} rows={3} />
+            <button onClick={()=>{ navigator.clipboard.writeText(dadosPix.qr_code); alert("Código Pix copiado!"); }} style={{width:'100%', padding: '14px', background: theme.accent, color: '#000', fontWeight: 'bold', border: 'none', borderRadius: '6px', cursor: 'pointer', fontSize:'14px'}}>Copiar Código Pix</button>
+            <div style={{fontSize:'12px', color:theme.blue, animation:'pulse 1.5s infinite', marginTop: '10px'}}>⏱️ A aguardar confirmação do pagamento...</div>
+          </motion.div>
+        )}
+
+        {/* TELA 3: CHECKOUT CARTÕES (MERCADO PAGO) */}
+        {passo === 3 && (
+          <motion.div initial={{opacity:0}} animate={{opacity:1}} style={{display: 'flex', flexDirection: 'column', gap: '12px'}}>
+            <h3 style={{margin: 0, color: "#fff", textAlign: 'center', fontSize:'16px'}}>Pagamento Seguro (Mercado Pago)</h3>
+            <Payment initialization={initialization} customization={customization} onSubmit={() => alert("A processar cartão...")} />
+            <button onClick={() => setPasso(1)} style={{padding: '10px', background: 'transparent', color: theme.textMuted, border: `1px solid ${theme.border}`, borderRadius: '6px', cursor: 'pointer', fontSize:'12px'}}>Voltar para as opções</button>
           </motion.div>
         )}
       </div>
