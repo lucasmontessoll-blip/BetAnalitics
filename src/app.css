@@ -1,5 +1,11 @@
-@tailwind base;
-@tailwind components;
-@tailwind utilities;
+@import "tailwindcss";
+
+@theme {
+  --color-app: #050816;
+  --color-panel: #0F172A;
+  --color-panel2: #111827;
+  --color-blue1: #2563EB;
+  --color-blue2: #0D6EFD;
+}
 
 .no-scrollbar::-webkit-scrollbar { display: none; }
