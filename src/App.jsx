@@ -471,4 +471,246 @@ export default function App() {
             className={`nav-item ${filterCentro === 'Ao Vivo' && !showMobileLigas ? 'active' : ''}`} 
             onClick={() => {setViewMode('jogos'); setFilterCentro('Ao Vivo'); setShowMobileLigas(false); setJogoSelecionado(null);}}
             style={{background: 'none', border: 'none'}}
-        ></button>
+        >
+          <span className="nav-icon">🔴</span>
+          <span>Ao Vivo</span>
+        </button>
+
+        <button 
+            className={`nav-item ${viewMode === 'classificacao' && !showMobileLigas ? 'active' : ''}`} 
+            onClick={() => {setViewMode('classificacao'); setShowMobileLigas(false); setJogoSelecionado(null);}}
+            style={{background: 'none', border: 'none'}}
+        >
+          <span className="nav-icon">🏆</span>
+          <span>Tabela</span>
+        </button>
+        
+        <button 
+            className={`nav-item vip-icon ${menuAtivo === 'assinar pro' && !showMobileLigas ? 'active' : ''}`} 
+            onClick={() => {setMenuAtivo('assinar pro'); setShowMobileLigas(false); setJogoSelecionado(null);}}
+            style={{background: 'none', border: 'none'}}
+        >
+          <span className="nav-icon">👑</span>
+          <span>VIP</span>
+        </button>
+
+      </div>
+
+    </div>
+  );
+}
+
+// -----------------------------------------------------------------------------
+// COMPONENTES AUXILIARES 
+// -----------------------------------------------------------------------------
+
+function ClassificacaoPanel({ menuAtivo, ligaAtivaId, loadingClassificacao, classificacao, jogosHoje, jogoSelecionado, erroDaClassificacao }) {
+    return ( 
+      <motion.div initial={{opacity: 0}} animate={{opacity: 1}} style={{background: theme.bgPanel, borderRadius: '16px', border: `1px solid ${theme.border}`, overflow: 'hidden', padding: '20px', width:'100%'}}>
+        {!ligaAtivaId ? ( 
+            <div style={{textAlign: 'center', color: theme.textMuted, padding: '40px 0'}}>🌍 Selecione uma liga no menu de Ligas para ver a classificação.</div> 
+        ) : loadingClassificacao ? ( 
+            <div style={{textAlign: 'center', color: theme.blue, padding: '40px 0', fontWeight:'bold'}}>A baixar Tabela Oficial da API...</div> 
+        ) : erroDaClassificacao ? (
+            <div style={{textAlign: 'center', color: theme.red, padding: '40px 0', fontWeight:'bold'}}>{erroDaClassificacao}</div>
+        ) : classificacao.length === 0 ? (
+            <div style={{textAlign: 'center', color: theme.textMuted, padding: '40px 0'}}>⚠️ Dados de classificação indisponíveis para a liga selecionada hoje.</div>
+        ) : ( 
+          <div style={{overflowX: 'auto'}}>
+            <table style={{width: '100%', borderCollapse: 'collapse', textAlign: 'left', color: theme.textMain, fontSize: '13px'}}>
+              <thead><tr style={{borderBottom: `1px solid ${theme.border}`, color: theme.textMuted, background:theme.bgSidebar}}><th style={{padding:'12px 8px'}}>#</th><th>Equipe</th><th>Pts</th><th>J</th><th>V</th><th>E</th><th>D</th><th>SG</th></tr></thead>
+              <tbody>
+                {classificacao.map((t, i) => {
+                  return ( <tr key={i} style={{borderBottom: `1px solid ${theme.border}`}}><td style={{padding: '12px 8px', color: theme.blue, fontWeight:'bold'}}>{t.pos}</td><td style={{padding: '12px 8px', display: 'flex', alignItems: 'center', gap: '10px'}}><img src={t.logo} style={{width: '20px', height:'20px'}} alt="" />{t.team_name}</td><td style={{fontWeight:'bold'}}>{t.pts}</td><td>{t.p}</td><td>{t.w}</td><td>{t.d}</td><td>{t.l}</td><td>{t.gd}</td></tr> )
+                })}
+              </tbody>
+            </table>
+          </div> 
+        )}
+      </motion.div> 
+    );
+}
+
+function RightPanelComponent({ jogoSelecionado, rightTab, setRightTab, isMobile }) {
+    if (!jogoSelecionado) return null;
+    return (
+        <aside style={{ width: isMobile ? '100%' : '380px', padding: isMobile ? '0' : '15px', background: theme.bgApp, height: '100%', display: 'flex', flexDirection: 'column' }}>
+            <div style={{ background: theme.bgPanel, borderRadius: isMobile ? '0' : '16px', border: isMobile ? 'none' : `1px solid ${theme.border}`, display: 'flex', flexDirection: 'column', flex: 1, overflow: 'hidden' }}>
+                <div style={{ padding: '20px', borderBottom: `1px solid ${theme.border}` }}>
+                    <div style={{ display: 'flex', justifyContent: 'center', marginBottom: '15px' }}>{jogoSelecionado.status === 'Live' ? <div style={{ background: theme.red, color: '#fff', fontSize: '11px', fontWeight: 'bold', padding: '4px 12px', borderRadius: '12px' }}>AO VIVO {jogoSelecionado.time_elapsed}'</div> : <span style={{fontSize:'10px', color: theme.textMuted, textTransform:'uppercase'}}>{jogoSelecionado.league_name}</span>}</div>
+                    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                        <div style={{ textAlign: 'center', flex: 1 }}><img src={jogoSelecionado.home_image} style={{ width: '50px', height: '50px', marginBottom: '8px' }} alt=""/><div style={{ fontSize: '12px', fontWeight: 'bold' }}>{jogoSelecionado.home_team}</div></div>
+                        <div style={{ textAlign: 'center', padding: '0 10px' }}><div style={{ background: theme.bgHover, padding: '8px 16px', borderRadius: '8px', fontSize: '24px', fontWeight: '900', border:`1px solid ${theme.border}` }}>{jogoSelecionado.status === 'Not Started' ? '-' : `${jogoSelecionado.scoreHome} - ${jogoSelecionado.scoreAway}`}</div></div>
+                        <div style={{ textAlign: 'center', flex: 1 }}><img src={jogoSelecionado.away_image} style={{ width: '50px', height: '50px', marginBottom: '8px' }} alt=""/><div style={{ fontSize: '12px', fontWeight: 'bold' }}>{jogoSelecionado.away_team}</div></div>
+                    </div>
+                </div>
+                <div style={{ display: 'flex', background: theme.bgSidebar, padding: '10px', gap: '5px', overflowX: 'auto' }} className="custom-scrollbar">
+                    {[{n:'% Probs',i:'🎯'}, {n:'Estatísticas',i:'📊'}, {n:'H2H',i:'⚔️'}, {n:'Escalações',i:'🏃'}].map(t => (
+                        <button key={t.n} onClick={() => setRightTab(t.n)} style={{ flex: 1, whiteSpace: 'nowrap', padding: '8px 12px', background: rightTab === t.n ? theme.blue : 'transparent', color: rightTab === t.n ? '#fff' : theme.textMuted, border: `1px solid ${rightTab === t.n ? theme.blue : 'transparent'}`, borderRadius: '20px', fontSize: '11px', cursor: 'pointer', fontWeight:'bold' }}>{t.i} {t.n}</button>
+                    ))}
+                </div>
+                <div style={{ flex: 1, overflowY: 'auto', padding: '20px' }} className="custom-scrollbar">
+                    {jogoSelecionado.is_loading ? <SkeletonVIP /> : jogoSelecionado.err ? <div style={{textAlign:'center', color:theme.textMuted, padding:'20px'}}>Dados VIP temporariamente indisponíveis.</div> : (
+                        <AnimatePresence mode="wait">
+                            <motion.div key={rightTab} initial={{opacity:0, y:10}} animate={{opacity:1, y:0}}>
+                                {rightTab === 'Estatísticas' && (
+                                    <>
+                                        <div style={{ background: theme.bgApp, padding: '15px', borderRadius: '12px', border: `1px solid ${theme.border}`, marginBottom: '20px' }}>
+                                            <div style={{ fontSize: '11px', color: theme.textMuted, marginBottom: '15px', fontWeight: 'bold' }}>PRESSÃO NO JOGO (MOMENTUM)</div>
+                                            <div style={{ height: '100px', width: '100%' }}>
+                                                <ResponsiveContainer><LineChart data={generateMomentum()} margin={{ top:5, right:5, left:5, bottom:5 }}><Line type="monotone" dataKey="pressaoHome" stroke={theme.blue} strokeWidth={2} dot={false} /><Line type="monotone" dataKey="pressaoAway" stroke={theme.accent} strokeWidth={2} dot={false} /></LineChart></ResponsiveContainer>
+                                            </div>
+                                        </div>
+                                        {jogoSelecionado.stats_reais?.map((s,i) => {
+                                            const lbl = s.type.replace('Ball Possession','Posse (%)').replace('Total Shots','Remates').replace('Yellow Cards', 'Amarelos');
+                                            const t = s.h + s.a; const pH = t>0?(s.h/t)*100:50; const pA = t>0?(s.a/t)*100:50;
+                                            return (
+                                                <div key={i} style={{ margin: '0 0 15px 0' }}>
+                                                    <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '12px', fontWeight: 'bold', marginBottom: '5px' }}><span style={{color: pH>=pA?theme.textMain:theme.textMuted}}>{lbl.includes('%')?`${s.h}%`:s.h}</span><span style={{color: theme.textMuted, fontSize: '10px', textTransform:'uppercase'}}>{lbl}</span><span style={{color: pA>=pH?theme.textMain:theme.textMuted}}>{lbl.includes('%')?`${s.a}%`:s.a}</span></div>
+                                                    <div style={{ display: 'flex', gap: '4px' }}><div style={{ flex: 1, background: theme.bgHover, height: '6px', borderRadius: '3px', display: 'flex', justifyContent: 'flex-end' }}><div style={{ width: `${pH}%`, background: pH>=pA?theme.blue:theme.border, borderRadius: '3px' }}></div></div><div style={{ flex: 1, background: theme.bgHover, height: '6px', borderRadius: '3px' }}><div style={{ width: `${pA}%`, background: pA>=pH?theme.accent:theme.border, borderRadius: '3px' }}></div></div></div>
+                                                </div>
+                                            )
+                                        })}
+                                    </>
+                                )}
+                                {rightTab === '% Probs' && (
+                                    <>
+                                        <div style={{ background: theme.bgSidebar, padding: '15px', borderRadius: '12px', marginBottom: '15px', border: `1px solid ${theme.blue}` }}>
+                                            <div style={{ fontSize: '11px', color: theme.blue, marginBottom: '15px', fontWeight: '900', textTransform: 'uppercase' }}>⚙️ ALGORITMO PROPRIETÁRIO</div>
+                                            <div style={{ display: 'flex', height: '8px', borderRadius: '4px', overflow: 'hidden', marginBottom: '10px' }}><div style={{width: `${jogoSelecionado.probs?.h||33}%`, background: theme.blue}}></div><div style={{width: `${jogoSelecionado.probs?.d||34}%`, background: theme.textMuted}}></div><div style={{width: `${jogoSelecionado.probs?.a||33}%`, background: theme.accent}}></div></div>
+                                            <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '12px', fontWeight: 'bold' }}><span style={{color: theme.blue}}>Casa {jogoSelecionado.probs?.h||33}%</span><span style={{color: theme.textMuted}}>Emp {jogoSelecionado.probs?.d||34}%</span><span style={{color: theme.accent}}>Fora {jogoSelecionado.probs?.a||33}%</span></div>
+                                        </div>
+                                        <div style={{ background: theme.bgSidebar, padding: '15px', borderRadius: '12px' }}><div style={{ fontSize: '11px', color: theme.textMuted, marginBottom: '10px', fontWeight: 'bold' }}>ANÁLISE PREDITIVA IA</div><div style={{ fontSize: '13px', color: '#fff', lineHeight:'1.5' }}>{jogoSelecionado.advice}</div></div>
+                                    </>
+                                )}
+                            </motion.div>
+                        </AnimatePresence>
+                    )}
+                </div>
+            </div>
+        </aside>
+    );
+}
+
+// 🔥 SISTEMA COMPLETO DE PAGAMENTO (PIX E CARTÕES VIA MERCADO PAGO)
+function ModalsExtras({ menuAtivo, form, setForm, setMenuAtivo, setUserData }) {
+  const [passo, setPasso] = useState(1); 
+  const [loading, setLoading] = useState(false); 
+  const [dadosPix, setDadosPix] = useState(null);
+  
+  // 1. Escuta Automática de PIX
+  useEffect(() => {
+    let inv;
+    if (passo === 2 && dadosPix?.id) {
+      inv = setInterval(async () => {
+        try {
+          const res = await axios.get(`${API_URL}/status/${dadosPix.id}`);
+          if (res.data.status === 'approved') {
+            clearInterval(inv); 
+            alert("🎉 Pagamento Aprovado! Bem-vindo ao VIP PRO!");
+            if (setUserData) { 
+              setUserData({ email: form.email, is_vip: true }); 
+              localStorage.setItem('bet_sessao_ativa', form.email); 
+            }
+            setMenuAtivo('Todos os Jogos'); 
+            setPasso(1);
+          }
+        } catch (err) {}
+      }, 3000);
+    }
+    return () => clearInterval(inv);
+  }, [passo, dadosPix, form.email]);
+
+  // 2. Gerador de PIX (VERSÃO DETETIVE PARA MOSTRAR O ERRO REAL)
+  async function gerarPix() {
+    if (!form.nome || !form.email || form.cpf.length !== 11) return alert("⚠️ ERRO: Preencha Nome, E-mail e os exatos 11 números do CPF.");
+    try { 
+      setLoading(true); 
+      const payload = { 
+        transaction_amount: 29.90, 
+        payment_method_id: "pix", 
+        payer: { email: form.email, first_name: form.nome, identification: { type: "CPF", number: form.cpf } } 
+      };
+      const { data } = await axios.post(`${API_URL}/api/processar-pagamento`, payload);
+      if (data.qr_code_base64 || data.qr_code) { setDadosPix(data); setPasso(2); }
+    } catch (e) { 
+      console.error("ERRO COMPLETO:", e);
+      // Aqui vamos capturar a mensagem real de erro do servidor
+      const detalheErro = e.response?.data?.message || e.response?.data?.error || e.message;
+      alert(`❌ ERRO REAL: ${detalheErro}\n(Olhe o painel F12 - Console para ver os detalhes)`); 
+    } finally { setLoading(false); }
+  }
+
+  // 3. Configuração Cartões (Mercado Pago) - COM CORREÇÃO 'entityType'
+  const initialization = useMemo(() => ({ 
+    amount: 29.90, 
+    payer: { 
+        email: form.email,
+        entityType: 'individual'
+    } 
+  }), [form.email]);
+  const customization = useMemo(() => ({ visual: { style: { theme: 'dark', customVariables: { formBackgroundColor: '#111623' } } }, paymentMethods: { creditCard: 'all', debitCard: 'all', maxInstallments: 1 } }), []);
+
+  if (menuAtivo !== "assinar pro") return null;
+
+  return (
+    <div style={{position:"fixed", inset:0, background:"rgba(0,0,0,0.85)", display:"flex", justifyContent:"center", alignItems:"center", zIndex: 1000}}>
+      <div style={{background:theme.bgPanel, padding:30, borderRadius:16, width:'95%', maxWidth: 450, maxHeight: '90vh', overflowY: 'auto', color: "#fff", border:`1px solid ${theme.border}`}}>
+        <button onClick={() => { setMenuAtivo('Todos os Jogos'); setPasso(1); }} style={{alignSelf: 'flex-start', background: 'none', border: 'none', color: theme.textMuted, cursor: 'pointer', fontWeight: 'bold', fontSize:'13px', marginBottom: '15px'}}>⬅ Fechar Painel</button>
+        
+        {/* TELA 1: DADOS E ESCOLHA DO MÉTODO */}
+        {passo === 1 && (
+          <motion.div initial={{opacity:0}} animate={{opacity:1}} style={{display: 'flex', flexDirection: 'column', gap: '15px'}}>
+            <h2 style={{margin: 0, color: theme.accent, fontSize:'20px'}}>Assinar VIP PRO 👑</h2>
+            
+            <input placeholder="Nome Completo" value={form.nome} style={{padding: '14px', borderRadius: '8px', background: theme.bgApp, color: '#fff', border:`1px solid ${theme.border}`, outline:'none', fontSize: '14px'}} onChange={e=>setForm({...form,nome:e.target.value})} />
+            <input placeholder="E-mail principal" value={form.email} style={{padding: '14px', borderRadius: '8px', background: theme.bgApp, color: '#fff', border:`1px solid ${theme.border}`, outline:'none', fontSize: '14px'}} onChange={e=>setForm({...form,email:e.target.value})} />
+            <input placeholder="CPF (Apenas números)" value={form.cpf} maxLength={11} style={{padding: '14px', borderRadius: '8px', background: theme.bgApp, color: '#fff', border:`1px solid ${theme.border}`, outline:'none', fontSize: '14px'}} onChange={e=>setForm({...form,cpf:e.target.value.replace(/\D/g, '')})} />
+            
+            <div style={{display: 'flex', flexDirection: 'column', gap: '10px', marginTop: '10px'}}>
+              <button onClick={gerarPix} disabled={loading} style={{padding: '16px', background: theme.green, color: '#fff', fontWeight: 'bold', border: 'none', borderRadius: '8px', cursor: 'pointer', fontSize:'14px', boxShadow:'0 4px 10px rgba(34,197,94,0.2)'}}>{loading ? "A conectar ao banco..." : "⚡ Pagar com PIX (Imediato)"}</button>
+              <button onClick={() => { if(!form.email) return alert("Preencha pelo menos o e-mail."); setPasso(3); }} style={{padding: '16px', background: theme.blue, color: '#fff', fontWeight: 'bold', border: 'none', borderRadius: '8px', cursor: 'pointer', fontSize:'14px'}}>💳 Cartão de Crédito ou Débito</button>
+            </div>
+          </motion.div>
+        )}
+
+        {/* TELA 2: QR CODE DO PIX */}
+        {passo === 2 && dadosPix && (
+          <motion.div initial={{opacity:0}} animate={{opacity:1}} style={{display: 'flex', flexDirection: 'column', gap: '15px', alignItems:'center'}}>
+            <h3 style={{margin: 0, color: theme.green, fontSize:'16px'}}>PIX Gerado com Sucesso!</h3>
+            <p style={{fontSize:'12px', color:theme.textMuted, textAlign:'center', margin:0}}>Escaneie o código ou use o Pix Copia e Cola no app do seu banco:</p>
+            <img src={`data:image/jpeg;base64,${dadosPix.qr_code_base64}`} style={{width:"180px", height:'180px', borderRadius: '8px', border: '5px solid #fff'}} alt="QR Code Pix" />
+            <textarea value={dadosPix.qr_code} readOnly style={{width:'100%', padding: '10px', fontSize: '11px', background: theme.bgApp, color: theme.textMuted, border: `1px solid ${theme.border}`, borderRadius: '6px', resize: 'none', fontFamily:'monospace'}} rows={3} />
+            <button onClick={()=>{ navigator.clipboard.writeText(dadosPix.qr_code); alert("Código Pix copiado!"); }} style={{width:'100%', padding: '14px', background: theme.accent, color: '#000', fontWeight: 'bold', border: 'none', borderRadius: '6px', cursor: 'pointer', fontSize:'14px'}}>Copiar Código Pix</button>
+            <div style={{fontSize:'12px', color:theme.blue, animation:'pulse 1.5s infinite', marginTop: '10px'}}>⏱️ A aguardar confirmação do pagamento...</div>
+          </motion.div>
+        )}
+
+        {/* TELA 3: CHECKOUT CARTÕES (MERCADO PAGO) */}
+        {passo === 3 && (
+          <motion.div initial={{opacity:0}} animate={{opacity:1}} style={{display: 'flex', flexDirection: 'column', gap: '12px'}}>
+            <h3 style={{margin: 0, color: "#fff", textAlign: 'center', fontSize:'16px'}}>Pagamento Seguro (Mercado Pago)</h3>
+            <Payment initialization={initialization} customization={customization} onSubmit={() => alert("A processar cartão...")} />
+            <button onClick={() => setPasso(1)} style={{padding: '10px', background: 'transparent', color: theme.textMuted, border: `1px solid ${theme.border}`, borderRadius: '6px', cursor: 'pointer', fontSize:'12px'}}>Voltar para as opções</button>
+          </motion.div>
+        )}
+      </div>
+    </div>
+  );
+}
+
+function AuthModal({ showLoginMenu, setShowLoginMenu, authMode, setAuthMode, loginEmail, setLoginEmail, loginSenha, setLoginSenha, handleLogin, handleCadastro }) {
+    if (!showLoginMenu) return null;
+    return ( 
+      <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.92)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 1000 }}>
+        <motion.div initial={{ scale: 0.9 }} animate={{ scale: 1 }} style={{ background: theme.bgPanel, padding: '35px 30px', width: '90%', maxWidth: '400px', borderRadius:'16px', border:`1px solid ${theme.border}` }}>
+          <h2 style={{ color: '#fff', textAlign: 'center', marginBottom:'20px', fontSize:'18px', fontWeight:'800' }}>ÁREA VIP PRO</h2>
+          <div style={{display: 'flex', gap: '10px', marginBottom: '20px'}}><button onClick={() => setAuthMode('login')} style={{flex: 1, padding: '12px', background: authMode === 'login' ? theme.blue : 'transparent', color: '#fff', border: 'none', borderRadius:'8px', cursor:'pointer', fontWeight:'bold', fontSize:'12px'}}>Entrar</button><button onClick={() => setAuthMode('register')} style={{flex: 1, padding: '12px', background: authMode === 'register' ? theme.blue : 'transparent', color: '#fff', border: 'none', borderRadius:'8px', cursor:'pointer', fontWeight:'bold', fontSize:'12px'}}>Cadastrar</button></div>
+          <input placeholder="E-mail" value={loginEmail} onChange={e => setLoginEmail(e.target.value)} style={{width: '100%', padding: '14px', marginBottom: '15px', background: theme.bgApp, color: '#fff', border: `1px solid ${theme.border}`, borderRadius: '8px', outline:'none', fontSize:'13px'}} />
+          <input placeholder="Senha" type="password" value={loginSenha} onChange={e => setLoginSenha(e.target.value)} style={{width: '100%', padding: '14px', marginBottom: '25px', background: theme.bgApp, color: '#fff', border: `1px solid ${theme.border}`, borderRadius: '8px', outline:'none', fontSize:'13px'}} />
+          <button className="btn-primary" onClick={authMode === 'login' ? handleLogin : handleCadastro}>CONTINUAR</button>
+          <button style={{width: '100%', padding: '10px', background: 'transparent', color: theme.textMuted, border: 'none', marginTop: '10px', cursor:'pointer', fontSize:'12px'}} onClick={() => setShowLoginMenu(false)}>Cancelar</button>
+        </motion.div>
+      </div> 
+    );
+} 
