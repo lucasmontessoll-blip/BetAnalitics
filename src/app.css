@@ -1,88 +1,358 @@
 /* =========================================================
-   App.css - BETANALYTICS (NOVO DESIGN MOBILE PREMIUM)
+   BETANALYTICS PRO - TEMA DARK PREMIUM (COMPLETO)
 ========================================================= */
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap');
-
-* { margin: 0; padding: 0; box-sizing: border-box; }
 
 :root {
-  --bg-dark: #090C15;         /* Fundo escuro azulado */
-  --card-bg: #111623;         /* Fundo dos cartões */
-  --card-border: #1E2536;     /* Borda suave */
-  --blue-primary: #0D6EFD;    /* Azul dos botões */
-  --gold-vip: #FFC107;        /* Dourado VIP */
+  --bg-app: #090C15;
+  --bg-sidebar: #111623;
+  --bg-panel: #111623;
+  --bg-hover: #181E2E;
+  --border: #1E2536;
+  --accent: #FFC107;
+  --blue: #0D6EFD;
+  --green: #198754;
+  --red: #DC3545;
   --text-main: #FFFFFF;
   --text-muted: #8B95A9;
-  --green-win: #198754;
-  --red-loss: #DC3545;
 }
 
-body {
-  font-family: 'Inter', sans-serif;
-  background-color: var(--bg-dark); 
+body, html {
+  margin: 0;
+  padding: 0;
+  background-color: var(--bg-app);
   color: var(--text-main);
-  overflow: hidden; 
-  -webkit-font-smoothing: antialiased;
+  font-family: 'Inter', system-ui, -apple-system, sans-serif;
+  height: 100%;
 }
 
-/* Ocultar scrollbar para um visual mais limpo em mobile */
-.custom-scrollbar::-webkit-scrollbar { display: none; }
-
-.app-layout { display: flex; height: 100vh; overflow: hidden; flex-direction: column; }
-
-/* Esconder sidebar no mobile para usar a barra inferior */
-@media (max-width: 1024px) {
-  .sidebar { display: none !important; }
-  .main-area { padding-bottom: 80px !important; /* Espaço para o menu inferior */ }
+* {
+  box-sizing: border-box;
 }
 
-.sidebar { width: 260px; background: var(--bg-dark); border-right: 1px solid var(--card-border); }
-.main-area { flex: 1; background: var(--bg-dark); overflow-y: auto; padding: 15px; }
+/* =========================================================
+   LAYOUT PRINCIPAL
+========================================================= */
+.app-layout {
+  display: flex;
+  height: 100vh;
+  overflow: hidden;
+}
 
-/* Top Header simplificado */
-.top-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; }
-.logo h1 { font-size: 20px; font-weight: 800; display: flex; align-items: center; gap: 8px;}
-.logo span { color: var(--blue-primary); }
+.sidebar {
+  width: 260px;
+  background: var(--bg-sidebar);
+  display: flex;
+  flex-direction: column;
+  border-right: 1px solid var(--border);
+  z-index: 10;
+}
 
-/* Botões */
-.btn-primary { background: var(--blue-primary); color: #fff; border: none; padding: 12px 20px; border-radius: 8px; cursor: pointer; font-weight: 700; width: 100%; transition: 0.2s; }
-.btn-primary:hover { opacity: 0.9; }
-.btn-vip { background: var(--gold-vip); color: #000; border: none; padding: 8px 15px; border-radius: 20px; font-weight: 800; font-size: 12px; display: inline-flex; align-items: center; gap: 5px;}
+.main-area {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  background: var(--bg-app);
+  overflow-y: auto;
+  padding: 20px;
+}
 
-/* Filtros de Data estilo Pílula */
-.date-filters { display: flex; gap: 10px; overflow-x: auto; margin-bottom: 20px; padding-bottom: 5px; }
-.date-pill { background: transparent; border: 1px solid var(--card-border); color: var(--text-muted); padding: 8px 16px; border-radius: 20px; font-size: 13px; font-weight: 600; white-space: nowrap; }
-.date-pill.active { background: var(--blue-primary); color: #fff; border-color: var(--blue-primary); }
+.top-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 20px;
+}
 
-/* Grid de Jogos (Mais parecido com Mobile) */
-.games-grid { display: flex; flex-direction: column; gap: 15px; }
+.logo h1 {
+  margin: 0;
+  font-size: 24px;
+  font-weight: 900;
+  letter-spacing: 1px;
+}
 
-/* Cartão do Jogo Premium */
-.match-card { background: var(--card-bg); border: 1px solid var(--card-border); border-radius: 16px; padding: 15px; display: flex; flex-direction: column; position: relative; }
-.card-header-bet { font-size: 12px; font-weight: 600; color: var(--text-muted); margin-bottom: 15px; display: flex; justify-content: space-between; }
-.star-icon { color: var(--text-muted); font-size: 16px; }
+.logo span {
+  color: var(--blue);
+}
 
-/* Times e Placar */
-.scoreboard-bet { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; }
-.team-col-bet { display: flex; align-items: center; gap: 12px; width: 40%; }
-.team-logo { width: 28px; height: 28px; object-fit: contain; }
-.team-name { font-size: 14px; font-weight: 600; white-space: nowrap; }
-.score-center { font-size: 20px; font-weight: 800; width: 20%; text-align: center; }
+/* =========================================================
+   FILTROS DE DATA
+========================================================= */
+.date-filters {
+  display: flex;
+  gap: 10px;
+  align-items: center;
+  overflow-x: auto;
+  padding-bottom: 5px;
+}
 
-/* Caixas de Odds (Estilo retangular limpo) */
-.odds-row-bet { display: flex; justify-content: space-between; gap: 10px; }
-.odd-box { flex: 1; background: #181E2E; border-radius: 8px; padding: 10px; text-align: center; border: 1px solid transparent; transition: 0.2s; }
-.odd-box:hover { border-color: var(--blue-primary); }
-.odd-value { font-size: 13px; font-weight: 700; color: var(--text-main); }
+.date-pill {
+  background: var(--bg-sidebar);
+  border: 1px solid var(--border);
+  border-radius: 20px;
+  padding: 8px 16px;
+  color: var(--text-muted);
+  font-size: 11px;
+  font-weight: 700;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: 0.2s;
+}
 
-/* Barra de Navegação Inferior (Exclusiva Mobile) */
-.bottom-nav { position: fixed; bottom: 0; left: 0; right: 0; background: var(--card-bg); border-top: 1px solid var(--card-border); display: flex; justify-content: space-around; padding: 12px 0 25px 0; z-index: 1000; }
-.nav-item { display: flex; flex-direction: column; align-items: center; gap: 5px; color: var(--text-muted); font-size: 11px; font-weight: 600; cursor: pointer; }
-.nav-item.active { color: var(--blue-primary); }
-.nav-icon { font-size: 20px; }
-.nav-item.vip-icon { color: var(--gold-vip); }
+.date-pill.active {
+  background: var(--blue);
+  color: #fff;
+  border-color: var(--blue);
+}
 
-/* Banner Assinatura VIP */
-.vip-banner { background: linear-gradient(135deg, #111623 0%, #1a2235 100%); border: 1px solid var(--gold-vip); border-radius: 16px; padding: 20px; display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; position: relative; overflow: hidden; }
-.vip-banner h3 { color: #fff; font-size: 18px; font-weight: 800; margin-bottom: 5px; }
-.vip-banner p { color: var(--text-muted); font-size: 12px; }
+/* =========================================================
+   ESTATÍSTICAS DO TOPO (O SEU NOVO CÓDIGO MELHORADO)
+========================================================= */
+.stats-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(130px, 1fr)); /* Adaptável */
+  gap: 12px;
+  margin-bottom: 20px;
+}
+
+.stat-card {
+  background: var(--bg-panel);
+  border: 1px solid var(--border);
+  border-radius: 18px;
+  padding: 18px;
+  text-align: center;
+}
+
+.stat-number {
+  font-size: 24px;
+  font-weight: 900;
+  color: var(--blue); /* Usar azul para destacar os números */
+  margin-bottom: 4px;
+}
+
+.stat-label {
+  color: var(--text-muted);
+  font-size: 11px;
+  font-weight: 700;
+  text-transform: uppercase;
+}
+
+/* =========================================================
+   GRELHA DE JOGOS E CARTÕES
+========================================================= */
+.games-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+  gap: 15px;
+}
+
+.match-card {
+  background: var(--bg-panel);
+  border: 1px solid var(--border);
+  border-radius: 16px;
+  padding: 15px;
+  cursor: pointer;
+  display: flex;
+  flex-direction: column;
+  transition: .25s;
+  box-shadow: 0 4px 15px rgba(0,0,0,.25);
+}
+
+.match-card:hover {
+  transform: translateY(-3px);
+  border-color: var(--blue);
+  box-shadow: 0 10px 30px rgba(13,110,253,.25);
+}
+
+.card-header-bet {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 15px;
+  font-size: 11px;
+}
+
+.star-icon {
+  font-size: 16px;
+  cursor: pointer;
+}
+
+.scoreboard-bet {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 15px;
+  flex: 1;
+}
+
+.team-col-bet {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex: 1;
+}
+
+.team-logo {
+  width: 30px;
+  height: 30px;
+  object-fit: contain;
+}
+
+.team-name {
+  font-size: 13px;
+  font-weight: 600;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 90px;
+}
+
+.score-center {
+  font-size: 22px;
+  font-weight: 900;
+  padding: 0 15px;
+}
+
+.odds-row-bet {
+  display: flex;
+  gap: 10px;
+  border-top: 1px solid var(--border);
+  padding-top: 12px;
+}
+
+.odd-box {
+  flex: 1;
+  background: var(--bg-hover);
+  border-radius: 8px;
+  padding: 8px;
+  text-align: center;
+}
+
+.odd-value {
+  font-size: 14px;
+  font-weight: 800;
+  color: #fff;
+  margin-top: 4px;
+}
+
+.odd-box:first-child .odd-value { color: var(--blue); }
+.odd-box:last-child .odd-value { color: var(--accent); }
+
+/* =========================================================
+   ELEMENTOS DE DESTAQUE
+========================================================= */
+.live-badge {
+  background: var(--red);
+  color: white;
+  padding: 4px 10px;
+  border-radius: 999px;
+  font-size: 11px;
+  font-weight: 800;
+  animation: pulse 1.5s infinite;
+}
+
+@keyframes pulse {
+  0% { transform: scale(1); }
+  50% { transform: scale(1.08); }
+  100% { transform: scale(1); }
+}
+
+.btn-primary {
+  width: 100%;
+  padding: 14px;
+  background: var(--blue);
+  color: #fff;
+  font-weight: 800;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  font-size: 13px;
+  transition: 0.2s;
+}
+
+.btn-primary:hover {
+  filter: brightness(1.1);
+  transform: translateY(-1px);
+}
+
+.vip-banner {
+  background: linear-gradient(135deg, #0b1735, #173c8f, #0D6EFD);
+  box-shadow: 0 0 30px rgba(13,110,253,.25);
+  border-radius: 12px;
+  padding: 20px;
+  margin-bottom: 20px;
+  border: 1px solid rgba(255,255,255,0.1);
+}
+
+/* =========================================================
+   NAVEGAÇÃO MOBILE (OS 5 BOTÕES)
+========================================================= */
+.bottom-nav {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  height: 70px;
+  background: rgba(17, 22, 35, 0.95); /* Semi-transparente para o blur */
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border-top: 1px solid var(--border);
+  display: flex;
+  align-items: center;
+  justify-content: space-around;
+  z-index: 999;
+  padding-bottom: env(safe-area-inset-bottom);
+}
+
+.nav-item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  color: var(--text-muted);
+  text-decoration: none;
+  font-size: 10px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: 0.2s;
+  flex: 1;
+}
+
+.nav-icon {
+  font-size: 22px;
+  margin-bottom: 2px;
+}
+
+.nav-item.active {
+  color: var(--blue);
+}
+
+.nav-item.active .nav-icon {
+  transform: translateY(-2px);
+  text-shadow: 0 0 15px rgba(13,110,253,0.5);
+}
+
+.nav-item.vip-icon.active {
+  color: var(--accent);
+}
+
+.nav-item.vip-icon.active .nav-icon {
+  text-shadow: 0 0 15px rgba(255,193,7,0.5);
+}
+
+/* =========================================================
+   UTILITÁRIOS
+========================================================= */
+.custom-scrollbar::-webkit-scrollbar {
+  height: 4px;
+  width: 4px;
+}
+.custom-scrollbar::-webkit-scrollbar-track {
+  background: transparent;
+}
+.custom-scrollbar::-webkit-scrollbar-thumb {
+  background: var(--border);
+  border-radius: 4px;
+}
+.custom-scrollbar::-webkit-scrollbar-thumb:hover {
+  background: var(--text-muted);
+}
