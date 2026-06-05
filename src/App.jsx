@@ -79,6 +79,10 @@ export default function App() {
   const [performanceStats] = useState({ totalAnalises: 512, acertos: 431, erros: 81, roi: 18.4, ultimaSemana: 87 });
   const [bancaInicial, setBancaInicial] = useState(1000);
   const [alertas, setAlertas] = useState([{ id: 1, msg: "O Flamengo chegou a 94% de confiança.", lida: false }]);
+  
+  // 👉 CORREÇÃO AQUI: Top Pick adicionado para evitar o erro de tela branca!
+  const [topPick] = useState({ jogo: "Flamengo x Palmeiras", confianca: 92, ev: 14.2, mercado: "Vitória Flamengo" });
+
   const [rankingUsuarios, setRankingUsuarios] = useState([]);
   const [marketRadar] = useState([{ jogo: "Flamengo", abertura: 1.95, atual: 1.82 }, { jogo: "Liverpool", abertura: 2.10, atual: 1.88 }, { jogo: "Real Madrid", abertura: 2.05, atual: 1.95 }]);
 
@@ -87,7 +91,7 @@ export default function App() {
   const [xp, setXp] = useState(350);
 
   // ============================================================================
-  // 📊 NOVO SISTEMA: GESTÃO DE BANCA E APOSTAS REAIS (USUÁRIO)
+  // 📊 SISTEMA: GESTÃO DE BANCA E APOSTAS REAIS (USUÁRIO)
   // ============================================================================
   const [apostas, setApostas] = useState([
     { id: 1, jogo: "Flamengo x Palmeiras", mercado: "Vitória Flamengo", stake: 100, odd: 1.85, resultado: "green" },
@@ -133,6 +137,11 @@ export default function App() {
           }
           return { aposta: `Bet ${index+1}`, banca: Number(banca.toFixed(2)) };
       });
+  };
+
+  const calcularROIUsuario = (listaApostas) => {
+      if (!listaApostas || listaApostas.length === 0) return 0;
+      return calcularROI(); // Usando o cálculo real com base nas apostas cadastradas
   };
 
   const melhoresMercados = () => {
@@ -331,7 +340,7 @@ export default function App() {
                         )
                     })()}
 
-                    {/* Evolução IA (Apenas Estético Global na Home) */}
+                    {/* Evolução IA Global (Home) */}
                     <div className="backdrop-blur-xl bg-slate-900/85 border border-purple-500/20 rounded-3xl p-6 mb-6 mx-4 shadow-lg">
                         <h2 className="text-sm font-black text-purple-400 mb-4 flex items-center gap-2 uppercase tracking-wider"><TrendingUp className="w-4 h-4"/> Evolução do Algoritmo IA</h2>
                         <ResponsiveContainer width="100%" height={150}>
@@ -546,6 +555,10 @@ export default function App() {
         </motion.div>
       )}
 
+      {jogoSelecionado?.is_loading && (
+          <div className="px-4 py-10 flex flex-col items-center justify-center h-64"><div className="w-12 h-12 border-4 border-blue-500 border-t-transparent rounded-full animate-spin mb-4"></div><p className="text-blue-500 font-bold text-xs animate-pulse uppercase tracking-widest">A extrair dados...</p></div>
+      )}
+
       {/* CHECKOUT VIP PRO */}
       {menuAtivo === "assinar pro" && (
          <motion.div initial={{opacity:0}} animate={{opacity:1}} className="px-4 pt-4">
@@ -563,7 +576,17 @@ export default function App() {
          </motion.div>
       )}
 
-      {/* 🤖 ASSISTENTE IA FLUTUANTE */}
+      {/* 🔥 ALERTAS AUTOMÁTICOS FLOAT */}
+      <div className="fixed top-20 left-0 right-0 z-50 flex flex-col items-center gap-2 pointer-events-none">
+          <AnimatePresence>
+              {alertas.slice(0, 2).map((alerta) => (
+                  <motion.div key={alerta.id} initial={{opacity:0, y:-20}} animate={{opacity:1, y:0}} exit={{opacity:0}} className="bg-red-600/90 backdrop-blur-md text-white text-[10px] font-black px-4 py-2 rounded-full shadow-lg border border-red-400 flex items-center gap-2">
+                      <Bell className="w-3 h-3 animate-bounce"/> {alerta.msg}
+                  </motion.div>
+              ))}
+          </AnimatePresence>
+      </div>
+
       <button onClick={() => setAiOpen(true)} className="fixed right-5 bottom-28 w-14 h-14 rounded-full bg-gradient-to-br from-blue-600 to-blue-400 flex items-center justify-center shadow-[0_0_25px_rgba(37,99,235,0.6)] z-40 text-2xl hover:scale-105 transition-transform border border-blue-300/30">🤖</button>
 
       <AnimatePresence>
