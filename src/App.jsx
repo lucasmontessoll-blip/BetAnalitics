@@ -5,7 +5,7 @@ import { LineChart, Line, ResponsiveContainer, XAxis, YAxis, CartesianGrid, Tool
 import { motion, AnimatePresence } from 'framer-motion';
 import { initMercadoPago } from '@mercadopago/sdk-react'; 
 import { createClient } from '@supabase/supabase-js';
-import { Home, BarChart2, Radio, Trophy, Crown, Star, ChevronRight, X, User, Zap, TrendingUp, Crosshair, Bell, Globe, DollarSign, Activity, ShieldAlert, ArrowLeft, Send, Settings, CheckCircle2, Target, Flame, BrainCircuit, TrendingDown, AlertTriangle, Users, Award, PieChart } from 'lucide-react';
+import { Home, BarChart2, Radio, Trophy, Crown, Star, ChevronRight, X, User, Zap, TrendingUp, Crosshair, Bell, Globe, DollarSign, Activity, ShieldAlert, ArrowLeft, Send, Settings, CheckCircle2, Target, Flame, BrainCircuit, TrendingDown, AlertTriangle, Users, Award, PieChart, Calendar, Clock } from 'lucide-react';
 
 // ============================================================================
 // ⚙️ CONFIGURAÇÕES PRINCIPAIS & SUPABASE
@@ -22,7 +22,6 @@ const listaLigas = [{name:'Todos', id: null}, {name:'Serie A', id: 71}, {name:'C
 // ============================================================================
 // 🗄️ DADOS MOCKADOS
 // ============================================================================
-const precisionData = [ {dia:"Seg", valor:81}, {dia:"Ter", valor:83}, {dia:"Qua", valor:79}, {dia:"Qui", valor:87}, {dia:"Sex", valor:85}, {dia:"Sab", valor:89}, {dia:"Dom", valor:87} ];
 const crescimentoBancaGlobal = [ { dia: "1", banca: 1000 }, { dia: "2", banca: 1080 }, { dia: "3", banca: 1150 }, { dia: "4", banca: 1210 }, { dia: "5", banca: 1280 }, { dia: "6", banca: 1350 }, { dia: "7", banca: 1420 } ];
 
 const mockJogosData = [
@@ -33,7 +32,6 @@ const mockJogosData = [
 ];
 
 const mockJogoDetalhes = { stats_reais: [{type: "Posse (%)", h: 58, a: 42}, {type: "Remates", h: 12, a: 5}, {type: "Cantos", h: 8, a: 4}] };
-const ultimosResultados = [{ jogo: "Flamengo", acertou: true }, { jogo: "Liverpool", acertou: true }, { jogo: "Arsenal", acertou: false }, { jogo: "Palmeiras", acertou: true }];
 const mockRankingUsuarios = [ { id: 1, nome: "Lucas", lucro_total: 1840 }, { id: 2, nome: "Carlos", lucro_total: 1430 }, { id: 3, nome: "João", lucro_total: 1180 }, { id: 4, nome: "Marcos", lucro_total: 950 } ];
 
 // ============================================================================
@@ -79,10 +77,7 @@ export default function App() {
   const [performanceStats] = useState({ totalAnalises: 512, acertos: 431, erros: 81, roi: 18.4, ultimaSemana: 87 });
   const [bancaInicial, setBancaInicial] = useState(1000);
   const [alertas, setAlertas] = useState([{ id: 1, msg: "O Flamengo chegou a 94% de confiança.", lida: false }]);
-  
-  // 👉 CORREÇÃO AQUI: Top Pick adicionado para evitar o erro de tela branca!
   const [topPick] = useState({ jogo: "Flamengo x Palmeiras", confianca: 92, ev: 14.2, mercado: "Vitória Flamengo" });
-
   const [rankingUsuarios, setRankingUsuarios] = useState([]);
   const [marketRadar] = useState([{ jogo: "Flamengo", abertura: 1.95, atual: 1.82 }, { jogo: "Liverpool", abertura: 2.10, atual: 1.88 }, { jogo: "Real Madrid", abertura: 2.05, atual: 1.95 }]);
 
@@ -91,34 +86,114 @@ export default function App() {
   const [xp, setXp] = useState(350);
 
   // ============================================================================
-  // 📊 SISTEMA: GESTÃO DE BANCA E APOSTAS REAIS (USUÁRIO)
+  // 📊 NOVO SISTEMA DE DADOS DA APOSTA (ESTRUTURA COMPLETA)
   // ============================================================================
   const [apostas, setApostas] = useState([
-    { id: 1, jogo: "Flamengo x Palmeiras", mercado: "Vitória Flamengo", stake: 100, odd: 1.85, resultado: "green" },
-    { id: 2, jogo: "Liverpool x Arsenal", mercado: "Over 2.5", stake: 50, odd: 2.10, resultado: "red" },
-    { id: 3, jogo: "Real Madrid x Barcelona", mercado: "Ambos Marcam", stake: 75, odd: 1.95, resultado: "green" },
-    { id: 4, jogo: "Arsenal x Chelsea", mercado: "Vitória Arsenal", stake: 100, odd: 1.75, resultado: "green" }
+    { id: 1, jogo: "Flamengo x Palmeiras", liga: "Brasileirão", time: "Flamengo", mercado: "Vitória Flamengo", stake: 100, odd: 1.85, resultado: "green", data: "2026-06-01", hora: "19:30" },
+    { id: 2, jogo: "Liverpool x Arsenal", liga: "Premier League", time: "Liverpool", mercado: "Over 2.5", stake: 50, odd: 2.10, resultado: "red", data: "2026-06-02", hora: "16:00" },
+    { id: 3, jogo: "Real Madrid x Barcelona", liga: "La Liga", time: "Real Madrid", mercado: "Ambos Marcam", stake: 75, odd: 1.95, resultado: "green", data: "2026-06-03", hora: "20:00" },
+    { id: 4, jogo: "Arsenal x Chelsea", liga: "Premier League", time: "Arsenal", mercado: "Vitória Arsenal", stake: 100, odd: 1.75, resultado: "green", data: "2026-06-04", hora: "15:00" }
   ]);
 
-  const calcularLucroLiquido = () => {
-      return apostas.reduce((total, aposta) => {
-          if(aposta.resultado === "green") return total + ((aposta.stake * aposta.odd) - aposta.stake);
-          return total - aposta.stake;
-      }, 0);
+  // --- FUNÇÕES DE ROI FRACIONADO ---
+  const calcularROISemanal = () => {
+    const hoje = new Date();
+    const ultimaSemana = apostas.filter(aposta => {
+      const dataAposta = new Date(aposta.data);
+      const diff = (hoje - dataAposta) / (1000 * 60 * 60 * 24);
+      return diff <= 7;
+    });
+    const investido = ultimaSemana.reduce((acc,a)=>acc+a.stake, 0);
+    const lucro = ultimaSemana.reduce((acc,a) => {
+      if(a.resultado==="green") return acc + ((a.stake*a.odd)-a.stake);
+      return acc-a.stake;
+    },0);
+    return investido ? (lucro/investido)*100 : 0;
   };
 
-  const totalInvestido = () => apostas.reduce((acc, a) => acc + a.stake, 0);
-
-  const calcularROI = () => {
-      const lucro = calcularLucroLiquido();
-      const investido = totalInvestido();
-      if(investido === 0) return 0;
-      return (lucro / investido) * 100;
+  const calcularROIMensal = () => {
+    const mesAtual = new Date().getMonth();
+    const apostasMes = apostas.filter(a => new Date(a.data).getMonth() === mesAtual);
+    const investido = apostasMes.reduce((acc,a)=>acc+a.stake, 0);
+    const lucro = apostasMes.reduce((acc,a)=>{
+      if(a.resultado==="green") return acc + ((a.stake*a.odd)-a.stake);
+      return acc-a.stake;
+    },0);
+    return investido ? (lucro/investido)*100 : 0;
   };
 
-  const calcularYield = () => {
-      if(apostas.length === 0) return "0.00";
-      return (calcularLucroLiquido() / apostas.length).toFixed(2);
+  const calcularROIAnual = () => {
+    const ano = new Date().getFullYear();
+    const apostasAno = apostas.filter(a => new Date(a.data).getFullYear() === ano);
+    const investido = apostasAno.reduce((acc,a)=>acc+a.stake, 0);
+    const lucro = apostasAno.reduce((acc,a)=>{
+      if(a.resultado==="green") return acc + ((a.stake*a.odd)-a.stake);
+      return acc-a.stake;
+    },0);
+    return investido ? (lucro/investido)*100 : 0;
+  };
+
+  const lucroAcumulado = () => {
+    return apostas.reduce((acc,a)=>{
+      if(a.resultado==="green") return acc + ((a.stake*a.odd)-a.stake);
+      return acc-a.stake;
+    },0);
+  };
+
+  // --- EVOLUÇÃO GRÁFICA REAL ---
+  const gerarBancaReal = () => {
+    let banca = bancaInicial;
+    return apostas.map((a,index)=>{
+      if(a.resultado==="green") banca += ((a.stake*a.odd)-a.stake);
+      else banca -= a.stake;
+      return { aposta: `Bet ${index+1}`, banca: Number(banca.toFixed(2)) };
+    });
+  };
+
+  // --- FUNÇÕES DE ANÁLISE DE MERCADO ---
+  const mercadoMaisLucrativo = () => {
+    const mercados = {};
+    apostas.forEach(a=>{
+      if(!mercados[a.mercado]) mercados[a.mercado]=0;
+      if(a.resultado==="green") mercados[a.mercado]+= ((a.stake*a.odd)-a.stake);
+      else mercados[a.mercado]-= a.stake;
+    });
+    const sorted = Object.entries(mercados).sort((a,b)=>b[1]-a[1]);
+    return sorted.length > 0 ? sorted[0] : ['N/A', 0];
+  };
+
+  const timeMaisLucrativo = () => {
+    const times = {};
+    apostas.forEach(a=>{
+      if(!times[a.time]) times[a.time]=0;
+      if(a.resultado==="green") times[a.time]+= ((a.stake*a.odd)-a.stake);
+      else times[a.time]-= a.stake;
+    });
+    const sorted = Object.entries(times).sort((a,b)=>b[1]-a[1]);
+    return sorted.length > 0 ? sorted[0] : ['N/A', 0];
+  };
+
+  const ligaMaisLucrativa = () => {
+    const ligas = {};
+    apostas.forEach(a=>{
+      if(!ligas[a.liga]) ligas[a.liga]=0;
+      if(a.resultado==="green") ligas[a.liga]+= ((a.stake*a.odd)-a.stake);
+      else ligas[a.liga]-= a.stake;
+    });
+    const sorted = Object.entries(ligas).sort((a,b)=>b[1]-a[1]);
+    return sorted.length > 0 ? sorted[0] : ['N/A', 0];
+  };
+
+  const horarioMaisLucrativo = () => {
+    const horarios = {};
+    apostas.forEach(a=>{
+      const hora = a.hora ? a.hora.split(":")[0] + "h" : "N/A";
+      if(!horarios[hora]) horarios[hora]=0;
+      if(a.resultado==="green") horarios[hora]+= ((a.stake*a.odd)-a.stake);
+      else horarios[hora]-= a.stake;
+    });
+    const sorted = Object.entries(horarios).sort((a,b)=>b[1]-a[1]);
+    return sorted.length > 0 ? sorted[0] : ['N/A', 0];
   };
 
   const calcularAssertividade = () => {
@@ -127,31 +202,9 @@ export default function App() {
       return (greens / apostas.length) * 100;
   };
 
-  const gerarHistoricoBanca = () => {
-      let banca = bancaInicial;
-      return apostas.map((a, index) => {
-          if(a.resultado === "green"){
-              banca += (a.stake * a.odd) - a.stake;
-          } else {
-              banca -= a.stake;
-          }
-          return { aposta: `Bet ${index+1}`, banca: Number(banca.toFixed(2)) };
-      });
-  };
-
-  const calcularROIUsuario = (listaApostas) => {
-      if (!listaApostas || listaApostas.length === 0) return 0;
-      return calcularROI(); // Usando o cálculo real com base nas apostas cadastradas
-  };
-
-  const melhoresMercados = () => {
-      const stats = {};
-      apostas.forEach(a => {
-          if(!stats[a.mercado]) stats[a.mercado] = { green: 0, total: 0 };
-          stats[a.mercado].total++;
-          if(a.resultado === "green") stats[a.mercado].green++;
-      });
-      return Object.entries(stats).map(([mercado, dados]) => ({ mercado, taxa: (dados.green / dados.total) * 100 })).sort((a,b) => b.taxa - a.taxa);
+  const calcularYield = () => {
+      if(apostas.length === 0) return "0.00";
+      return (lucroAcumulado() / apostas.length).toFixed(2);
   };
 
   // ============================================================================
@@ -340,18 +393,6 @@ export default function App() {
                         )
                     })()}
 
-                    {/* Evolução IA Global (Home) */}
-                    <div className="backdrop-blur-xl bg-slate-900/85 border border-purple-500/20 rounded-3xl p-6 mb-6 mx-4 shadow-lg">
-                        <h2 className="text-sm font-black text-purple-400 mb-4 flex items-center gap-2 uppercase tracking-wider"><TrendingUp className="w-4 h-4"/> Evolução do Algoritmo IA</h2>
-                        <ResponsiveContainer width="100%" height={150}>
-                            <LineChart data={crescimentoBancaGlobal}>
-                                <XAxis dataKey="dia" stroke="#64748b" fontSize={10} tickLine={false} axisLine={false} />
-                                <YAxis hide domain={['dataMin - 100', 'dataMax + 100']} />
-                                <Line type="monotone" dataKey="banca" stroke="#a855f7" strokeWidth={4} dot={{r:4, fill:"#a855f7", stroke:"#fff", strokeWidth:2}} />
-                            </LineChart>
-                        </ResponsiveContainer>
-                    </div>
-
                     <div className="flex gap-2 px-4 overflow-x-auto pb-4 no-scrollbar mt-4">
                         <button onClick={() => setFilterCentro('Todos')} className={`px-5 py-2.5 rounded-full text-xs font-black whitespace-nowrap transition-colors border ${filterCentro==='Todos' ? 'bg-white text-black border-white' : 'bg-[#050816] border-slate-700 text-slate-400'}`}>Todos</button>
                         <button onClick={() => setFilterCentro('Ao Vivo')} className={`px-5 py-2.5 rounded-full text-xs font-black whitespace-nowrap flex items-center gap-2 border ${filterCentro==='Ao Vivo' ? 'bg-white text-black border-white' : 'bg-[#050816] border-slate-700 text-slate-400'}`}>Ao Vivo <span className="w-2 h-2 rounded-full bg-red-500 animate-pulse"></span></button>
@@ -406,12 +447,11 @@ export default function App() {
                           {userData?.is_admin && <button onClick={() => setViewMode('admin')} className="bg-purple-600 hover:bg-purple-500 text-white text-[10px] font-black px-3 py-1.5 rounded-lg flex items-center gap-1 shadow-lg transition-colors uppercase tracking-widest"><Settings className="w-3 h-3"/> Admin</button>}
                       </div>
                       
-                      {/* HEADER DO PERFIL E XP */}
                       <div className="backdrop-blur-xl bg-slate-900/85 border border-blue-500/20 p-6 rounded-3xl shadow-xl flex flex-col items-center text-center mb-6 relative overflow-hidden">
                           <div className="w-20 h-20 bg-gradient-to-br from-blue-600 to-blue-400 rounded-full flex items-center justify-center mb-4 shadow-[0_0_20px_rgba(37,99,235,0.4)] relative z-10"><User className="w-10 h-10 text-white"/></div>
                           <h2 className="text-xl font-black text-white mb-1 relative z-10">{form.nome || userData?.nome}</h2>
                           
-                          <div className="bg-[#111827] p-4 rounded-xl border border-white/5 w-full mt-4 mb-2 relative z-10 shadow-inner">
+                          <div className="bg-[#111827] p-4 rounded-xl border border-white/5 w-full mt-4 relative z-10 shadow-inner">
                               <div className="flex justify-between items-center mb-2">
                                   <span className="text-xs font-bold text-slate-400 flex items-center gap-1"><Award className="w-4 h-4 text-yellow-500"/> Nível Atual:</span>
                                   <strong className="text-sm font-black text-green-400 uppercase tracking-widest">{nivelUsuario()}</strong>
@@ -423,32 +463,69 @@ export default function App() {
                           </div>
                       </div>
 
-                      {/* 11. DASHBOARD PREMIUM (4 BLOCOS) */}
-                      <h3 className="text-sm font-black text-white mb-4 uppercase tracking-wider flex items-center gap-2"><DollarSign className="w-4 h-4 text-green-500"/> Gestão de Banca Real</h3>
+                      {/* 1. NOVOS CARDS DE ROI FRACIONADO (Semanal, Mensal, Anual, Total) */}
+                      <h3 className="text-sm font-black text-white mb-4 uppercase tracking-wider flex items-center gap-2"><DollarSign className="w-4 h-4 text-green-500"/> Retorno Sobre Investimento</h3>
                       <div className="grid grid-cols-2 gap-3 mb-6">
-                          <div className="bg-[#111827] p-5 rounded-2xl border border-white/5 shadow-lg relative overflow-hidden">
-                              <div className="text-[10px] text-slate-400 font-bold uppercase tracking-widest mb-1 relative z-10">ROI Total</div>
-                              <div className={`text-2xl font-black relative z-10 ${calcularROI() >= 0 ? 'text-green-400' : 'text-red-400'}`}>{calcularROI().toFixed(1)}%</div>
+                          <div className="bg-[#111827] p-4 rounded-2xl border border-white/5 shadow-lg relative overflow-hidden">
+                              <div className="text-[10px] text-slate-400 font-bold uppercase tracking-widest mb-1 relative z-10">ROI Semanal</div>
+                              <div className={`text-xl font-black relative z-10 ${calcularROISemanal() >= 0 ? 'text-green-400' : 'text-red-400'}`}>{calcularROISemanal().toFixed(1)}%</div>
                           </div>
-                          <div className="bg-[#111827] p-5 rounded-2xl border border-white/5 shadow-lg relative overflow-hidden">
-                              <div className="text-[10px] text-slate-400 font-bold uppercase tracking-widest mb-1 relative z-10">Lucro Líquido</div>
-                              <div className={`text-2xl font-black relative z-10 ${calcularLucroLiquido() >= 0 ? 'text-green-400' : 'text-red-400'}`}>R$ {calcularLucroLiquido().toFixed(2)}</div>
+                          <div className="bg-[#111827] p-4 rounded-2xl border border-white/5 shadow-lg relative overflow-hidden">
+                              <div className="text-[10px] text-slate-400 font-bold uppercase tracking-widest mb-1 relative z-10">ROI Mensal</div>
+                              <div className={`text-xl font-black relative z-10 ${calcularROIMensal() >= 0 ? 'text-green-400' : 'text-red-400'}`}>{calcularROIMensal().toFixed(1)}%</div>
                           </div>
-                          <div className="bg-[#111827] p-5 rounded-2xl border border-white/5 shadow-lg relative overflow-hidden">
-                              <div className="text-[10px] text-slate-400 font-bold uppercase tracking-widest mb-1 relative z-10">Yield Médio</div>
-                              <div className="text-2xl font-black text-blue-400 relative z-10">R$ {calcularYield()}</div>
+                          <div className="bg-[#111827] p-4 rounded-2xl border border-white/5 shadow-lg relative overflow-hidden">
+                              <div className="text-[10px] text-slate-400 font-bold uppercase tracking-widest mb-1 relative z-10">ROI Anual</div>
+                              <div className={`text-xl font-black relative z-10 ${calcularROIAnual() >= 0 ? 'text-green-400' : 'text-red-400'}`}>{calcularROIAnual().toFixed(1)}%</div>
                           </div>
-                          <div className="bg-[#111827] p-5 rounded-2xl border border-white/5 shadow-lg relative overflow-hidden">
-                              <div className="text-[10px] text-slate-400 font-bold uppercase tracking-widest mb-1 relative z-10">Assertividade</div>
-                              <div className="text-2xl font-black text-yellow-400 relative z-10">{calcularAssertividade().toFixed(1)}%</div>
+                          <div className="bg-[#111827] p-4 rounded-2xl border border-white/5 shadow-lg relative overflow-hidden">
+                              <div className="text-[10px] text-slate-400 font-bold uppercase tracking-widest mb-1 relative z-10">Lucro Total</div>
+                              <div className={`text-xl font-black relative z-10 ${lucroAcumulado() >= 0 ? 'text-green-400' : 'text-red-400'}`}>R$ {lucroAcumulado().toFixed(2)}</div>
                           </div>
                       </div>
 
-                      {/* 8. GRÁFICO DA BANCA DO USUÁRIO */}
+                      <h3 className="text-sm font-black text-white mb-4 uppercase tracking-wider flex items-center gap-2"><Target className="w-4 h-4 text-blue-500"/> Performance Geral</h3>
+                      <div className="grid grid-cols-2 gap-3 mb-6">
+                          <div className="bg-[#111827] p-5 rounded-2xl border border-white/5 shadow-lg">
+                              <div className="text-[10px] text-slate-400 font-bold uppercase tracking-widest mb-1">Yield Médio</div>
+                              <div className="text-2xl font-black text-blue-400">R$ {calcularYield()}</div>
+                          </div>
+                          <div className="bg-[#111827] p-5 rounded-2xl border border-white/5 shadow-lg">
+                              <div className="text-[10px] text-slate-400 font-bold uppercase tracking-widest mb-1">Assertividade</div>
+                              <div className="text-2xl font-black text-yellow-400">{calcularAssertividade().toFixed(1)}%</div>
+                          </div>
+                      </div>
+
+                      {/* 2. TOP MÉTRICAS (Mercado, Liga, Time, Hora) */}
+                      <h3 className="text-sm font-black text-white mb-4 uppercase tracking-wider flex items-center gap-2"><Trophy className="w-4 h-4 text-yellow-500"/> Onde você mais lucra</h3>
+                      <div className="grid grid-cols-2 gap-3 mb-6">
+                          <div className="bg-[#111827] p-4 rounded-2xl border border-white/5 shadow-lg flex flex-col gap-1">
+                              <span className="text-[10px] text-slate-400 font-bold uppercase tracking-widest flex items-center gap-1"><PieChart className="w-3 h-3 text-blue-400"/> Top Mercado</span>
+                              <strong className="text-sm font-black text-white line-clamp-1">{mercadoMaisLucrativo()[0]}</strong>
+                              <span className="text-[10px] text-green-400 font-bold">+R$ {mercadoMaisLucrativo()[1]?.toFixed(2) || '0.00'}</span>
+                          </div>
+                          <div className="bg-[#111827] p-4 rounded-2xl border border-white/5 shadow-lg flex flex-col gap-1">
+                              <span className="text-[10px] text-slate-400 font-bold uppercase tracking-widest flex items-center gap-1"><Globe className="w-3 h-3 text-purple-400"/> Top Liga</span>
+                              <strong className="text-sm font-black text-white line-clamp-1">{ligaMaisLucrativa()[0]}</strong>
+                              <span className="text-[10px] text-green-400 font-bold">+R$ {ligaMaisLucrativa()[1]?.toFixed(2) || '0.00'}</span>
+                          </div>
+                          <div className="bg-[#111827] p-4 rounded-2xl border border-white/5 shadow-lg flex flex-col gap-1">
+                              <span className="text-[10px] text-slate-400 font-bold uppercase tracking-widest flex items-center gap-1"><ShieldAlert className="w-3 h-3 text-orange-400"/> Top Equipa</span>
+                              <strong className="text-sm font-black text-white line-clamp-1">{timeMaisLucrativo()[0]}</strong>
+                              <span className="text-[10px] text-green-400 font-bold">+R$ {timeMaisLucrativo()[1]?.toFixed(2) || '0.00'}</span>
+                          </div>
+                          <div className="bg-[#111827] p-4 rounded-2xl border border-white/5 shadow-lg flex flex-col gap-1">
+                              <span className="text-[10px] text-slate-400 font-bold uppercase tracking-widest flex items-center gap-1"><Clock className="w-3 h-3 text-red-400"/> Top Horário</span>
+                              <strong className="text-sm font-black text-white line-clamp-1">{horarioMaisLucrativo()[0]}</strong>
+                              <span className="text-[10px] text-green-400 font-bold">+R$ {horarioMaisLucrativo()[1]?.toFixed(2) || '0.00'}</span>
+                          </div>
+                      </div>
+
+                      {/* 3. GRÁFICO DA BANCA DO USUÁRIO */}
                       <div className="backdrop-blur-xl bg-slate-900/85 border border-green-500/20 rounded-3xl p-6 mb-6 shadow-lg">
                           <h2 className="text-sm font-black text-green-400 mb-4 flex items-center gap-2 uppercase tracking-wider"><TrendingUp className="w-5 h-5"/> A Minha Banca</h2>
                           <ResponsiveContainer width="100%" height={250}>
-                              <LineChart data={gerarHistoricoBanca()}>
+                              <LineChart data={gerarBancaReal()}>
                                   <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.05)" vertical={false} />
                                   <XAxis dataKey="aposta" stroke="#64748b" fontSize={10} tickLine={false} axisLine={false} />
                                   <YAxis stroke="#64748b" fontSize={10} tickLine={false} axisLine={false} domain={['dataMin - 50', 'dataMax + 50']} />
@@ -456,19 +533,6 @@ export default function App() {
                                   <Line type="monotone" dataKey="banca" stroke="#22c55e" strokeWidth={4} dot={{r:5, fill:"#22c55e", stroke:"#fff", strokeWidth:2}} />
                               </LineChart>
                           </ResponsiveContainer>
-                      </div>
-
-                      {/* 9. MELHORES MERCADOS */}
-                      <div className="backdrop-blur-xl bg-slate-900/85 border border-white/10 rounded-3xl p-6 mb-6 shadow-lg">
-                          <h3 className="text-sm font-black text-white mb-4 uppercase tracking-wider flex items-center gap-2"><PieChart className="w-4 h-4 text-blue-400"/> Top Mercados</h3>
-                          <div className="flex flex-col gap-3">
-                              {melhoresMercados().slice(0, 3).map((item, index) => (
-                                  <div key={index} className="bg-[#111827] border border-white/5 p-4 rounded-2xl flex justify-between items-center transition-colors">
-                                      <span className="font-bold text-white text-sm">{item.mercado}</span>
-                                      <strong className={`${item.taxa >= 50 ? 'text-green-400' : 'text-red-400'} font-black`}>{item.taxa.toFixed(0)}% Acerto</strong>
-                                  </div>
-                              ))}
-                          </div>
                       </div>
 
                       <div className="grid grid-cols-2 gap-3 mb-6">
