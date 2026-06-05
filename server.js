@@ -1,162 +1,132 @@
-// ============================================================================
-// 🚀 SISTEMA PROFISSIONAL MERCADO PAGO - BETANALYTICS PRO
-// ✅ PIX & CRÉDITO/DÉBITO
-// ✅ INTEGRAÇÃO TRANSPARENTE COM O APP.JSX
-// ✅ WEBHOOK & STATUS REAL
-// ============================================================================
-
-require("dotenv").config();
-const express = require("express");
-const cors = require("cors");
-const crypto = require("crypto");
-const mercadopago = require("mercadopago");
+const express = require('express');
+const cors = require('cors');
+const axios = require('axios');
+const { createClient } = require('@supabase/supabase-js');
+const { GoogleGenerativeAI } = require('@google/generative-ai');
 
 const app = express();
-
-// ============================================================================
-// CONFIGURAÇÕES GERAIS
-// ============================================================================
 app.use(cors());
-app.use(express.json({ limit: "10mb" }));
-app.use(express.urlencoded({ extended: true }));
+app.use(express.json());
 
-// MERCADO PAGO - (Busca o Token do Render ou usa um fallback)
-mercadopago.configure({
-  access_token: process.env.MP_ACCESS_TOKEN || "APP_USR-c05e91db-5e62-4838-8790-e73906d11dbc" 
+// ============================================================================
+// 🔑 CHAVES DE ACESSO (Com o seu Supabase já configurado!)
+// ============================================================================
+const SUPABASE_URL = process.env.SUPABASE_URL || 'https://pztznppbmonhrrzfbnvh.supabase.co';
+const SUPABASE_KEY = process.env.SUPABASE_KEY || 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InB6dHpucHBibW9uaHJyemZibnZoIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODA2MTcwOTIsImV4cCI6MjA5NjE5MzA5Mn0.4ztEexACzSpsa0cikJjDlniXUeCnA-DPh20LQhg9qvM';
+
+// ⚠️ Falta colocar as chaves do Gemini e do Mercado Pago nas variáveis do Render (Environment Variables)
+const GEMINI_API_KEY = process.env.GEMINI_API_KEY || 'AIzaSyBKlaNtj0uEAJwOReTblDcLDGfpCjYqP18';
+const MP_ACCESS_TOKEN = process.env.MP_ACCESS_TOKEN || 'APP_USR-5947285218976034-050113-a9857b202a29e411236349f75b6b25c3-669622996';
+
+// Inicializar Supabase e Gemini
+const supabase = createClient(SUPABASE_URL, SUPABASE_KEY);
+let genAI;
+if (GEMINI_API_KEY !== 'COLOQUE_AQUI_A_SUA_CHAVE_DO_GEMINI') {
+    genAI = new GoogleGenerativeAI(GEMINI_API_KEY);
+}
+
+// ============================================================================
+// 💰 ROTA 1: GERAR PAGAMENTO PIX (E CRIAR USUÁRIO NO SUPABASE)
+// ============================================================================
+app.post('/api/processar-pagamento', async (req, res) => {
+    const { payer, transaction_amount } = req.body;
+
+    try {
+        // 1. Criar utilizador no Supabase com VIP = false
+        const { data: userExistente } = await supabase.from('usuarios').select('*').eq('email', payer.email).single();
+        if (!userExistente) {
+            await supabase.from('usuarios').insert([{ 
+                nome: payer.first_name, 
+                email: payer.email, 
+                cpf: payer.identification?.number || '00000000000', 
+                is_vip: false 
+            }]);
+        }
+
+        // 2. Gerar o PIX no Mercado Pago
+        const mpResponse = await axios.post('https://api.mercadopago.com/v1/payments', {
+            transaction_amount: Number(transaction_amount),
+            payment_method_id: 'pix',
+            payer: payer,
+            description: 'Assinatura VIP PRO - BetAnalytics'
+        }, {
+            headers: {
+                'Authorization': `Bearer ${MP_ACCESS_TOKEN}`,
+                'X-Idempotency-Key': Date.now().toString()
+            }
+        });
+
+        res.json({
+            id: mpResponse.data.id,
+            qr_code: mpResponse.data.point_of_interaction.transaction_data.qr_code,
+            qr_code_base64: mpResponse.data.point_of_interaction.transaction_data.qr_code_base64
+        });
+    } catch (error) {
+        console.error('Erro ao gerar pagamento:', error.response?.data || error.message);
+        res.status(500).json({ error: 'Falha ao processar pagamento.' });
+    }
 });
 
-// DATABASE FAKE MEMÓRIA
-const paymentsDB = new Map();
-
-// LOGGER PROFISSIONAL
-function log(title, data) {
-  console.log("\n==============================");
-  console.log(title);
-  console.log("==============================");
-  console.log(JSON.stringify(data, null, 2));
-}
-
-function generateInternalId() {
-  return crypto.randomBytes(12).toString("hex");
-}
-
 // ============================================================================
-// 🌉 PONTE DE CONEXÃO COM O APP.JSX (NÃO ALTERA NADA NO FRONT-END)
+// 🔔 ROTA 2: WEBHOOK DO MERCADO PAGO (ATIVA O VIP AUTOMATICAMENTE)
 // ============================================================================
-
-// Rota unificada que o seu app.jsx já chama hoje
-app.post("/api/processar-pagamento", async (req, res) => {
-  try {
-    const internalId = generateInternalId();
+app.post('/api/webhook', async (req, res) => {
+    const { type, data } = req.body;
     
-    // O seu app.jsx envia esses dados exatos
-    const { transaction_amount, payment_method_id, payer, token, issuer_id, installments } = req.body;
+    if (type === 'payment') {
+        try {
+            const paymentInfo = await axios.get(`https://api.mercadopago.com/v1/payments/${data.id}`, {
+                headers: { 'Authorization': `Bearer ${MP_ACCESS_TOKEN}` }
+            });
 
-    if (!transaction_amount || !payer?.email) {
-      return res.status(400).json({ error: true, message: "Valor ou Email inválido" });
+            if (paymentInfo.data.status === 'approved') {
+                const emailPagador = paymentInfo.data.payer.email;
+                // 🔥 MAGIA: Atualiza a Base de Dados na nuvem ativando o VIP!
+                await supabase.from('usuarios').update({ is_vip: true }).eq('email', emailPagador);
+                console.log(`🎉 VIP ATIVADO COM SUCESSO PARA: ${emailPagador}`);
+            }
+        } catch (err) {
+            console.error("Erro no webhook:", err.message);
+        }
+    }
+    res.status(200).send('OK');
+});
+
+// ============================================================================
+// 🤖 ROTA 3: CÉREBRO DA IA (CHATBOT COM GEMINI)
+// ============================================================================
+app.post('/api/chat-ia', async (req, res) => {
+    const { pergunta, dadosDaRodada } = req.body;
+
+    if (!genAI) {
+        return res.status(500).json({ resposta: "Erro: A chave da API do Gemini não está configurada no servidor." });
     }
 
-    // Monta o payload para o Mercado Pago com base na sua lógica
-    const paymentData = {
-      transaction_amount: Number(transaction_amount),
-      description: "Assinatura VIP PRO - BetAnalytics",
-      payment_method_id: payment_method_id,
-      payer: payer,
-      external_reference: internalId
-    };
+    try {
+        const promptMestre = `
+        Tu és o Analista-Chefe de Inteligência Artificial do BetAnalytics PRO.
+        És direto, profissional, falas com confiança e dás dicas de apostas baseadas em EV+ (Valor Esperado).
+        
+        Aqui estão os dados resumidos da rodada de hoje (Equipas e Odds):
+        ${JSON.stringify(dadosDaRodada)}
+        
+        Responde à seguinte pergunta do utilizador de forma curta, analítica e indicando sempre que a decisão final é do utilizador. Usa no máximo 3 frases curtas.
+        
+        Pergunta do utilizador: "${pergunta}"
+        `;
 
-    // Se a compra for no cartão, o app.jsx manda esses campos extras
-    if (payment_method_id !== "pix") {
-      paymentData.token = token;
-      paymentData.issuer_id = issuer_id;
-      paymentData.installments = Number(installments || 1);
+        const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
+        const result = await model.generateContent(promptMestre);
+        const respostaDaIA = result.response.text();
+
+        res.json({ resposta: respostaDaIA });
+    } catch (error) {
+        console.error("Erro na IA:", error);
+        res.status(500).json({ resposta: "O radar IA está a processar demasiados dados. Tente novamente em 5 segundos." });
     }
-
-    const response = await mercadopago.payment.create(paymentData);
-    const payment = response.body;
-
-    paymentsDB.set(internalId, payment);
-    log(`PAGAMENTO CRIADO [${payment_method_id.toUpperCase()}]`, payment);
-
-    // O app.jsx espera essas respostas exatas para desenhar a tela
-    if (payment_method_id === "pix") {
-        return res.json({
-            success: true,
-            id: payment.id, 
-            status: payment.status,
-            qr_code: payment.point_of_interaction?.transaction_data?.qr_code,
-            qr_code_base64: payment.point_of_interaction?.transaction_data?.qr_code_base64
-        });
-    } else {
-        return res.json({
-            success: true,
-            status: payment.status,
-            status_detail: payment.status_detail
-        });
-    }
-
-  } catch (error) {
-    console.log("ERRO CRÍTICO:", error);
-    return res.status(500).json({
-      success: false,
-      error: error.response?.data || error.message
-    });
-  }
 });
 
-// Rota que o seu app.jsx acessa a cada 3 segundos para checar se o PIX foi pago
-app.get("/status/:id", async (req, res) => {
-  try {
-    const paymentId = req.params.id;
-    const response = await mercadopago.payment.findById(paymentId);
-    const payment = response.body;
-
-    return res.json({
-      success: true,
-      status: payment.status,
-      status_detail: payment.status_detail
-    });
-  } catch (error) {
-    return res.status(500).json({ success: false, message: error.message });
-  }
-});
-
-// ============================================================================
-// ROTAS EXTRAS DO SEU CÓDIGO COMPLEXO (Para painel admin ou Webhooks)
-// ============================================================================
-
-app.post("/api/webhook", async (req, res) => {
-  try {
-    log("WEBHOOK RECEBIDO", req.body);
-    const paymentId = req.body?.data?.id;
-    if (!paymentId) return res.sendStatus(200);
-
-    const response = await mercadopago.payment.findById(paymentId);
-    log("PAGAMENTO ATUALIZADO PELO BANCO", response.body);
-
-    return res.sendStatus(200);
-  } catch (error) {
-    console.log(error);
-    return res.sendStatus(500);
-  }
-});
-
-app.get("/api/payments", async (req, res) => {
-  const list = [];
-  for (const [key, value] of paymentsDB.entries()) {
-    list.push({ internal_id: key, payment_id: value.id, status: value.status, amount: value.transaction_amount });
-  }
-  return res.json({ success: true, total: list.length, payments: list });
-});
-
-app.get("/", (req, res) => {
-  res.send("Motor BetAnalytics rodando 100%!");
-});
-
-// ============================================================================
-// START SERVER
-// ============================================================================
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => {
-  console.log(`\n===========================================\n🚀 MOTOR BETANALYTICS ONLINE\n===========================================\nPORTA: ${PORT}\nMERCADO PAGO: OK\nAMBIENTE: PRODUÇÃO\n===========================================`);
+    console.log(`🚀 Motor BetAnalytics PRO a correr na porta ${PORT}`);
 });

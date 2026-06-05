@@ -11,6 +11,8 @@ import { Home, BarChart2, Radio, Trophy, Crown, Star, ChevronRight, X, User, Zap
 // ============================================================================
 const MODO_DEMONSTRACAO = true; 
 const API_SPORTS_KEY = "7ff15d43907d5138e48674b29ab56a65";
+const API_URL = 'https://betanalitics-1-9stc.onrender.com'; // O seu servidor Real
+
 initMercadoPago('APP_USR-c05e91db-5e62-4838-8790-e73906d11dbc', { locale: 'pt-BR' });
 
 const getLocalYYYYMMDD = () => { const d = new Date(); d.setMinutes(d.getMinutes() - d.getTimezoneOffset()); return d.toISOString().split('T')[0]; };
@@ -85,34 +87,35 @@ export default function App() {
 
   const toggleFavorito = (e, id) => { e.stopPropagation(); setFavoritos(p => p.includes(id) ? p.filter(f => f !== id) : [...p, id]); };
 
-  // 🔥 FUNÇÃO CÉREBRO DA IA
-  const handleAskAI = (e) => {
+  // 🔥 FUNÇÃO CÉREBRO DA IA (LIGADA AO SERVIDOR REAL)
+  const handleAskAI = async (e) => {
       e?.preventDefault();
       if(!aiQuery.trim() || aiLoading) return;
 
       const newMsg = { role: 'user', text: aiQuery };
       setAiMessages(prev => [...prev, newMsg]);
+      const perguntaAtual = aiQuery;
       setAiQuery('');
       setAiLoading(true);
 
-      // Simular tempo de pensamento da IA
-      setTimeout(() => {
-          const query = newMsg.text.toLowerCase();
-          let resposta = "Estou a cruzar milhares de dados em tempo real... O mercado está volátil hoje, mas recomendo dar uma olhada na partida do Flamengo, que possui a maior margem de Valor Esperado (EV+) da rodada.";
+      try {
+          // Prepara um resumo básico dos jogos de hoje para enviar à IA
+          const resumoJogos = jogos.map(j => `${j.home_team} vs ${j.away_team}`).join(", ");
+          
+          // Faz a chamada verdadeira para o seu servidor no Render!
+          const resposta = await axios.post(`${API_URL}/api/chat-ia`, {
+              pergunta: perguntaAtual,
+              dadosDaRodada: resumoJogos || "Sem jogos no momento"
+          });
 
-          if (query.includes("flamengo") || query.includes("palmeiras")) {
-              resposta = "O jogo Flamengo x Palmeiras é a nossa Top Pick de hoje! O Flamengo detém 92% de confiança de vitória. A recomendação é apostar no mercado de Match Winner (Odd 1.82).";
-          } else if (query.includes("melhor") || query.includes("dica") || query.includes("boa")) {
-              resposta = "A melhor oportunidade identificada pelo algoritmo hoje é a Vitória do Flamengo contra o Palmeiras. Se procura uma odd maior, observe o Liverpool para Over 2.5 golos.";
-          } else if (query.includes("liverpool") || query.includes("city")) {
-              resposta = "O Liverpool enfrenta o Man City hoje na Premier. As duas equipas têm xG (Golos Esperados) muito alto. A IA indica 89% de confiança no mercado de Golos (Over 2.5).";
-          } else if (query.includes("real madrid") || query.includes("barcelona")) {
-              resposta = "Esse clássico já terminou com vitória do Real Madrid por 3-1. Foi uma análise que bateu em cheio com os nossos 88% de confiança iniciais!";
-          }
-
-          setAiMessages(prev => [...prev, { role: 'assistant', text: resposta }]);
+          // Recebe a resposta gerada pelo Gemini e coloca na tela
+          setAiMessages(prev => [...prev, { role: 'assistant', text: resposta.data.resposta }]);
+      } catch (error) {
+          console.error("Erro na comunicação com a IA:", error);
+          setAiMessages(prev => [...prev, { role: 'assistant', text: "Houve uma falha na comunicação com o radar central. Tente novamente." }]);
+      } finally {
           setAiLoading(false);
-      }, 1500);
+      }
   };
 
   let jFilt = (jogos||[]).filter(j => { 
