@@ -428,14 +428,39 @@ export default function App() {
       {/* CHECKOUT VIP PRO */}
       {menuAtivo === "assinar pro" && (
          <motion.div initial={{opacity:0}} animate={{opacity:1}} className="px-4 pt-4">
-             <div className="flex justify-between items-center mb-6"><button onClick={() => setMenuAtivo('Todos os Jogos')} className="text-slate-400 text-sm font-bold flex items-center gap-1"><X className="w-5 h-5"/> Fechar</button></div>
+             <div className="flex justify-between items-center mb-6">
+                 <button onClick={() => setMenuAtivo('Todos os Jogos')} className="text-slate-400 text-sm font-bold flex items-center gap-1">
+                     <X className="w-5 h-5"/> Fechar
+                 </button>
+             </div>
              <div className="backdrop-blur-xl bg-slate-900/85 rounded-3xl p-6 border border-white/10 shadow-2xl">
                 <Crown className="w-12 h-12 text-yellow-500 mb-4" />
                 <h2 className="text-2xl font-black text-white mb-2">Seja PRO 👑</h2>
+                <p className="text-slate-400 text-xs mb-6">Acesso total ao Algoritmo BetAnalytics, Assistente IA e picks de alta confiança.</p>
                 <div className="flex flex-col gap-3">
-                    <input placeholder="Nome" value={form.nome} onChange={e=>setForm({...form,nome:e.target.value})} className="bg-[#050816] border border-slate-800 p-4 rounded-2xl text-sm outline-none focus:border-blue-500 text-white font-bold" />
-                    <input placeholder="E-mail" value={form.email} onChange={e=>setForm({...form,email:e.target.value})} className="bg-[#050816] border border-slate-800 p-4 rounded-2xl text-sm outline-none focus:border-blue-500 text-white font-bold" />
-                    <button className="mt-4 bg-green-500 text-white font-black py-4 rounded-2xl shadow-lg text-sm uppercase tracking-wider">⚡ PAGAR 29,90€ COM PIX</button>
+                    <input 
+                        placeholder="Nome Completo" 
+                        value={form.nome} 
+                        onChange={e=>setForm({...form,nome:e.target.value})} 
+                        className="bg-[#050816] border border-slate-800 p-4 rounded-2xl text-sm outline-none focus:border-blue-500 text-white font-bold" 
+                    />
+                    <input 
+                        type="email" 
+                        placeholder="E-mail" 
+                        value={form.email} 
+                        onChange={e=>setForm({...form,email:e.target.value})} 
+                        className="bg-[#050816] border border-slate-800 p-4 rounded-2xl text-sm outline-none focus:border-blue-500 text-white font-bold" 
+                    />
+                    <input 
+                        placeholder="CPF (Apenas números)" 
+                        maxLength={11} 
+                        value={form.cpf} 
+                        onChange={e=>setForm({...form,cpf:e.target.value.replace(/\D/g, '')})} 
+                        className="bg-[#050816] border border-slate-800 p-4 rounded-2xl text-sm outline-none focus:border-blue-500 text-white font-bold" 
+                    />
+                    <button className="mt-4 bg-green-500 hover:bg-green-600 transition-colors text-white font-black py-4 rounded-2xl shadow-lg shadow-green-500/20 text-sm uppercase tracking-wider">
+                        ⚡ PAGAR R$ 29,90 COM PIX
+                    </button>
                 </div>
              </div>
          </motion.div>
