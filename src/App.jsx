@@ -134,6 +134,7 @@ export default function App() {
       });
   };
 
+  // --- FUNÇÕES DE ROI FRACIONADO ---
   const calcularROISemanal = () => {
     const hoje = new Date();
     const ultimaSemana = apostas.filter(aposta => {
@@ -176,6 +177,17 @@ export default function App() {
       if(a.resultado==="green") return acc + ((a.stake*a.odd)-a.stake);
       return acc-a.stake;
     },0);
+  };
+
+  // --- FUNÇÕES DE ANÁLISE DE MERCADO ---
+  const melhoresMercados = () => {
+      const stats = {};
+      apostas.forEach(a => {
+          if(!stats[a.mercado]) stats[a.mercado] = { green: 0, total: 0 };
+          stats[a.mercado].total++;
+          if(a.resultado === "green") stats[a.mercado].green++;
+      });
+      return Object.entries(stats).map(([mercado, dados]) => ({ mercado, taxa: (dados.green / dados.total) * 100 })).sort((a,b) => b.taxa - a.taxa);
   };
 
   const mercadoMaisLucrativo = () => {
@@ -408,10 +420,11 @@ export default function App() {
                         )
                     })()}
 
+                    {/* FIX: width 99% na Home também para segurança */}
                     <div className="bg-[#0f172a] border border-purple-500/20 rounded-3xl p-6 mb-6 mx-4 shadow-lg">
                         <h2 className="text-sm font-black text-purple-400 mb-4 flex items-center gap-2 uppercase tracking-wider"><TrendingUp className="w-4 h-4"/> Evolução do Algoritmo IA</h2>
-                        <div className="w-full" style={{ height: 150 }}>
-                            <ResponsiveContainer width="100%" height="100%">
+                        <div className="w-full relative" style={{ height: 150 }}>
+                            <ResponsiveContainer width="99%" height="100%">
                                 <LineChart data={crescimentoBancaGlobal}>
                                     <XAxis dataKey="dia" stroke="#64748b" fontSize={10} tickLine={false} axisLine={false} />
                                     <YAxis hide domain={['dataMin - 100', 'dataMax + 100']} />
@@ -549,11 +562,11 @@ export default function App() {
                           </div>
                       </div>
 
-                      {/* GRÁFICO DA BANCA DO USUÁRIO */}
+                      {/* FIX DEFINITIVO DO GRÁFICO: width 99% e parent relative */}
                       <div className="bg-[#0f172a] border border-green-500/20 rounded-3xl p-6 mb-6 shadow-lg">
                           <h2 className="text-sm font-black text-green-400 mb-4 flex items-center gap-2 uppercase tracking-wider"><TrendingUp className="w-5 h-5"/> A Minha Banca</h2>
-                          <div className="w-full" style={{ height: 250 }}>
-                              <ResponsiveContainer width="100%" height="100%">
+                          <div className="w-full relative" style={{ height: 250 }}>
+                              <ResponsiveContainer width="99%" height="100%">
                                   <LineChart data={gerarBancaReal()}>
                                       <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.05)" vertical={false} />
                                       <XAxis dataKey="aposta" stroke="#64748b" fontSize={10} tickLine={false} axisLine={false} />
@@ -666,7 +679,7 @@ export default function App() {
          </motion.div>
       )}
 
-      {/* 🔥 ALERTAS AUTOMÁTICOS FLOAT (Ajustado para top-32) */}
+      {/* 🔥 ALERTAS AUTOMÁTICOS FLOAT */}
       <div className="fixed top-32 left-0 right-0 z-50 flex flex-col items-center gap-2 pointer-events-none">
           <AnimatePresence>
               {alertas.slice(0, 2).map((alerta) => (
