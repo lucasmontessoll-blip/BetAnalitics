@@ -9,23 +9,26 @@
 }
 
 /* =========================================================
-   FIX ANTI-TREMOR (MOBILE WEBVIEW & SAFARI)
+   SCROLL NATIVO MOBILE PERFEITO
 ========================================================= */
-html, body {
-  min-height: 100vh;
-  overflow-x: hidden; /* Trava o eixo horizontal para não quebrar a tela */
-  overflow-y: auto;   /* Permite scroll vertical suave */
+html {
+  /* Trava o balanço lateral, mas liberta a altura para o scroll natural */
+  overflow-x: hidden; 
+}
+
+body {
+  overflow-x: hidden;
   background-color: var(--color-app);
   margin: 0;
   padding: 0;
   -webkit-font-smoothing: antialiased;
-  overscroll-behavior-y: none; /* Evita o efeito "elástico" no topo/fundo no celular */
+  /* Removemos o overflow-y: auto e o overscroll para o dedo (touch) voltar a funcionar! */
 }
 
 /* =========================================================
    BARRAS DE ROLAGEM CUSTOMIZADAS
 ========================================================= */
-/* Oculta scrollbar onde aplicamos a classe no-scrollbar */
+/* Oculta scrollbar onde aplicamos a classe no-scrollbar (ex: Menu de Ligas) */
 .no-scrollbar::-webkit-scrollbar { 
   display: none; 
 }
