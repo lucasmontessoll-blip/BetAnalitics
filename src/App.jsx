@@ -134,7 +134,6 @@ export default function App() {
       });
   };
 
-  // --- FUNÇÕES DE ROI FRACIONADO ---
   const calcularROISemanal = () => {
     const hoje = new Date();
     const ultimaSemana = apostas.filter(aposta => {
@@ -177,17 +176,6 @@ export default function App() {
       if(a.resultado==="green") return acc + ((a.stake*a.odd)-a.stake);
       return acc-a.stake;
     },0);
-  };
-
-  // --- FUNÇÕES DE ANÁLISE DE MERCADO ---
-  const melhoresMercados = () => {
-      const stats = {};
-      apostas.forEach(a => {
-          if(!stats[a.mercado]) stats[a.mercado] = { green: 0, total: 0 };
-          stats[a.mercado].total++;
-          if(a.resultado === "green") stats[a.mercado].green++;
-      });
-      return Object.entries(stats).map(([mercado, dados]) => ({ mercado, taxa: (dados.green / dados.total) * 100 })).sort((a,b) => b.taxa - a.taxa);
   };
 
   const mercadoMaisLucrativo = () => {
@@ -312,7 +300,6 @@ export default function App() {
 
   let jFilt = (jogos||[]).filter(j => { if(filterCentro === 'Ao Vivo') return j.status==='Live'; if(filterCentro === 'Favoritos') return favoritos.includes(j.id); return true; });
   const jGrp = jFilt.reduce((a, j) => { if (!a[j.league_name]) a[j.league_name] = []; a[j.league_name].push(j); return a; }, {});
-  const rankingDinamico = [...jogos].sort((a, b) => b.confianca_ia - a.confianca_ia).slice(0, 10);
 
   const BankerPicksCard = () => {
     const picks = jogos.filter(j => j.confianca_ia >= 90 && calcularEV(j.confianca_ia, j.odd_principal) >= 10);
@@ -423,7 +410,7 @@ export default function App() {
 
                     <div className="bg-[#0f172a] border border-purple-500/20 rounded-3xl p-6 mb-6 mx-4 shadow-lg">
                         <h2 className="text-sm font-black text-purple-400 mb-4 flex items-center gap-2 uppercase tracking-wider"><TrendingUp className="w-4 h-4"/> Evolução do Algoritmo IA</h2>
-                        <div className="w-full h-[150px]">
+                        <div className="w-full" style={{ height: 150 }}>
                             <ResponsiveContainer width="100%" height="100%">
                                 <LineChart data={crescimentoBancaGlobal}>
                                     <XAxis dataKey="dia" stroke="#64748b" fontSize={10} tickLine={false} axisLine={false} />
@@ -504,9 +491,9 @@ export default function App() {
                           </div>
                       </div>
 
-                      {/* CARDS DE ROI FRACIONADO */}
+                      {/* CARDS DE ROI FRACIONADO (Ajustado para md:grid-cols-2) */}
                       <h3 className="text-sm font-black text-white mb-4 uppercase tracking-wider flex items-center gap-2"><DollarSign className="w-4 h-4 text-green-500"/> Retorno Sobre Investimento</h3>
-                      <div className="grid grid-cols-2 gap-3 mb-6">
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-3 mb-6">
                           <div className="bg-[#111827] p-4 rounded-2xl border border-white/5 shadow-lg">
                               <div className="text-[10px] text-slate-400 font-bold uppercase tracking-widest mb-1">ROI Semanal</div>
                               <div className={`text-xl font-black ${calcularROISemanal() >= 0 ? 'text-green-400' : 'text-red-400'}`}>{calcularROISemanal().toFixed(1)}%</div>
@@ -526,7 +513,7 @@ export default function App() {
                       </div>
 
                       <h3 className="text-sm font-black text-white mb-4 uppercase tracking-wider flex items-center gap-2"><Target className="w-4 h-4 text-blue-500"/> Performance Geral</h3>
-                      <div className="grid grid-cols-2 gap-3 mb-6">
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-3 mb-6">
                           <div className="bg-[#111827] p-5 rounded-2xl border border-white/5 shadow-lg">
                               <div className="text-[10px] text-slate-400 font-bold uppercase tracking-widest mb-1">Yield Médio</div>
                               <div className="text-2xl font-black text-blue-400">R$ {calcularYield()}</div>
@@ -537,9 +524,9 @@ export default function App() {
                           </div>
                       </div>
 
-                      {/* TOP MÉTRICAS */}
+                      {/* TOP MÉTRICAS (Ajustado para md:grid-cols-2) */}
                       <h3 className="text-sm font-black text-white mb-4 uppercase tracking-wider flex items-center gap-2"><Trophy className="w-4 h-4 text-yellow-500"/> Onde você mais lucra</h3>
-                      <div className="grid grid-cols-2 gap-3 mb-6">
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-3 mb-6">
                           <div className="bg-[#111827] p-4 rounded-2xl border border-white/5 shadow-lg flex flex-col gap-1">
                               <span className="text-[10px] text-slate-400 font-bold uppercase tracking-widest flex items-center gap-1"><PieChart className="w-3 h-3 text-blue-400"/> Top Mercado</span>
                               <strong className="text-sm font-black text-white line-clamp-1">{mercadoMaisLucrativo()[0]}</strong>
@@ -565,7 +552,7 @@ export default function App() {
                       {/* GRÁFICO DA BANCA DO USUÁRIO */}
                       <div className="bg-[#0f172a] border border-green-500/20 rounded-3xl p-6 mb-6 shadow-lg">
                           <h2 className="text-sm font-black text-green-400 mb-4 flex items-center gap-2 uppercase tracking-wider"><TrendingUp className="w-5 h-5"/> A Minha Banca</h2>
-                          <div className="w-full h-[250px]">
+                          <div className="w-full" style={{ height: 250 }}>
                               <ResponsiveContainer width="100%" height="100%">
                                   <LineChart data={gerarBancaReal()}>
                                       <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.05)" vertical={false} />
@@ -610,7 +597,7 @@ export default function App() {
                       <HeaderNav title="🤖 Central IA" onBack={() => setViewMode('perfil')} />
                       <div className="bg-[#0f172a] border border-white/10 rounded-3xl p-6 mb-6 shadow-lg mx-4">
                           <h2 className="text-sm font-black text-white mb-4 uppercase tracking-wider">Precisão Histórica</h2>
-                          <div className="grid grid-cols-2 gap-3">
+                          <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
                               <div className="bg-[#111827] rounded-2xl p-4 text-center border border-white/5"><span className="text-[10px] font-bold text-slate-400 uppercase">Acertos IA</span><strong className="text-2xl font-black text-green-400 block">{performanceStats.acertos}</strong></div>
                               <div className="bg-[#111827] rounded-2xl p-4 text-center border border-white/5"><span className="text-[10px] font-bold text-slate-400 uppercase">Erros IA</span><strong className="text-2xl font-black text-red-400 block">{performanceStats.erros}</strong></div>
                           </div>
@@ -679,8 +666,8 @@ export default function App() {
          </motion.div>
       )}
 
-      {/* 🔥 ALERTAS AUTOMÁTICOS FLOAT */}
-      <div className="fixed top-20 left-0 right-0 z-50 flex flex-col items-center gap-2 pointer-events-none">
+      {/* 🔥 ALERTAS AUTOMÁTICOS FLOAT (Ajustado para top-32) */}
+      <div className="fixed top-32 left-0 right-0 z-50 flex flex-col items-center gap-2 pointer-events-none">
           <AnimatePresence>
               {alertas.slice(0, 2).map((alerta) => (
                   <motion.div key={alerta.id} initial={{opacity:0, y:-20}} animate={{opacity:1, y:0}} exit={{opacity:0}} className="bg-red-600/90 backdrop-blur-md text-white text-[10px] font-black px-4 py-2 rounded-full shadow-lg border border-red-400 flex items-center gap-2">
