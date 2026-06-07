@@ -86,7 +86,7 @@ export default function App() {
   const [xp, setXp] = useState(350);
 
   // ============================================================================
-  // 📊 NOVO SISTEMA DE DADOS DA APOSTA (ESTRUTURA COMPLETA)
+  // 📊 SISTEMA: GESTÃO DE BANCA E APOSTAS REAIS (USUÁRIO)
   // ============================================================================
   const [apostas, setApostas] = useState([
     { id: 1, jogo: "Flamengo x Palmeiras", liga: "Brasileirão", time: "Flamengo", mercado: "Vitória Flamengo", stake: 100, odd: 1.85, resultado: "green", data: "2026-06-01", hora: "19:30" },
@@ -94,6 +94,50 @@ export default function App() {
     { id: 3, jogo: "Real Madrid x Barcelona", liga: "La Liga", time: "Real Madrid", mercado: "Ambos Marcam", stake: 75, odd: 1.95, resultado: "green", data: "2026-06-03", hora: "20:00" },
     { id: 4, jogo: "Arsenal x Chelsea", liga: "Premier League", time: "Arsenal", mercado: "Vitória Arsenal", stake: 100, odd: 1.75, resultado: "green", data: "2026-06-04", hora: "15:00" }
   ]);
+
+  const calcularLucroLiquido = () => {
+      return apostas.reduce((total, aposta) => {
+          if(aposta.resultado === "green") return total + ((aposta.stake * aposta.odd) - aposta.stake);
+          return total - aposta.stake;
+      }, 0);
+  };
+
+  const totalInvestido = () => apostas.reduce((acc, a) => acc + a.stake, 0);
+
+  const calcularROI = () => {
+      const lucro = calcularLucroLiquido();
+      const investido = totalInvestido();
+      if(investido === 0) return 0;
+      return (lucro / investido) * 100;
+  };
+
+  const calcularYield = () => {
+      if(apostas.length === 0) return "0.00";
+      return (calcularLucroLiquido() / apostas.length).toFixed(2);
+  };
+
+  const calcularAssertividade = () => {
+      if(apostas.length === 0) return 0;
+      const greens = apostas.filter(a => a.resultado === "green").length;
+      return (greens / apostas.length) * 100;
+  };
+
+  const gerarHistoricoBanca = () => {
+      let banca = bancaInicial;
+      return apostas.map((a, index) => {
+          if(a.resultado === "green"){
+              banca += (a.stake * a.odd) - a.stake;
+          } else {
+              banca -= a.stake;
+          }
+          return { aposta: `Bet ${index+1}`, banca: Number(banca.toFixed(2)) };
+      });
+  };
+
+  const calcularROIUsuario = (listaApostas) => {
+      if (!listaApostas || listaApostas.length === 0) return 0;
+      return calcularROI(); 
+  };
 
   // --- FUNÇÕES DE ROI FRACIONADO ---
   const calcularROISemanal = () => {
@@ -140,17 +184,17 @@ export default function App() {
     },0);
   };
 
-  // --- EVOLUÇÃO GRÁFICA REAL ---
-  const gerarBancaReal = () => {
-    let banca = bancaInicial;
-    return apostas.map((a,index)=>{
-      if(a.resultado==="green") banca += ((a.stake*a.odd)-a.stake);
-      else banca -= a.stake;
-      return { aposta: `Bet ${index+1}`, banca: Number(banca.toFixed(2)) };
-    });
+  // --- FUNÇÕES DE ANÁLISE DE MERCADO ---
+  const melhoresMercados = () => {
+      const stats = {};
+      apostas.forEach(a => {
+          if(!stats[a.mercado]) stats[a.mercado] = { green: 0, total: 0 };
+          stats[a.mercado].total++;
+          if(a.resultado === "green") stats[a.mercado].green++;
+      });
+      return Object.entries(stats).map(([mercado, dados]) => ({ mercado, taxa: (dados.green / dados.total) * 100 })).sort((a,b) => b.taxa - a.taxa);
   };
 
-  // --- FUNÇÕES DE ANÁLISE DE MERCADO ---
   const mercadoMaisLucrativo = () => {
     const mercados = {};
     apostas.forEach(a=>{
@@ -194,17 +238,6 @@ export default function App() {
     });
     const sorted = Object.entries(horarios).sort((a,b)=>b[1]-a[1]);
     return sorted.length > 0 ? sorted[0] : ['N/A', 0];
-  };
-
-  const calcularAssertividade = () => {
-      if(apostas.length === 0) return 0;
-      const greens = apostas.filter(a => a.resultado === "green").length;
-      return (greens / apostas.length) * 100;
-  };
-
-  const calcularYield = () => {
-      if(apostas.length === 0) return "0.00";
-      return (lucroAcumulado() / apostas.length).toFixed(2);
   };
 
   // ============================================================================
@@ -290,7 +323,7 @@ export default function App() {
     const picks = jogos.filter(j => j.confianca_ia >= 90 && calcularEV(j.confianca_ia, j.odd_principal) >= 10);
     if(picks.length === 0) return null;
     return (
-      <div className="backdrop-blur-xl bg-gradient-to-br from-slate-900 to-[#0a192f] border border-green-500/40 shadow-[0_0_20px_rgba(34,197,94,0.15)] rounded-3xl p-6 mb-6 mx-4">
+      <div className="bg-[#0f172a] border border-green-500/40 shadow-[0_0_20px_rgba(34,197,94,0.15)] rounded-3xl p-6 mb-6 mx-4">
         <h3 className="font-black text-green-400 mb-4 flex items-center gap-2 tracking-wider"><Crown className="w-5 h-5"/> IA BANKER PICKS</h3>
         {picks.map(j => (
             <div key={j.id} onClick={() => abrirPainelDoJogo(j)} className="bg-[#050816] border border-white/5 p-4 rounded-2xl mb-3 last:mb-0 flex justify-between items-center cursor-pointer hover:border-green-500/50 transition-colors">
@@ -320,7 +353,7 @@ export default function App() {
 
   return (
     <div className="min-h-screen bg-[#050816] text-white font-sans pb-28">
-      <header className="flex items-center justify-between px-5 py-4 backdrop-blur-md bg-[#050816]/80 sticky top-0 z-40 border-b border-white/5">
+      <header className="flex items-center justify-between px-5 py-4 bg-[#050816] sticky top-0 z-40 border-b border-white/5">
         <h1 className="font-black text-2xl tracking-tight flex items-center"><span className="italic">BET</span><span className="text-blue-500">ANALYTICS</span><span className="ml-2 bg-blue-600 text-[10px] px-2 py-0.5 rounded-md">PRO</span></h1>
         <button onClick={() => setMenuAtivo('assinar pro')} className="bg-gradient-to-r from-yellow-500 to-yellow-600 text-black font-black px-4 py-2 rounded-xl flex items-center gap-2 shadow-[0_0_15px_rgba(234,179,8,0.3)]"><Crown className="w-4 h-4" /> {userData?.is_vip ? "VIP ATIVO" : "ASSINAR PRO"}</button>
       </header>
@@ -336,12 +369,12 @@ export default function App() {
                     {userData?.is_vip && (
                         <div className="mx-4 mb-6 rounded-3xl p-6 bg-gradient-to-br from-blue-600 to-blue-900 shadow-[0_0_30px_rgba(13,110,253,0.3)] flex justify-between items-center relative overflow-hidden">
                         <div className="relative z-10"><h2 className="text-xl font-black text-white flex items-center gap-2 mb-2"><Crown className="w-5 h-5 text-yellow-400"/> IA Premium</h2><p className="text-blue-100 text-xs mt-1"><strong>{(performanceStats.acertos/performanceStats.totalAnalises*100).toFixed(1)}%</strong> de precisão geral</p></div>
-                        <button onClick={() => setViewMode('ranking')} className="relative z-10 bg-white/20 backdrop-blur-md border border-white/30 text-white text-[10px] font-bold px-4 py-3 rounded-xl uppercase tracking-wider">VER RANKING</button>
+                        <button onClick={() => setViewMode('ranking')} className="relative z-10 bg-white/20 border border-white/30 text-white text-[10px] font-bold px-4 py-3 rounded-xl uppercase tracking-wider">VER RANKING</button>
                         </div>
                     )}
 
                     {bilhetePremium.selecoes.length > 0 && (
-                        <div className="backdrop-blur-xl bg-slate-900/85 border border-green-500/30 rounded-3xl p-6 mb-6 mx-4 shadow-lg relative overflow-hidden">
+                        <div className="bg-[#0f172a] border border-green-500/30 rounded-3xl p-6 mb-6 mx-4 shadow-lg relative overflow-hidden">
                             <div className="absolute top-0 right-0 w-32 h-32 bg-green-500/10 blur-3xl rounded-full"></div>
                             <h2 className="font-black text-green-400 mb-4 flex items-center gap-2 uppercase tracking-wider relative z-10"><Target className="w-5 h-5"/> Bilhete Inteligente IA</h2>
                             <div className="relative z-10">
@@ -360,7 +393,7 @@ export default function App() {
                     )}
 
                     {oportunidades.length > 0 && (
-                        <div className="backdrop-blur-xl bg-slate-900/85 border border-orange-500/30 rounded-3xl p-6 mb-6 mx-4 shadow-lg">
+                        <div className="bg-[#0f172a] border border-orange-500/30 rounded-3xl p-6 mb-6 mx-4 shadow-lg">
                             <h2 className="font-black text-orange-400 mb-4 flex items-center gap-2 uppercase tracking-wider"><Flame className="w-5 h-5"/> Radar de Oportunidades</h2>
                             {oportunidades.map(j => (
                                 <div key={j.id} onClick={() => abrirPainelDoJogo(j)} className="bg-[#111827] border border-white/5 p-4 rounded-xl mb-3 last:mb-0 cursor-pointer hover:border-orange-500/50 transition-colors flex justify-between items-center">
@@ -377,7 +410,7 @@ export default function App() {
                         const destaque = mockJogosData[0];
                         const heatScore = calcularHeatScore(destaque);
                         return (
-                            <div className="backdrop-blur-xl bg-gradient-to-br from-amber-500 to-red-600 rounded-3xl p-6 mb-6 shadow-[0_0_25px_rgba(245,158,11,0.3)] relative overflow-hidden mx-4">
+                            <div className="bg-gradient-to-br from-amber-500 to-red-600 rounded-3xl p-6 mb-6 shadow-[0_0_25px_rgba(245,158,11,0.3)] relative overflow-hidden mx-4">
                                 <div className="flex justify-between items-start mb-4">
                                     <div className="text-[10px] font-black text-white bg-black/20 px-3 py-1.5 rounded-md inline-flex items-center gap-1.5 animate-pulse uppercase tracking-wider shadow-sm border border-white/10"><ShieldAlert className="w-3 h-3"/> TOP PICK IA</div>
                                     <div className="text-[10px] font-black text-white bg-red-700/80 px-3 py-1.5 rounded-md shadow-lg flex items-center gap-1 uppercase tracking-wider border border-red-400/30"><Flame className="w-3 h-3 text-yellow-400"/> HEAT SCORE: {heatScore}</div>
@@ -392,6 +425,19 @@ export default function App() {
                             </div>
                         )
                     })()}
+
+                    <div className="bg-[#0f172a] border border-purple-500/20 rounded-3xl p-6 mb-6 mx-4 shadow-lg">
+                        <h2 className="text-sm font-black text-purple-400 mb-4 flex items-center gap-2 uppercase tracking-wider"><TrendingUp className="w-4 h-4"/> Evolução do Algoritmo IA</h2>
+                        <div className="w-full h-[150px]">
+                            <ResponsiveContainer width="100%" height="100%">
+                                <LineChart data={crescimentoBancaGlobal}>
+                                    <XAxis dataKey="dia" stroke="#64748b" fontSize={10} tickLine={false} axisLine={false} />
+                                    <YAxis hide domain={['dataMin - 100', 'dataMax + 100']} />
+                                    <Line type="monotone" dataKey="banca" stroke="#a855f7" strokeWidth={4} dot={{r:4, fill:"#a855f7", stroke:"#fff", strokeWidth:2}} />
+                                </LineChart>
+                            </ResponsiveContainer>
+                        </div>
+                    </div>
 
                     <div className="flex gap-2 px-4 overflow-x-auto pb-4 no-scrollbar mt-4">
                         <button onClick={() => setFilterCentro('Todos')} className={`px-5 py-2.5 rounded-full text-xs font-black whitespace-nowrap transition-colors border ${filterCentro==='Todos' ? 'bg-white text-black border-white' : 'bg-[#050816] border-slate-700 text-slate-400'}`}>Todos</button>
@@ -413,7 +459,7 @@ export default function App() {
                                     const isValueBet = j.odd_principal ? detectarValueBet(j.confianca_ia, j.odd_principal) : false;
                                     
                                     return (
-                                        <div key={j.id} onClick={() => abrirPainelDoJogo(j)} className="backdrop-blur-xl bg-slate-900/85 border border-white/10 rounded-3xl p-5 shadow-lg mb-4 cursor-pointer relative overflow-hidden transition-all hover:border-blue-500/50">
+                                        <div key={j.id} onClick={() => abrirPainelDoJogo(j)} className="bg-[#0f172a] border border-white/10 rounded-3xl p-5 shadow-lg mb-4 cursor-pointer relative overflow-hidden transition-all hover:border-blue-500/50">
                                             {heatScore > 50 && <div className="absolute -right-8 top-5 bg-red-600 text-white text-[8px] font-black px-8 py-1 rotate-45 shadow-lg flex items-center justify-center uppercase tracking-widest border-y border-red-400/30">Heat {heatScore}</div>}
                                             <div className="flex justify-between items-center mb-5">
                                                 {isLive ? <span className="bg-red-500 px-3 py-1 rounded-full text-[10px] font-black uppercase">🔴 Ao Vivo {j.time_elapsed}'</span> : <span className="text-slate-400 text-xs font-bold uppercase">{j.status === 'Finished' ? 'Finalizado' : j.starting_at?.split('T')[1]?.substring(0,5)}</span>}
@@ -447,7 +493,7 @@ export default function App() {
                           {userData?.is_admin && <button onClick={() => setViewMode('admin')} className="bg-purple-600 hover:bg-purple-500 text-white text-[10px] font-black px-3 py-1.5 rounded-lg flex items-center gap-1 shadow-lg transition-colors uppercase tracking-widest"><Settings className="w-3 h-3"/> Admin</button>}
                       </div>
                       
-                      <div className="backdrop-blur-xl bg-slate-900/85 border border-blue-500/20 p-6 rounded-3xl shadow-xl flex flex-col items-center text-center mb-6 relative overflow-hidden">
+                      <div className="bg-[#0f172a] border border-blue-500/20 p-6 rounded-3xl shadow-xl flex flex-col items-center text-center mb-6 relative overflow-hidden">
                           <div className="w-20 h-20 bg-gradient-to-br from-blue-600 to-blue-400 rounded-full flex items-center justify-center mb-4 shadow-[0_0_20px_rgba(37,99,235,0.4)] relative z-10"><User className="w-10 h-10 text-white"/></div>
                           <h2 className="text-xl font-black text-white mb-1 relative z-10">{form.nome || userData?.nome}</h2>
                           
@@ -463,24 +509,24 @@ export default function App() {
                           </div>
                       </div>
 
-                      {/* 1. NOVOS CARDS DE ROI FRACIONADO (Semanal, Mensal, Anual, Total) */}
+                      {/* CARDS DE ROI FRACIONADO */}
                       <h3 className="text-sm font-black text-white mb-4 uppercase tracking-wider flex items-center gap-2"><DollarSign className="w-4 h-4 text-green-500"/> Retorno Sobre Investimento</h3>
                       <div className="grid grid-cols-2 gap-3 mb-6">
-                          <div className="bg-[#111827] p-4 rounded-2xl border border-white/5 shadow-lg relative overflow-hidden">
-                              <div className="text-[10px] text-slate-400 font-bold uppercase tracking-widest mb-1 relative z-10">ROI Semanal</div>
-                              <div className={`text-xl font-black relative z-10 ${calcularROISemanal() >= 0 ? 'text-green-400' : 'text-red-400'}`}>{calcularROISemanal().toFixed(1)}%</div>
+                          <div className="bg-[#111827] p-4 rounded-2xl border border-white/5 shadow-lg">
+                              <div className="text-[10px] text-slate-400 font-bold uppercase tracking-widest mb-1">ROI Semanal</div>
+                              <div className={`text-xl font-black ${calcularROISemanal() >= 0 ? 'text-green-400' : 'text-red-400'}`}>{calcularROISemanal().toFixed(1)}%</div>
                           </div>
-                          <div className="bg-[#111827] p-4 rounded-2xl border border-white/5 shadow-lg relative overflow-hidden">
-                              <div className="text-[10px] text-slate-400 font-bold uppercase tracking-widest mb-1 relative z-10">ROI Mensal</div>
-                              <div className={`text-xl font-black relative z-10 ${calcularROIMensal() >= 0 ? 'text-green-400' : 'text-red-400'}`}>{calcularROIMensal().toFixed(1)}%</div>
+                          <div className="bg-[#111827] p-4 rounded-2xl border border-white/5 shadow-lg">
+                              <div className="text-[10px] text-slate-400 font-bold uppercase tracking-widest mb-1">ROI Mensal</div>
+                              <div className={`text-xl font-black ${calcularROIMensal() >= 0 ? 'text-green-400' : 'text-red-400'}`}>{calcularROIMensal().toFixed(1)}%</div>
                           </div>
-                          <div className="bg-[#111827] p-4 rounded-2xl border border-white/5 shadow-lg relative overflow-hidden">
-                              <div className="text-[10px] text-slate-400 font-bold uppercase tracking-widest mb-1 relative z-10">ROI Anual</div>
-                              <div className={`text-xl font-black relative z-10 ${calcularROIAnual() >= 0 ? 'text-green-400' : 'text-red-400'}`}>{calcularROIAnual().toFixed(1)}%</div>
+                          <div className="bg-[#111827] p-4 rounded-2xl border border-white/5 shadow-lg">
+                              <div className="text-[10px] text-slate-400 font-bold uppercase tracking-widest mb-1">ROI Anual</div>
+                              <div className={`text-xl font-black ${calcularROIAnual() >= 0 ? 'text-green-400' : 'text-red-400'}`}>{calcularROIAnual().toFixed(1)}%</div>
                           </div>
-                          <div className="bg-[#111827] p-4 rounded-2xl border border-white/5 shadow-lg relative overflow-hidden">
-                              <div className="text-[10px] text-slate-400 font-bold uppercase tracking-widest mb-1 relative z-10">Lucro Total</div>
-                              <div className={`text-xl font-black relative z-10 ${lucroAcumulado() >= 0 ? 'text-green-400' : 'text-red-400'}`}>R$ {lucroAcumulado().toFixed(2)}</div>
+                          <div className="bg-[#111827] p-4 rounded-2xl border border-white/5 shadow-lg">
+                              <div className="text-[10px] text-slate-400 font-bold uppercase tracking-widest mb-1">Lucro Total</div>
+                              <div className={`text-xl font-black ${lucroAcumulado() >= 0 ? 'text-green-400' : 'text-red-400'}`}>R$ {lucroAcumulado().toFixed(2)}</div>
                           </div>
                       </div>
 
@@ -496,7 +542,7 @@ export default function App() {
                           </div>
                       </div>
 
-                      {/* 2. TOP MÉTRICAS (Mercado, Liga, Time, Hora) */}
+                      {/* TOP MÉTRICAS */}
                       <h3 className="text-sm font-black text-white mb-4 uppercase tracking-wider flex items-center gap-2"><Trophy className="w-4 h-4 text-yellow-500"/> Onde você mais lucra</h3>
                       <div className="grid grid-cols-2 gap-3 mb-6">
                           <div className="bg-[#111827] p-4 rounded-2xl border border-white/5 shadow-lg flex flex-col gap-1">
@@ -521,23 +567,25 @@ export default function App() {
                           </div>
                       </div>
 
-                      {/* 3. GRÁFICO DA BANCA DO USUÁRIO */}
-                      <div className="backdrop-blur-xl bg-slate-900/85 border border-green-500/20 rounded-3xl p-6 mb-6 shadow-lg">
+                      {/* GRÁFICO DA BANCA DO USUÁRIO */}
+                      <div className="bg-[#0f172a] border border-green-500/20 rounded-3xl p-6 mb-6 shadow-lg">
                           <h2 className="text-sm font-black text-green-400 mb-4 flex items-center gap-2 uppercase tracking-wider"><TrendingUp className="w-5 h-5"/> A Minha Banca</h2>
-                          <ResponsiveContainer width="100%" height={250}>
-                              <LineChart data={gerarBancaReal()}>
-                                  <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.05)" vertical={false} />
-                                  <XAxis dataKey="aposta" stroke="#64748b" fontSize={10} tickLine={false} axisLine={false} />
-                                  <YAxis stroke="#64748b" fontSize={10} tickLine={false} axisLine={false} domain={['dataMin - 50', 'dataMax + 50']} />
-                                  <Tooltip contentStyle={{backgroundColor: '#0f172a', border: 'none', borderRadius: '10px', color: '#fff'}} />
-                                  <Line type="monotone" dataKey="banca" stroke="#22c55e" strokeWidth={4} dot={{r:5, fill:"#22c55e", stroke:"#fff", strokeWidth:2}} />
-                              </LineChart>
-                          </ResponsiveContainer>
+                          <div className="w-full h-[250px]">
+                              <ResponsiveContainer width="100%" height="100%">
+                                  <LineChart data={gerarBancaReal()}>
+                                      <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.05)" vertical={false} />
+                                      <XAxis dataKey="aposta" stroke="#64748b" fontSize={10} tickLine={false} axisLine={false} />
+                                      <YAxis stroke="#64748b" fontSize={10} tickLine={false} axisLine={false} domain={['dataMin - 50', 'dataMax + 50']} />
+                                      <Tooltip contentStyle={{backgroundColor: '#0f172a', border: 'none', borderRadius: '10px', color: '#fff'}} />
+                                      <Line type="monotone" dataKey="banca" stroke="#22c55e" strokeWidth={4} dot={{r:5, fill:"#22c55e", stroke:"#fff", strokeWidth:2}} />
+                                  </LineChart>
+                              </ResponsiveContainer>
+                          </div>
                       </div>
 
                       <div className="grid grid-cols-2 gap-3 mb-6">
-                          <button onClick={() => setViewMode('ia_center')} className="backdrop-blur-xl bg-slate-900/85 border border-blue-500/30 p-5 rounded-2xl flex flex-col items-center justify-center gap-2 shadow-lg"><Zap className="w-8 h-8 text-blue-500"/> <span className="font-bold text-xs uppercase tracking-wider">Central IA</span></button>
-                          <button onClick={() => setViewMode('ranking')} className="backdrop-blur-xl bg-slate-900/85 border border-yellow-500/30 p-5 rounded-2xl flex flex-col items-center justify-center gap-2 shadow-lg"><Users className="w-8 h-8 text-yellow-500"/> <span className="font-bold text-xs uppercase tracking-wider">Comunidade</span></button>
+                          <button onClick={() => setViewMode('ia_center')} className="bg-[#0f172a] border border-blue-500/30 p-5 rounded-2xl flex flex-col items-center justify-center gap-2 shadow-lg"><Zap className="w-8 h-8 text-blue-500"/> <span className="font-bold text-xs uppercase tracking-wider">Central IA</span></button>
+                          <button onClick={() => setViewMode('ranking')} className="bg-[#0f172a] border border-yellow-500/30 p-5 rounded-2xl flex flex-col items-center justify-center gap-2 shadow-lg"><Users className="w-8 h-8 text-yellow-500"/> <span className="font-bold text-xs uppercase tracking-wider">Comunidade</span></button>
                       </div>
                   </div>
               )}
@@ -548,7 +596,7 @@ export default function App() {
               {viewMode === 'ranking' && (
                   <motion.div initial={{opacity:0, x:20}} animate={{opacity:1, x:0}} className="px-4">
                       <HeaderNav title="🏆 Comunidade" onBack={() => setViewMode('perfil')} />
-                      <div className="backdrop-blur-xl bg-slate-900/85 border border-yellow-500/30 rounded-3xl p-6 mb-6 shadow-[0_0_20px_rgba(234,179,8,0.1)]">
+                      <div className="bg-[#0f172a] border border-yellow-500/30 rounded-3xl p-6 mb-6 shadow-[0_0_20px_rgba(234,179,8,0.1)]">
                           <h3 className="text-sm font-black text-yellow-400 mb-4 flex items-center gap-2 uppercase tracking-wider"><Users className="w-5 h-5"/> Ranking Global</h3>
                           <div className="flex flex-col gap-3">
                               {rankingUsuarios.map((user, index) => (
@@ -565,7 +613,7 @@ export default function App() {
               {viewMode === 'ia_center' && (
                   <motion.div initial={{opacity:0, x:20}} animate={{opacity:1, x:0}} className="px-4">
                       <HeaderNav title="🤖 Central IA" onBack={() => setViewMode('perfil')} />
-                      <div className="backdrop-blur-xl bg-slate-900/85 border border-white/10 rounded-3xl p-6 mb-6 shadow-lg mx-4">
+                      <div className="bg-[#0f172a] border border-white/10 rounded-3xl p-6 mb-6 shadow-lg mx-4">
                           <h2 className="text-sm font-black text-white mb-4 uppercase tracking-wider">Precisão Histórica</h2>
                           <div className="grid grid-cols-2 gap-3">
                               <div className="bg-[#111827] rounded-2xl p-4 text-center border border-white/5"><span className="text-[10px] font-bold text-slate-400 uppercase">Acertos IA</span><strong className="text-2xl font-black text-green-400 block">{performanceStats.acertos}</strong></div>
@@ -582,8 +630,8 @@ export default function App() {
       ========================================= */}
       {jogoSelecionado && !jogoSelecionado.is_loading && menuAtivo !== 'assinar pro' && (
         <motion.div initial={{opacity:0, x:20}} animate={{opacity:1, x:0}} className="px-4 mt-4 pb-20">
-            <button onClick={() => setJogoSelecionado(null)} className="text-slate-400 text-xs font-bold flex items-center gap-1 mb-6 backdrop-blur-xl bg-slate-900/85 border border-white/10 px-4 py-2 rounded-xl uppercase tracking-wider"><X className="w-4 h-4"/> Voltar</button>
-            <div className="backdrop-blur-xl bg-slate-900/85 rounded-3xl p-6 border border-blue-500/30 shadow-2xl shadow-blue-500/10 mb-6 relative overflow-hidden">
+            <button onClick={() => setJogoSelecionado(null)} className="text-slate-400 text-xs font-bold flex items-center gap-1 mb-6 bg-[#0f172a] border border-white/10 px-4 py-2 rounded-xl uppercase tracking-wider"><X className="w-4 h-4"/> Voltar</button>
+            <div className="bg-[#0f172a] rounded-3xl p-6 border border-blue-500/30 shadow-2xl shadow-blue-500/10 mb-6 relative overflow-hidden">
                 <div className="flex justify-between items-center mb-6 relative z-10">
                     <div className="flex flex-col items-center w-1/3"><img src={jogoSelecionado.home_image} className="w-16 h-16 mb-2 drop-shadow-lg" alt=""/><span className="font-black text-xs text-center">{jogoSelecionado.home_team}</span></div>
                     <div className="w-1/3 text-center"><div className="text-4xl font-black mb-1 tracking-tighter">{jogoSelecionado.status === 'Not Started' ? 'VS' : `${jogoSelecionado.scoreHome} - ${jogoSelecionado.scoreAway}`}</div></div>
@@ -619,15 +667,11 @@ export default function App() {
         </motion.div>
       )}
 
-      {jogoSelecionado?.is_loading && (
-          <div className="px-4 py-10 flex flex-col items-center justify-center h-64"><div className="w-12 h-12 border-4 border-blue-500 border-t-transparent rounded-full animate-spin mb-4"></div><p className="text-blue-500 font-bold text-xs animate-pulse uppercase tracking-widest">A extrair dados...</p></div>
-      )}
-
       {/* CHECKOUT VIP PRO */}
       {menuAtivo === "assinar pro" && (
          <motion.div initial={{opacity:0}} animate={{opacity:1}} className="px-4 pt-4">
              <div className="flex justify-between items-center mb-6"><button onClick={() => setMenuAtivo('Todos os Jogos')} className="text-slate-400 text-sm font-bold flex items-center gap-1"><X className="w-5 h-5"/> Fechar</button></div>
-             <div className="backdrop-blur-xl bg-slate-900/85 rounded-3xl p-6 border border-white/10 shadow-2xl">
+             <div className="bg-[#0f172a] rounded-3xl p-6 border border-white/10 shadow-2xl">
                 <Crown className="w-12 h-12 text-yellow-500 mb-4" />
                 <h2 className="text-2xl font-black text-white mb-2">Seja PRO 👑</h2>
                 <div className="flex flex-col gap-3">
@@ -655,7 +699,7 @@ export default function App() {
 
       <AnimatePresence>
           {aiOpen && (
-              <motion.div initial={{opacity:0, y:20, scale:0.9}} animate={{opacity:1, y:0, scale:1}} exit={{opacity:0, scale:0.9, y:20}} className="fixed right-4 left-4 bottom-24 backdrop-blur-2xl bg-slate-900/95 border border-slate-700 p-4 rounded-3xl shadow-[0_0_50px_rgba(0,0,0,0.8)] z-50 flex flex-col max-h-[70vh]">
+              <motion.div initial={{opacity:0, y:20, scale:0.9}} animate={{opacity:1, y:0, scale:1}} exit={{opacity:0, scale:0.9, y:20}} className="fixed right-4 left-4 bottom-24 bg-[#0f172a] border border-slate-700 p-4 rounded-3xl shadow-[0_0_50px_rgba(0,0,0,0.8)] z-50 flex flex-col max-h-[70vh]">
                   <div className="flex justify-between items-center mb-4 pb-3 border-b border-white/5"><h3 className="font-black flex items-center gap-2 text-white"><Zap className="w-5 h-5 text-yellow-400"/> Assistente IA</h3><button onClick={() => setAiOpen(false)} className="text-slate-400 bg-slate-800 rounded-full p-1.5"><X className="w-4 h-4"/></button></div>
                   <div className="flex-1 overflow-y-auto flex flex-col gap-3 mb-4 pr-1 custom-scrollbar">
                       {aiMessages.map((msg, idx) => (
@@ -671,13 +715,12 @@ export default function App() {
           )}
       </AnimatePresence>
 
-      <nav className="fixed bottom-0 left-0 right-0 h-20 bg-[#050816]/95 border-t border-white/5 flex justify-around items-center backdrop-blur-xl z-50 shadow-[0_-10px_40px_rgba(0,0,0,0.5)]">
+      <nav className="fixed bottom-0 left-0 right-0 h-20 bg-[#050816] border-t border-white/5 flex justify-around items-center z-50 shadow-[0_-10px_40px_rgba(0,0,0,0.5)]">
         <button onClick={() => {setViewMode('jogos'); setFilterCentro('Todos'); setJogoSelecionado(null);}} className={`flex flex-col items-center gap-1.5 transition-colors ${viewMode === 'jogos' && filterCentro !== 'Ao Vivo' && !jogoSelecionado ? 'text-blue-500' : 'text-slate-500 hover:text-slate-300'}`}><Home className="w-6 h-6" /><span className="text-[9px] font-black uppercase tracking-widest">Início</span></button>
         <button onClick={() => {setViewMode('jogos'); setFilterCentro('Ao Vivo'); setJogoSelecionado(null);}} className={`flex flex-col items-center gap-1.5 transition-colors ${filterCentro === 'Ao Vivo' && !jogoSelecionado ? 'text-red-500' : 'text-slate-500 hover:text-slate-300'}`}><div className="relative"><Radio className="w-6 h-6" />{filterCentro === 'Ao Vivo' && <span className="absolute top-0 right-0 w-2 h-2 bg-red-500 rounded-full animate-pulse"></span>}</div><span className="text-[9px] font-black uppercase tracking-widest">Ao Vivo</span></button>
         <button onClick={() => {setViewMode('ranking'); setJogoSelecionado(null);}} className={`flex flex-col items-center gap-1.5 transition-colors ${viewMode === 'ranking' ? 'text-yellow-500 drop-shadow-[0_0_8px_rgba(234,179,8,0.4)]' : 'text-slate-500 hover:text-slate-300'}`}><Trophy className="w-6 h-6" /><span className="text-[9px] font-black uppercase tracking-widest">Ranking</span></button>
         <button onClick={() => {setViewMode('perfil'); setJogoSelecionado(null);}} className={`flex flex-col items-center gap-1.5 transition-colors ${['perfil','ia_center','admin'].includes(viewMode) ? 'text-blue-500' : 'text-slate-500 hover:text-slate-300'}`}><User className="w-6 h-6" /><span className="text-[9px] font-black uppercase tracking-widest">Perfil</span></button>
       </nav>
-
     </div>
   );
 }
