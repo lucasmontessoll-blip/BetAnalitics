@@ -104,13 +104,6 @@ export default function App() {
 
   const totalInvestido = () => apostas.reduce((acc, a) => acc + a.stake, 0);
 
-  const calcularROI = () => {
-      const lucro = calcularLucroLiquido();
-      const investido = totalInvestido();
-      if(investido === 0) return 0;
-      return (lucro / investido) * 100;
-  };
-
   const calcularYield = () => {
       if(apostas.length === 0) return "0.00";
       return (calcularLucroLiquido() / apostas.length).toFixed(2);
@@ -324,6 +317,7 @@ export default function App() {
       <div className="flex items-center justify-between mb-6"><div className="flex items-center gap-3"><button onClick={onBack} className="p-2 bg-[#050816] rounded-full hover:bg-slate-800 transition border border-white/10"><ArrowLeft className="w-5 h-5"/></button><h2 className="text-xl font-black">{title}</h2></div></div>
   );
 
+  // Mantemos o motion APENAS no Splash Screen, onde não há perigo de scroll
   if (showSplash) {
     return (
       <div className="flex flex-col justify-center items-center min-h-screen bg-[#050816] text-white">
@@ -408,11 +402,11 @@ export default function App() {
                         )
                     })()}
 
-                    {/* FIX DEFINITIVO 1: Altura explícita e LineChart sem animação para evitar recálculo no mobile */}
+                    {/* FIX: div fixa para o gráfico Home e sem animação */}
                     <div className="bg-[#0f172a] border border-purple-500/20 rounded-3xl p-6 mb-6 mx-4 shadow-lg">
                         <h2 className="text-sm font-black text-purple-400 mb-4 flex items-center gap-2 uppercase tracking-wider"><TrendingUp className="w-4 h-4"/> Evolução do Algoritmo IA</h2>
-                        <div className="w-full" style={{ height: '150px', minHeight: '150px' }}>
-                            <ResponsiveContainer width="99%" height={150}>
+                        <div className="w-full relative" style={{ height: '150px' }}>
+                            <ResponsiveContainer width="99%" height={149}>
                                 <LineChart data={crescimentoBancaGlobal}>
                                     <XAxis dataKey="dia" stroke="#64748b" fontSize={10} tickLine={false} axisLine={false} />
                                     <YAxis hide domain={['dataMin - 100', 'dataMax + 100']} />
@@ -470,7 +464,7 @@ export default function App() {
                   O NOVO DASHBOARD DO PERFIL (BANKROLL)
               ========================================= */}
               {viewMode === 'perfil' && (
-                  <div className="px-4">
+                  <div className="px-4 animate-fade-in">
                       <div className="flex justify-between items-center mb-6">
                           <h2 className="text-xl font-black flex items-center gap-2"><User className="w-6 h-6 text-blue-500"/> Meu Perfil</h2>
                           {userData?.is_admin && <button onClick={() => setViewMode('admin')} className="bg-purple-600 hover:bg-purple-500 text-white text-[10px] font-black px-3 py-1.5 rounded-lg flex items-center gap-1 shadow-lg transition-colors uppercase tracking-widest"><Settings className="w-3 h-3"/> Admin</button>}
@@ -492,9 +486,9 @@ export default function App() {
                           </div>
                       </div>
 
-                      {/* CARDS DE ROI FRACIONADO (Ajustado para md:grid-cols-2) */}
+                      {/* FIX: sm:grid-cols-2 evita empurrar cards no mobile */}
                       <h3 className="text-sm font-black text-white mb-4 uppercase tracking-wider flex items-center gap-2"><DollarSign className="w-4 h-4 text-green-500"/> Retorno Sobre Investimento</h3>
-                      <div className="grid grid-cols-1 md:grid-cols-2 gap-3 mb-6">
+                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 mb-6">
                           <div className="bg-[#111827] p-4 rounded-2xl border border-white/5 shadow-lg">
                               <div className="text-[10px] text-slate-400 font-bold uppercase tracking-widest mb-1">ROI Semanal</div>
                               <div className={`text-xl font-black ${calcularROISemanal() >= 0 ? 'text-green-400' : 'text-red-400'}`}>{calcularROISemanal().toFixed(1)}%</div>
@@ -514,7 +508,7 @@ export default function App() {
                       </div>
 
                       <h3 className="text-sm font-black text-white mb-4 uppercase tracking-wider flex items-center gap-2"><Target className="w-4 h-4 text-blue-500"/> Performance Geral</h3>
-                      <div className="grid grid-cols-1 md:grid-cols-2 gap-3 mb-6">
+                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 mb-6">
                           <div className="bg-[#111827] p-5 rounded-2xl border border-white/5 shadow-lg">
                               <div className="text-[10px] text-slate-400 font-bold uppercase tracking-widest mb-1">Yield Médio</div>
                               <div className="text-2xl font-black text-blue-400">R$ {calcularYield()}</div>
@@ -525,9 +519,8 @@ export default function App() {
                           </div>
                       </div>
 
-                      {/* TOP MÉTRICAS (Ajustado para md:grid-cols-2) */}
                       <h3 className="text-sm font-black text-white mb-4 uppercase tracking-wider flex items-center gap-2"><Trophy className="w-4 h-4 text-yellow-500"/> Onde você mais lucra</h3>
-                      <div className="grid grid-cols-1 md:grid-cols-2 gap-3 mb-6">
+                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 mb-6">
                           <div className="bg-[#111827] p-4 rounded-2xl border border-white/5 shadow-lg flex flex-col gap-1">
                               <span className="text-[10px] text-slate-400 font-bold uppercase tracking-widest flex items-center gap-1"><PieChart className="w-3 h-3 text-blue-400"/> Top Mercado</span>
                               <strong className="text-sm font-black text-white line-clamp-1">{mercadoMaisLucrativo()[0]}</strong>
@@ -550,11 +543,11 @@ export default function App() {
                           </div>
                       </div>
 
-                      {/* FIX DEFINITIVO 2: Altura explícita e LineChart sem animação para evitar recálculo no mobile */}
+                      {/* FIX DEFINITIVO: style inline height, relative, 99%, sem animação */}
                       <div className="bg-[#0f172a] border border-green-500/20 rounded-3xl p-6 mb-6 shadow-lg">
                           <h2 className="text-sm font-black text-green-400 mb-4 flex items-center gap-2 uppercase tracking-wider"><TrendingUp className="w-5 h-5"/> A Minha Banca</h2>
-                          <div className="w-full" style={{ height: '250px', minHeight: '250px' }}>
-                              <ResponsiveContainer width="99%" height={250}>
+                          <div className="w-full relative" style={{ height: '250px' }}>
+                              <ResponsiveContainer width="99%" height={249}>
                                   <LineChart data={gerarBancaReal()}>
                                       <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.05)" vertical={false} />
                                       <XAxis dataKey="aposta" stroke="#64748b" fontSize={10} tickLine={false} axisLine={false} />
@@ -566,7 +559,7 @@ export default function App() {
                           </div>
                       </div>
 
-                      <div className="grid grid-cols-2 gap-3 mb-6">
+                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 mb-6">
                           <button onClick={() => setViewMode('ia_center')} className="bg-[#0f172a] border border-blue-500/30 p-5 rounded-2xl flex flex-col items-center justify-center gap-2 shadow-lg"><Zap className="w-8 h-8 text-blue-500"/> <span className="font-bold text-xs uppercase tracking-wider">Central IA</span></button>
                           <button onClick={() => setViewMode('ranking')} className="bg-[#0f172a] border border-yellow-500/30 p-5 rounded-2xl flex flex-col items-center justify-center gap-2 shadow-lg"><Users className="w-8 h-8 text-yellow-500"/> <span className="font-bold text-xs uppercase tracking-wider">Comunidade</span></button>
                       </div>
@@ -577,7 +570,7 @@ export default function App() {
                   RANKING & CENTRAL IA
               ========================================= */}
               {viewMode === 'ranking' && (
-                  <motion.div initial={{opacity:0, x:20}} animate={{opacity:1, x:0}} className="px-4">
+                  <div className="px-4 animate-fade-in">
                       <HeaderNav title="🏆 Comunidade" onBack={() => setViewMode('perfil')} />
                       <div className="bg-[#0f172a] border border-yellow-500/30 rounded-3xl p-6 mb-6 shadow-[0_0_20px_rgba(234,179,8,0.1)]">
                           <h3 className="text-sm font-black text-yellow-400 mb-4 flex items-center gap-2 uppercase tracking-wider"><Users className="w-5 h-5"/> Ranking Global</h3>
@@ -590,20 +583,20 @@ export default function App() {
                               ))}
                           </div>
                       </div>
-                  </motion.div>
+                  </div>
               )}
 
               {viewMode === 'ia_center' && (
-                  <motion.div initial={{opacity:0, x:20}} animate={{opacity:1, x:0}} className="px-4">
+                  <div className="px-4 animate-fade-in">
                       <HeaderNav title="🤖 Central IA" onBack={() => setViewMode('perfil')} />
                       <div className="bg-[#0f172a] border border-white/10 rounded-3xl p-6 mb-6 shadow-lg mx-4">
                           <h2 className="text-sm font-black text-white mb-4 uppercase tracking-wider">Precisão Histórica</h2>
-                          <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                               <div className="bg-[#111827] rounded-2xl p-4 text-center border border-white/5"><span className="text-[10px] font-bold text-slate-400 uppercase">Acertos IA</span><strong className="text-2xl font-black text-green-400 block">{performanceStats.acertos}</strong></div>
                               <div className="bg-[#111827] rounded-2xl p-4 text-center border border-white/5"><span className="text-[10px] font-bold text-slate-400 uppercase">Erros IA</span><strong className="text-2xl font-black text-red-400 block">{performanceStats.erros}</strong></div>
                           </div>
                       </div>
-                  </motion.div>
+                  </div>
               )}
           </div>
       )}
@@ -612,7 +605,7 @@ export default function App() {
           PAINEL DO JOGO ABERTO
       ========================================= */}
       {jogoSelecionado && !jogoSelecionado.is_loading && menuAtivo !== 'assinar pro' && (
-        <motion.div initial={{opacity:0, x:20}} animate={{opacity:1, x:0}} className="px-4 mt-4 pb-20">
+        <div className="px-4 mt-4 pb-20 animate-fade-in">
             <button onClick={() => setJogoSelecionado(null)} className="text-slate-400 text-xs font-bold flex items-center gap-1 mb-6 bg-[#0f172a] border border-white/10 px-4 py-2 rounded-xl uppercase tracking-wider"><X className="w-4 h-4"/> Voltar</button>
             <div className="bg-[#0f172a] rounded-3xl p-6 border border-blue-500/30 shadow-2xl shadow-blue-500/10 mb-6 relative overflow-hidden">
                 <div className="flex justify-between items-center mb-6 relative z-10">
@@ -622,7 +615,7 @@ export default function App() {
                 </div>
 
                 {jogoSelecionado.odd_principal && (
-                    <div className="grid grid-cols-2 gap-3 mb-5">
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 mb-5">
                         <div className="bg-blue-500/10 border border-blue-500/30 p-4 rounded-xl text-center">
                             <span className="text-[10px] text-blue-400 font-black uppercase tracking-widest block mb-1">Stake Recomendada</span>
                             <strong className="text-xl font-black text-white">R$ {calcularStake(bancaInicial, jogoSelecionado.confianca_ia).toFixed(2)}</strong>
@@ -647,12 +640,12 @@ export default function App() {
                     )}
                 </div>
             </div>
-        </motion.div>
+        </div>
       )}
 
       {/* CHECKOUT VIP PRO */}
       {menuAtivo === "assinar pro" && (
-         <motion.div initial={{opacity:0}} animate={{opacity:1}} className="px-4 pt-4">
+         <div className="px-4 pt-4 animate-fade-in">
              <div className="flex justify-between items-center mb-6"><button onClick={() => setMenuAtivo('Todos os Jogos')} className="text-slate-400 text-sm font-bold flex items-center gap-1"><X className="w-5 h-5"/> Fechar</button></div>
              <div className="bg-[#0f172a] rounded-3xl p-6 border border-white/10 shadow-2xl">
                 <Crown className="w-12 h-12 text-yellow-500 mb-4" />
@@ -664,14 +657,14 @@ export default function App() {
                     <button className="mt-4 bg-green-500 hover:bg-green-600 transition-colors text-white font-black py-4 rounded-2xl shadow-lg text-sm uppercase tracking-wider">⚡ PAGAR R$ 29,90 COM PIX</button>
                 </div>
              </div>
-         </motion.div>
+         </div>
       )}
 
       {/* 🔥 ALERTAS AUTOMÁTICOS FLOAT */}
       <div className="fixed top-32 left-0 right-0 z-50 flex flex-col items-center gap-2 pointer-events-none">
           <AnimatePresence>
               {alertas.slice(0, 2).map((alerta) => (
-                  <motion.div key={alerta.id} initial={{opacity:0, y:-20}} animate={{opacity:1, y:0}} exit={{opacity:0}} className="bg-red-600/90 backdrop-blur-md text-white text-[10px] font-black px-4 py-2 rounded-full shadow-lg border border-red-400 flex items-center gap-2">
+                  <motion.div key={alerta.id} initial={{opacity:0, y:-20}} animate={{opacity:1, y:0}} exit={{opacity:0}} className="bg-red-600/90 text-white text-[10px] font-black px-4 py-2 rounded-full shadow-lg border border-red-400 flex items-center gap-2">
                       <Bell className="w-3 h-3 animate-bounce"/> {alerta.msg}
                   </motion.div>
               ))}
