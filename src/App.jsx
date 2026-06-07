@@ -122,7 +122,7 @@ export default function App() {
       return (greens / apostas.length) * 100;
   };
 
-  const gerarHistoricoBanca = () => {
+  const gerarBancaReal = () => {
       let banca = bancaInicial;
       return apostas.map((a, index) => {
           if(a.resultado === "green"){
@@ -132,11 +132,6 @@ export default function App() {
           }
           return { aposta: `Bet ${index+1}`, banca: Number(banca.toFixed(2)) };
       });
-  };
-
-  const calcularROIUsuario = (listaApostas) => {
-      if (!listaApostas || listaApostas.length === 0) return 0;
-      return calcularROI(); 
   };
 
   // --- FUNÇÕES DE ROI FRACIONADO ---
