@@ -134,7 +134,6 @@ export default function App() {
       });
   };
 
-  // --- FUNÇÕES DE ROI FRACIONADO ---
   const calcularROISemanal = () => {
     const hoje = new Date();
     const ultimaSemana = apostas.filter(aposta => {
@@ -177,17 +176,6 @@ export default function App() {
       if(a.resultado==="green") return acc + ((a.stake*a.odd)-a.stake);
       return acc-a.stake;
     },0);
-  };
-
-  // --- FUNÇÕES DE ANÁLISE DE MERCADO ---
-  const melhoresMercados = () => {
-      const stats = {};
-      apostas.forEach(a => {
-          if(!stats[a.mercado]) stats[a.mercado] = { green: 0, total: 0 };
-          stats[a.mercado].total++;
-          if(a.resultado === "green") stats[a.mercado].green++;
-      });
-      return Object.entries(stats).map(([mercado, dados]) => ({ mercado, taxa: (dados.green / dados.total) * 100 })).sort((a,b) => b.taxa - a.taxa);
   };
 
   const mercadoMaisLucrativo = () => {
@@ -420,15 +408,15 @@ export default function App() {
                         )
                     })()}
 
-                    {/* FIX: width 99% na Home também para segurança */}
+                    {/* FIX DEFINITIVO 1: Altura explícita e LineChart sem animação para evitar recálculo no mobile */}
                     <div className="bg-[#0f172a] border border-purple-500/20 rounded-3xl p-6 mb-6 mx-4 shadow-lg">
                         <h2 className="text-sm font-black text-purple-400 mb-4 flex items-center gap-2 uppercase tracking-wider"><TrendingUp className="w-4 h-4"/> Evolução do Algoritmo IA</h2>
-                        <div className="w-full relative" style={{ height: 150 }}>
-                            <ResponsiveContainer width="99%" height="100%">
+                        <div className="w-full" style={{ height: '150px', minHeight: '150px' }}>
+                            <ResponsiveContainer width="99%" height={150}>
                                 <LineChart data={crescimentoBancaGlobal}>
                                     <XAxis dataKey="dia" stroke="#64748b" fontSize={10} tickLine={false} axisLine={false} />
                                     <YAxis hide domain={['dataMin - 100', 'dataMax + 100']} />
-                                    <Line type="monotone" dataKey="banca" stroke="#a855f7" strokeWidth={4} dot={{r:4, fill:"#a855f7", stroke:"#fff", strokeWidth:2}} />
+                                    <Line type="monotone" dataKey="banca" stroke="#a855f7" strokeWidth={4} dot={{r:4, fill:"#a855f7", stroke:"#fff", strokeWidth:2}} isAnimationActive={false} />
                                 </LineChart>
                             </ResponsiveContainer>
                         </div>
@@ -562,17 +550,17 @@ export default function App() {
                           </div>
                       </div>
 
-                      {/* FIX DEFINITIVO DO GRÁFICO: width 99% e parent relative */}
+                      {/* FIX DEFINITIVO 2: Altura explícita e LineChart sem animação para evitar recálculo no mobile */}
                       <div className="bg-[#0f172a] border border-green-500/20 rounded-3xl p-6 mb-6 shadow-lg">
                           <h2 className="text-sm font-black text-green-400 mb-4 flex items-center gap-2 uppercase tracking-wider"><TrendingUp className="w-5 h-5"/> A Minha Banca</h2>
-                          <div className="w-full relative" style={{ height: 250 }}>
-                              <ResponsiveContainer width="99%" height="100%">
+                          <div className="w-full" style={{ height: '250px', minHeight: '250px' }}>
+                              <ResponsiveContainer width="99%" height={250}>
                                   <LineChart data={gerarBancaReal()}>
                                       <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.05)" vertical={false} />
                                       <XAxis dataKey="aposta" stroke="#64748b" fontSize={10} tickLine={false} axisLine={false} />
                                       <YAxis stroke="#64748b" fontSize={10} tickLine={false} axisLine={false} domain={['dataMin - 50', 'dataMax + 50']} />
                                       <Tooltip contentStyle={{backgroundColor: '#0f172a', border: 'none', borderRadius: '10px', color: '#fff'}} />
-                                      <Line type="monotone" dataKey="banca" stroke="#22c55e" strokeWidth={4} dot={{r:5, fill:"#22c55e", stroke:"#fff", strokeWidth:2}} />
+                                      <Line type="monotone" dataKey="banca" stroke="#22c55e" strokeWidth={4} dot={{r:5, fill:"#22c55e", stroke:"#fff", strokeWidth:2}} isAnimationActive={false} />
                                   </LineChart>
                               </ResponsiveContainer>
                           </div>
