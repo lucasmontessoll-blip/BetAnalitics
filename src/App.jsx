@@ -115,7 +115,6 @@ export default function App() {
       return (greens / apostas.length) * 100;
   };
 
-  // FIX: MEMORIZANDO OS DADOS DO GRÁFICO PARA EVITAR LOOP INFINITO NO RECHARTS
   const dadosGraficoBanca = useMemo(() => {
       let banca = bancaInicial;
       return apostas.map((a, index) => {
@@ -173,6 +172,40 @@ export default function App() {
     },0);
   };
 
+  // --- NOVAS FUNÇÕES DO DASHBOARD ---
+  const crescimentoBanca = () => {
+    if (bancaInicial === 0) return 0;
+    return (lucroAcumulado() / bancaInicial) * 100;
+  };
+
+  const gerarAlertaIA = () => {
+    const roi = calcularROIMensal();
+    if(roi > 20) return { texto: "🔥 ROI Excelente. Mantenha a gestão!", cor: "text-green-400" };
+    if(roi > 5) return { texto: "✅ Desempenho positivo e consistente.", cor: "text-blue-400" };
+    if(roi >= 0) return { texto: "⚖️ Banca estabilizada. Procure EV+.", cor: "text-yellow-400" };
+    return { texto: "⚠️ Red alert! Reveja a sua estratégia.", cor: "text-red-400" };
+  };
+
+  const rankingTimes = () => {
+    const times = {};
+    apostas.forEach(a => {
+      if(!times[a.time]) times[a.time] = 0;
+      if(a.resultado === "green") times[a.time] += ((a.stake * a.odd) - a.stake);
+      else times[a.time] -= a.stake;
+    });
+    return Object.entries(times).map(([nome, lucro]) => ({nome, lucro})).sort((a,b)=>b.lucro-a.lucro).slice(0,5);
+  };
+
+  const rankingLigas = () => {
+    const ligas = {};
+    apostas.forEach(a => {
+      if(!ligas[a.liga]) ligas[a.liga] = 0;
+      if(a.resultado === "green") ligas[a.liga] += ((a.stake * a.odd) - a.stake);
+      else ligas[a.liga] -= a.stake;
+    });
+    return Object.entries(ligas).map(([nome, lucro]) => ({nome, lucro})).sort((a,b)=>b.lucro-a.lucro).slice(0,5);
+  };
+
   const mercadoMaisLucrativo = () => {
     const mercados = {};
     apostas.forEach(a=>{
@@ -181,28 +214,6 @@ export default function App() {
       else mercados[a.mercado]-= a.stake;
     });
     const sorted = Object.entries(mercados).sort((a,b)=>b[1]-a[1]);
-    return sorted.length > 0 ? sorted[0] : ['N/A', 0];
-  };
-
-  const timeMaisLucrativo = () => {
-    const times = {};
-    apostas.forEach(a=>{
-      if(!times[a.time]) times[a.time]=0;
-      if(a.resultado==="green") times[a.time]+= ((a.stake*a.odd)-a.stake);
-      else times[a.time]-= a.stake;
-    });
-    const sorted = Object.entries(times).sort((a,b)=>b[1]-a[1]);
-    return sorted.length > 0 ? sorted[0] : ['N/A', 0];
-  };
-
-  const ligaMaisLucrativa = () => {
-    const ligas = {};
-    apostas.forEach(a=>{
-      if(!ligas[a.liga]) ligas[a.liga]=0;
-      if(a.resultado==="green") ligas[a.liga]+= ((a.stake*a.odd)-a.stake);
-      else ligas[a.liga]-= a.stake;
-    });
-    const sorted = Object.entries(ligas).sort((a,b)=>b[1]-a[1]);
     return sorted.length > 0 ? sorted[0] : ['N/A', 0];
   };
 
@@ -508,6 +519,22 @@ export default function App() {
                           </div>
                       </div>
 
+                      {/* NOVO BLOCO: CRESCIMENTO & IA */}
+                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 mb-6">
+                          <div className="bg-[#0f172a] p-5 rounded-2xl border border-white/5 shadow-lg">
+                              <div className="text-[10px] text-slate-400 uppercase tracking-widest mb-1">Crescimento da Banca</div>
+                              <div className={`text-2xl font-black ${crescimentoBanca() >= 0 ? 'text-green-400' : 'text-red-400'}`}>
+                                  {crescimentoBanca() >= 0 ? '+' : ''}{crescimentoBanca().toFixed(2)}%
+                              </div>
+                          </div>
+                          <div className="bg-[#0f172a] p-5 rounded-2xl border border-white/5 shadow-lg">
+                              <div className="text-[10px] text-slate-400 uppercase tracking-widest mb-1 flex items-center gap-1"><BrainCircuit className="w-3 h-3 text-blue-400"/> Análise IA</div>
+                              <div className={`font-black text-xs mt-2 ${gerarAlertaIA().cor}`}>
+                                  {gerarAlertaIA().texto}
+                              </div>
+                          </div>
+                      </div>
+
                       <h3 className="text-sm font-black text-white mb-4 uppercase tracking-wider flex items-center gap-2"><Target className="w-4 h-4 text-blue-500"/> Performance Geral</h3>
                       <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 mb-6">
                           <div className="bg-[#111827] p-5 rounded-2xl border border-white/5 shadow-lg">
@@ -521,21 +548,39 @@ export default function App() {
                       </div>
 
                       <h3 className="text-sm font-black text-white mb-4 uppercase tracking-wider flex items-center gap-2"><Trophy className="w-4 h-4 text-yellow-500"/> Onde você mais lucra</h3>
+                      
+                      {/* NOVOS RANKINGS DETALHADOS DE LIGAS E EQUIPAS */}
+                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 mb-4">
+                          <div className="bg-[#0f172a] p-5 rounded-2xl border border-white/5 shadow-lg">
+                              <h3 className="text-sm font-black text-white mb-4 uppercase tracking-wider flex items-center gap-2"><ShieldAlert className="w-4 h-4 text-orange-400"/> Top 5 Equipas</h3>
+                              <div className="flex flex-col gap-2">
+                                  {rankingTimes().map((item, index) => (
+                                      <div key={index} className="flex justify-between items-center py-2 border-b border-white/5 last:border-0">
+                                          <span className="text-xs font-bold text-slate-300">{index + 1}. {item.nome}</span>
+                                          <span className={`text-xs font-black ${item.lucro >= 0 ? 'text-green-400' : 'text-red-400'}`}>R$ {item.lucro.toFixed(2)}</span>
+                                      </div>
+                                  ))}
+                              </div>
+                          </div>
+                          <div className="bg-[#0f172a] p-5 rounded-2xl border border-white/5 shadow-lg">
+                              <h3 className="text-sm font-black text-white mb-4 uppercase tracking-wider flex items-center gap-2"><Globe className="w-4 h-4 text-purple-400"/> Top 5 Ligas</h3>
+                              <div className="flex flex-col gap-2">
+                                  {rankingLigas().map((item, index) => (
+                                      <div key={index} className="flex justify-between items-center py-2 border-b border-white/5 last:border-0">
+                                          <span className="text-xs font-bold text-slate-300">{index + 1}. {item.nome}</span>
+                                          <span className={`text-xs font-black ${item.lucro >= 0 ? 'text-green-400' : 'text-red-400'}`}>R$ {item.lucro.toFixed(2)}</span>
+                                      </div>
+                                  ))}
+                              </div>
+                          </div>
+                      </div>
+
+                      {/* SUMMARY DE MERCADO E HORÁRIO */}
                       <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 mb-6">
                           <div className="bg-[#111827] p-4 rounded-2xl border border-white/5 shadow-lg flex flex-col gap-1">
                               <span className="text-[10px] text-slate-400 font-bold uppercase tracking-widest flex items-center gap-1"><PieChart className="w-3 h-3 text-blue-400"/> Top Mercado</span>
                               <strong className="text-sm font-black text-white line-clamp-1">{mercadoMaisLucrativo()[0]}</strong>
                               <span className="text-[10px] text-green-400 font-bold">+R$ {mercadoMaisLucrativo()[1]?.toFixed(2) || '0.00'}</span>
-                          </div>
-                          <div className="bg-[#111827] p-4 rounded-2xl border border-white/5 shadow-lg flex flex-col gap-1">
-                              <span className="text-[10px] text-slate-400 font-bold uppercase tracking-widest flex items-center gap-1"><Globe className="w-3 h-3 text-purple-400"/> Top Liga</span>
-                              <strong className="text-sm font-black text-white line-clamp-1">{ligaMaisLucrativa()[0]}</strong>
-                              <span className="text-[10px] text-green-400 font-bold">+R$ {ligaMaisLucrativa()[1]?.toFixed(2) || '0.00'}</span>
-                          </div>
-                          <div className="bg-[#111827] p-4 rounded-2xl border border-white/5 shadow-lg flex flex-col gap-1">
-                              <span className="text-[10px] text-slate-400 font-bold uppercase tracking-widest flex items-center gap-1"><ShieldAlert className="w-3 h-3 text-orange-400"/> Top Equipa</span>
-                              <strong className="text-sm font-black text-white line-clamp-1">{timeMaisLucrativo()[0]}</strong>
-                              <span className="text-[10px] text-green-400 font-bold">+R$ {timeMaisLucrativo()[1]?.toFixed(2) || '0.00'}</span>
                           </div>
                           <div className="bg-[#111827] p-4 rounded-2xl border border-white/5 shadow-lg flex flex-col gap-1">
                               <span className="text-[10px] text-slate-400 font-bold uppercase tracking-widest flex items-center gap-1"><Clock className="w-3 h-3 text-red-400"/> Top Horário</span>
