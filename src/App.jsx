@@ -8,7 +8,7 @@ import { createClient } from '@supabase/supabase-js';
 import { Home, BarChart2, Radio, Trophy, Crown, Star, ChevronRight, X, User, Zap, TrendingUp, Crosshair, Bell, Globe, DollarSign, Activity, ShieldAlert, ArrowLeft, Send, Settings, CheckCircle2, Target, Flame, BrainCircuit, TrendingDown, AlertTriangle, Users, Award, PieChart, Calendar, Clock, Filter, Calculator, List } from 'lucide-react';
 
 // IMPORTANDO O NOVO COMPONENTE DE ARQUITETURA LIMPA
-import EstatisticasAvancadas from './src/EstatisticasAvancadas.jsx';
+import EstatisticasAvancadas from './components/EstatisticasAvancadas.jsx';
 // ============================================================================
 // ⚙️ CONFIGURAÇÕES PRINCIPAIS & SUPABASE
 // ============================================================================
