@@ -7,6 +7,9 @@ import { initMercadoPago } from '@mercadopago/sdk-react';
 import { createClient } from '@supabase/supabase-js';
 import { Home, BarChart2, Radio, Trophy, Crown, Star, ChevronRight, X, User, Zap, TrendingUp, Crosshair, Bell, Globe, DollarSign, Activity, ShieldAlert, ArrowLeft, Send, Settings, CheckCircle2, Target, Flame, BrainCircuit, TrendingDown, AlertTriangle, Users, Award, PieChart, Calendar, Clock, Filter, Calculator, List } from 'lucide-react';
 
+// IMPORTANDO O NOVO COMPONENTE DE ARQUITETURA LIMPA
+import EstatisticasAvancadas from './components/EstatisticasAvancadas';
+
 // ============================================================================
 // ⚙️ CONFIGURAÇÕES PRINCIPAIS & SUPABASE
 // ============================================================================
@@ -95,7 +98,6 @@ export default function App() {
     { id: 4, jogo: "Arsenal x Chelsea", liga: "Premier League", time: "Arsenal", mercado: "Vitória Arsenal", stake: 100, odd: 1.75, resultado: "green", data: "2026-06-04", hora: "15:00" }
   ]);
 
-  // NOVOS ESTADOS PARA O DASHBOARD
   const [filtroResultado, setFiltroResultado] = useState('todos');
   const [filtroLiga, setFiltroLiga] = useState('todas');
   const [simOdd, setSimOdd] = useState('');
@@ -134,7 +136,6 @@ export default function App() {
       });
   }, [apostas, bancaInicial]);
 
-  // --- FUNÇÕES DE ROI E FINANÇAS ---
   const calcularROISemanal = () => {
     const hoje = new Date();
     const ultimaSemana = apostas.filter(aposta => {
@@ -181,7 +182,6 @@ export default function App() {
 
   const progressoMeta = () => Math.min((lucroAcumulado() / metaMensal) * 100, 100);
 
-  // --- NOVAS FUNÇÕES (IA, CONQUISTAS, SIMULADOR) ---
   const mercadoMaisLucrativo = () => {
     const mercados = {};
     apostas.forEach(a=>{
@@ -342,7 +342,6 @@ export default function App() {
       <div className="flex items-center justify-between mb-6"><div className="flex items-center gap-3"><button onClick={onBack} className="p-2 bg-[#050816] rounded-full hover:bg-slate-800 transition border border-white/10"><ArrowLeft className="w-5 h-5"/></button><h2 className="text-xl font-black">{title}</h2></div></div>
   );
 
-  // Mantemos o motion APENAS no Splash Screen
   if (showSplash) {
     return (
       <div className="flex flex-col justify-center items-center min-h-screen bg-[#050816] text-white">
@@ -641,6 +640,13 @@ export default function App() {
                               </ResponsiveContainer>
                           </div>
                       </div>
+
+                      {/* IMPORTAÇÃO DO NOVO COMPONENTE DE ESTATÍSTICAS AVANÇADAS */}
+                      <EstatisticasAvancadas 
+                          apostas={apostas} 
+                          isPro={userData?.is_vip} 
+                          onUnlockPro={() => setMenuAtivo('assinar pro')} 
+                      />
 
                       {/* HISTÓRICO DE APOSTAS COM FILTROS */}
                       <div className="bg-[#0f172a] rounded-3xl p-5 mb-6 shadow-lg border border-white/5">
