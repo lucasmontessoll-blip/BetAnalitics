@@ -22,6 +22,7 @@
     "express": "^4.22.2",
     "firebase": "^10.14.1",
     "framer-motion": "^12.40.0",
+    "jspdf": "^4.2.1",
     "lucide-react": "^1.17.0",
     "mercadopago": "^1.5.17",
     "mongoose": "^9.4.1",
