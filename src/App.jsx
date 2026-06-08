@@ -319,6 +319,7 @@ export default function App() {
       <div className="flex items-center justify-between mb-6"><div className="flex items-center gap-3"><button onClick={onBack} className="p-2 bg-[#050816] rounded-full hover:bg-slate-800 transition border border-white/10"><ArrowLeft className="w-5 h-5"/></button><h2 className="text-xl font-black">{title}</h2></div></div>
   );
 
+  // Mantemos o motion APENAS no Splash Screen, onde não há perigo de scroll
   if (showSplash) {
     return (
       <div className="flex flex-col justify-center items-center min-h-screen bg-[#050816] text-white">
@@ -403,6 +404,7 @@ export default function App() {
                         )
                     })()}
 
+                    {/* FIX: div fixa para o gráfico Home e sem animação */}
                     <div className="bg-[#0f172a] border border-purple-500/20 rounded-3xl p-6 mb-6 mx-4 shadow-lg">
                         <h2 className="text-sm font-black text-purple-400 mb-4 flex items-center gap-2 uppercase tracking-wider"><TrendingUp className="w-4 h-4"/> Evolução do Algoritmo IA</h2>
                         <div className="w-full relative" style={{ height: '150px' }}>
@@ -542,7 +544,6 @@ export default function App() {
                           </div>
                       </div>
 
-                      {/* FIX DEFINITIVO 3: USANDO A CONSTANTE MEMORIZADA PARA O GRÁFICO */}
                       <div className="bg-[#0f172a] border border-green-500/20 rounded-3xl p-6 mb-6 shadow-lg">
                           <h2 className="text-sm font-black text-green-400 mb-4 flex items-center gap-2 uppercase tracking-wider"><TrendingUp className="w-5 h-5"/> A Minha Banca</h2>
                           <div className="w-full relative" style={{ height: '250px' }}>
@@ -558,9 +559,19 @@ export default function App() {
                           </div>
                       </div>
 
-                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 mb-6">
-                          <button onClick={() => setViewMode('ia_center')} className="bg-[#0f172a] border border-blue-500/30 p-5 rounded-2xl flex flex-col items-center justify-center gap-2 shadow-lg"><Zap className="w-8 h-8 text-blue-500"/> <span className="font-bold text-xs uppercase tracking-wider">Central IA</span></button>
-                          <button onClick={() => setViewMode('ranking')} className="bg-[#0f172a] border border-yellow-500/30 p-5 rounded-2xl flex flex-col items-center justify-center gap-2 shadow-lg"><Users className="w-8 h-8 text-yellow-500"/> <span className="font-bold text-xs uppercase tracking-wider">Comunidade</span></button>
+                      {/* FIX: MENUS VERTICAIS COMPACTOS E ELEGANTES PARA O MOBILE */}
+                      <div className="flex flex-col gap-3 mb-6">
+                          <button onClick={() => setViewMode('ia_center')} className="w-full bg-[#0f172a] border border-blue-500/30 p-4 rounded-2xl flex items-center gap-4 shadow-sm hover:bg-[#1e293b] transition-colors">
+                              <div className="bg-blue-500/10 p-2.5 rounded-xl"><Zap className="w-5 h-5 text-blue-500"/></div>
+                              <span className="font-black text-sm uppercase tracking-wider text-white">Central IA</span>
+                              <ChevronRight className="w-5 h-5 text-slate-600 ml-auto"/>
+                          </button>
+                          
+                          <button onClick={() => setViewMode('ranking')} className="w-full bg-[#0f172a] border border-yellow-500/30 p-4 rounded-2xl flex items-center gap-4 shadow-sm hover:bg-[#1e293b] transition-colors">
+                              <div className="bg-yellow-500/10 p-2.5 rounded-xl"><Users className="w-5 h-5 text-yellow-500"/></div>
+                              <span className="font-black text-sm uppercase tracking-wider text-white">Comunidade</span>
+                              <ChevronRight className="w-5 h-5 text-slate-600 ml-auto"/>
+                          </button>
                       </div>
                   </div>
               )}
@@ -569,45 +580,22 @@ export default function App() {
                   RANKING & CENTRAL IA
               ========================================= */}
               {viewMode === 'ranking' && (
-    <div className="px-4">
-        <HeaderNav
-            title="🏆 Comunidade"
-            onBack={() => setViewMode('perfil')}
-        />
+                  <div className="px-4 animate-fade-in">
+                      <HeaderNav title="🏆 Comunidade" onBack={() => setViewMode('perfil')} />
+                      <div className="bg-[#0f172a] border border-yellow-500/30 rounded-3xl p-6 mb-6 shadow-[0_0_20px_rgba(234,179,8,0.1)]">
+                          <h3 className="text-sm font-black text-yellow-400 mb-4 flex items-center gap-2 uppercase tracking-wider"><Users className="w-5 h-5"/> Ranking Global</h3>
+                          <div className="flex flex-col gap-3">
+                              {rankingUsuarios.map((user, index) => (
+                                  <div key={index} className="bg-[#111827] border border-white/5 p-4 rounded-2xl flex justify-between items-center transition-colors">
+                                      <div className="flex items-center gap-3"><span className="text-xs font-black text-slate-400">#{index+1}</span><span className="font-bold text-white text-sm">{user.nome}</span></div>
+                                      <strong className="text-green-400 font-black">R$ {user.lucro_total.toFixed(2)}</strong>
+                                  </div>
+                              ))}
+                          </div>
+                      </div>
+                  </div>
+              )}
 
-        <div className="bg-[#0f172a] border border-yellow-500/30 rounded-3xl p-6 mb-6 shadow-[0_0_20px_rgba(234,179,8,0.1)]">
-            <h3 className="text-sm font-black text-yellow-400 mb-4 flex items-center gap-2 uppercase tracking-wider">
-                <Users className="w-5 h-5"/>
-                Ranking Global
-            </h3>
-
-            <div className="flex flex-col gap-3">
-                {(rankingUsuarios || [])
-                    .slice(0, 100)
-                    .map((user) => (
-                        <div
-                            key={user.id || user.uid || user.email}
-                            className="bg-[#111827] border border-white/5 p-4 rounded-2xl flex justify-between items-center"
-                        >
-                            <div className="flex items-center gap-3">
-                                <span className="text-xs font-black text-slate-400">
-                                    #{user.posicao || "-"}
-                                </span>
-
-                                <span className="font-bold text-white text-sm">
-                                    {user.nome}
-                                </span>
-                            </div>
-
-                            <strong className="text-green-400 font-black">
-                                R$ {(user.lucro_total || 0).toFixed(2)}
-                            </strong>
-                        </div>
-                    ))}
-            </div>
-        </div>
-    </div>
-)}
               {viewMode === 'ia_center' && (
                   <div className="px-4 animate-fade-in">
                       <HeaderNav title="🤖 Central IA" onBack={() => setViewMode('perfil')} />
@@ -636,18 +624,17 @@ export default function App() {
                     <div className="flex flex-col items-center w-1/3"><img src={jogoSelecionado.away_image} className="w-16 h-16 mb-2 drop-shadow-lg" alt=""/><span className="font-black text-xs text-center">{jogoSelecionado.away_team}</span></div>
                 </div>
 
-      {jogoSelecionado.odd_principal && (
-        <div className="mb-6">
-            <button
-        onClick={() => setViewMode('ia_center')}
-        className="w-full bg-[#0f172a] border border-blue-500/30 p-3 rounded-2xl flex items-center justify-center gap-2 shadow-lg min-h-[70px]"
-    >
-        <Zap className="w-5 h-5 text-blue-500 flex-shrink-0" />
-        <span className="font-bold text-[11px] uppercase tracking-wider">
-            Central IA
-        </span>
-    </button>
-</div>
+                {jogoSelecionado.odd_principal && (
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 mb-5">
+                        <div className="bg-blue-500/10 border border-blue-500/30 p-4 rounded-xl text-center">
+                            <span className="text-[10px] text-blue-400 font-black uppercase tracking-widest block mb-1">Stake Recomendada</span>
+                            <strong className="text-xl font-black text-white">R$ {calcularStake(bancaInicial, jogoSelecionado.confianca_ia).toFixed(2)}</strong>
+                        </div>
+                        <div className="bg-purple-500/10 border border-purple-500/20 p-4 rounded-xl text-center">
+                            <span className="text-[10px] text-purple-400 font-bold uppercase tracking-widest block mb-1">🧠 Kelly Criterion</span>
+                            <strong className="text-xl font-black text-white">{calcularKelly(jogoSelecionado.odd_principal, jogoSelecionado.confianca_ia).toFixed(1)}%</strong>
+                        </div>
+                    </div>
                 )}
                 
                 <div className="bg-[#050816] rounded-2xl p-5 border border-slate-800/80 relative overflow-hidden flex flex-col items-start mb-4">
