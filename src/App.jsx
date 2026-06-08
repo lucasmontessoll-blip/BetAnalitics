@@ -5,7 +5,7 @@ import { LineChart, Line, ResponsiveContainer, XAxis, YAxis, CartesianGrid, Tool
 import { motion, AnimatePresence } from 'framer-motion';
 import { initMercadoPago } from '@mercadopago/sdk-react'; 
 import { createClient } from '@supabase/supabase-js';
-import { Home, BarChart2, Radio, Trophy, Crown, Star, ChevronRight, X, User, Zap, TrendingUp, Crosshair, Bell, Globe, DollarSign, Activity, ShieldAlert, ArrowLeft, Send, Settings, CheckCircle2, Target, Flame, BrainCircuit, TrendingDown, AlertTriangle, Users, Award, PieChart, Calendar, Clock } from 'lucide-react';
+import { Home, BarChart2, Radio, Trophy, Crown, Star, ChevronRight, X, User, Zap, TrendingUp, Crosshair, Bell, Globe, DollarSign, Activity, ShieldAlert, ArrowLeft, Send, Settings, CheckCircle2, Target, Flame, BrainCircuit, TrendingDown, AlertTriangle, Users, Award, PieChart, Calendar, Clock, Filter, Calculator, List } from 'lucide-react';
 
 // ============================================================================
 // ⚙️ CONFIGURAÇÕES PRINCIPAIS & SUPABASE
@@ -95,6 +95,13 @@ export default function App() {
     { id: 4, jogo: "Arsenal x Chelsea", liga: "Premier League", time: "Arsenal", mercado: "Vitória Arsenal", stake: 100, odd: 1.75, resultado: "green", data: "2026-06-04", hora: "15:00" }
   ]);
 
+  // NOVOS ESTADOS PARA O DASHBOARD
+  const [filtroResultado, setFiltroResultado] = useState('todos');
+  const [filtroLiga, setFiltroLiga] = useState('todas');
+  const [simOdd, setSimOdd] = useState('');
+  const [simStake, setSimStake] = useState('');
+  const metaMensal = 2000;
+
   const calcularLucroLiquido = () => {
       return apostas.reduce((total, aposta) => {
           if(aposta.resultado === "green") return total + ((aposta.stake * aposta.odd) - aposta.stake);
@@ -127,7 +134,7 @@ export default function App() {
       });
   }, [apostas, bancaInicial]);
 
-  // --- FUNÇÕES DE ROI FRACIONADO ---
+  // --- FUNÇÕES DE ROI E FINANÇAS ---
   const calcularROISemanal = () => {
     const hoje = new Date();
     const ultimaSemana = apostas.filter(aposta => {
@@ -165,33 +172,48 @@ export default function App() {
     return investido ? (lucro/investido)*100 : 0;
   };
 
-  const lucroAcumulado = () => {
-    return apostas.reduce((acc,a)=>{
-      if(a.resultado==="green") return acc + ((a.stake*a.odd)-a.stake);
-      return acc-a.stake;
-    },0);
-  };
+  const lucroAcumulado = () => apostas.reduce((acc,a)=>{ if(a.resultado==="green") return acc + ((a.stake*a.odd)-a.stake); return acc-a.stake; },0);
 
-  // --- NOVAS FUNÇÕES DO DASHBOARD ---
   const crescimentoBanca = () => {
     if (bancaInicial === 0) return 0;
     return (lucroAcumulado() / bancaInicial) * 100;
   };
 
-  const gerarAlertaIA = () => {
+  const progressoMeta = () => Math.min((lucroAcumulado() / metaMensal) * 100, 100);
+
+  // --- NOVAS FUNÇÕES (IA, CONQUISTAS, SIMULADOR) ---
+  const mercadoMaisLucrativo = () => {
+    const mercados = {};
+    apostas.forEach(a=>{
+      if(!mercados[a.mercado]) mercados[a.mercado]=0;
+      if(a.resultado==="green") mercados[a.mercado]+= ((a.stake*a.odd)-a.stake); else mercados[a.mercado]-= a.stake;
+    });
+    const sorted = Object.entries(mercados).sort((a,b)=>b[1]-a[1]);
+    return sorted.length > 0 ? sorted[0] : ['N/A', 0];
+  };
+
+  const relatorioIA = () => {
     const roi = calcularROIMensal();
-    if(roi > 20) return { texto: "🔥 ROI Excelente. Mantenha a gestão!", cor: "text-green-400" };
-    if(roi > 5) return { texto: "✅ Desempenho positivo e consistente.", cor: "text-blue-400" };
-    if(roi >= 0) return { texto: "⚖️ Banca estabilizada. Procure EV+.", cor: "text-yellow-400" };
-    return { texto: "⚠️ Red alert! Reveja a sua estratégia.", cor: "text-red-400" };
+    const mercadoTop = mercadoMaisLucrativo()[0] || 'N/A';
+    if(roi > 20) return `🔥 ROI excelente de ${roi.toFixed(1)}%.\n\nO mercado mais lucrativo é ${mercadoTop}. Considere aumentar ligeiramente o volume neste mercado para escalar lucros.`;
+    if(roi > 5) return `✅ Desempenho sólido e positivo.\n\nContinue a manter uma gestão de banca disciplinada. A paciência é a chave.`;
+    return `⚠️ Atenção à sua gestão.\n\nO seu ROI está abaixo do ideal. Reduza as stakes temporariamente e foque-se no seu melhor mercado: ${mercadoTop}.`;
+  };
+
+  const listaConquistas = () => {
+    const lista = [];
+    if(apostas.length >= 1) lista.push("🥉 1ª Aposta");
+    if(lucroAcumulado() >= 500) lista.push("🥈 Lucro R$ 500");
+    if(calcularROIMensal() >= 10) lista.push("🥇 ROI > 10%");
+    if(apostas.length >= 50) lista.push("🏆 Veterano (50+)");
+    return lista;
   };
 
   const rankingTimes = () => {
     const times = {};
     apostas.forEach(a => {
       if(!times[a.time]) times[a.time] = 0;
-      if(a.resultado === "green") times[a.time] += ((a.stake * a.odd) - a.stake);
-      else times[a.time] -= a.stake;
+      if(a.resultado === "green") times[a.time] += ((a.stake * a.odd) - a.stake); else times[a.time] -= a.stake;
     });
     return Object.entries(times).map(([nome, lucro]) => ({nome, lucro})).sort((a,b)=>b.lucro-a.lucro).slice(0,5);
   };
@@ -200,21 +222,9 @@ export default function App() {
     const ligas = {};
     apostas.forEach(a => {
       if(!ligas[a.liga]) ligas[a.liga] = 0;
-      if(a.resultado === "green") ligas[a.liga] += ((a.stake * a.odd) - a.stake);
-      else ligas[a.liga] -= a.stake;
+      if(a.resultado === "green") ligas[a.liga] += ((a.stake * a.odd) - a.stake); else ligas[a.liga] -= a.stake;
     });
     return Object.entries(ligas).map(([nome, lucro]) => ({nome, lucro})).sort((a,b)=>b.lucro-a.lucro).slice(0,5);
-  };
-
-  const mercadoMaisLucrativo = () => {
-    const mercados = {};
-    apostas.forEach(a=>{
-      if(!mercados[a.mercado]) mercados[a.mercado]=0;
-      if(a.resultado==="green") mercados[a.mercado]+= ((a.stake*a.odd)-a.stake);
-      else mercados[a.mercado]-= a.stake;
-    });
-    const sorted = Object.entries(mercados).sort((a,b)=>b[1]-a[1]);
-    return sorted.length > 0 ? sorted[0] : ['N/A', 0];
   };
 
   const horarioMaisLucrativo = () => {
@@ -222,11 +232,21 @@ export default function App() {
     apostas.forEach(a=>{
       const hora = a.hora ? a.hora.split(":")[0] + "h" : "N/A";
       if(!horarios[hora]) horarios[hora]=0;
-      if(a.resultado==="green") horarios[hora]+= ((a.stake*a.odd)-a.stake);
-      else horarios[hora]-= a.stake;
+      if(a.resultado==="green") horarios[hora]+= ((a.stake*a.odd)-a.stake); else horarios[hora]-= a.stake;
     });
     const sorted = Object.entries(horarios).sort((a,b)=>b[1]-a[1]);
     return sorted.length > 0 ? sorted[0] : ['N/A', 0];
+  };
+
+  const lucroSimulado = () => (Number(simStake) * Number(simOdd)) - Number(simStake);
+  const retornoTotal = () => Number(simStake) * Number(simOdd);
+
+  const apostasFiltradas = () => {
+    return apostas.filter(a => {
+      const resultadoOk = filtroResultado === 'todos' || a.resultado === filtroResultado;
+      const ligaOk = filtroLiga === 'todas' || a.liga === filtroLiga;
+      return resultadoOk && ligaOk;
+    });
   };
 
   // ============================================================================
@@ -237,11 +257,7 @@ export default function App() {
   const [aiLoading, setAiLoading] = useState(false);
   const [aiMessages, setAiMessages] = useState([{ role: 'assistant', text: "Olá! Sou o motor IA do BetAnalytics. Qual é a sua dúvida?" }]);
 
-  useEffect(() => {
-      const carregarDados = async () => { setRankingUsuarios(mockRankingUsuarios); };
-      carregarDados();
-  }, []);
-
+  useEffect(() => { const carregarDados = async () => { setRankingUsuarios(mockRankingUsuarios); }; carregarDados(); }, []);
   useEffect(() => { setTimeout(() => setShowSplash(false), 2000); }, []);
   useEffect(() => { 
       const em = localStorage.getItem('bet_sessao_ativa'); 
@@ -269,11 +285,7 @@ export default function App() {
   }, [jogos]);
 
   const nivelUsuario = () => {
-    if(xp > 5000) return "Lenda";
-    if(xp > 3000) return "Mestre";
-    if(xp > 1000) return "Especialista";
-    if(xp > 500) return "Profissional";
-    return "Iniciante";
+    if(xp > 5000) return "Lenda"; if(xp > 3000) return "Mestre"; if(xp > 1000) return "Especialista"; if(xp > 500) return "Profissional"; return "Iniciante";
   };
 
   const abrirPainelDoJogo = (j) => {
@@ -330,7 +342,7 @@ export default function App() {
       <div className="flex items-center justify-between mb-6"><div className="flex items-center gap-3"><button onClick={onBack} className="p-2 bg-[#050816] rounded-full hover:bg-slate-800 transition border border-white/10"><ArrowLeft className="w-5 h-5"/></button><h2 className="text-xl font-black">{title}</h2></div></div>
   );
 
-  // Mantemos o motion APENAS no Splash Screen, onde não há perigo de scroll
+  // Mantemos o motion APENAS no Splash Screen
   if (showSplash) {
     return (
       <div className="flex flex-col justify-center items-center min-h-screen bg-[#050816] text-white">
@@ -415,7 +427,6 @@ export default function App() {
                         )
                     })()}
 
-                    {/* FIX: div fixa para o gráfico Home e sem animação */}
                     <div className="bg-[#0f172a] border border-purple-500/20 rounded-3xl p-6 mb-6 mx-4 shadow-lg">
                         <h2 className="text-sm font-black text-purple-400 mb-4 flex items-center gap-2 uppercase tracking-wider"><TrendingUp className="w-4 h-4"/> Evolução do Algoritmo IA</h2>
                         <div className="w-full relative" style={{ height: '150px' }}>
@@ -474,7 +485,7 @@ export default function App() {
               )}
 
               {/* =========================================
-                  O NOVO DASHBOARD DO PERFIL (BANKROLL)
+                  O NOVO DASHBOARD DO PERFIL COMPLETO
               ========================================= */}
               {viewMode === 'perfil' && (
                   <div className="px-4 animate-fade-in">
@@ -483,6 +494,7 @@ export default function App() {
                           {userData?.is_admin && <button onClick={() => setViewMode('admin')} className="bg-purple-600 hover:bg-purple-500 text-white text-[10px] font-black px-3 py-1.5 rounded-lg flex items-center gap-1 shadow-lg transition-colors uppercase tracking-widest"><Settings className="w-3 h-3"/> Admin</button>}
                       </div>
                       
+                      {/* PERFIL & XP */}
                       <div className="bg-[#0f172a] border border-blue-500/20 p-6 rounded-3xl shadow-xl flex flex-col items-center text-center mb-6 relative overflow-hidden">
                           <div className="w-20 h-20 bg-gradient-to-br from-blue-600 to-blue-400 rounded-full flex items-center justify-center mb-4 shadow-[0_0_20px_rgba(37,99,235,0.4)] relative z-10"><User className="w-10 h-10 text-white"/></div>
                           <h2 className="text-xl font-black text-white mb-1 relative z-10">{form.nome || userData?.nome}</h2>
@@ -499,6 +511,32 @@ export default function App() {
                           </div>
                       </div>
 
+                      {/* META MENSAL */}
+                      <div className="bg-[#0f172a] p-5 rounded-3xl mb-6 shadow-lg border border-white/5">
+                          <div className="flex justify-between mb-2">
+                              <span className="text-sm font-black text-white uppercase tracking-wider flex items-center gap-2"><Target className="w-4 h-4 text-green-500"/> Meta Mensal</span>
+                              <span className="text-xs font-bold text-slate-300">R$ {lucroAcumulado().toFixed(2)} <span className="text-slate-500">/ R$ {metaMensal}</span></span>
+                          </div>
+                          <div className="bg-slate-800 h-4 rounded-full overflow-hidden mt-3 shadow-inner">
+                              <div className="bg-gradient-to-r from-green-600 to-green-400 h-full rounded-full transition-all duration-1000 relative" style={{width: `${progressoMeta()}%`}}>
+                                  <div className="absolute inset-0 bg-white/20 w-full animate-[pulse_2s_ease-in-out_infinite]"></div>
+                              </div>
+                          </div>
+                      </div>
+
+                      {/* SISTEMA DE CONQUISTAS */}
+                      <div className="mb-6">
+                          <h3 className="text-sm font-black text-white mb-3 uppercase tracking-wider flex items-center gap-2"><Trophy className="w-4 h-4 text-yellow-500"/> Conquistas Desbloqueadas</h3>
+                          <div className="flex gap-2 overflow-x-auto no-scrollbar pb-2">
+                              {listaConquistas().map((c, index)=>(
+                                  <div key={index} className="bg-[#0f172a] border border-yellow-500/20 text-yellow-500 text-xs font-black px-4 py-2.5 rounded-xl whitespace-nowrap shadow-sm">
+                                      {c}
+                                  </div>
+                              ))}
+                          </div>
+                      </div>
+
+                      {/* ROI E LUCRO */}
                       <h3 className="text-sm font-black text-white mb-4 uppercase tracking-wider flex items-center gap-2"><DollarSign className="w-4 h-4 text-green-500"/> Retorno Sobre Investimento</h3>
                       <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 mb-6">
                           <div className="bg-[#111827] p-4 rounded-2xl border border-white/5 shadow-lg">
@@ -519,56 +557,44 @@ export default function App() {
                           </div>
                       </div>
 
-                      {/* NOVO BLOCO: CRESCIMENTO & IA */}
+                      {/* CRESCIMENTO & IA ANALISTA */}
                       <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 mb-6">
-                          <div className="bg-[#0f172a] p-5 rounded-2xl border border-white/5 shadow-lg">
-                              <div className="text-[10px] text-slate-400 uppercase tracking-widest mb-1">Crescimento da Banca</div>
-                              <div className={`text-2xl font-black ${crescimentoBanca() >= 0 ? 'text-green-400' : 'text-red-400'}`}>
+                          <div className="bg-[#0f172a] p-5 rounded-3xl border border-white/5 shadow-lg">
+                              <div className="text-[10px] text-slate-400 uppercase font-bold tracking-widest mb-2">Crescimento da Banca</div>
+                              <div className={`text-3xl font-black ${crescimentoBanca() >= 0 ? 'text-green-400' : 'text-red-400'}`}>
                                   {crescimentoBanca() >= 0 ? '+' : ''}{crescimentoBanca().toFixed(2)}%
                               </div>
                           </div>
-                          <div className="bg-[#0f172a] p-5 rounded-2xl border border-white/5 shadow-lg">
-                              <div className="text-[10px] text-slate-400 uppercase tracking-widest mb-1 flex items-center gap-1"><BrainCircuit className="w-3 h-3 text-blue-400"/> Análise IA</div>
-                              <div className={`font-black text-xs mt-2 ${gerarAlertaIA().cor}`}>
-                                  {gerarAlertaIA().texto}
+                          <div className="bg-[#0f172a] p-5 rounded-3xl border border-blue-500/20 shadow-lg relative overflow-hidden">
+                              <div className="absolute top-0 right-0 w-16 h-16 bg-blue-500/10 blur-xl rounded-full"></div>
+                              <div className="text-[10px] text-blue-400 uppercase font-black tracking-widest mb-2 flex items-center gap-1.5 relative z-10"><BrainCircuit className="w-3 h-3"/> IA Analista</div>
+                              <div className="text-xs text-slate-300 font-medium whitespace-pre-line leading-relaxed relative z-10">
+                                  {relatorioIA()}
                               </div>
                           </div>
                       </div>
 
-                      <h3 className="text-sm font-black text-white mb-4 uppercase tracking-wider flex items-center gap-2"><Target className="w-4 h-4 text-blue-500"/> Performance Geral</h3>
-                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 mb-6">
-                          <div className="bg-[#111827] p-5 rounded-2xl border border-white/5 shadow-lg">
-                              <div className="text-[10px] text-slate-400 font-bold uppercase tracking-widest mb-1">Yield Médio</div>
-                              <div className="text-2xl font-black text-blue-400">R$ {calcularYield()}</div>
-                          </div>
-                          <div className="bg-[#111827] p-5 rounded-2xl border border-white/5 shadow-lg">
-                              <div className="text-[10px] text-slate-400 font-bold uppercase tracking-widest mb-1">Assertividade</div>
-                              <div className="text-2xl font-black text-yellow-400">{calcularAssertividade().toFixed(1)}%</div>
-                          </div>
-                      </div>
-
+                      {/* RANKINGS DE EQUIPAS E LIGAS */}
                       <h3 className="text-sm font-black text-white mb-4 uppercase tracking-wider flex items-center gap-2"><Trophy className="w-4 h-4 text-yellow-500"/> Onde você mais lucra</h3>
-                      
-                      {/* NOVOS RANKINGS DETALHADOS DE LIGAS E EQUIPAS */}
                       <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 mb-4">
-                          <div className="bg-[#0f172a] p-5 rounded-2xl border border-white/5 shadow-lg">
-                              <h3 className="text-sm font-black text-white mb-4 uppercase tracking-wider flex items-center gap-2"><ShieldAlert className="w-4 h-4 text-orange-400"/> Top 5 Equipas</h3>
-                              <div className="flex flex-col gap-2">
+                          <div className="bg-[#0f172a] p-5 rounded-3xl border border-white/5 shadow-lg">
+                              <h3 className="text-xs font-black text-slate-400 mb-4 uppercase tracking-wider flex items-center gap-2"><ShieldAlert className="w-3 h-3 text-orange-400"/> Top 5 Equipas</h3>
+                              <div className="flex flex-col gap-1">
                                   {rankingTimes().map((item, index) => (
-                                      <div key={index} className="flex justify-between items-center py-2 border-b border-white/5 last:border-0">
-                                          <span className="text-xs font-bold text-slate-300">{index + 1}. {item.nome}</span>
-                                          <span className={`text-xs font-black ${item.lucro >= 0 ? 'text-green-400' : 'text-red-400'}`}>R$ {item.lucro.toFixed(2)}</span>
+                                      <div key={index} className="flex justify-between items-center py-2.5 border-b border-white/5 last:border-0">
+                                          <span className="text-xs font-bold text-white line-clamp-1 pr-2">{index + 1}. {item.nome}</span>
+                                          <span className={`text-xs font-black whitespace-nowrap ${item.lucro >= 0 ? 'text-green-400' : 'text-red-400'}`}>R$ {item.lucro.toFixed(2)}</span>
                                       </div>
                                   ))}
                               </div>
                           </div>
-                          <div className="bg-[#0f172a] p-5 rounded-2xl border border-white/5 shadow-lg">
-                              <h3 className="text-sm font-black text-white mb-4 uppercase tracking-wider flex items-center gap-2"><Globe className="w-4 h-4 text-purple-400"/> Top 5 Ligas</h3>
-                              <div className="flex flex-col gap-2">
+                          <div className="bg-[#0f172a] p-5 rounded-3xl border border-white/5 shadow-lg">
+                              <h3 className="text-xs font-black text-slate-400 mb-4 uppercase tracking-wider flex items-center gap-2"><Globe className="w-3 h-3 text-purple-400"/> Top 5 Ligas</h3>
+                              <div className="flex flex-col gap-1">
                                   {rankingLigas().map((item, index) => (
-                                      <div key={index} className="flex justify-between items-center py-2 border-b border-white/5 last:border-0">
-                                          <span className="text-xs font-bold text-slate-300">{index + 1}. {item.nome}</span>
-                                          <span className={`text-xs font-black ${item.lucro >= 0 ? 'text-green-400' : 'text-red-400'}`}>R$ {item.lucro.toFixed(2)}</span>
+                                      <div key={index} className="flex justify-between items-center py-2.5 border-b border-white/5 last:border-0">
+                                          <span className="text-xs font-bold text-white line-clamp-1 pr-2">{index + 1}. {item.nome}</span>
+                                          <span className={`text-xs font-black whitespace-nowrap ${item.lucro >= 0 ? 'text-green-400' : 'text-red-400'}`}>R$ {item.lucro.toFixed(2)}</span>
                                       </div>
                                   ))}
                               </div>
@@ -580,17 +606,29 @@ export default function App() {
                           <div className="bg-[#111827] p-4 rounded-2xl border border-white/5 shadow-lg flex flex-col gap-1">
                               <span className="text-[10px] text-slate-400 font-bold uppercase tracking-widest flex items-center gap-1"><PieChart className="w-3 h-3 text-blue-400"/> Top Mercado</span>
                               <strong className="text-sm font-black text-white line-clamp-1">{mercadoMaisLucrativo()[0]}</strong>
-                              <span className="text-[10px] text-green-400 font-bold">+R$ {mercadoMaisLucrativo()[1]?.toFixed(2) || '0.00'}</span>
                           </div>
                           <div className="bg-[#111827] p-4 rounded-2xl border border-white/5 shadow-lg flex flex-col gap-1">
                               <span className="text-[10px] text-slate-400 font-bold uppercase tracking-widest flex items-center gap-1"><Clock className="w-3 h-3 text-red-400"/> Top Horário</span>
                               <strong className="text-sm font-black text-white line-clamp-1">{horarioMaisLucrativo()[0]}</strong>
-                              <span className="text-[10px] text-green-400 font-bold">+R$ {horarioMaisLucrativo()[1]?.toFixed(2) || '0.00'}</span>
                           </div>
                       </div>
 
+                      {/* SIMULADOR DE STAKE */}
+                      <div className="bg-[#0f172a] p-5 rounded-3xl mb-6 shadow-lg border border-white/5">
+                          <h2 className="text-sm font-black text-white mb-4 uppercase tracking-wider flex items-center gap-2"><Calculator className="w-4 h-4 text-blue-500"/> Simulador de Stake</h2>
+                          <div className="flex gap-3 mb-4">
+                              <input type="number" placeholder="Stake (R$)" value={simStake} onChange={(e)=>setSimStake(e.target.value)} className="w-full bg-[#050816] border border-slate-800 p-3 rounded-xl text-xs text-white font-bold outline-none focus:border-blue-500 transition-colors" />
+                              <input type="number" placeholder="Odd (@)" value={simOdd} onChange={(e)=>setSimOdd(e.target.value)} className="w-full bg-[#050816] border border-slate-800 p-3 rounded-xl text-xs text-white font-bold outline-none focus:border-blue-500 transition-colors" />
+                          </div>
+                          <div className="flex justify-between items-center bg-[#111827] p-3 rounded-xl border border-white/5">
+                              <div><span className="text-[10px] text-slate-400 font-bold uppercase tracking-widest block">Lucro Limpo</span><span className="text-green-400 font-black text-sm">R$ {lucroSimulado().toFixed(2)}</span></div>
+                              <div className="text-right"><span className="text-[10px] text-slate-400 font-bold uppercase tracking-widest block">Retorno Total</span><span className="text-blue-400 font-black text-sm">R$ {retornoTotal().toFixed(2)}</span></div>
+                          </div>
+                      </div>
+
+                      {/* GRÁFICO DA BANCA */}
                       <div className="bg-[#0f172a] border border-green-500/20 rounded-3xl p-6 mb-6 shadow-lg">
-                          <h2 className="text-sm font-black text-green-400 mb-4 flex items-center gap-2 uppercase tracking-wider"><TrendingUp className="w-5 h-5"/> A Minha Banca</h2>
+                          <h2 className="text-sm font-black text-green-400 mb-4 flex items-center gap-2 uppercase tracking-wider"><TrendingUp className="w-5 h-5"/> Evolução da Banca</h2>
                           <div className="w-full relative" style={{ height: '250px' }}>
                               <ResponsiveContainer width="99%" height={249}>
                                   <LineChart data={dadosGraficoBanca}>
@@ -604,7 +642,45 @@ export default function App() {
                           </div>
                       </div>
 
-                      {/* MENUS VERTICAIS COMPACTOS: APENAS CENTRAL IA */}
+                      {/* HISTÓRICO DE APOSTAS COM FILTROS */}
+                      <div className="bg-[#0f172a] rounded-3xl p-5 mb-6 shadow-lg border border-white/5">
+                          <h2 className="text-sm font-black text-white mb-4 uppercase tracking-wider flex items-center gap-2"><List className="w-4 h-4 text-slate-400"/> Histórico de Apostas</h2>
+                          
+                          <div className="flex gap-2 mb-5">
+                              <div className="relative w-1/2">
+                                  <Filter className="w-3 h-3 absolute left-3 top-1/2 transform -translate-y-1/2 text-slate-500"/>
+                                  <select value={filtroResultado} onChange={(e)=>setFiltroResultado(e.target.value)} className="w-full bg-[#050816] border border-slate-800 text-xs text-white font-bold p-3 pl-8 rounded-xl outline-none focus:border-blue-500 appearance-none">
+                                      <option value="todos">Status: Todos</option>
+                                      <option value="green">Green (Ganhos)</option>
+                                      <option value="red">Red (Perdas)</option>
+                                  </select>
+                              </div>
+                              <select value={filtroLiga} onChange={(e)=>setFiltroLiga(e.target.value)} className="w-1/2 bg-[#050816] border border-slate-800 text-xs text-white font-bold p-3 rounded-xl outline-none focus:border-blue-500 appearance-none">
+                                  <option value="todas">Liga: Todas</option>
+                                  <option value="Brasileirão">Brasileirão</option>
+                                  <option value="Premier League">Premier League</option>
+                                  <option value="La Liga">La Liga</option>
+                              </select>
+                          </div>
+
+                          <div className="flex flex-col gap-3">
+                              {apostasFiltradas().length > 0 ? apostasFiltradas().map((a, index)=>(
+                                  <div key={index} className="bg-[#111827] border border-white/5 p-4 rounded-2xl flex justify-between items-center">
+                                      <div>
+                                          <div className="font-bold text-white text-xs mb-1">{a.jogo}</div>
+                                          <div className="text-[9px] font-black text-slate-500 uppercase tracking-widest flex items-center gap-2"><span>{a.mercado}</span> <span>•</span> <span>Odd: @{a.odd.toFixed(2)}</span></div>
+                                      </div>
+                                      <div className={`font-black text-sm uppercase tracking-widest px-3 py-1.5 rounded-lg border ${a.resultado === "green" ? "bg-green-500/10 text-green-400 border-green-500/20" : "bg-red-500/10 text-red-400 border-red-500/20"}`}>
+                                          {a.resultado}
+                                      </div>
+                                  </div>
+                              )) : (
+                                  <div className="text-center text-slate-500 text-xs py-4 font-bold">Nenhuma aposta encontrada no filtro.</div>
+                              )}
+                          </div>
+                      </div>
+
+                      {/* MENUS VERTICAIS COMPACTOS: CENTRAL IA */}
                       <div className="flex flex-col gap-3 mb-6">
                           <button onClick={() => setViewMode('ia_center')} className="w-full bg-[#0f172a] border border-blue-500/30 p-4 rounded-2xl flex items-center gap-4 shadow-sm hover:bg-[#1e293b] transition-colors">
                               <div className="bg-blue-500/10 p-2.5 rounded-xl"><Zap className="w-5 h-5 text-blue-500"/></div>
