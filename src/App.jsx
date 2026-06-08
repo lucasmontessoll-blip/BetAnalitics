@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import './app.css'; 
 import axios from 'axios';
 import { LineChart, Line, ResponsiveContainer, XAxis, YAxis, CartesianGrid, Tooltip } from 'recharts';
@@ -115,7 +115,8 @@ export default function App() {
       return (greens / apostas.length) * 100;
   };
 
-  const gerarBancaReal = () => {
+  // FIX: MEMORIZANDO OS DADOS DO GRÁFICO PARA EVITAR LOOP INFINITO NO RECHARTS
+  const dadosGraficoBanca = useMemo(() => {
       let banca = bancaInicial;
       return apostas.map((a, index) => {
           if(a.resultado === "green"){
@@ -125,8 +126,9 @@ export default function App() {
           }
           return { aposta: `Bet ${index+1}`, banca: Number(banca.toFixed(2)) };
       });
-  };
+  }, [apostas, bancaInicial]);
 
+  // --- FUNÇÕES DE ROI FRACIONADO ---
   const calcularROISemanal = () => {
     const hoje = new Date();
     const ultimaSemana = apostas.filter(aposta => {
@@ -317,7 +319,6 @@ export default function App() {
       <div className="flex items-center justify-between mb-6"><div className="flex items-center gap-3"><button onClick={onBack} className="p-2 bg-[#050816] rounded-full hover:bg-slate-800 transition border border-white/10"><ArrowLeft className="w-5 h-5"/></button><h2 className="text-xl font-black">{title}</h2></div></div>
   );
 
-  // Mantemos o motion APENAS no Splash Screen, onde não há perigo de scroll
   if (showSplash) {
     return (
       <div className="flex flex-col justify-center items-center min-h-screen bg-[#050816] text-white">
@@ -402,7 +403,6 @@ export default function App() {
                         )
                     })()}
 
-                    {/* FIX: div fixa para o gráfico Home e sem animação */}
                     <div className="bg-[#0f172a] border border-purple-500/20 rounded-3xl p-6 mb-6 mx-4 shadow-lg">
                         <h2 className="text-sm font-black text-purple-400 mb-4 flex items-center gap-2 uppercase tracking-wider"><TrendingUp className="w-4 h-4"/> Evolução do Algoritmo IA</h2>
                         <div className="w-full relative" style={{ height: '150px' }}>
@@ -486,7 +486,6 @@ export default function App() {
                           </div>
                       </div>
 
-                      {/* FIX: sm:grid-cols-2 evita empurrar cards no mobile */}
                       <h3 className="text-sm font-black text-white mb-4 uppercase tracking-wider flex items-center gap-2"><DollarSign className="w-4 h-4 text-green-500"/> Retorno Sobre Investimento</h3>
                       <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 mb-6">
                           <div className="bg-[#111827] p-4 rounded-2xl border border-white/5 shadow-lg">
@@ -543,12 +542,12 @@ export default function App() {
                           </div>
                       </div>
 
-                      {/* FIX DEFINITIVO: style inline height, relative, 99%, sem animação */}
+                      {/* FIX DEFINITIVO 3: USANDO A CONSTANTE MEMORIZADA PARA O GRÁFICO */}
                       <div className="bg-[#0f172a] border border-green-500/20 rounded-3xl p-6 mb-6 shadow-lg">
                           <h2 className="text-sm font-black text-green-400 mb-4 flex items-center gap-2 uppercase tracking-wider"><TrendingUp className="w-5 h-5"/> A Minha Banca</h2>
                           <div className="w-full relative" style={{ height: '250px' }}>
                               <ResponsiveContainer width="99%" height={249}>
-                                  <LineChart data={gerarBancaReal()}>
+                                  <LineChart data={dadosGraficoBanca}>
                                       <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.05)" vertical={false} />
                                       <XAxis dataKey="aposta" stroke="#64748b" fontSize={10} tickLine={false} axisLine={false} />
                                       <YAxis stroke="#64748b" fontSize={10} tickLine={false} axisLine={false} domain={['dataMin - 50', 'dataMax + 50']} />
