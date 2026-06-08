@@ -636,29 +636,17 @@ export default function App() {
                     <div className="flex flex-col items-center w-1/3"><img src={jogoSelecionado.away_image} className="w-16 h-16 mb-2 drop-shadow-lg" alt=""/><span className="font-black text-xs text-center">{jogoSelecionado.away_team}</span></div>
                 </div>
 
-                {jogoSelecionado.odd_principal && (
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-3 mb-6">
-
-    <button
+      {jogoSelecionado.odd_principal && (
+        <div className="mb-6">
+            <button
         onClick={() => setViewMode('ia_center')}
-        className="bg-[#0f172a] border border-blue-500/30 p-3 rounded-2xl flex items-center justify-center gap-2 shadow-lg min-h-[70px]"
+        className="w-full bg-[#0f172a] border border-blue-500/30 p-3 rounded-2xl flex items-center justify-center gap-2 shadow-lg min-h-[70px]"
     >
         <Zap className="w-5 h-5 text-blue-500 flex-shrink-0" />
         <span className="font-bold text-[11px] uppercase tracking-wider">
             Central IA
         </span>
     </button>
-
-    <button
-        onClick={() => setViewMode('ranking')}
-        className="bg-[#0f172a] border border-yellow-500/30 p-3 rounded-2xl flex items-center justify-center gap-2 shadow-lg min-h-[70px]"
-    >
-        <Users className="w-5 h-5 text-yellow-500 flex-shrink-0" />
-        <span className="font-bold text-[11px] uppercase tracking-wider">
-            Comunidade
-        </span>
-    </button>
-
 </div>
                 )}
                 
