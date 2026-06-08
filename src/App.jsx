@@ -637,16 +637,29 @@ export default function App() {
                 </div>
 
                 {jogoSelecionado.odd_principal && (
-                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 mb-5">
-                        <div className="bg-blue-500/10 border border-blue-500/30 p-4 rounded-xl text-center">
-                            <span className="text-[10px] text-blue-400 font-black uppercase tracking-widest block mb-1">Stake Recomendada</span>
-                            <strong className="text-xl font-black text-white">R$ {calcularStake(bancaInicial, jogoSelecionado.confianca_ia).toFixed(2)}</strong>
-                        </div>
-                        <div className="bg-purple-500/10 border border-purple-500/20 p-4 rounded-xl text-center">
-                            <span className="text-[10px] text-purple-400 font-bold uppercase tracking-widest block mb-1">🧠 Kelly Criterion</span>
-                            <strong className="text-xl font-black text-white">{calcularKelly(jogoSelecionado.odd_principal, jogoSelecionado.confianca_ia).toFixed(1)}%</strong>
-                        </div>
-                    </div>
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-3 mb-6">
+
+    <button
+        onClick={() => setViewMode('ia_center')}
+        className="bg-[#0f172a] border border-blue-500/30 p-3 rounded-2xl flex items-center justify-center gap-2 shadow-lg min-h-[70px]"
+    >
+        <Zap className="w-5 h-5 text-blue-500 flex-shrink-0" />
+        <span className="font-bold text-[11px] uppercase tracking-wider">
+            Central IA
+        </span>
+    </button>
+
+    <button
+        onClick={() => setViewMode('ranking')}
+        className="bg-[#0f172a] border border-yellow-500/30 p-3 rounded-2xl flex items-center justify-center gap-2 shadow-lg min-h-[70px]"
+    >
+        <Users className="w-5 h-5 text-yellow-500 flex-shrink-0" />
+        <span className="font-bold text-[11px] uppercase tracking-wider">
+            Comunidade
+        </span>
+    </button>
+
+</div>
                 )}
                 
                 <div className="bg-[#050816] rounded-2xl p-5 border border-slate-800/80 relative overflow-hidden flex flex-col items-start mb-4">
