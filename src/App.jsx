@@ -569,22 +569,45 @@ export default function App() {
                   RANKING & CENTRAL IA
               ========================================= */}
               {viewMode === 'ranking' && (
-                  <div className="px-4 animate-fade-in">
-                      <HeaderNav title="🏆 Comunidade" onBack={() => setViewMode('perfil')} />
-                      <div className="bg-[#0f172a] border border-yellow-500/30 rounded-3xl p-6 mb-6 shadow-[0_0_20px_rgba(234,179,8,0.1)]">
-                          <h3 className="text-sm font-black text-yellow-400 mb-4 flex items-center gap-2 uppercase tracking-wider"><Users className="w-5 h-5"/> Ranking Global</h3>
-                          <div className="flex flex-col gap-3">
-                              {rankingUsuarios.map((user, index) => (
-                                  <div key={index} className="bg-[#111827] border border-white/5 p-4 rounded-2xl flex justify-between items-center transition-colors">
-                                      <div className="flex items-center gap-3"><span className="text-xs font-black text-slate-400">#{index+1}</span><span className="font-bold text-white text-sm">{user.nome}</span></div>
-                                      <strong className="text-green-400 font-black">R$ {user.lucro_total.toFixed(2)}</strong>
-                                  </div>
-                              ))}
-                          </div>
-                      </div>
-                  </div>
-              )}
+    <div className="px-4">
+        <HeaderNav
+            title="🏆 Comunidade"
+            onBack={() => setViewMode('perfil')}
+        />
 
+        <div className="bg-[#0f172a] border border-yellow-500/30 rounded-3xl p-6 mb-6 shadow-[0_0_20px_rgba(234,179,8,0.1)]">
+            <h3 className="text-sm font-black text-yellow-400 mb-4 flex items-center gap-2 uppercase tracking-wider">
+                <Users className="w-5 h-5"/>
+                Ranking Global
+            </h3>
+
+            <div className="flex flex-col gap-3">
+                {(rankingUsuarios || [])
+                    .slice(0, 100)
+                    .map((user) => (
+                        <div
+                            key={user.id || user.uid || user.email}
+                            className="bg-[#111827] border border-white/5 p-4 rounded-2xl flex justify-between items-center"
+                        >
+                            <div className="flex items-center gap-3">
+                                <span className="text-xs font-black text-slate-400">
+                                    #{user.posicao || "-"}
+                                </span>
+
+                                <span className="font-bold text-white text-sm">
+                                    {user.nome}
+                                </span>
+                            </div>
+
+                            <strong className="text-green-400 font-black">
+                                R$ {(user.lucro_total || 0).toFixed(2)}
+                            </strong>
+                        </div>
+                    ))}
+            </div>
+        </div>
+    </div>
+)}
               {viewMode === 'ia_center' && (
                   <div className="px-4 animate-fade-in">
                       <HeaderNav title="🤖 Central IA" onBack={() => setViewMode('perfil')} />
