@@ -10,7 +10,7 @@ import { Home, BarChart2, Radio, Trophy, Crown, Star, ChevronRight, X, User, Zap
 // ============================================================================
 // 📦 IMPORTAÇÕES DA CLEAN ARCHITECTURE (PASTAS SEPARADAS)
 // ============================================================================
-import EstatisticasAvancadas from './components/estatisticasavancadas.jsx';
+import EstatisticasAvancadas from './components/EstatisticasAvancadas.jsx';
 import { calcularKelly, calcularDrawdown, executarBacktest } from './utils/financas.js';
 import { analisarPartidaAoVivo, buscarEstatisticasJogo } from './services/api.js';
 import { solicitarPermissaoNotificacao, dispararAlertaPush } from './services/notificacoes.js';
