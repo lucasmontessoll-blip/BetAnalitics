@@ -37,7 +37,7 @@ const mockJogoDetalhes = { stats_reais: [{type: "Posse (%)", h: 58, a: 42}, {typ
 const mockRankingUsuarios = [ { id: 1, nome: "Lucas", lucro_total: 1840 }, { id: 2, nome: "Carlos", lucro_total: 1430 }, { id: 3, nome: "João", lucro_total: 1180 }, { id: 4, nome: "Marcos", lucro_total: 950 } ];
 
 // ============================================================================
-// 🧠 FUNÇÕES GLOBAIS EMBUTIDAS 
+// 🧠 FUNÇÕES GLOBAIS EMBUTIDAS
 // ============================================================================
 const calcularEV = (probabilidade, odd) => (((probabilidade / 100) * odd - 1) * 100);
 const calcularHeatScore = (jogo) => Math.round((jogo.confianca_ia * 0.5) + (calcularEV(jogo.confianca_ia, jogo.odd_principal) * 2) + (((jogo.homeStats?.form||50) - (jogo.awayStats?.form||50)) * 0.3));
@@ -152,15 +152,26 @@ export default function App() {
   const [stopWin, setStopWin] = useState(200);
   const [stopLoss, setStopLoss] = useState(100);
 
-  const calcularLucroLiquido = () => apostas.reduce((total, a) => a.resultado === "green" ? total + ((a.stake * a.odd) - a.stake) : total - a.stake, 0);
-  const calcularYield = () => apostas.length === 0 ? "0.00" : (calcularLucroLiquido() / apostas.length).toFixed(2);
-  const calcularAssertividade = () => apostas.length === 0 ? 0 : (apostas.filter(a => a.resultado === "green").length / apostas.length) * 100;
-  const lucroAcumulado = () => calcularLucroLiquido();
+  // ============================================================================
+  // ⚡ CÁLCULOS OTIMIZADOS (Prevenção de Render Thrashing / Tremor)
+  // O useMemo garante que os cálculos só ocorrem quando uma nova aposta é inserida
+  // ============================================================================
+  
+  const lucroAcumulado = useMemo(() => {
+    return apostas.reduce((acc, a) => a.resultado === "green" ? acc + ((a.stake * a.odd) - a.stake) : acc - a.stake, 0);
+  }, [apostas]);
 
-  const atingiuStopWin = () => lucroAcumulado() >= stopWin;
-  const atingiuStopLoss = () => lucroAcumulado() <= -stopLoss;
+  const yieldMedio = useMemo(() => {
+    return apostas.length === 0 ? "0.00" : (lucroAcumulado / apostas.length).toFixed(2);
+  }, [apostas, lucroAcumulado]);
 
-  // USEMEMO OTIMIZADO PARA O GRÁFICO (Protegido contra recalculations extras)
+  const assertividade = useMemo(() => {
+    return apostas.length === 0 ? 0 : (apostas.filter(a => a.resultado === "green").length / apostas.length) * 100;
+  }, [apostas]);
+
+  const atingiuStopWin = lucroAcumulado >= stopWin;
+  const atingiuStopLoss = lucroAcumulado <= -stopLoss;
+
   const dadosGraficoBanca = useMemo(() => {
       let banca = bancaInicial || 1000;
       return apostas.map((a, index) => {
@@ -169,100 +180,103 @@ export default function App() {
       });
   }, [apostas, bancaInicial]);
 
-  const calcularROISemanal = () => {
+  const roiSemanal = useMemo(() => {
     const hoje = new Date();
     const ultimaSemana = apostas.filter(a => (hoje - new Date(a.data)) / (1000 * 60 * 60 * 24) <= 7);
     const investido = ultimaSemana.reduce((acc,a)=>acc+a.stake, 0);
     const lucro = ultimaSemana.reduce((acc,a) => a.resultado==="green" ? acc + ((a.stake*a.odd)-a.stake) : acc-a.stake, 0);
     return investido ? (lucro/investido)*100 : 0;
-  };
+  }, [apostas]);
 
-  const calcularROIMensal = () => {
+  const roiMensal = useMemo(() => {
     const mesAtual = new Date().getMonth();
     const apostasMes = apostas.filter(a => new Date(a.data).getMonth() === mesAtual);
     const investido = apostasMes.reduce((acc,a)=>acc+a.stake, 0);
     const lucro = apostasMes.reduce((acc,a)=> a.resultado==="green" ? acc + ((a.stake*a.odd)-a.stake) : acc-a.stake, 0);
     return investido ? (lucro/investido)*100 : 0;
-  };
+  }, [apostas]);
 
-  const calcularROIAnual = () => {
+  const roiAnual = useMemo(() => {
     const ano = new Date().getFullYear();
     const apostasAno = apostas.filter(a => new Date(a.data).getFullYear() === ano);
     const investido = apostasAno.reduce((acc,a)=>acc+a.stake, 0);
     const lucro = apostasAno.reduce((acc,a)=> a.resultado==="green" ? acc + ((a.stake*a.odd)-a.stake) : acc-a.stake, 0);
     return investido ? (lucro/investido)*100 : 0;
-  };
+  }, [apostas]);
 
-  const crescimentoBanca = () => bancaInicial === 0 ? 0 : (lucroAcumulado() / bancaInicial) * 100;
-  const progressoMeta = () => Math.min((lucroAcumulado() / (metaMensal || 1)) * 100, 100);
+  const crescimentoBancaCalc = useMemo(() => {
+    return bancaInicial === 0 ? 0 : (lucroAcumulado / bancaInicial) * 100;
+  }, [lucroAcumulado, bancaInicial]);
 
-  const mercadoMaisLucrativo = () => {
+  const progressoMetaCalc = useMemo(() => {
+    return Math.min((lucroAcumulado / (metaMensal || 1)) * 100, 100);
+  }, [lucroAcumulado, metaMensal]);
+
+  // A GRANDE CORREÇÃO DA TELA TREMENDO:
+  const topMercado = useMemo(() => {
     const mercados = {};
-    apostas.forEach(a=>{
-      if(!mercados[a.mercado]) mercados[a.mercado]=0;
-      if(a.resultado==="green") mercados[a.mercado]+= ((a.stake*a.odd)-a.stake); else mercados[a.mercado]-= a.stake;
+    apostas.forEach(a => {
+      if(!mercados[a.mercado]) mercados[a.mercado] = 0;
+      if(a.resultado === "green") mercados[a.mercado] += ((a.stake * a.odd) - a.stake); else mercados[a.mercado] -= a.stake;
     });
     const sorted = Object.entries(mercados).sort((a,b)=>b[1]-a[1]);
     return sorted.length > 0 ? sorted[0] : ['N/A', 0];
-  };
+  }, [apostas]);
 
-  const relatorioIA = () => {
-    const roi = calcularROIMensal();
-    const mercadoTop = mercadoMaisLucrativo()[0] || 'N/A';
-    if(roi > 20) return `🔥 ROI excelente de ${Number(roi||0).toFixed(1)}%.\nO mercado mais lucrativo é ${mercadoTop}.\nConsidere escalar os lucros.`;
-    if(roi > 5) return `✅ Desempenho sólido e positivo.\nContinue a manter uma gestão disciplinada.`;
-    return `⚠️ Atenção à sua gestão.\nO seu ROI está abaixo do ideal.\nReduza as stakes temporariamente.`;
-  };
+  const topHorario = useMemo(() => {
+    const horarios = {};
+    apostas.forEach(a => {
+      const hora = a.hora ? a.hora.split(":")[0] + "h" : "N/A";
+      if(!horarios[hora]) horarios[hora] = 0;
+      if(a.resultado === "green") horarios[hora] += ((a.stake * a.odd) - a.stake); else horarios[hora] -= a.stake;
+    });
+    const sorted = Object.entries(horarios).sort((a,b)=>b[1]-a[1]);
+    return sorted.length > 0 ? sorted[0] : ['N/A', 0];
+  }, [apostas]);
 
-  const listaConquistas = () => {
-    const lista = [];
-    if(apostas.length >= 1) lista.push("🥉 1ª Aposta");
-    if(lucroAcumulado() >= 500) lista.push("🥈 Lucro R$ 500");
-    if(calcularROIMensal() >= 10) lista.push("🥇 ROI > 10%");
-    if(apostas.length >= 50) lista.push("🏆 Veterano (50+)");
-    return lista;
-  };
-
-  const rankingTimes = () => {
+  const topTimes = useMemo(() => {
     const times = {};
     apostas.forEach(a => {
       if(!times[a.time]) times[a.time] = 0;
       if(a.resultado === "green") times[a.time] += ((a.stake * a.odd) - a.stake); else times[a.time] -= a.stake;
     });
-    return Object.entries(times).map(([nome, lucro]) => ({nome, lucro})).sort((a,b)=>b.lucro-a.lucro).slice(0,5);
-  };
+    return Object.entries(times).sort((a,b)=>b[1]-a[1]).slice(0,5);
+  }, [apostas]);
 
-  const rankingLigas = () => {
+  const topLigas = useMemo(() => {
     const ligas = {};
     apostas.forEach(a => {
       if(!ligas[a.liga]) ligas[a.liga] = 0;
       if(a.resultado === "green") ligas[a.liga] += ((a.stake * a.odd) - a.stake); else ligas[a.liga] -= a.stake;
     });
-    return Object.entries(ligas).map(([nome, lucro]) => ({nome, lucro})).sort((a,b)=>b.lucro-a.lucro).slice(0,5);
-  };
+    return Object.entries(ligas).sort((a,b)=>b[1]-a[1]).slice(0,5);
+  }, [apostas]);
 
-  const horarioMaisLucrativo = () => {
-    const horarios = {};
-    apostas.forEach(a=>{
-      const hora = a.hora ? a.hora.split(":")[0] + "h" : "N/A";
-      if(!horarios[hora]) horarios[hora]=0;
-      if(a.resultado==="green") horarios[hora]+= ((a.stake*a.odd)-a.stake); else horarios[hora]-= a.stake;
-    });
-    const sorted = Object.entries(horarios).sort((a,b)=>b[1]-a[1]);
-    return sorted.length > 0 ? sorted[0] : ['N/A', 0];
-  };
+  const relatorioIACalc = useMemo(() => {
+    const mercadoNome = topMercado[0] || 'N/A';
+    if(roiMensal > 20) return `🔥 ROI excelente de ${Number(roiMensal||0).toFixed(1)}%.\nO mercado mais lucrativo é ${mercadoNome}.\nConsidere escalar os lucros.`;
+    if(roiMensal > 5) return `✅ Desempenho sólido e positivo.\nContinue a manter uma gestão disciplinada.`;
+    return `⚠️ Atenção à sua gestão.\nO seu ROI está abaixo do ideal.\nReduza as stakes temporariamente.`;
+  }, [roiMensal, topMercado]);
 
-  // Proteção contra valores vazios no simulador
-  const lucroSimulado = () => (Number(simStake||0) * Number(simOdd||0)) - Number(simStake||0);
-  const retornoTotal = () => Number(simStake||0) * Number(simOdd||0);
+  const listaConquistasCalc = useMemo(() => {
+    const lista = [];
+    if(apostas.length >= 1) lista.push("🥉 1ª Aposta");
+    if(lucroAcumulado >= 500) lista.push("🥈 Lucro R$ 500");
+    if(roiMensal >= 10) lista.push("🥇 ROI > 10%");
+    if(apostas.length >= 50) lista.push("🏆 Veterano (50+)");
+    return lista;
+  }, [apostas.length, lucroAcumulado, roiMensal]);
 
-  const apostasFiltradas = () => {
-    return apostas.filter(a => {
+  // Simulador
+  const lucroSimulado = (Number(simStake||0) * Number(simOdd||0)) - Number(simStake||0);
+  const retornoTotal = Number(simStake||0) * Number(simOdd||0);
+
+  const apostasFiltradas = apostas.filter(a => {
       const resultadoOk = filtroResultado === 'todos' || a.resultado === filtroResultado;
       const ligaOk = filtroLiga === 'todas' || a.liga === filtroLiga;
       return resultadoOk && ligaOk;
-    });
-  };
+  });
 
   const handleRunBacktest = () => {
       const res = executarBacktest(apostas, bancaInicial);
@@ -380,7 +394,6 @@ export default function App() {
     );
   }
 
-  // A div principal agora tem overflow-x-hidden e w-full para evitar qualquer transbordo horizontal no mobile
   return (
     <div className="min-h-screen bg-[#050816] text-white font-sans pb-28 overflow-x-hidden w-full max-w-full">
       <header className="flex items-center justify-between px-5 py-4 bg-[#050816] sticky top-0 z-40 border-b border-white/5">
@@ -523,7 +536,7 @@ export default function App() {
                           </div>
                       </div>
 
-                      {/* GESTÃO DE RISCO DIÁRIO - GRID CORRIGIDO PARA MOBILE */}
+                      {/* GESTÃO DE RISCO DIÁRIO */}
                       <div className="bg-[#0f172a] p-4 sm:p-5 rounded-3xl mb-6 shadow-lg border border-white/5 relative z-10 overflow-hidden w-full">
                           <h3 className="text-sm font-black text-white mb-4 uppercase tracking-wider flex items-center gap-2"><Activity className="w-4 h-4 text-orange-500"/> Gestão de Risco Diário</h3>
                           <div className="flex gap-3 mb-4 w-full">
@@ -537,12 +550,12 @@ export default function App() {
                               </div>
                           </div>
                           
-                          {atingiuStopWin() && (
+                          {atingiuStopWin && (
                               <div className="bg-green-500/10 border border-green-500/30 p-3 rounded-xl text-green-400 text-xs font-black text-center flex items-center justify-center gap-2 shadow-inner break-words">
                                   ✅ META BATIDA!
                               </div>
                           )}
-                          {atingiuStopLoss() && (
+                          {atingiuStopLoss && (
                               <div className="bg-red-500/10 border border-red-500/30 p-3 rounded-xl text-red-400 text-xs font-black text-center flex items-center justify-center gap-2 shadow-inner mt-2 break-words">
                                   ⚠️ STOP LOSS!
                               </div>
@@ -553,10 +566,10 @@ export default function App() {
                       <div className="bg-[#0f172a] p-4 sm:p-5 rounded-3xl mb-6 shadow-lg border border-white/5 relative z-10 overflow-hidden w-full">
                           <div className="flex justify-between mb-2">
                               <span className="text-sm font-black text-white uppercase tracking-wider flex items-center gap-2"><Target className="w-4 h-4 text-green-500"/> Meta Mensal</span>
-                              <span className="text-xs font-bold text-slate-300">R$ {Number(lucroAcumulado() || 0).toFixed(2)} <span className="text-slate-500">/ R$ {Number(metaMensal || 0).toFixed(2)}</span></span>
+                              <span className="text-xs font-bold text-slate-300">R$ {Number(lucroAcumulado || 0).toFixed(2)} <span className="text-slate-500">/ R$ {Number(metaMensal || 0).toFixed(2)}</span></span>
                           </div>
                           <div className="bg-slate-800 h-4 rounded-full overflow-hidden mt-3 shadow-inner">
-                              <div className="bg-gradient-to-r from-green-600 to-green-400 h-full rounded-full transition-all duration-1000 relative" style={{width: `${progressoMeta()}%`}}></div>
+                              <div className="bg-gradient-to-r from-green-600 to-green-400 h-full rounded-full transition-all duration-1000 relative" style={{width: `${progressoMetaCalc}%`}}></div>
                           </div>
                       </div>
 
@@ -564,7 +577,7 @@ export default function App() {
                       <div className="mb-6 w-full overflow-hidden relative z-10">
                           <h3 className="text-sm font-black text-white mb-3 uppercase tracking-wider flex items-center gap-2"><Trophy className="w-4 h-4 text-yellow-500"/> Conquistas Desbloqueadas</h3>
                           <div className="flex gap-2 overflow-x-auto no-scrollbar pb-2">
-                              {listaConquistas().map((c, index)=>(
+                              {listaConquistasCalc.map((c, index)=>(
                                   <div key={index} className="bg-[#0f172a] border border-yellow-500/20 text-yellow-500 text-xs font-black px-4 py-2.5 rounded-xl whitespace-nowrap shadow-sm">
                                       {c}
                                   </div>
@@ -572,7 +585,7 @@ export default function App() {
                           </div>
                       </div>
 
-                      {/* GESTÃO PROFISSIONAL (Drawdown e Backtest) - GRID CORRIGIDO PARA MOBILE */}
+                      {/* GESTÃO PROFISSIONAL */}
                       <h3 className="text-sm font-black text-white mb-4 uppercase tracking-wider flex items-center gap-2 relative z-10"><Activity className="w-4 h-4 text-red-500"/> Gestão Profissional</h3>
                       <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 mb-6 relative z-10 overflow-hidden w-full">
                           <div className="bg-[#111827] p-4 sm:p-5 rounded-2xl border border-red-500/20 shadow-lg flex flex-col justify-center overflow-hidden min-w-0">
@@ -585,54 +598,54 @@ export default function App() {
                           </button>
                       </div>
 
-                      {/* ROI E LUCRO - GRID CORRIGIDO PARA MOBILE */}
+                      {/* ROI E LUCRO */}
                       <h3 className="text-sm font-black text-white mb-4 uppercase tracking-wider flex items-center gap-2 relative z-10"><DollarSign className="w-4 h-4 text-green-500"/> Retorno Sobre Investimento</h3>
                       <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 mb-6 relative z-10 overflow-hidden w-full">
                           <div className="bg-[#111827] p-4 rounded-2xl border border-white/5 shadow-lg overflow-hidden min-w-0">
                               <div className="text-[10px] text-slate-400 font-bold uppercase tracking-widest mb-1 truncate">ROI Semanal</div>
-                              <div className={`text-xl font-black truncate ${calcularROISemanal() >= 0 ? 'text-green-400' : 'text-red-400'}`}>{Number(calcularROISemanal() || 0).toFixed(1)}%</div>
+                              <div className={`text-xl font-black truncate ${roiSemanal >= 0 ? 'text-green-400' : 'text-red-400'}`}>{Number(roiSemanal || 0).toFixed(1)}%</div>
                           </div>
                           <div className="bg-[#111827] p-4 rounded-2xl border border-white/5 shadow-lg overflow-hidden min-w-0">
                               <div className="text-[10px] text-slate-400 font-bold uppercase tracking-widest mb-1 truncate">ROI Mensal</div>
-                              <div className={`text-xl font-black truncate ${calcularROIMensal() >= 0 ? 'text-green-400' : 'text-red-400'}`}>{Number(calcularROIMensal() || 0).toFixed(1)}%</div>
+                              <div className={`text-xl font-black truncate ${roiMensal >= 0 ? 'text-green-400' : 'text-red-400'}`}>{Number(roiMensal || 0).toFixed(1)}%</div>
                           </div>
                           <div className="bg-[#111827] p-4 rounded-2xl border border-white/5 shadow-lg overflow-hidden min-w-0">
                               <div className="text-[10px] text-slate-400 font-bold uppercase tracking-widest mb-1 truncate">ROI Anual</div>
-                              <div className={`text-xl font-black truncate ${calcularROIAnual() >= 0 ? 'text-green-400' : 'text-red-400'}`}>{Number(calcularROIAnual() || 0).toFixed(1)}%</div>
+                              <div className={`text-xl font-black truncate ${roiAnual >= 0 ? 'text-green-400' : 'text-red-400'}`}>{Number(roiAnual || 0).toFixed(1)}%</div>
                           </div>
                           <div className="bg-[#111827] p-4 rounded-2xl border border-white/5 shadow-lg overflow-hidden min-w-0">
                               <div className="text-[10px] text-slate-400 font-bold uppercase tracking-widest mb-1 truncate">Lucro Total</div>
-                              <div className={`text-xl font-black truncate ${lucroAcumulado() >= 0 ? 'text-green-400' : 'text-red-400'}`}>R$ {Number(lucroAcumulado() || 0).toFixed(2)}</div>
+                              <div className={`text-xl font-black truncate ${lucroAcumulado >= 0 ? 'text-green-400' : 'text-red-400'}`}>R$ {Number(lucroAcumulado || 0).toFixed(2)}</div>
                           </div>
                       </div>
 
-                      {/* CRESCIMENTO & IA ANALISTA - GRID CORRIGIDO */}
+                      {/* CRESCIMENTO & IA ANALISTA */}
                       <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 mb-6 relative z-10 overflow-hidden w-full">
                           <div className="bg-[#0f172a] p-4 sm:p-5 rounded-3xl border border-white/5 shadow-lg overflow-hidden min-w-0">
                               <div className="text-[10px] text-slate-400 uppercase font-bold tracking-widest mb-2 truncate">Crescimento da Banca</div>
-                              <div className={`text-2xl sm:text-3xl font-black truncate ${crescimentoBanca() >= 0 ? 'text-green-400' : 'text-red-400'}`}>
-                                  {crescimentoBanca() >= 0 ? '+' : ''}{Number(crescimentoBanca() || 0).toFixed(2)}%
+                              <div className={`text-2xl sm:text-3xl font-black truncate ${crescimentoBancaCalc >= 0 ? 'text-green-400' : 'text-red-400'}`}>
+                                  {crescimentoBancaCalc >= 0 ? '+' : ''}{Number(crescimentoBancaCalc || 0).toFixed(2)}%
                               </div>
                           </div>
                           <div className="bg-[#0f172a] p-4 sm:p-5 rounded-3xl border border-blue-500/20 shadow-lg relative overflow-hidden min-w-0">
                               <div className="absolute top-0 right-0 w-16 h-16 bg-blue-500/10 blur-xl rounded-full"></div>
                               <div className="text-[10px] text-blue-400 uppercase font-black tracking-widest mb-2 flex items-center gap-1.5 relative z-10 truncate"><BrainCircuit className="w-3 h-3 flex-shrink-0"/> IA Analista</div>
                               <div className="text-xs text-slate-300 font-medium whitespace-pre-line leading-relaxed relative z-10 break-words">
-                                  {relatorioIA()}
+                                  {relatorioIACalc}
                               </div>
                           </div>
                       </div>
 
-                      {/* RANKINGS DE EQUIPAS E LIGAS - GRID CORRIGIDO */}
+                      {/* RANKINGS DE EQUIPAS E LIGAS */}
                       <h3 className="text-sm font-black text-white mb-4 uppercase tracking-wider flex items-center gap-2 relative z-10"><Trophy className="w-4 h-4 text-yellow-500"/> Onde você mais lucra</h3>
                       <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 mb-4 relative z-10 overflow-hidden w-full">
                           <div className="bg-[#0f172a] p-4 sm:p-5 rounded-3xl border border-white/5 shadow-lg overflow-hidden min-w-0">
                               <h3 className="text-xs font-black text-slate-400 mb-4 uppercase tracking-wider flex items-center gap-2 truncate"><ShieldAlert className="w-3 h-3 text-orange-400 flex-shrink-0"/> Top 5 Equipas</h3>
                               <div className="flex flex-col gap-1">
-                                  {rankingTimes().map((item, index) => (
+                                  {topTimes.map((item, index) => (
                                       <div key={index} className="flex justify-between items-center py-2.5 border-b border-white/5 last:border-0 overflow-hidden">
-                                          <span className="text-xs font-bold text-white truncate pr-2">{index + 1}. {item.nome}</span>
-                                          <span className={`text-xs font-black whitespace-nowrap flex-shrink-0 ${item.lucro >= 0 ? 'text-green-400' : 'text-red-400'}`}>R$ {Number(item.lucro||0).toFixed(2)}</span>
+                                          <span className="text-xs font-bold text-white truncate pr-2">{index + 1}. {item[0]}</span>
+                                          <span className={`text-xs font-black whitespace-nowrap flex-shrink-0 ${item[1] >= 0 ? 'text-green-400' : 'text-red-400'}`}>R$ {Number(item[1]||0).toFixed(2)}</span>
                                       </div>
                                   ))}
                               </div>
@@ -640,25 +653,25 @@ export default function App() {
                           <div className="bg-[#0f172a] p-4 sm:p-5 rounded-3xl border border-white/5 shadow-lg overflow-hidden min-w-0">
                               <h3 className="text-xs font-black text-slate-400 mb-4 uppercase tracking-wider flex items-center gap-2 truncate"><Globe className="w-3 h-3 text-purple-400 flex-shrink-0"/> Top 5 Ligas</h3>
                               <div className="flex flex-col gap-1">
-                                  {rankingLigas().map((item, index) => (
+                                  {topLigas.map((item, index) => (
                                       <div key={index} className="flex justify-between items-center py-2.5 border-b border-white/5 last:border-0 overflow-hidden">
-                                          <span className="text-xs font-bold text-white truncate pr-2">{index + 1}. {item.nome}</span>
-                                          <span className={`text-xs font-black whitespace-nowrap flex-shrink-0 ${item.lucro >= 0 ? 'text-green-400' : 'text-red-400'}`}>R$ {Number(item.lucro||0).toFixed(2)}</span>
+                                          <span className="text-xs font-bold text-white truncate pr-2">{index + 1}. {item[0]}</span>
+                                          <span className={`text-xs font-black whitespace-nowrap flex-shrink-0 ${item[1] >= 0 ? 'text-green-400' : 'text-red-400'}`}>R$ {Number(item[1]||0).toFixed(2)}</span>
                                       </div>
                                   ))}
                               </div>
                           </div>
                       </div>
 
-                      {/* SUMMARY DE MERCADO E HORÁRIO - GRID CORRIGIDO */}
+                      {/* SUMMARY DE MERCADO E HORÁRIO - ONDE ESTAVA O BUG DA TELA TREMENDO */}
                       <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 mb-6 relative z-10 overflow-hidden w-full">
                           <div className="bg-[#111827] p-4 rounded-2xl border border-white/5 shadow-lg flex flex-col gap-1 overflow-hidden min-w-0">
                               <span className="text-[10px] text-slate-400 font-bold uppercase tracking-widest flex items-center gap-1 truncate"><PieChart className="w-3 h-3 text-blue-400 flex-shrink-0"/> Top Mercado</span>
-                              <strong className="text-sm font-black text-white truncate">{mercadoMaisLucrativo()[0]}</strong>
+                              <strong className="text-sm font-black text-white truncate">{topMercado[0]}</strong>
                           </div>
                           <div className="bg-[#111827] p-4 rounded-2xl border border-white/5 shadow-lg flex flex-col gap-1 overflow-hidden min-w-0">
                               <span className="text-[10px] text-slate-400 font-bold uppercase tracking-widest flex items-center gap-1 truncate"><Clock className="w-3 h-3 text-red-400 flex-shrink-0"/> Top Horário</span>
-                              <strong className="text-sm font-black text-white truncate">{horarioMaisLucrativo()[0]}</strong>
+                              <strong className="text-sm font-black text-white truncate">{topHorario[0]}</strong>
                           </div>
                       </div>
 
@@ -670,8 +683,8 @@ export default function App() {
                               <input type="number" placeholder="Odd" value={simOdd} onChange={(e)=>setSimOdd(e.target.value)} className="w-full bg-[#050816] border border-slate-800 p-3 rounded-xl text-xs text-white font-bold outline-none focus:border-blue-500 transition-colors min-w-0" />
                           </div>
                           <div className="flex justify-between items-center bg-[#111827] p-3 rounded-xl border border-white/5 overflow-hidden">
-                              <div className="overflow-hidden pr-2"><span className="text-[10px] text-slate-400 font-bold uppercase tracking-widest block truncate">Lucro Limpo</span><span className="text-green-400 font-black text-sm truncate">R$ {Number(lucroSimulado()||0).toFixed(2)}</span></div>
-                              <div className="text-right overflow-hidden"><span className="text-[10px] text-slate-400 font-bold uppercase tracking-widest block truncate">Retorno Total</span><span className="text-blue-400 font-black text-sm truncate">R$ {Number(retornoTotal()||0).toFixed(2)}</span></div>
+                              <div className="overflow-hidden pr-2"><span className="text-[10px] text-slate-400 font-bold uppercase tracking-widest block truncate">Lucro Limpo</span><span className="text-green-400 font-black text-sm truncate">R$ {Number(lucroSimulado||0).toFixed(2)}</span></div>
+                              <div className="text-right overflow-hidden"><span className="text-[10px] text-slate-400 font-bold uppercase tracking-widest block truncate">Retorno Total</span><span className="text-blue-400 font-black text-sm truncate">R$ {Number(retornoTotal||0).toFixed(2)}</span></div>
                           </div>
                       </div>
 
@@ -722,7 +735,7 @@ export default function App() {
                           </div>
 
                           <div className="flex flex-col gap-3">
-                              {apostasFiltradas().length > 0 ? apostasFiltradas().map((a, index)=>(
+                              {apostasFiltradas.length > 0 ? apostasFiltradas.map((a, index)=>(
                                   <div key={index} className="bg-[#111827] border border-white/5 p-4 rounded-2xl flex justify-between items-center overflow-hidden">
                                       <div className="overflow-hidden pr-2 min-w-0">
                                           <div className="font-bold text-white text-xs mb-1 truncate">{a.jogo}</div>
