@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useMemo } from 'react';
-import './app.css'; 
+import './App.css'; 
 import axios from 'axios';
 import { LineChart, Line, ResponsiveContainer, XAxis, YAxis, CartesianGrid, Tooltip } from 'recharts';
 import { motion, AnimatePresence } from 'framer-motion';
