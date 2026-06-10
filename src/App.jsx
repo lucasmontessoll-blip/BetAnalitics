@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useMemo } from 'react';
-import './app.css'; 
+import './App.css'; 
 import axios from 'axios';
 import { LineChart, Line, ResponsiveContainer, XAxis, YAxis, CartesianGrid, Tooltip } from 'recharts';
 import { motion, AnimatePresence } from 'framer-motion';
@@ -14,7 +14,7 @@ import EstatisticasAvancadas from './components/EstatisticasAvancadas.jsx';
 import { calcularKelly, calcularDrawdown, executarBacktest } from './utils/financas.js';
 import { analisarPartidaAoVivo, buscarEstatisticasJogo } from './services/api.js';
 import { solicitarPermissaoNotificacao, dispararAlertaPush } from './services/notificacoes.js';
-
+ 
 // ============================================================================
 // ⚙️ CONFIGURAÇÕES PRINCIPAIS & SUPABASE
 // ============================================================================
