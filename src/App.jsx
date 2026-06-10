@@ -5,9 +5,9 @@ import { LineChart, Line, ResponsiveContainer, XAxis, YAxis, CartesianGrid, Tool
 import { motion, AnimatePresence } from 'framer-motion';
 import { initMercadoPago } from '@mercadopago/sdk-react'; 
 import { createClient } from '@supabase/supabase-js';
-import { Home, BarChart2, Radio, Trophy, Crown, Star, ChevronRight, X, User, Zap, TrendingUp, Crosshair, Bell, Globe, DollarSign, Activity, ShieldAlert, ArrowLeft, Send, Settings, CheckCircle2, Target, Flame, BrainCircuit, TrendingDown, AlertTriangle, Users, Award, PieChart, Calendar, Clock, Filter, Calculator, List } from 'lucide-react';
+import { Home, BarChart2, Radio, Trophy, Crown, Star, ChevronRight, X, User, Zap, TrendingUp, Crosshair, Bell, Globe, DollarSign, Activity, ShieldAlert, ArrowLeft, Send, Settings, CheckCircle2, Target, Flame, BrainCircuit, TrendingDown, AlertTriangle, Users, Award, PieChart, Calendar, Clock, Filter, Calculator, List, Smartphone } from 'lucide-react';
 
-// IMPORTANDO O NOVO COMPONENTE DE ARQUITETURA LIMPA
+// IMPORTAÇÃO CORRETA E BLINDADA
 import EstatisticasAvancadas from './components/EstatisticasAvancadas.jsx';
 
 // ============================================================================
@@ -38,11 +38,10 @@ const mockJogoDetalhes = { stats_reais: [{type: "Posse (%)", h: 58, a: 42}, {typ
 const mockRankingUsuarios = [ { id: 1, nome: "Lucas", lucro_total: 1840 }, { id: 2, nome: "Carlos", lucro_total: 1430 }, { id: 3, nome: "João", lucro_total: 1180 }, { id: 4, nome: "Marcos", lucro_total: 950 } ];
 
 // ============================================================================
-// 🧠 FUNÇÕES GLOBAIS IA
+// 🧠 FUNÇÕES GLOBAIS EMBUTIDAS (Evita o ecrã crashar)
 // ============================================================================
 const calcularEV = (probabilidade, odd) => (((probabilidade / 100) * odd - 1) * 100);
 const calcularHeatScore = (jogo) => Math.round((jogo.confianca_ia * 0.5) + (calcularEV(jogo.confianca_ia, jogo.odd_principal) * 2) + (((jogo.homeStats?.form||50) - (jogo.awayStats?.form||50)) * 0.3));
-const gerarConsensoIA = (jogo) => (((jogo.homeStats?.form||80) + (jogo.homeStats?.h2h||75) + 90 + (jogo.homeStats?.attack||80)) / 4).toFixed(1);
 const detectarValueBet = (probabilidadeIA, odd) => probabilidadeIA > (100 / odd);
 
 const calcularRisco = (jogo) => {
@@ -64,6 +63,56 @@ const calcularKelly = (odd, probabilidade) => {
     return Math.max((((b * p) - (1 - p)) / b) * 100, 0);
 };
 
+// Funções Matemáticas de Gestão
+const calcularDrawdown = (listaApostas, bancaIni) => {
+    let pico = bancaIni; let maxDD = 0; let b = bancaIni;
+    listaApostas.forEach(a => {
+        if(a.resultado === "green") b += (a.stake * a.odd) - a.stake; else b -= a.stake;
+        if(b > pico) pico = b;
+        const dd = ((pico - b) / pico) * 100;
+        if(dd > maxDD) maxDD = dd;
+    });
+    return maxDD.toFixed(2);
+};
+
+const executarBacktest = (listaApostas, bancaIni) => {
+    let b = bancaIni;
+    listaApostas.forEach(a => {
+        if(a.resultado === "green") b += (a.stake * a.odd) - a.stake; else b -= a.stake;
+    });
+    return { bancaFinal: b, lucro: b - bancaIni, roi: ((b - bancaIni) / bancaIni) * 100 };
+};
+
+// Funções API Simuladas
+const buscarEstatisticasJogo = async (fixtureId) => {
+    return [ { shotsOnGoal: 6, ballPossession: 65, corners: 8 }, { shotsOnGoal: 2, ballPossession: 35, corners: 2 } ];
+};
+
+const analisarPartidaAoVivo = (stats) => {
+    if(!stats || stats.length < 2) return { confianca: 0, recomendacao: "Aguardando dados" };
+    const casa = stats[0]; const fora = stats[1]; let score = 40;
+    if (casa.shotsOnGoal > fora.shotsOnGoal) score += 20;
+    if (casa.ballPossession > fora.ballPossession) score += 15;
+    if (casa.corners > fora.corners) score += 10;
+    return {
+        confianca: Math.min(score, 99),
+        recomendacao: score > 75 ? "Forte Tendência Casa" : score > 60 ? "Over Gols Sugerido" : "Mercado Indefinido"
+    };
+};
+
+// Funções de Notificação Push
+const solicitarPermissaoNotificacao = () => {
+    if (!("Notification" in window)) return alert("Navegador não suporta notificações.");
+    Notification.requestPermission().then(permission => {
+        if (permission === "granted") new Notification("BetAnalytics PRO", { body: "Notificações ativadas com sucesso!" });
+    });
+};
+
+const dispararAlertaPush = (titulo, mensagem) => {
+    if ("Notification" in window && Notification.permission === "granted") new Notification(titulo, { body: mensagem });
+    else alert(`${titulo}: ${mensagem}`);
+};
+
 export default function App() {
   const [showSplash, setShowSplash] = useState(true);
   const [ligaAtivaId, setLigaAtivaId] = useState(null); 
@@ -82,14 +131,13 @@ export default function App() {
   const [alertas, setAlertas] = useState([{ id: 1, msg: "O Flamengo chegou a 94% de confiança.", lida: false }]);
   const [topPick] = useState({ jogo: "Flamengo x Palmeiras", confianca: 92, ev: 14.2, mercado: "Vitória Flamengo" });
   const [rankingUsuarios, setRankingUsuarios] = useState([]);
-  const [marketRadar] = useState([{ jogo: "Flamengo", abertura: 1.95, atual: 1.82 }, { jogo: "Liverpool", abertura: 2.10, atual: 1.88 }, { jogo: "Real Madrid", abertura: 2.05, atual: 1.95 }]);
 
   const [oportunidades, setOportunidades] = useState([]);
   const [bilhetePremium, setBilhetePremium] = useState({ selecoes: [], oddFinal: 1 });
   const [xp, setXp] = useState(350);
 
   // ============================================================================
-  // 📊 SISTEMA: GESTÃO DE BANCA E APOSTAS REAIS (USUÁRIO)
+  // 📊 SISTEMA: GESTÃO DE BANCA E APOSTAS REAIS
   // ============================================================================
   const [apostas, setApostas] = useState([
     { id: 1, jogo: "Flamengo x Palmeiras", liga: "Brasileirão", time: "Flamengo", mercado: "Vitória Flamengo", stake: 100, odd: 1.85, resultado: "green", data: "2026-06-01", hora: "19:30" },
@@ -100,54 +148,38 @@ export default function App() {
 
   const [filtroResultado, setFiltroResultado] = useState('todos');
   const [filtroLiga, setFiltroLiga] = useState('todas');
+  
+  // Estados do Simulador
   const [simOdd, setSimOdd] = useState('');
   const [simStake, setSimStake] = useState('');
+  
+  // Limites de Gestão
   const metaMensal = 2000;
+  const [stopWin, setStopWin] = useState(200);
+  const [stopLoss, setStopLoss] = useState(100);
 
-  const calcularLucroLiquido = () => {
-      return apostas.reduce((total, aposta) => {
-          if(aposta.resultado === "green") return total + ((aposta.stake * aposta.odd) - aposta.stake);
-          return total - aposta.stake;
-      }, 0);
-  };
+  // Cálculos Base de Gestão
+  const calcularLucroLiquido = () => apostas.reduce((total, a) => a.resultado === "green" ? total + ((a.stake * a.odd) - a.stake) : total - a.stake, 0);
+  const calcularYield = () => apostas.length === 0 ? "0.00" : (calcularLucroLiquido() / apostas.length).toFixed(2);
+  const calcularAssertividade = () => apostas.length === 0 ? 0 : (apostas.filter(a => a.resultado === "green").length / apostas.length) * 100;
+  const lucroAcumulado = () => calcularLucroLiquido();
 
-  const totalInvestido = () => apostas.reduce((acc, a) => acc + a.stake, 0);
-
-  const calcularYield = () => {
-      if(apostas.length === 0) return "0.00";
-      return (calcularLucroLiquido() / apostas.length).toFixed(2);
-  };
-
-  const calcularAssertividade = () => {
-      if(apostas.length === 0) return 0;
-      const greens = apostas.filter(a => a.resultado === "green").length;
-      return (greens / apostas.length) * 100;
-  };
+  const atingiuStopWin = () => lucroAcumulado() >= stopWin;
+  const atingiuStopLoss = () => lucroAcumulado() <= -stopLoss;
 
   const dadosGraficoBanca = useMemo(() => {
       let banca = bancaInicial;
       return apostas.map((a, index) => {
-          if(a.resultado === "green"){
-              banca += (a.stake * a.odd) - a.stake;
-          } else {
-              banca -= a.stake;
-          }
+          if(a.resultado === "green") banca += (a.stake * a.odd) - a.stake; else banca -= a.stake;
           return { aposta: `Bet ${index+1}`, banca: Number(banca.toFixed(2)) };
       });
   }, [apostas, bancaInicial]);
 
   const calcularROISemanal = () => {
     const hoje = new Date();
-    const ultimaSemana = apostas.filter(aposta => {
-      const dataAposta = new Date(aposta.data);
-      const diff = (hoje - dataAposta) / (1000 * 60 * 60 * 24);
-      return diff <= 7;
-    });
+    const ultimaSemana = apostas.filter(a => (hoje - new Date(a.data)) / (1000 * 60 * 60 * 24) <= 7);
     const investido = ultimaSemana.reduce((acc,a)=>acc+a.stake, 0);
-    const lucro = ultimaSemana.reduce((acc,a) => {
-      if(a.resultado==="green") return acc + ((a.stake*a.odd)-a.stake);
-      return acc-a.stake;
-    },0);
+    const lucro = ultimaSemana.reduce((acc,a) => a.resultado==="green" ? acc + ((a.stake*a.odd)-a.stake) : acc-a.stake, 0);
     return investido ? (lucro/investido)*100 : 0;
   };
 
@@ -155,10 +187,7 @@ export default function App() {
     const mesAtual = new Date().getMonth();
     const apostasMes = apostas.filter(a => new Date(a.data).getMonth() === mesAtual);
     const investido = apostasMes.reduce((acc,a)=>acc+a.stake, 0);
-    const lucro = apostasMes.reduce((acc,a)=>{
-      if(a.resultado==="green") return acc + ((a.stake*a.odd)-a.stake);
-      return acc-a.stake;
-    },0);
+    const lucro = apostasMes.reduce((acc,a)=> a.resultado==="green" ? acc + ((a.stake*a.odd)-a.stake) : acc-a.stake, 0);
     return investido ? (lucro/investido)*100 : 0;
   };
 
@@ -166,20 +195,11 @@ export default function App() {
     const ano = new Date().getFullYear();
     const apostasAno = apostas.filter(a => new Date(a.data).getFullYear() === ano);
     const investido = apostasAno.reduce((acc,a)=>acc+a.stake, 0);
-    const lucro = apostasAno.reduce((acc,a)=>{
-      if(a.resultado==="green") return acc + ((a.stake*a.odd)-a.stake);
-      return acc-a.stake;
-    },0);
+    const lucro = apostasAno.reduce((acc,a)=> a.resultado==="green" ? acc + ((a.stake*a.odd)-a.stake) : acc-a.stake, 0);
     return investido ? (lucro/investido)*100 : 0;
   };
 
-  const lucroAcumulado = () => apostas.reduce((acc,a)=>{ if(a.resultado==="green") return acc + ((a.stake*a.odd)-a.stake); return acc-a.stake; },0);
-
-  const crescimentoBanca = () => {
-    if (bancaInicial === 0) return 0;
-    return (lucroAcumulado() / bancaInicial) * 100;
-  };
-
+  const crescimentoBanca = () => bancaInicial === 0 ? 0 : (lucroAcumulado() / bancaInicial) * 100;
   const progressoMeta = () => Math.min((lucroAcumulado() / metaMensal) * 100, 100);
 
   const mercadoMaisLucrativo = () => {
@@ -195,9 +215,9 @@ export default function App() {
   const relatorioIA = () => {
     const roi = calcularROIMensal();
     const mercadoTop = mercadoMaisLucrativo()[0] || 'N/A';
-    if(roi > 20) return `🔥 ROI excelente de ${roi.toFixed(1)}%.\n\nO mercado mais lucrativo é ${mercadoTop}.\nConsidere aumentar ligeiramente o volume neste mercado para escalar lucros.`;
-    if(roi > 5) return `✅ Desempenho sólido e positivo.\n\nContinue a manter uma gestão de banca disciplinada.\nA paciência é a chave.`;
-    return `⚠️ Atenção à sua gestão.\n\nO seu ROI está abaixo do ideal.\nReduza as stakes temporariamente e foque-se no seu melhor mercado: ${mercadoTop}.`;
+    if(roi > 20) return `🔥 ROI excelente de ${roi.toFixed(1)}%.\nO mercado mais lucrativo é ${mercadoTop}.\nConsidere escalar os lucros.`;
+    if(roi > 5) return `✅ Desempenho sólido e positivo.\nContinue a manter uma gestão disciplinada.`;
+    return `⚠️ Atenção à sua gestão.\nO seu ROI está abaixo do ideal.\nReduza as stakes temporariamente.`;
   };
 
   const listaConquistas = () => {
@@ -249,6 +269,11 @@ export default function App() {
     });
   };
 
+  const handleRunBacktest = () => {
+      const res = executarBacktest(apostas, bancaInicial);
+      alert(`📊 RESULTADO DO BACKTEST:\n\nBanca Final: R$ ${res.bancaFinal.toFixed(2)}\nLucro: R$ ${res.lucro.toFixed(2)}\nROI Histórico: ${res.roi.toFixed(2)}%`);
+  };
+
   // ============================================================================
   // IA CHAT & EFFECTS
   // ============================================================================
@@ -261,8 +286,8 @@ export default function App() {
   useEffect(() => { setTimeout(() => setShowSplash(false), 2000); }, []);
   useEffect(() => { 
       const em = localStorage.getItem('bet_sessao_ativa'); 
-      if (em) { setUserData({ email: em, nome: localStorage.getItem('bet_user_nome') || "Lucas Montesso Coelho", is_vip: true, is_admin: true }); }
-      else if (MODO_DEMONSTRACAO) { setUserData({ email: "lucas@vip.com", nome: "Lucas Montesso Coelho", is_vip: true, is_admin: true }); } 
+      if (em) { setUserData({ email: em, nome: localStorage.getItem('bet_user_nome') || "Lucas Montesso", is_vip: true, is_admin: true }); }
+      else if (MODO_DEMONSTRACAO) { setUserData({ email: "lucas@vip.com", nome: "Lucas Montesso", is_vip: true, is_admin: true }); } 
   }, []);
   
   useEffect(() => {
@@ -285,18 +310,23 @@ export default function App() {
   }, [jogos]);
 
   const nivelUsuario = () => {
-    if(xp > 5000) return "Lenda";
-    if(xp > 3000) return "Mestre"; 
-    if(xp > 1000) return "Especialista"; 
-    if(xp > 500) return "Profissional"; 
-    return "Iniciante";
+    if(xp > 5000) return "Lenda"; if(xp > 3000) return "Mestre"; if(xp > 1000) return "Especialista"; if(xp > 500) return "Profissional"; return "Iniciante";
   };
 
-  const abrirPainelDoJogo = (j) => {
+  const abrirPainelDoJogo = async (j) => {
     if(!userData?.is_vip) return setMenuAtivo('assinar pro');
     setJogoSelecionado({ ...j, is_loading: true });
-    setTimeout(() => { setJogoSelecionado({ ...j, ...mockJogoDetalhes, is_loading: false }); }, 800); 
+    
+    const stats = await buscarEstatisticasJogo(j.id);
+    const analiseTempoReal = analisarPartidaAoVivo(stats);
+
+    setTimeout(() => { 
+        setJogoSelecionado({ 
+            ...j, ...mockJogoDetalhes, dadosAPI: analiseTempoReal, is_loading: false 
+        }); 
+    }, 800); 
   };
+  
   const toggleFavorito = (e, id) => { e.stopPropagation(); setFavoritos(p => p.includes(id) ? p.filter(f => f !== id) : [...p, id]); };
 
   const handleAskAI = async (e) => {
@@ -327,15 +357,15 @@ export default function App() {
     const picks = jogos.filter(j => j.confianca_ia >= 90 && calcularEV(j.confianca_ia, j.odd_principal) >= 10);
     if(picks.length === 0) return null;
     return (
-      <div className="bg-[#0f172a] border border-green-500/40 shadow-[0_0_20px_rgba(34,197,94,0.15)] rounded-3xl p-6 mb-6 mx-4">
+      <div className="bg-[#0f172a] border border-green-500/40 shadow-[0_0_20px_rgba(34,197,94,0.15)] rounded-3xl p-6 mb-6 mx-4 overflow-hidden">
         <h3 className="font-black text-green-400 mb-4 flex items-center gap-2 tracking-wider"><Crown className="w-5 h-5"/> IA BANKER PICKS</h3>
         {picks.map(j => (
             <div key={j.id} onClick={() => abrirPainelDoJogo(j)} className="bg-[#050816] border border-white/5 p-4 rounded-2xl mb-3 last:mb-0 flex justify-between items-center cursor-pointer hover:border-green-500/50 transition-colors">
-                <div>
-                    <div className="font-black text-white text-sm mb-1">{j.home_team} x {j.away_team}</div>
+                <div className="overflow-hidden pr-2">
+                    <div className="font-black text-white text-sm mb-1 truncate">{j.home_team} x {j.away_team}</div>
                     <div className="text-[10px] text-green-400 font-bold uppercase tracking-widest flex gap-2"><span>Confiança: {j.confianca_ia}%</span> <span>•</span> <span>EV: +{calcularEV(j.confianca_ia, j.odd_principal).toFixed(1)}%</span></div>
                 </div>
-                <div className="bg-green-500 text-black w-8 h-8 rounded-full flex items-center justify-center font-black shadow-lg"><ChevronRight className="w-5 h-5"/></div>
+                <div className="bg-green-500 text-black w-8 h-8 rounded-full flex items-center justify-center font-black shadow-lg flex-shrink-0"><ChevronRight className="w-5 h-5"/></div>
             </div>
         ))}
       </div>
@@ -359,7 +389,7 @@ export default function App() {
     <div className="min-h-screen bg-[#050816] text-white font-sans pb-28 overflow-x-hidden w-full">
       <header className="flex items-center justify-between px-5 py-4 bg-[#050816] sticky top-0 z-40 border-b border-white/5">
         <h1 className="font-black text-2xl tracking-tight flex items-center"><span className="italic">BET</span><span className="text-blue-500">ANALYTICS</span><span className="ml-2 bg-blue-600 text-[10px] px-2 py-0.5 rounded-md">PRO</span></h1>
-        <button onClick={() => setMenuAtivo('assinar pro')} className="bg-gradient-to-r from-yellow-500 to-yellow-600 text-black font-black px-4 py-2 rounded-xl flex items-center gap-2 shadow-[0_0_15px_rgba(234,179,8,0.3)]"><Crown className="w-4 h-4" /> {userData?.is_vip ? "VIP ATIVO" : "ASSINAR PRO"}</button>
+        <button onClick={() => setMenuAtivo('assinar pro')} className="bg-gradient-to-r from-yellow-500 to-yellow-600 text-black font-black px-4 py-2 rounded-xl flex items-center gap-2 shadow-[0_0_15px_rgba(234,179,8,0.3)] flex-shrink-0"><Crown className="w-4 h-4" /> {userData?.is_vip ? "VIP ATIVO" : "ASSINAR PRO"}</button>
       </header>
 
       {menuAtivo !== 'assinar pro' && !jogoSelecionado && (
@@ -383,9 +413,9 @@ export default function App() {
                             <h2 className="font-black text-green-400 mb-4 flex items-center gap-2 uppercase tracking-wider relative z-10"><Target className="w-5 h-5"/> Bilhete Inteligente IA</h2>
                             <div className="relative z-10">
                                 {bilhetePremium.selecoes.map(jogo => (
-                                    <div key={jogo.id} onClick={() => abrirPainelDoJogo(jogo)} className="bg-[#111827] border border-white/5 p-4 rounded-xl mb-3 cursor-pointer hover:border-green-500/50 transition-colors flex justify-between items-center">
-                                        <div className="font-bold text-white text-sm">{jogo.home_team} x {jogo.away_team}</div>
-                                        <div className="text-green-400 text-[10px] font-black tracking-widest uppercase">Confiança: {jogo.confianca_ia}%</div>
+                                    <div key={jogo.id} onClick={() => abrirPainelDoJogo(jogo)} className="bg-[#111827] border border-white/5 p-4 rounded-xl mb-3 cursor-pointer hover:border-green-500/50 transition-colors flex justify-between items-center overflow-hidden">
+                                        <div className="font-bold text-white text-sm truncate pr-2">{jogo.home_team} x {jogo.away_team}</div>
+                                        <div className="text-green-400 text-[10px] font-black tracking-widest uppercase flex-shrink-0">Confiança: {jogo.confianca_ia}%</div>
                                     </div>
                                 ))}
                             </div>
@@ -397,12 +427,12 @@ export default function App() {
                     )}
 
                     {oportunidades.length > 0 && (
-                        <div className="bg-[#0f172a] border border-orange-500/30 rounded-3xl p-6 mb-6 mx-4 shadow-lg">
+                        <div className="bg-[#0f172a] border border-orange-500/30 rounded-3xl p-6 mb-6 mx-4 shadow-lg overflow-hidden">
                             <h2 className="font-black text-orange-400 mb-4 flex items-center gap-2 uppercase tracking-wider"><Flame className="w-5 h-5"/> Radar de Oportunidades</h2>
                             {oportunidades.map(j => (
-                                <div key={j.id} onClick={() => abrirPainelDoJogo(j)} className="bg-[#111827] border border-white/5 p-4 rounded-xl mb-3 last:mb-0 cursor-pointer hover:border-orange-500/50 transition-colors flex justify-between items-center">
-                                    <div className="font-bold text-white text-sm">{j.home_team}</div>
-                                    <div className="text-orange-400 text-[10px] font-black uppercase tracking-widest bg-orange-500/10 px-3 py-1.5 rounded-md border border-orange-500/20">EV+ {calcularEV(j.confianca_ia, j.odd_principal).toFixed(1)}%</div>
+                                <div key={j.id} onClick={() => abrirPainelDoJogo(j)} className="bg-[#111827] border border-white/5 p-4 rounded-xl mb-3 last:mb-0 cursor-pointer hover:border-orange-500/50 transition-colors flex justify-between items-center overflow-hidden">
+                                    <div className="font-bold text-white text-sm truncate pr-2">{j.home_team}</div>
+                                    <div className="text-orange-400 text-[10px] font-black uppercase tracking-widest bg-orange-500/10 px-3 py-1.5 rounded-md border border-orange-500/20 flex-shrink-0">EV+ {calcularEV(j.confianca_ia, j.odd_principal).toFixed(1)}%</div>
                                 </div>
                             ))}
                         </div>
@@ -419,18 +449,18 @@ export default function App() {
                                     <div className="text-[10px] font-black text-white bg-black/20 px-3 py-1.5 rounded-md inline-flex items-center gap-1.5 animate-pulse uppercase tracking-wider shadow-sm border border-white/10"><ShieldAlert className="w-3 h-3"/> TOP PICK IA</div>
                                     <div className="text-[10px] font-black text-white bg-red-700/80 px-3 py-1.5 rounded-md shadow-lg flex items-center gap-1 uppercase tracking-wider border border-red-400/30"><Flame className="w-3 h-3 text-yellow-400"/> HEAT SCORE: {heatScore}</div>
                                 </div>
-                                <h3 className="text-2xl font-black text-white mb-2 tracking-tight drop-shadow-md">{topPick.jogo}</h3>
+                                <h3 className="text-2xl font-black text-white mb-2 tracking-tight drop-shadow-md truncate">{topPick.jogo}</h3>
                                 <div className="flex items-end gap-4 mb-5">
                                     <div className="text-6xl font-black text-white drop-shadow-lg tracking-tighter">{topPick.confianca}%</div>
-                                    <div className="bg-black/30 border border-white/20 p-3 rounded-xl flex flex-col items-center justify-center mb-1 backdrop-blur-sm"><span className="text-[9px] font-black text-amber-200 uppercase tracking-widest">💰 EV+</span><strong className="text-lg font-black text-white">+{topPick.ev}%</strong></div>
+                                    <div className="bg-black/30 border border-white/20 p-3 rounded-xl flex flex-col items-center justify-center mb-1 backdrop-blur-sm overflow-hidden"><span className="text-[9px] font-black text-amber-200 uppercase tracking-widest">💰 EV+</span><strong className="text-lg font-black text-white">+{topPick.ev}%</strong></div>
                                 </div>
-                                <div className="bg-white/10 border border-white/20 rounded-xl p-4 mb-5 backdrop-blur-sm"><span className="text-white font-black text-sm flex items-center gap-2">🔥 Mercado: {topPick.mercado}</span></div>
+                                <div className="bg-white/10 border border-white/20 rounded-xl p-4 mb-5 backdrop-blur-sm overflow-hidden"><span className="text-white font-black text-sm flex items-center gap-2 truncate">🔥 Mercado: {topPick.mercado}</span></div>
                                 <button onClick={() => abrirPainelDoJogo(destaque)} className="w-full bg-black/30 hover:bg-black/40 text-white font-black py-4 rounded-xl shadow-lg border border-white/20 transition-all flex justify-center items-center gap-2 uppercase tracking-wider text-xs">Analisar Jogo <ChevronRight className="w-4 h-4"/></button>
                             </div>
                         )
                     })()}
 
-                    <div className="bg-[#0f172a] border border-purple-500/20 rounded-3xl p-6 mb-6 mx-4 shadow-lg">
+                    <div className="bg-[#0f172a] border border-purple-500/20 rounded-3xl p-6 mb-6 mx-4 shadow-lg overflow-hidden">
                         <h2 className="text-sm font-black text-purple-400 mb-4 flex items-center gap-2 uppercase tracking-wider"><TrendingUp className="w-4 h-4"/> Evolução do Algoritmo IA</h2>
                         <div className="w-full relative overflow-hidden" style={{ height: '150px' }}>
                             <ResponsiveContainer width="99%" height={149}>
@@ -469,14 +499,14 @@ export default function App() {
                                                 {isLive ? <span className="bg-red-500 px-3 py-1 rounded-full text-[10px] font-black uppercase">🔴 Ao Vivo {j.time_elapsed}'</span> : <span className="text-slate-400 text-xs font-bold uppercase">{j.status === 'Finished' ? 'Finalizado' : j.starting_at?.split('T')[1]?.substring(0,5)}</span>}
                                                 <button onClick={(e) => toggleFavorito(e, j.id)} className="p-1 z-10 relative mr-6"><Star className={`w-5 h-5 ${favoritos.includes(j.id) ? 'fill-yellow-400 text-yellow-400' : 'text-slate-600'}`} /></button>
                                             </div>
-                                            <div className="flex gap-2 mb-3">
-                                                {isValueBet && <div className="bg-green-500/20 border border-green-500/40 text-green-400 font-black text-[9px] px-2.5 py-1 rounded-md uppercase tracking-wider">💰 VALUE BET</div>}
-                                                <div className={`border ${risco.cor} font-black text-[9px] px-2.5 py-1 rounded-md uppercase tracking-wider flex items-center gap-1`}><AlertTriangle className="w-3 h-3"/> Risco: {risco.nivel}</div>
+                                            <div className="flex gap-2 mb-3 overflow-hidden">
+                                                {isValueBet && <div className="bg-green-500/20 border border-green-500/40 text-green-400 font-black text-[9px] px-2.5 py-1 rounded-md uppercase tracking-wider whitespace-nowrap">💰 VALUE BET</div>}
+                                                <div className={`border ${risco.cor} font-black text-[9px] px-2.5 py-1 rounded-md uppercase tracking-wider flex items-center gap-1 whitespace-nowrap`}><AlertTriangle className="w-3 h-3"/> Risco: {risco.nivel}</div>
                                             </div>
                                             <div className="grid grid-cols-3 items-center text-center mb-5 mt-2">
-                                                <div className="flex flex-col items-center gap-2"><img src={j.home_image} className="w-12 h-12 object-contain drop-shadow-md" alt=""/><span className="text-xs font-bold text-slate-200 line-clamp-1 w-full">{j.home_team}</span></div>
+                                                <div className="flex flex-col items-center gap-2 overflow-hidden"><img src={j.home_image} className="w-12 h-12 object-contain drop-shadow-md" alt=""/><span className="text-xs font-bold text-slate-200 truncate w-full">{j.home_team}</span></div>
                                                 <div className="text-4xl font-black tracking-tighter">{isLive || j.status === 'Finished' ? `${j.scoreHome} - ${j.scoreAway}` : <span className="text-slate-600 text-2xl">-</span>}</div>
-                                                <div className="flex flex-col items-center gap-2"><img src={j.away_image} className="w-12 h-12 object-contain drop-shadow-md" alt=""/><span className="text-xs font-bold text-slate-200 line-clamp-1 w-full">{j.away_team}</span></div>
+                                                <div className="flex flex-col items-center gap-2 overflow-hidden"><img src={j.away_image} className="w-12 h-12 object-contain drop-shadow-md" alt=""/><span className="text-xs font-bold text-slate-200 truncate w-full">{j.away_team}</span></div>
                                             </div>
                                         </div>
                                     )
@@ -491,10 +521,13 @@ export default function App() {
                   O NOVO DASHBOARD DO PERFIL COMPLETO
               ========================================= */}
               {viewMode === 'perfil' && (
-                  <div className="px-4 animate-fade-in w-full">
+                  <div className="px-4 animate-fade-in w-full overflow-hidden">
                       <div className="flex justify-between items-center mb-6">
                           <h2 className="text-xl font-black flex items-center gap-2"><User className="w-6 h-6 text-blue-500"/> Meu Perfil</h2>
-                          {userData?.is_admin && <button onClick={() => setViewMode('admin')} className="bg-purple-600 hover:bg-purple-500 text-white text-[10px] font-black px-3 py-1.5 rounded-lg flex items-center gap-1 shadow-lg transition-colors uppercase tracking-widest"><Settings className="w-3 h-3"/> Admin</button>}
+                          <div className="flex gap-2">
+                            <button onClick={solicitarPermissaoNotificacao} className="bg-blue-600 hover:bg-blue-500 text-white text-[10px] font-black px-3 py-1.5 rounded-lg flex items-center gap-1 shadow-lg transition-colors uppercase tracking-widest"><Bell className="w-3 h-3"/> Alertas</button>
+                            {userData?.is_admin && <button onClick={() => setViewMode('admin')} className="bg-purple-600 hover:bg-purple-500 text-white text-[10px] font-black px-3 py-1.5 rounded-lg flex items-center gap-1 shadow-lg transition-colors uppercase tracking-widest"><Settings className="w-3 h-3"/> Admin</button>}
+                          </div>
                       </div>
                       
                       {/* PERFIL & XP */}
@@ -502,7 +535,7 @@ export default function App() {
                           <div className="w-20 h-20 bg-gradient-to-br from-blue-600 to-blue-400 rounded-full flex items-center justify-center mb-4 shadow-[0_0_20px_rgba(37,99,235,0.4)] relative z-10"><User className="w-10 h-10 text-white"/></div>
                           <h2 className="text-xl font-black text-white mb-1 relative z-10">{form.nome || userData?.nome}</h2>
                           
-                          <div className="bg-[#111827] p-4 rounded-xl border border-white/5 w-full mt-4 relative z-10 shadow-inner">
+                          <div className="bg-[#111827] p-4 rounded-xl border border-white/5 w-full mt-4 relative z-10 shadow-inner overflow-hidden">
                               <div className="flex justify-between items-center mb-2">
                                   <span className="text-xs font-bold text-slate-400 flex items-center gap-1"><Award className="w-4 h-4 text-yellow-500"/> Nível Atual:</span>
                                   <strong className="text-sm font-black text-green-400 uppercase tracking-widest">{nivelUsuario()}</strong>
@@ -514,21 +547,45 @@ export default function App() {
                           </div>
                       </div>
 
+                      {/* GESTÃO DE RISCO DIÁRIO */}
+                      <div className="bg-[#0f172a] p-5 rounded-3xl mb-6 shadow-lg border border-white/5 relative z-10 overflow-hidden">
+                          <h3 className="text-sm font-black text-white mb-4 uppercase tracking-wider flex items-center gap-2"><Activity className="w-4 h-4 text-orange-500"/> Gestão de Risco Diário</h3>
+                          <div className="flex gap-3 mb-4">
+                              <div className="w-1/2">
+                                  <label className="text-[10px] text-slate-400 font-bold uppercase tracking-widest block mb-1 truncate">Stop Win (R$)</label>
+                                  <input type="number" value={stopWin} onChange={(e)=>setStopWin(Number(e.target.value))} className="w-full bg-[#050816] border border-slate-800 p-3 rounded-xl text-xs text-white font-bold outline-none focus:border-green-500 transition-colors" />
+                              </div>
+                              <div className="w-1/2">
+                                  <label className="text-[10px] text-slate-400 font-bold uppercase tracking-widest block mb-1 truncate">Stop Loss (R$)</label>
+                                  <input type="number" value={stopLoss} onChange={(e)=>setStopLoss(Number(e.target.value))} className="w-full bg-[#050816] border border-slate-800 p-3 rounded-xl text-xs text-white font-bold outline-none focus:border-red-500 transition-colors" />
+                              </div>
+                          </div>
+                          
+                          {atingiuStopWin() && (
+                              <div className="bg-green-500/10 border border-green-500/30 p-3 rounded-xl text-green-400 text-xs font-black text-center flex items-center justify-center gap-2 shadow-inner">
+                                  ✅ META BATIDA!
+                              </div>
+                          )}
+                          {atingiuStopLoss() && (
+                              <div className="bg-red-500/10 border border-red-500/30 p-3 rounded-xl text-red-400 text-xs font-black text-center flex items-center justify-center gap-2 shadow-inner mt-2">
+                                  ⚠️ STOP LOSS!
+                              </div>
+                          )}
+                      </div>
+
                       {/* META MENSAL */}
-                      <div className="bg-[#0f172a] p-5 rounded-3xl mb-6 shadow-lg border border-white/5">
+                      <div className="bg-[#0f172a] p-5 rounded-3xl mb-6 shadow-lg border border-white/5 relative z-10 overflow-hidden">
                           <div className="flex justify-between mb-2">
                               <span className="text-sm font-black text-white uppercase tracking-wider flex items-center gap-2"><Target className="w-4 h-4 text-green-500"/> Meta Mensal</span>
                               <span className="text-xs font-bold text-slate-300">R$ {lucroAcumulado().toFixed(2)} <span className="text-slate-500">/ R$ {metaMensal}</span></span>
                           </div>
                           <div className="bg-slate-800 h-4 rounded-full overflow-hidden mt-3 shadow-inner">
-                              <div className="bg-gradient-to-r from-green-600 to-green-400 h-full rounded-full transition-all duration-1000 relative" style={{width: `${progressoMeta()}%`}}>
-                                  <div className="absolute inset-0 bg-white/20 w-full animate-[pulse_2s_ease-in-out_infinite]"></div>
-                              </div>
+                              <div className="bg-gradient-to-r from-green-600 to-green-400 h-full rounded-full transition-all duration-1000 relative" style={{width: `${progressoMeta()}%`}}></div>
                           </div>
                       </div>
 
                       {/* SISTEMA DE CONQUISTAS */}
-                      <div className="mb-6 w-full overflow-hidden">
+                      <div className="mb-6 w-full overflow-hidden relative z-10">
                           <h3 className="text-sm font-black text-white mb-3 uppercase tracking-wider flex items-center gap-2"><Trophy className="w-4 h-4 text-yellow-500"/> Conquistas Desbloqueadas</h3>
                           <div className="flex gap-2 overflow-x-auto no-scrollbar pb-2">
                               {listaConquistas().map((c, index)=>(
@@ -539,38 +596,51 @@ export default function App() {
                           </div>
                       </div>
 
+                      {/* GESTÃO PROFISSIONAL (Drawdown e Backtest) - AGORA 100% SEGURO E COM OVERFLOW HIDDEN */}
+                      <h3 className="text-sm font-black text-white mb-4 uppercase tracking-wider flex items-center gap-2 relative z-10"><Activity className="w-4 h-4 text-red-500"/> Gestão Profissional</h3>
+                      <div className="grid grid-cols-2 gap-3 mb-6 relative z-10 overflow-hidden">
+                          <div className="bg-[#111827] p-5 rounded-2xl border border-red-500/20 shadow-lg flex flex-col justify-center overflow-hidden">
+                              <div className="text-[10px] text-slate-400 font-bold uppercase tracking-widest mb-1 flex items-center gap-1 truncate"><TrendingDown className="w-3 h-3 text-red-400 flex-shrink-0"/> Drawdown Máx</div>
+                              <div className="text-2xl font-black text-red-400 truncate">{calcularDrawdown(apostas, bancaInicial)}%</div>
+                          </div>
+                          <button onClick={handleRunBacktest} className="bg-gradient-to-br from-blue-700 to-blue-500 p-5 rounded-2xl border border-blue-400/30 shadow-lg flex flex-col items-center justify-center active:scale-95 transition-transform overflow-hidden">
+                              <Calendar className="w-5 h-5 text-white mb-1 flex-shrink-0"/>
+                              <div className="text-[10px] text-white font-black uppercase tracking-widest text-center">Rodar Backtest Histórico</div>
+                          </button>
+                      </div>
+
                       {/* ROI E LUCRO */}
-                      <h3 className="text-sm font-black text-white mb-4 uppercase tracking-wider flex items-center gap-2"><DollarSign className="w-4 h-4 text-green-500"/> Retorno Sobre Investimento</h3>
-                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 mb-6">
-                          <div className="bg-[#111827] p-4 rounded-2xl border border-white/5 shadow-lg">
-                              <div className="text-[10px] text-slate-400 font-bold uppercase tracking-widest mb-1">ROI Semanal</div>
-                              <div className={`text-xl font-black ${calcularROISemanal() >= 0 ? 'text-green-400' : 'text-red-400'}`}>{calcularROISemanal().toFixed(1)}%</div>
+                      <h3 className="text-sm font-black text-white mb-4 uppercase tracking-wider flex items-center gap-2 relative z-10"><DollarSign className="w-4 h-4 text-green-500"/> Retorno Sobre Investimento</h3>
+                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 mb-6 relative z-10 overflow-hidden">
+                          <div className="bg-[#111827] p-4 rounded-2xl border border-white/5 shadow-lg overflow-hidden">
+                              <div className="text-[10px] text-slate-400 font-bold uppercase tracking-widest mb-1 truncate">ROI Semanal</div>
+                              <div className={`text-xl font-black truncate ${calcularROISemanal() >= 0 ? 'text-green-400' : 'text-red-400'}`}>{calcularROISemanal().toFixed(1)}%</div>
                           </div>
-                          <div className="bg-[#111827] p-4 rounded-2xl border border-white/5 shadow-lg">
-                              <div className="text-[10px] text-slate-400 font-bold uppercase tracking-widest mb-1">ROI Mensal</div>
-                              <div className={`text-xl font-black ${calcularROIMensal() >= 0 ? 'text-green-400' : 'text-red-400'}`}>{calcularROIMensal().toFixed(1)}%</div>
+                          <div className="bg-[#111827] p-4 rounded-2xl border border-white/5 shadow-lg overflow-hidden">
+                              <div className="text-[10px] text-slate-400 font-bold uppercase tracking-widest mb-1 truncate">ROI Mensal</div>
+                              <div className={`text-xl font-black truncate ${calcularROIMensal() >= 0 ? 'text-green-400' : 'text-red-400'}`}>{calcularROIMensal().toFixed(1)}%</div>
                           </div>
-                          <div className="bg-[#111827] p-4 rounded-2xl border border-white/5 shadow-lg">
-                              <div className="text-[10px] text-slate-400 font-bold uppercase tracking-widest mb-1">ROI Anual</div>
-                              <div className={`text-xl font-black ${calcularROIAnual() >= 0 ? 'text-green-400' : 'text-red-400'}`}>{calcularROIAnual().toFixed(1)}%</div>
+                          <div className="bg-[#111827] p-4 rounded-2xl border border-white/5 shadow-lg overflow-hidden">
+                              <div className="text-[10px] text-slate-400 font-bold uppercase tracking-widest mb-1 truncate">ROI Anual</div>
+                              <div className={`text-xl font-black truncate ${calcularROIAnual() >= 0 ? 'text-green-400' : 'text-red-400'}`}>{calcularROIAnual().toFixed(1)}%</div>
                           </div>
-                          <div className="bg-[#111827] p-4 rounded-2xl border border-white/5 shadow-lg">
-                              <div className="text-[10px] text-slate-400 font-bold uppercase tracking-widest mb-1">Lucro Total</div>
-                              <div className={`text-xl font-black ${lucroAcumulado() >= 0 ? 'text-green-400' : 'text-red-400'}`}>R$ {lucroAcumulado().toFixed(2)}</div>
+                          <div className="bg-[#111827] p-4 rounded-2xl border border-white/5 shadow-lg overflow-hidden">
+                              <div className="text-[10px] text-slate-400 font-bold uppercase tracking-widest mb-1 truncate">Lucro Total</div>
+                              <div className={`text-xl font-black truncate ${lucroAcumulado() >= 0 ? 'text-green-400' : 'text-red-400'}`}>R$ {lucroAcumulado().toFixed(2)}</div>
                           </div>
                       </div>
 
                       {/* CRESCIMENTO & IA ANALISTA */}
-                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 mb-6">
-                          <div className="bg-[#0f172a] p-5 rounded-3xl border border-white/5 shadow-lg">
-                              <div className="text-[10px] text-slate-400 uppercase font-bold tracking-widest mb-2">Crescimento da Banca</div>
-                              <div className={`text-3xl font-black ${crescimentoBanca() >= 0 ? 'text-green-400' : 'text-red-400'}`}>
+                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 mb-6 relative z-10 overflow-hidden">
+                          <div className="bg-[#0f172a] p-5 rounded-3xl border border-white/5 shadow-lg overflow-hidden">
+                              <div className="text-[10px] text-slate-400 uppercase font-bold tracking-widest mb-2 truncate">Crescimento da Banca</div>
+                              <div className={`text-3xl font-black truncate ${crescimentoBanca() >= 0 ? 'text-green-400' : 'text-red-400'}`}>
                                   {crescimentoBanca() >= 0 ? '+' : ''}{crescimentoBanca().toFixed(2)}%
                               </div>
                           </div>
                           <div className="bg-[#0f172a] p-5 rounded-3xl border border-blue-500/20 shadow-lg relative overflow-hidden">
                               <div className="absolute top-0 right-0 w-16 h-16 bg-blue-500/10 blur-xl rounded-full"></div>
-                              <div className="text-[10px] text-blue-400 uppercase font-black tracking-widest mb-2 flex items-center gap-1.5 relative z-10"><BrainCircuit className="w-3 h-3"/> IA Analista</div>
+                              <div className="text-[10px] text-blue-400 uppercase font-black tracking-widest mb-2 flex items-center gap-1.5 relative z-10 truncate"><BrainCircuit className="w-3 h-3 flex-shrink-0"/> IA Analista</div>
                               <div className="text-xs text-slate-300 font-medium whitespace-pre-line leading-relaxed relative z-10">
                                   {relatorioIA()}
                               </div>
@@ -578,26 +648,26 @@ export default function App() {
                       </div>
 
                       {/* RANKINGS DE EQUIPAS E LIGAS */}
-                      <h3 className="text-sm font-black text-white mb-4 uppercase tracking-wider flex items-center gap-2"><Trophy className="w-4 h-4 text-yellow-500"/> Onde você mais lucra</h3>
-                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 mb-4">
-                          <div className="bg-[#0f172a] p-5 rounded-3xl border border-white/5 shadow-lg">
-                              <h3 className="text-xs font-black text-slate-400 mb-4 uppercase tracking-wider flex items-center gap-2"><ShieldAlert className="w-3 h-3 text-orange-400"/> Top 5 Equipas</h3>
+                      <h3 className="text-sm font-black text-white mb-4 uppercase tracking-wider flex items-center gap-2 relative z-10"><Trophy className="w-4 h-4 text-yellow-500"/> Onde você mais lucra</h3>
+                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 mb-4 relative z-10 overflow-hidden">
+                          <div className="bg-[#0f172a] p-5 rounded-3xl border border-white/5 shadow-lg overflow-hidden">
+                              <h3 className="text-xs font-black text-slate-400 mb-4 uppercase tracking-wider flex items-center gap-2 truncate"><ShieldAlert className="w-3 h-3 text-orange-400 flex-shrink-0"/> Top 5 Equipas</h3>
                               <div className="flex flex-col gap-1">
                                   {rankingTimes().map((item, index) => (
-                                      <div key={index} className="flex justify-between items-center py-2.5 border-b border-white/5 last:border-0">
-                                          <span className="text-xs font-bold text-white line-clamp-1 pr-2">{index + 1}. {item.nome}</span>
-                                          <span className={`text-xs font-black whitespace-nowrap ${item.lucro >= 0 ? 'text-green-400' : 'text-red-400'}`}>R$ {item.lucro.toFixed(2)}</span>
+                                      <div key={index} className="flex justify-between items-center py-2.5 border-b border-white/5 last:border-0 overflow-hidden">
+                                          <span className="text-xs font-bold text-white truncate pr-2">{index + 1}. {item.nome}</span>
+                                          <span className={`text-xs font-black whitespace-nowrap flex-shrink-0 ${item.lucro >= 0 ? 'text-green-400' : 'text-red-400'}`}>R$ {item.lucro.toFixed(2)}</span>
                                       </div>
                                   ))}
                               </div>
                           </div>
-                          <div className="bg-[#0f172a] p-5 rounded-3xl border border-white/5 shadow-lg">
-                              <h3 className="text-xs font-black text-slate-400 mb-4 uppercase tracking-wider flex items-center gap-2"><Globe className="w-3 h-3 text-purple-400"/> Top 5 Ligas</h3>
+                          <div className="bg-[#0f172a] p-5 rounded-3xl border border-white/5 shadow-lg overflow-hidden">
+                              <h3 className="text-xs font-black text-slate-400 mb-4 uppercase tracking-wider flex items-center gap-2 truncate"><Globe className="w-3 h-3 text-purple-400 flex-shrink-0"/> Top 5 Ligas</h3>
                               <div className="flex flex-col gap-1">
                                   {rankingLigas().map((item, index) => (
-                                      <div key={index} className="flex justify-between items-center py-2.5 border-b border-white/5 last:border-0">
-                                          <span className="text-xs font-bold text-white line-clamp-1 pr-2">{index + 1}. {item.nome}</span>
-                                          <span className={`text-xs font-black whitespace-nowrap ${item.lucro >= 0 ? 'text-green-400' : 'text-red-400'}`}>R$ {item.lucro.toFixed(2)}</span>
+                                      <div key={index} className="flex justify-between items-center py-2.5 border-b border-white/5 last:border-0 overflow-hidden">
+                                          <span className="text-xs font-bold text-white truncate pr-2">{index + 1}. {item.nome}</span>
+                                          <span className={`text-xs font-black whitespace-nowrap flex-shrink-0 ${item.lucro >= 0 ? 'text-green-400' : 'text-red-400'}`}>R$ {item.lucro.toFixed(2)}</span>
                                       </div>
                                   ))}
                               </div>
@@ -605,32 +675,32 @@ export default function App() {
                       </div>
 
                       {/* SUMMARY DE MERCADO E HORÁRIO */}
-                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 mb-6">
-                          <div className="bg-[#111827] p-4 rounded-2xl border border-white/5 shadow-lg flex flex-col gap-1">
-                              <span className="text-[10px] text-slate-400 font-bold uppercase tracking-widest flex items-center gap-1"><PieChart className="w-3 h-3 text-blue-400"/> Top Mercado</span>
-                              <strong className="text-sm font-black text-white line-clamp-1">{mercadoMaisLucrativo()[0]}</strong>
+                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 mb-6 relative z-10 overflow-hidden">
+                          <div className="bg-[#111827] p-4 rounded-2xl border border-white/5 shadow-lg flex flex-col gap-1 overflow-hidden">
+                              <span className="text-[10px] text-slate-400 font-bold uppercase tracking-widest flex items-center gap-1 truncate"><PieChart className="w-3 h-3 text-blue-400 flex-shrink-0"/> Top Mercado</span>
+                              <strong className="text-sm font-black text-white truncate">{mercadoMaisLucrativo()[0]}</strong>
                           </div>
-                          <div className="bg-[#111827] p-4 rounded-2xl border border-white/5 shadow-lg flex flex-col gap-1">
-                              <span className="text-[10px] text-slate-400 font-bold uppercase tracking-widest flex items-center gap-1"><Clock className="w-3 h-3 text-red-400"/> Top Horário</span>
-                              <strong className="text-sm font-black text-white line-clamp-1">{horarioMaisLucrativo()[0]}</strong>
+                          <div className="bg-[#111827] p-4 rounded-2xl border border-white/5 shadow-lg flex flex-col gap-1 overflow-hidden">
+                              <span className="text-[10px] text-slate-400 font-bold uppercase tracking-widest flex items-center gap-1 truncate"><Clock className="w-3 h-3 text-red-400 flex-shrink-0"/> Top Horário</span>
+                              <strong className="text-sm font-black text-white truncate">{horarioMaisLucrativo()[0]}</strong>
                           </div>
                       </div>
 
                       {/* SIMULADOR DE STAKE */}
-                      <div className="bg-[#0f172a] p-5 rounded-3xl mb-6 shadow-lg border border-white/5">
-                          <h2 className="text-sm font-black text-white mb-4 uppercase tracking-wider flex items-center gap-2"><Calculator className="w-4 h-4 text-blue-500"/> Simulador de Stake</h2>
+                      <div className="bg-[#0f172a] p-5 rounded-3xl mb-6 shadow-lg border border-white/5 relative z-10 overflow-hidden">
+                          <h2 className="text-sm font-black text-white mb-4 uppercase tracking-wider flex items-center gap-2 truncate"><Calculator className="w-4 h-4 text-blue-500 flex-shrink-0"/> Simulador de Stake</h2>
                           <div className="flex gap-3 mb-4">
-                              <input type="number" placeholder="Stake (R$)" value={simStake} onChange={(e)=>setSimStake(e.target.value)} className="w-full bg-[#050816] border border-slate-800 p-3 rounded-xl text-xs text-white font-bold outline-none focus:border-blue-500 transition-colors" />
-                              <input type="number" placeholder="Odd (@)" value={simOdd} onChange={(e)=>setSimOdd(e.target.value)} className="w-full bg-[#050816] border border-slate-800 p-3 rounded-xl text-xs text-white font-bold outline-none focus:border-blue-500 transition-colors" />
+                              <input type="number" placeholder="Stake" value={simStake} onChange={(e)=>setSimStake(e.target.value)} className="w-full bg-[#050816] border border-slate-800 p-3 rounded-xl text-xs text-white font-bold outline-none focus:border-blue-500 transition-colors" />
+                              <input type="number" placeholder="Odd" value={simOdd} onChange={(e)=>setSimOdd(e.target.value)} className="w-full bg-[#050816] border border-slate-800 p-3 rounded-xl text-xs text-white font-bold outline-none focus:border-blue-500 transition-colors" />
                           </div>
-                          <div className="flex justify-between items-center bg-[#111827] p-3 rounded-xl border border-white/5">
-                              <div><span className="text-[10px] text-slate-400 font-bold uppercase tracking-widest block">Lucro Limpo</span><span className="text-green-400 font-black text-sm">R$ {lucroSimulado().toFixed(2)}</span></div>
-                              <div className="text-right"><span className="text-[10px] text-slate-400 font-bold uppercase tracking-widest block">Retorno Total</span><span className="text-blue-400 font-black text-sm">R$ {retornoTotal().toFixed(2)}</span></div>
+                          <div className="flex justify-between items-center bg-[#111827] p-3 rounded-xl border border-white/5 overflow-hidden">
+                              <div className="overflow-hidden pr-2"><span className="text-[10px] text-slate-400 font-bold uppercase tracking-widest block truncate">Lucro Limpo</span><span className="text-green-400 font-black text-sm truncate">R$ {lucroSimulado().toFixed(2)}</span></div>
+                              <div className="text-right overflow-hidden"><span className="text-[10px] text-slate-400 font-bold uppercase tracking-widest block truncate">Retorno Total</span><span className="text-blue-400 font-black text-sm truncate">R$ {retornoTotal().toFixed(2)}</span></div>
                           </div>
                       </div>
 
                       {/* GRÁFICO DA BANCA */}
-                      <div className="bg-[#0f172a] border border-green-500/20 rounded-3xl p-6 mb-6 shadow-lg">
+                      <div className="bg-[#0f172a] border border-green-500/20 rounded-3xl p-6 mb-6 shadow-lg relative z-10 overflow-hidden">
                           <h2 className="text-sm font-black text-green-400 mb-4 flex items-center gap-2 uppercase tracking-wider"><TrendingUp className="w-5 h-5"/> Evolução da Banca</h2>
                           <div className="w-full relative overflow-hidden" style={{ height: '250px' }}>
                               <ResponsiveContainer width="99%" height={249}>
@@ -655,7 +725,7 @@ export default function App() {
                       </div>
 
                       {/* HISTÓRICO DE APOSTAS COM FILTROS */}
-                      <div className="bg-[#0f172a] rounded-3xl p-5 mb-6 shadow-lg border border-white/5">
+                      <div className="bg-[#0f172a] rounded-3xl p-5 mb-6 shadow-lg border border-white/5 relative z-10 overflow-hidden">
                           <h2 className="text-sm font-black text-white mb-4 uppercase tracking-wider flex items-center gap-2"><List className="w-4 h-4 text-slate-400"/> Histórico de Apostas</h2>
                           
                           <div className="flex gap-2 mb-5">
@@ -677,12 +747,12 @@ export default function App() {
 
                           <div className="flex flex-col gap-3">
                               {apostasFiltradas().length > 0 ? apostasFiltradas().map((a, index)=>(
-                                  <div key={index} className="bg-[#111827] border border-white/5 p-4 rounded-2xl flex justify-between items-center">
-                                      <div>
-                                          <div className="font-bold text-white text-xs mb-1">{a.jogo}</div>
-                                          <div className="text-[9px] font-black text-slate-500 uppercase tracking-widest flex items-center gap-2"><span>{a.mercado}</span> <span>•</span> <span>Odd: @{a.odd.toFixed(2)}</span></div>
+                                  <div key={index} className="bg-[#111827] border border-white/5 p-4 rounded-2xl flex justify-between items-center overflow-hidden">
+                                      <div className="overflow-hidden pr-2">
+                                          <div className="font-bold text-white text-xs mb-1 truncate">{a.jogo}</div>
+                                          <div className="text-[9px] font-black text-slate-500 uppercase tracking-widest flex items-center gap-2 truncate"><span>{a.mercado}</span> <span>•</span> <span>Odd: @{a.odd.toFixed(2)}</span></div>
                                       </div>
-                                      <div className={`font-black text-sm uppercase tracking-widest px-3 py-1.5 rounded-lg border ${a.resultado === "green" ? "bg-green-500/10 text-green-400 border-green-500/20" : "bg-red-500/10 text-red-400 border-red-500/20"}`}>
+                                      <div className={`font-black text-sm uppercase tracking-widest px-3 py-1.5 rounded-lg border flex-shrink-0 ${a.resultado === "green" ? "bg-green-500/10 text-green-400 border-green-500/20" : "bg-red-500/10 text-red-400 border-red-500/20"}`}>
                                           {a.resultado}
                                       </div>
                                   </div>
@@ -693,11 +763,11 @@ export default function App() {
                       </div>
 
                       {/* MENUS VERTICAIS COMPACTOS: CENTRAL IA */}
-                      <div className="flex flex-col gap-3 mb-6">
-                          <button onClick={() => setViewMode('ia_center')} className="w-full bg-[#0f172a] border border-blue-500/30 p-4 rounded-2xl flex items-center gap-4 shadow-sm hover:bg-[#1e293b] transition-colors">
-                              <div className="bg-blue-500/10 p-2.5 rounded-xl"><Zap className="w-5 h-5 text-blue-500"/></div>
-                              <span className="font-black text-sm uppercase tracking-wider text-white">Central IA</span>
-                              <ChevronRight className="w-5 h-5 text-slate-600 ml-auto"/>
+                      <div className="flex flex-col gap-3 mb-6 relative z-10">
+                          <button onClick={() => setViewMode('ia_center')} className="w-full bg-[#0f172a] border border-blue-500/30 p-4 rounded-2xl flex items-center gap-4 shadow-sm hover:bg-[#1e293b] transition-colors overflow-hidden">
+                              <div className="bg-blue-500/10 p-2.5 rounded-xl flex-shrink-0"><Zap className="w-5 h-5 text-blue-500"/></div>
+                              <span className="font-black text-sm uppercase tracking-wider text-white truncate">Central IA</span>
+                              <ChevronRight className="w-5 h-5 text-slate-600 ml-auto flex-shrink-0"/>
                           </button>
                       </div>
                   </div>
@@ -707,15 +777,15 @@ export default function App() {
                   RANKING & CENTRAL IA
               ========================================= */}
               {viewMode === 'ranking' && (
-                  <div className="px-4 animate-fade-in">
+                  <div className="px-4 animate-fade-in w-full overflow-hidden">
                       <HeaderNav title="🏆 Comunidade" onBack={() => setViewMode('perfil')} />
                       <div className="bg-[#0f172a] border border-yellow-500/30 rounded-3xl p-6 mb-6 shadow-[0_0_20px_rgba(234,179,8,0.1)]">
                           <h3 className="text-sm font-black text-yellow-400 mb-4 flex items-center gap-2 uppercase tracking-wider"><Users className="w-5 h-5"/> Ranking Global</h3>
                           <div className="flex flex-col gap-3">
                               {rankingUsuarios.map((user, index) => (
                                   <div key={index} className="bg-[#111827] border border-white/5 p-4 rounded-2xl flex justify-between items-center transition-colors">
-                                      <div className="flex items-center gap-3"><span className="text-xs font-black text-slate-400">#{index+1}</span><span className="font-bold text-white text-sm">{user.nome}</span></div>
-                                      <strong className="text-green-400 font-black">R$ {user.lucro_total.toFixed(2)}</strong>
+                                      <div className="flex items-center gap-3 overflow-hidden"><span className="text-xs font-black text-slate-400 flex-shrink-0">#{index+1}</span><span className="font-bold text-white text-sm truncate">{user.nome}</span></div>
+                                      <strong className="text-green-400 font-black flex-shrink-0">R$ {user.lucro_total.toFixed(2)}</strong>
                                   </div>
                               ))}
                           </div>
@@ -723,14 +793,51 @@ export default function App() {
                   </div>
               )}
 
+              {/* =========================================
+                  DASHBOARD ADMIN
+              ========================================= */}
+              {viewMode === 'admin' && (
+                  <div className="px-4 animate-fade-in pb-20 w-full overflow-hidden">
+                      <HeaderNav title="⚙️ Painel de Controle Admin" onBack={() => setViewMode('perfil')} />
+                      
+                      <div className="grid grid-cols-2 gap-3 mb-6">
+                          <div className="bg-[#0f172a] p-5 rounded-3xl border border-white/5 shadow-lg overflow-hidden">
+                              <div className="text-[10px] text-slate-400 uppercase tracking-widest mb-1 font-bold truncate">Total Usuários</div>
+                              <div className="text-3xl font-black text-white truncate">1,248</div>
+                          </div>
+                          <div className="bg-[#0f172a] p-5 rounded-3xl border border-yellow-500/20 shadow-lg overflow-hidden">
+                              <div className="text-[10px] text-slate-400 uppercase tracking-widest mb-1 font-bold truncate">Assinantes PRO</div>
+                              <div className="text-3xl font-black text-yellow-400 truncate">312</div>
+                          </div>
+                          <div className="bg-[#0f172a] p-5 rounded-3xl border border-green-500/20 shadow-lg col-span-2 flex justify-between items-center overflow-hidden">
+                              <div className="overflow-hidden pr-2">
+                                <div className="text-[10px] text-slate-400 uppercase tracking-widest mb-1 font-bold truncate">Receita Mensal Estimada</div>
+                                <div className="text-3xl font-black text-green-400 truncate">R$ 9.328,80</div>
+                              </div>
+                              <DollarSign className="w-8 h-8 text-green-500 opacity-50 flex-shrink-0"/>
+                          </div>
+                      </div>
+
+                      <div className="bg-[#0f172a] rounded-3xl p-5 mb-6 shadow-lg border border-white/5 overflow-hidden">
+                          <h3 className="text-sm font-black text-white mb-4 uppercase tracking-wider flex items-center gap-2 truncate"><Smartphone className="w-4 h-4 text-blue-500 flex-shrink-0"/> Ações Globais</h3>
+                          <button onClick={() => dispararAlertaPush("Alerta Global", "Nova Value Bet detectada na Premier League!")} className="w-full bg-blue-600 hover:bg-blue-500 text-white font-black text-xs py-4 rounded-xl flex items-center justify-center gap-2 mb-3 transition-colors shadow-lg overflow-hidden">
+                              <Bell className="w-4 h-4 flex-shrink-0"/> <span className="truncate">Disparar Push Notification Global</span>
+                          </button>
+                          <button className="w-full bg-[#111827] hover:bg-slate-800 border border-white/10 text-white font-black text-xs py-4 rounded-xl flex items-center justify-center gap-2 transition-colors overflow-hidden">
+                              <Users className="w-4 h-4 flex-shrink-0"/> <span className="truncate">Gerir Permissões de Utilizadores</span>
+                          </button>
+                      </div>
+                  </div>
+              )}
+
               {viewMode === 'ia_center' && (
-                  <div className="px-4 animate-fade-in">
+                  <div className="px-4 animate-fade-in w-full overflow-hidden">
                       <HeaderNav title="🤖 Central IA" onBack={() => setViewMode('perfil')} />
-                      <div className="bg-[#0f172a] border border-white/10 rounded-3xl p-6 mb-6 shadow-lg mx-4">
-                          <h2 className="text-sm font-black text-white mb-4 uppercase tracking-wider">Precisão Histórica</h2>
+                      <div className="bg-[#0f172a] border border-white/10 rounded-3xl p-6 mb-6 shadow-lg mx-4 overflow-hidden">
+                          <h2 className="text-sm font-black text-white mb-4 uppercase tracking-wider truncate">Precisão Histórica</h2>
                           <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                              <div className="bg-[#111827] rounded-2xl p-4 text-center border border-white/5"><span className="text-[10px] font-bold text-slate-400 uppercase">Acertos IA</span><strong className="text-2xl font-black text-green-400 block">{performanceStats.acertos}</strong></div>
-                              <div className="bg-[#111827] rounded-2xl p-4 text-center border border-white/5"><span className="text-[10px] font-bold text-slate-400 uppercase">Erros IA</span><strong className="text-2xl font-black text-red-400 block">{performanceStats.erros}</strong></div>
+                              <div className="bg-[#111827] rounded-2xl p-4 text-center border border-white/5 overflow-hidden"><span className="text-[10px] font-bold text-slate-400 uppercase truncate block">Acertos IA</span><strong className="text-2xl font-black text-green-400 block truncate">{performanceStats.acertos}</strong></div>
+                              <div className="bg-[#111827] rounded-2xl p-4 text-center border border-white/5 overflow-hidden"><span className="text-[10px] font-bold text-slate-400 uppercase truncate block">Erros IA</span><strong className="text-2xl font-black text-red-400 block truncate">{performanceStats.erros}</strong></div>
                           </div>
                       </div>
                   </div>
@@ -742,37 +849,44 @@ export default function App() {
           PAINEL DO JOGO ABERTO
       ========================================= */}
       {jogoSelecionado && !jogoSelecionado.is_loading && menuAtivo !== 'assinar pro' && (
-        <div className="px-4 mt-4 pb-20 animate-fade-in">
+        <div className="px-4 mt-4 pb-20 animate-fade-in w-full overflow-hidden">
             <button onClick={() => setJogoSelecionado(null)} className="text-slate-400 text-xs font-bold flex items-center gap-1 mb-6 bg-[#0f172a] border border-white/10 px-4 py-2 rounded-xl uppercase tracking-wider"><X className="w-4 h-4"/> Voltar</button>
             <div className="bg-[#0f172a] rounded-3xl p-6 border border-blue-500/30 shadow-2xl shadow-blue-500/10 mb-6 relative overflow-hidden">
                 <div className="flex justify-between items-center mb-6 relative z-10">
-                    <div className="flex flex-col items-center w-1/3"><img src={jogoSelecionado.home_image} className="w-16 h-16 mb-2 drop-shadow-lg" alt=""/><span className="font-black text-xs text-center">{jogoSelecionado.home_team}</span></div>
-                    <div className="w-1/3 text-center"><div className="text-4xl font-black mb-1 tracking-tighter">{jogoSelecionado.status === 'Not Started' ? 'VS' : `${jogoSelecionado.scoreHome} - ${jogoSelecionado.scoreAway}`}</div></div>
-                    <div className="flex flex-col items-center w-1/3"><img src={jogoSelecionado.away_image} className="w-16 h-16 mb-2 drop-shadow-lg" alt=""/><span className="font-black text-xs text-center">{jogoSelecionado.away_team}</span></div>
+                    <div className="flex flex-col items-center w-1/3 overflow-hidden"><img src={jogoSelecionado.home_image} className="w-16 h-16 mb-2 drop-shadow-lg" alt=""/><span className="font-black text-xs text-center truncate w-full">{jogoSelecionado.home_team}</span></div>
+                    <div className="w-1/3 text-center overflow-hidden"><div className="text-4xl font-black mb-1 tracking-tighter truncate">{jogoSelecionado.status === 'Not Started' ? 'VS' : `${jogoSelecionado.scoreHome} - ${jogoSelecionado.scoreAway}`}</div></div>
+                    <div className="flex flex-col items-center w-1/3 overflow-hidden"><img src={jogoSelecionado.away_image} className="w-16 h-16 mb-2 drop-shadow-lg" alt=""/><span className="font-black text-xs text-center truncate w-full">{jogoSelecionado.away_team}</span></div>
                 </div>
+
+                {jogoSelecionado.dadosAPI && (
+                    <div className="bg-orange-500/10 border border-orange-500/30 p-4 rounded-xl text-center mb-5 overflow-hidden">
+                        <span className="text-[10px] text-orange-400 font-bold uppercase tracking-widest block mb-1 truncate">🤖 Análise API Football Ao Vivo</span>
+                        <strong className="text-sm font-black text-white truncate block">{jogoSelecionado.dadosAPI.recomendacao} (Conf: {jogoSelecionado.dadosAPI.confianca}%)</strong>
+                    </div>
+                )}
 
                 {jogoSelecionado.odd_principal && (
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 mb-5">
-                        <div className="bg-blue-500/10 border border-blue-500/30 p-4 rounded-xl text-center">
-                            <span className="text-[10px] text-blue-400 font-black uppercase tracking-widest block mb-1">Stake Recomendada</span>
-                            <strong className="text-xl font-black text-white">R$ {calcularStake(bancaInicial, jogoSelecionado.confianca_ia).toFixed(2)}</strong>
+                        <div className="bg-blue-500/10 border border-blue-500/30 p-4 rounded-xl text-center overflow-hidden">
+                            <span className="text-[10px] text-blue-400 font-black uppercase tracking-widest block mb-1 truncate">Stake Recomendada</span>
+                            <strong className="text-xl font-black text-white truncate block">R$ {calcularStake(bancaInicial, jogoSelecionado.confianca_ia).toFixed(2)}</strong>
                         </div>
-                        <div className="bg-purple-500/10 border border-purple-500/20 p-4 rounded-xl text-center">
-                            <span className="text-[10px] text-purple-400 font-bold uppercase tracking-widest block mb-1">🧠 Kelly Criterion</span>
-                            <strong className="text-xl font-black text-white">{calcularKelly(jogoSelecionado.odd_principal, jogoSelecionado.confianca_ia).toFixed(1)}%</strong>
+                        <div className="bg-purple-500/10 border border-purple-500/20 p-4 rounded-xl text-center overflow-hidden">
+                            <span className="text-[10px] text-purple-400 font-bold uppercase tracking-widest block mb-1 truncate">🧠 Kelly Criterion</span>
+                            <strong className="text-xl font-black text-white truncate block">{calcularKelly(jogoSelecionado.odd_principal, jogoSelecionado.confianca_ia).toFixed(1)}%</strong>
                         </div>
                     </div>
                 )}
                 
                 <div className="bg-[#050816] rounded-2xl p-5 border border-slate-800/80 relative overflow-hidden flex flex-col items-start mb-4">
                     <div className="absolute top-0 right-0 w-24 h-24 bg-blue-600/10 blur-xl rounded-full"></div>
-                    <div className="flex items-center gap-2 mb-3 relative z-10"><Crosshair className="w-5 h-5 text-blue-500" /><h4 className="font-black text-xs text-blue-400 uppercase tracking-widest">ANÁLISE ESTATÍSTICA IA</h4></div>
+                    <div className="flex items-center gap-2 mb-3 relative z-10"><Crosshair className="w-5 h-5 text-blue-500 flex-shrink-0" /><h4 className="font-black text-xs text-blue-400 uppercase tracking-widest truncate">ANÁLISE ESTATÍSTICA IA</h4></div>
                     
                     {jogoSelecionado.explanation ? (
                         <div className="text-slate-300 text-xs leading-relaxed relative z-10 font-semibold whitespace-pre-line">{jogoSelecionado.explanation}</div>
                     ) : (
-                        <button onClick={() => gerarExplicacaoIA(jogoSelecionado)} disabled={jogoSelecionado.is_loading_explanation} className="w-full bg-blue-600 hover:bg-blue-500 text-white font-black text-xs py-3 rounded-xl flex items-center justify-center gap-2 transition-colors disabled:opacity-50">
-                           {jogoSelecionado.is_loading_explanation ? <span className="animate-pulse">A calcular motivos...</span> : <><Zap className="w-4 h-4"/> Gerar Relatório Profissional (Gemini)</>}
+                        <button onClick={() => gerarExplicacaoIA(jogoSelecionado)} disabled={jogoSelecionado.is_loading_explanation} className="w-full bg-blue-600 hover:bg-blue-500 text-white font-black text-xs py-3 rounded-xl flex items-center justify-center gap-2 transition-colors disabled:opacity-50 overflow-hidden">
+                           {jogoSelecionado.is_loading_explanation ? <span className="animate-pulse truncate">A calcular motivos...</span> : <><Zap className="w-4 h-4 flex-shrink-0"/> <span className="truncate">Gerar Relatório Profissional (Gemini)</span></>}
                         </button>
                     )}
                 </div>
@@ -782,16 +896,16 @@ export default function App() {
 
       {/* CHECKOUT VIP PRO */}
       {menuAtivo === "assinar pro" && (
-         <div className="px-4 pt-4 animate-fade-in">
+         <div className="px-4 pt-4 animate-fade-in w-full overflow-hidden">
              <div className="flex justify-between items-center mb-6"><button onClick={() => setMenuAtivo('Todos os Jogos')} className="text-slate-400 text-sm font-bold flex items-center gap-1"><X className="w-5 h-5"/> Fechar</button></div>
-             <div className="bg-[#0f172a] rounded-3xl p-6 border border-white/10 shadow-2xl">
+             <div className="bg-[#0f172a] rounded-3xl p-6 border border-white/10 shadow-2xl overflow-hidden">
                 <Crown className="w-12 h-12 text-yellow-500 mb-4" />
-                <h2 className="text-2xl font-black text-white mb-2">Seja PRO 👑</h2>
+                <h2 className="text-2xl font-black text-white mb-2 truncate">Seja PRO 👑</h2>
                 <div className="flex flex-col gap-3">
                     <input placeholder="Nome Completo" value={form.nome} onChange={e=>setForm({...form,nome:e.target.value})} className="bg-[#050816] border border-slate-800 p-4 rounded-2xl text-sm outline-none focus:border-blue-500 text-white font-bold" />
                     <input type="email" placeholder="E-mail" value={form.email} onChange={e=>setForm({...form,email:e.target.value})} className="bg-[#050816] border border-slate-800 p-4 rounded-2xl text-sm outline-none focus:border-blue-500 text-white font-bold" />
                     <input placeholder="CPF (Apenas números)" maxLength={11} value={form.cpf} onChange={e=>setForm({...form,cpf:e.target.value.replace(/\D/g, '')})} className="bg-[#050816] border border-slate-800 p-4 rounded-2xl text-sm outline-none focus:border-blue-500 text-white font-bold" />
-                    <button className="mt-4 bg-green-500 hover:bg-green-600 transition-colors text-white font-black py-4 rounded-2xl shadow-lg text-sm uppercase tracking-wider">⚡ PAGAR R$ 29,90 COM PIX</button>
+                    <button className="mt-4 bg-green-500 hover:bg-green-600 transition-colors text-white font-black py-4 rounded-2xl shadow-lg text-sm uppercase tracking-wider truncate">⚡ PAGAR R$ 29,90 COM PIX</button>
                 </div>
              </div>
          </div>
@@ -800,9 +914,9 @@ export default function App() {
       {/* 🔥 ALERTAS AUTOMÁTICOS FLOAT */}
       <div className="fixed top-32 left-0 right-0 z-50 flex flex-col items-center gap-2 pointer-events-none">
           <AnimatePresence>
-              {alertas.slice(0, 2).map((alerta) => (
+              {viewMode !== 'perfil' && alertas.slice(0, 2).map((alerta) => (
                   <motion.div key={alerta.id} initial={{opacity:0, y:-20}} animate={{opacity:1, y:0}} exit={{opacity:0}} className="bg-red-600/90 text-white text-[10px] font-black px-4 py-2 rounded-full shadow-lg border border-red-400 flex items-center gap-2">
-                      <Bell className="w-3 h-3 animate-bounce"/> {alerta.msg}
+                      <Bell className="w-3 h-3 animate-bounce"/> <span className="truncate">{alerta.msg}</span>
                   </motion.div>
               ))}
           </AnimatePresence>
