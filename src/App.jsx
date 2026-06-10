@@ -5,11 +5,16 @@ import { LineChart, Line, ResponsiveContainer, XAxis, YAxis, CartesianGrid, Tool
 import { motion, AnimatePresence } from 'framer-motion';
 import { initMercadoPago } from '@mercadopago/sdk-react'; 
 import { createClient } from '@supabase/supabase-js';
-import { Home, BarChart2, Radio, Trophy, Crown, Star, ChevronRight, X, User, Zap, TrendingUp, Crosshair, Bell, Globe, DollarSign, Activity, ShieldAlert, ArrowLeft, Send, Settings, CheckCircle2, Target, Flame, BrainCircuit, TrendingDown, AlertTriangle, Users, Award, PieChart, Calendar, Clock, Filter, Calculator, List, Smartphone } from 'lucide-react';
+import { Home, BarChart2, Radio, Trophy, Crown, Star, ChevronRight, X, User, Zap, TrendingUp, Crosshair, Bell, Globe, DollarSign, Activity, ShieldAlert, ArrowLeft, Send, Settings, CheckCircle2, Target, Flame, BrainCircuit, TrendingDown, AlertTriangle, Users, Award, PieChart, Calendar, Clock, Filter, Calculator, List } from 'lucide-react';
 
-// IMPORTAÇÃO CORRETA E BLINDADA
+// ============================================================================
+// 📦 IMPORTAÇÕES DA CLEAN ARCHITECTURE (PASTAS SEPARADAS)
+// ============================================================================
 import EstatisticasAvancadas from './components/EstatisticasAvancadas.jsx';
-
+import { calcularKelly, calcularDrawdown, executarBacktest } from './utils/financas.js';
+import { analisarPartidaAoVivo, buscarEstatisticasJogo } from './services/api.js';
+import { solicitarPermissaoNotificacao, dispararAlertaPush } from './services/notificacoes.js';
+ 
 // ============================================================================
 // ⚙️ CONFIGURAÇÕES PRINCIPAIS & SUPABASE
 // ============================================================================
@@ -37,9 +42,6 @@ const mockJogosData = [
 const mockJogoDetalhes = { stats_reais: [{type: "Posse (%)", h: 58, a: 42}, {type: "Remates", h: 12, a: 5}, {type: "Cantos", h: 8, a: 4}] };
 const mockRankingUsuarios = [ { id: 1, nome: "Lucas", lucro_total: 1840 }, { id: 2, nome: "Carlos", lucro_total: 1430 }, { id: 3, nome: "João", lucro_total: 1180 }, { id: 4, nome: "Marcos", lucro_total: 950 } ];
 
-// ============================================================================
-// 🧠 FUNÇÕES GLOBAIS EMBUTIDAS (Evita o ecrã crashar)
-// ============================================================================
 const calcularEV = (probabilidade, odd) => (((probabilidade / 100) * odd - 1) * 100);
 const calcularHeatScore = (jogo) => Math.round((jogo.confianca_ia * 0.5) + (calcularEV(jogo.confianca_ia, jogo.odd_principal) * 2) + (((jogo.homeStats?.form||50) - (jogo.awayStats?.form||50)) * 0.3));
 const detectarValueBet = (probabilidadeIA, odd) => probabilidadeIA > (100 / odd);
@@ -55,62 +57,6 @@ const calcularStake = (banca, confianca) => {
     if(confianca >= 85) return banca * 0.03;
     if(confianca >= 80) return banca * 0.02;
     return banca * 0.01;
-};
-
-const calcularKelly = (odd, probabilidade) => {
-    const p = probabilidade / 100;
-    const b = odd - 1;
-    return Math.max((((b * p) - (1 - p)) / b) * 100, 0);
-};
-
-// Funções Matemáticas de Gestão
-const calcularDrawdown = (listaApostas, bancaIni) => {
-    let pico = bancaIni; let maxDD = 0; let b = bancaIni;
-    listaApostas.forEach(a => {
-        if(a.resultado === "green") b += (a.stake * a.odd) - a.stake; else b -= a.stake;
-        if(b > pico) pico = b;
-        const dd = ((pico - b) / pico) * 100;
-        if(dd > maxDD) maxDD = dd;
-    });
-    return maxDD.toFixed(2);
-};
-
-const executarBacktest = (listaApostas, bancaIni) => {
-    let b = bancaIni;
-    listaApostas.forEach(a => {
-        if(a.resultado === "green") b += (a.stake * a.odd) - a.stake; else b -= a.stake;
-    });
-    return { bancaFinal: b, lucro: b - bancaIni, roi: ((b - bancaIni) / bancaIni) * 100 };
-};
-
-// Funções API Simuladas
-const buscarEstatisticasJogo = async (fixtureId) => {
-    return [ { shotsOnGoal: 6, ballPossession: 65, corners: 8 }, { shotsOnGoal: 2, ballPossession: 35, corners: 2 } ];
-};
-
-const analisarPartidaAoVivo = (stats) => {
-    if(!stats || stats.length < 2) return { confianca: 0, recomendacao: "Aguardando dados" };
-    const casa = stats[0]; const fora = stats[1]; let score = 40;
-    if (casa.shotsOnGoal > fora.shotsOnGoal) score += 20;
-    if (casa.ballPossession > fora.ballPossession) score += 15;
-    if (casa.corners > fora.corners) score += 10;
-    return {
-        confianca: Math.min(score, 99),
-        recomendacao: score > 75 ? "Forte Tendência Casa" : score > 60 ? "Over Gols Sugerido" : "Mercado Indefinido"
-    };
-};
-
-// Funções de Notificação Push
-const solicitarPermissaoNotificacao = () => {
-    if (!("Notification" in window)) return alert("Navegador não suporta notificações.");
-    Notification.requestPermission().then(permission => {
-        if (permission === "granted") new Notification("BetAnalytics PRO", { body: "Notificações ativadas com sucesso!" });
-    });
-};
-
-const dispararAlertaPush = (titulo, mensagem) => {
-    if ("Notification" in window && Notification.permission === "granted") new Notification(titulo, { body: mensagem });
-    else alert(`${titulo}: ${mensagem}`);
 };
 
 export default function App() {
@@ -153,33 +99,63 @@ export default function App() {
   const [simOdd, setSimOdd] = useState('');
   const [simStake, setSimStake] = useState('');
   
-  // Limites de Gestão
+  // Limites de Gestão (Novos)
   const metaMensal = 2000;
   const [stopWin, setStopWin] = useState(200);
   const [stopLoss, setStopLoss] = useState(100);
 
   // Cálculos Base de Gestão
-  const calcularLucroLiquido = () => apostas.reduce((total, a) => a.resultado === "green" ? total + ((a.stake * a.odd) - a.stake) : total - a.stake, 0);
-  const calcularYield = () => apostas.length === 0 ? "0.00" : (calcularLucroLiquido() / apostas.length).toFixed(2);
-  const calcularAssertividade = () => apostas.length === 0 ? 0 : (apostas.filter(a => a.resultado === "green").length / apostas.length) * 100;
-  const lucroAcumulado = () => calcularLucroLiquido();
+  const calcularLucroLiquido = () => {
+      return apostas.reduce((total, aposta) => {
+          if(aposta.resultado === "green") return total + ((aposta.stake * aposta.odd) - aposta.stake);
+          return total - aposta.stake;
+      }, 0);
+  };
 
+  const totalInvestido = () => apostas.reduce((acc, a) => acc + a.stake, 0);
+
+  const calcularYield = () => {
+      if(apostas.length === 0) return "0.00";
+      return (calcularLucroLiquido() / apostas.length).toFixed(2);
+  };
+
+  const calcularAssertividade = () => {
+      if(apostas.length === 0) return 0;
+      const greens = apostas.filter(a => a.resultado === "green").length;
+      return (greens / apostas.length) * 100;
+  };
+
+  const lucroAcumulado = () => apostas.reduce((acc,a)=>{ if(a.resultado==="green") return acc + ((a.stake*a.odd)-a.stake); return acc-a.stake; },0);
+
+  // Lógica de Stop Win / Loss (Novos)
   const atingiuStopWin = () => lucroAcumulado() >= stopWin;
   const atingiuStopLoss = () => lucroAcumulado() <= -stopLoss;
 
   const dadosGraficoBanca = useMemo(() => {
       let banca = bancaInicial;
       return apostas.map((a, index) => {
-          if(a.resultado === "green") banca += (a.stake * a.odd) - a.stake; else banca -= a.stake;
+          if(a.resultado === "green"){
+              banca += (a.stake * a.odd) - a.stake;
+          } else {
+              banca -= a.stake;
+          }
           return { aposta: `Bet ${index+1}`, banca: Number(banca.toFixed(2)) };
       });
   }, [apostas, bancaInicial]);
 
+  // Cálculos Avançados (ROI, Crescimento, Ranking)
   const calcularROISemanal = () => {
     const hoje = new Date();
-    const ultimaSemana = apostas.filter(a => (hoje - new Date(a.data)) / (1000 * 60 * 60 * 24) <= 7);
+    const ultimaSemana = apostas.filter(aposta => {
+      const dataAposta = new Date(aposta.data);
+      const diff = (hoje - dataAposta) / (1000 * 60 * 60 * 24);
+      return diff <= 7;
+    });
     const investido = ultimaSemana.reduce((acc,a)=>acc+a.stake, 0);
-    const lucro = ultimaSemana.reduce((acc,a) => a.resultado==="green" ? acc + ((a.stake*a.odd)-a.stake) : acc-a.stake, 0);
+    const lucro = ultimaSemana.reduce((acc,a) => {
+      if(a.resultado==="green") return acc + ((a.stake*a.odd)-a.stake);
+      return acc-a.stake;
+    },0);
     return investido ? (lucro/investido)*100 : 0;
   };
 
@@ -187,7 +163,10 @@ export default function App() {
     const mesAtual = new Date().getMonth();
     const apostasMes = apostas.filter(a => new Date(a.data).getMonth() === mesAtual);
     const investido = apostasMes.reduce((acc,a)=>acc+a.stake, 0);
-    const lucro = apostasMes.reduce((acc,a)=> a.resultado==="green" ? acc + ((a.stake*a.odd)-a.stake) : acc-a.stake, 0);
+    const lucro = apostasMes.reduce((acc,a)=>{
+      if(a.resultado==="green") return acc + ((a.stake*a.odd)-a.stake);
+      return acc-a.stake;
+    },0);
     return investido ? (lucro/investido)*100 : 0;
   };
 
@@ -195,11 +174,18 @@ export default function App() {
     const ano = new Date().getFullYear();
     const apostasAno = apostas.filter(a => new Date(a.data).getFullYear() === ano);
     const investido = apostasAno.reduce((acc,a)=>acc+a.stake, 0);
-    const lucro = apostasAno.reduce((acc,a)=> a.resultado==="green" ? acc + ((a.stake*a.odd)-a.stake) : acc-a.stake, 0);
+    const lucro = apostasAno.reduce((acc,a)=>{
+      if(a.resultado==="green") return acc + ((a.stake*a.odd)-a.stake);
+      return acc-a.stake;
+    },0);
     return investido ? (lucro/investido)*100 : 0;
   };
 
-  const crescimentoBanca = () => bancaInicial === 0 ? 0 : (lucroAcumulado() / bancaInicial) * 100;
+  const crescimentoBanca = () => {
+    if (bancaInicial === 0) return 0;
+    return (lucroAcumulado() / bancaInicial) * 100;
+  };
+
   const progressoMeta = () => Math.min((lucroAcumulado() / metaMensal) * 100, 100);
 
   const mercadoMaisLucrativo = () => {
@@ -215,9 +201,9 @@ export default function App() {
   const relatorioIA = () => {
     const roi = calcularROIMensal();
     const mercadoTop = mercadoMaisLucrativo()[0] || 'N/A';
-    if(roi > 20) return `🔥 ROI excelente de ${roi.toFixed(1)}%.\nO mercado mais lucrativo é ${mercadoTop}.\nConsidere escalar os lucros.`;
-    if(roi > 5) return `✅ Desempenho sólido e positivo.\nContinue a manter uma gestão disciplinada.`;
-    return `⚠️ Atenção à sua gestão.\nO seu ROI está abaixo do ideal.\nReduza as stakes temporariamente.`;
+    if(roi > 20) return `🔥 ROI excelente de ${roi.toFixed(1)}%.\n\nO mercado mais lucrativo é ${mercadoTop}.\nConsidere aumentar ligeiramente o volume neste mercado para escalar lucros.`;
+    if(roi > 5) return `✅ Desempenho sólido e positivo.\n\nContinue a manter uma gestão de banca disciplinada.\nA paciência é a chave.`;
+    return `⚠️ Atenção à sua gestão.\n\nO seu ROI está abaixo do ideal.\nReduza as stakes temporariamente e foque-se no seu melhor mercado: ${mercadoTop}.`;
   };
 
   const listaConquistas = () => {
@@ -258,9 +244,11 @@ export default function App() {
     return sorted.length > 0 ? sorted[0] : ['N/A', 0];
   };
 
+  // Funções do Simulador de Stake
   const lucroSimulado = () => (Number(simStake) * Number(simOdd)) - Number(simStake);
   const retornoTotal = () => Number(simStake) * Number(simOdd);
 
+  // Filtros
   const apostasFiltradas = () => {
     return apostas.filter(a => {
       const resultadoOk = filtroResultado === 'todos' || a.resultado === filtroResultado;
@@ -286,8 +274,8 @@ export default function App() {
   useEffect(() => { setTimeout(() => setShowSplash(false), 2000); }, []);
   useEffect(() => { 
       const em = localStorage.getItem('bet_sessao_ativa'); 
-      if (em) { setUserData({ email: em, nome: localStorage.getItem('bet_user_nome') || "Lucas Montesso", is_vip: true, is_admin: true }); }
-      else if (MODO_DEMONSTRACAO) { setUserData({ email: "lucas@vip.com", nome: "Lucas Montesso", is_vip: true, is_admin: true }); } 
+      if (em) { setUserData({ email: em, nome: localStorage.getItem('bet_user_nome') || "Lucas Montesso Coelho", is_vip: true, is_admin: true }); }
+      else if (MODO_DEMONSTRACAO) { setUserData({ email: "lucas@vip.com", nome: "Lucas Montesso Coelho", is_vip: true, is_admin: true }); } 
   }, []);
   
   useEffect(() => {
@@ -310,7 +298,11 @@ export default function App() {
   }, [jogos]);
 
   const nivelUsuario = () => {
-    if(xp > 5000) return "Lenda"; if(xp > 3000) return "Mestre"; if(xp > 1000) return "Especialista"; if(xp > 500) return "Profissional"; return "Iniciante";
+    if(xp > 5000) return "Lenda";
+    if(xp > 3000) return "Mestre"; 
+    if(xp > 1000) return "Especialista"; 
+    if(xp > 500) return "Profissional"; 
+    return "Iniciante";
   };
 
   const abrirPainelDoJogo = async (j) => {
@@ -322,7 +314,10 @@ export default function App() {
 
     setTimeout(() => { 
         setJogoSelecionado({ 
-            ...j, ...mockJogoDetalhes, dadosAPI: analiseTempoReal, is_loading: false 
+            ...j, 
+            ...mockJogoDetalhes, 
+            dadosAPI: analiseTempoReal,
+            is_loading: false 
         }); 
     }, 800); 
   };
@@ -386,7 +381,7 @@ export default function App() {
   }
 
   return (
-    <div className="min-h-screen bg-[#050816] text-white font-sans pb-28 overflow-x-hidden">
+    <div className="min-h-screen bg-[#050816] text-white font-sans pb-28">
       <header className="flex items-center justify-between px-5 py-4 bg-[#050816] sticky top-0 z-40 border-b border-white/5">
         <h1 className="font-black text-2xl tracking-tight flex items-center"><span className="italic">BET</span><span className="text-blue-500">ANALYTICS</span><span className="ml-2 bg-blue-600 text-[10px] px-2 py-0.5 rounded-md">PRO</span></h1>
         <button onClick={() => setMenuAtivo('assinar pro')} className="bg-gradient-to-r from-yellow-500 to-yellow-600 text-black font-black px-4 py-2 rounded-xl flex items-center gap-2 shadow-[0_0_15px_rgba(234,179,8,0.3)]"><Crown className="w-4 h-4" /> {userData?.is_vip ? "VIP ATIVO" : "ASSINAR PRO"}</button>
@@ -547,8 +542,8 @@ export default function App() {
                           </div>
                       </div>
 
-                      {/* GESTÃO DE RISCO DIÁRIO */}
-                      <div className="bg-[#0f172a] p-5 rounded-3xl mb-6 shadow-lg border border-white/5 relative z-10">
+                      {/* NOVO: LIMITES DE GESTÃO (STOP WIN / STOP LOSS) */}
+                      <div className="bg-[#0f172a] p-5 rounded-3xl mb-6 shadow-lg border border-white/5">
                           <h3 className="text-sm font-black text-white mb-4 uppercase tracking-wider flex items-center gap-2"><Activity className="w-4 h-4 text-orange-500"/> Gestão de Risco Diário</h3>
                           <div className="flex gap-3 mb-4">
                               <div className="w-1/2">
@@ -561,32 +556,35 @@ export default function App() {
                               </div>
                           </div>
                           
-                          {/* Dica de Performance: Removendo o AnimatePresence aqui para prevenir render loops nos WebViews de Android */}
-                          {atingiuStopWin() && (
-                              <div className="bg-green-500/10 border border-green-500/30 p-3 rounded-xl text-green-400 text-xs font-black text-center flex items-center justify-center gap-2 shadow-inner">
-                                  ✅ META BATIDA! Hora de fechar o mercado.
-                              </div>
-                          )}
-                          {atingiuStopLoss() && (
-                              <div className="bg-red-500/10 border border-red-500/30 p-3 rounded-xl text-red-400 text-xs font-black text-center flex items-center justify-center gap-2 shadow-inner mt-2">
-                                  ⚠️ STOP LOSS ATINGIDO! Proteja o que resta.
-                              </div>
-                          )}
+                          <AnimatePresence>
+                              {atingiuStopWin() && (
+                                  <motion.div initial={{opacity:0, y:-10}} animate={{opacity:1, y:0}} className="bg-green-500/10 border border-green-500/30 p-3 rounded-xl text-green-400 text-xs font-black text-center flex items-center justify-center gap-2 shadow-inner">
+                                      ✅ META BATIDA! Hora de fechar o mercado.
+                                  </motion.div>
+                              )}
+                              {atingiuStopLoss() && (
+                                  <motion.div initial={{opacity:0, y:-10}} animate={{opacity:1, y:0}} className="bg-red-500/10 border border-red-500/30 p-3 rounded-xl text-red-400 text-xs font-black text-center flex items-center justify-center gap-2 shadow-inner mt-2">
+                                      ⚠️ STOP LOSS ATINGIDO! Proteja o que resta.
+                                  </motion.div>
+                              )}
+                          </AnimatePresence>
                       </div>
 
                       {/* META MENSAL */}
-                      <div className="bg-[#0f172a] p-5 rounded-3xl mb-6 shadow-lg border border-white/5 relative z-10">
+                      <div className="bg-[#0f172a] p-5 rounded-3xl mb-6 shadow-lg border border-white/5">
                           <div className="flex justify-between mb-2">
                               <span className="text-sm font-black text-white uppercase tracking-wider flex items-center gap-2"><Target className="w-4 h-4 text-green-500"/> Meta Mensal</span>
                               <span className="text-xs font-bold text-slate-300">R$ {lucroAcumulado().toFixed(2)} <span className="text-slate-500">/ R$ {metaMensal}</span></span>
                           </div>
                           <div className="bg-slate-800 h-4 rounded-full overflow-hidden mt-3 shadow-inner">
-                              <div className="bg-gradient-to-r from-green-600 to-green-400 h-full rounded-full transition-all duration-1000 relative" style={{width: `${progressoMeta()}%`}}></div>
+                              <div className="bg-gradient-to-r from-green-600 to-green-400 h-full rounded-full transition-all duration-1000 relative" style={{width: `${progressoMeta()}%`}}>
+                                  <div className="absolute inset-0 bg-white/20 w-full animate-[pulse_2s_ease-in-out_infinite]"></div>
+                              </div>
                           </div>
                       </div>
 
                       {/* SISTEMA DE CONQUISTAS */}
-                      <div className="mb-6 relative z-10">
+                      <div className="mb-6">
                           <h3 className="text-sm font-black text-white mb-3 uppercase tracking-wider flex items-center gap-2"><Trophy className="w-4 h-4 text-yellow-500"/> Conquistas Desbloqueadas</h3>
                           <div className="flex gap-2 overflow-x-auto no-scrollbar pb-2">
                               {listaConquistas().map((c, index)=>(
@@ -597,22 +595,22 @@ export default function App() {
                           </div>
                       </div>
 
-                      {/* GESTÃO PROFISSIONAL (Drawdown e Backtest) - AGORA 100% SEGURO */}
-                      <h3 className="text-sm font-black text-white mb-4 uppercase tracking-wider flex items-center gap-2 relative z-10"><Activity className="w-4 h-4 text-red-500"/> Gestão Profissional</h3>
-                      <div className="grid grid-cols-2 gap-3 mb-6 relative z-10">
-                          <div className="bg-[#111827] p-5 rounded-2xl border border-red-500/20 shadow-lg flex flex-col justify-center">
+                      {/* GESTÃO PROFISSIONAL (Drawdown e Backtest) */}
+                      <h3 className="text-sm font-black text-white mb-4 uppercase tracking-wider flex items-center gap-2"><Activity className="w-4 h-4 text-red-500"/> Gestão Profissional</h3>
+                      <div className="grid grid-cols-2 gap-3 mb-6">
+                          <div className="bg-[#111827] p-5 rounded-2xl border border-red-500/20 shadow-lg">
                               <div className="text-[10px] text-slate-400 font-bold uppercase tracking-widest mb-1 flex items-center gap-1"><TrendingDown className="w-3 h-3 text-red-400"/> Drawdown Máx</div>
                               <div className="text-2xl font-black text-red-400">{calcularDrawdown(apostas, bancaInicial)}%</div>
                           </div>
-                          <button onClick={handleRunBacktest} className="bg-gradient-to-br from-blue-700 to-blue-500 p-5 rounded-2xl border border-blue-400/30 shadow-lg flex flex-col items-center justify-center active:scale-95 transition-transform">
+                          <button onClick={handleRunBacktest} className="bg-gradient-to-br from-blue-700 to-blue-500 p-5 rounded-2xl border border-blue-400/30 shadow-lg flex flex-col items-center justify-center hover:scale-[1.02] transition-transform">
                               <Calendar className="w-5 h-5 text-white mb-1"/>
                               <div className="text-[10px] text-white font-black uppercase tracking-widest text-center">Rodar Backtest Histórico</div>
                           </button>
                       </div>
 
                       {/* ROI E LUCRO */}
-                      <h3 className="text-sm font-black text-white mb-4 uppercase tracking-wider flex items-center gap-2 relative z-10"><DollarSign className="w-4 h-4 text-green-500"/> Retorno Sobre Investimento</h3>
-                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 mb-6 relative z-10">
+                      <h3 className="text-sm font-black text-white mb-4 uppercase tracking-wider flex items-center gap-2"><DollarSign className="w-4 h-4 text-green-500"/> Retorno Sobre Investimento</h3>
+                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 mb-6">
                           <div className="bg-[#111827] p-4 rounded-2xl border border-white/5 shadow-lg">
                               <div className="text-[10px] text-slate-400 font-bold uppercase tracking-widest mb-1">ROI Semanal</div>
                               <div className={`text-xl font-black ${calcularROISemanal() >= 0 ? 'text-green-400' : 'text-red-400'}`}>{calcularROISemanal().toFixed(1)}%</div>
@@ -632,7 +630,7 @@ export default function App() {
                       </div>
 
                       {/* CRESCIMENTO & IA ANALISTA */}
-                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 mb-6 relative z-10">
+                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 mb-6">
                           <div className="bg-[#0f172a] p-5 rounded-3xl border border-white/5 shadow-lg">
                               <div className="text-[10px] text-slate-400 uppercase font-bold tracking-widest mb-2">Crescimento da Banca</div>
                               <div className={`text-3xl font-black ${crescimentoBanca() >= 0 ? 'text-green-400' : 'text-red-400'}`}>
@@ -649,8 +647,8 @@ export default function App() {
                       </div>
 
                       {/* RANKINGS DE EQUIPAS E LIGAS */}
-                      <h3 className="text-sm font-black text-white mb-4 uppercase tracking-wider flex items-center gap-2 relative z-10"><Trophy className="w-4 h-4 text-yellow-500"/> Onde você mais lucra</h3>
-                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 mb-4 relative z-10">
+                      <h3 className="text-sm font-black text-white mb-4 uppercase tracking-wider flex items-center gap-2"><Trophy className="w-4 h-4 text-yellow-500"/> Onde você mais lucra</h3>
+                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 mb-4">
                           <div className="bg-[#0f172a] p-5 rounded-3xl border border-white/5 shadow-lg">
                               <h3 className="text-xs font-black text-slate-400 mb-4 uppercase tracking-wider flex items-center gap-2"><ShieldAlert className="w-3 h-3 text-orange-400"/> Top 5 Equipas</h3>
                               <div className="flex flex-col gap-1">
@@ -676,7 +674,7 @@ export default function App() {
                       </div>
 
                       {/* SUMMARY DE MERCADO E HORÁRIO */}
-                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 mb-6 relative z-10">
+                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 mb-6">
                           <div className="bg-[#111827] p-4 rounded-2xl border border-white/5 shadow-lg flex flex-col gap-1">
                               <span className="text-[10px] text-slate-400 font-bold uppercase tracking-widest flex items-center gap-1"><PieChart className="w-3 h-3 text-blue-400"/> Top Mercado</span>
                               <strong className="text-sm font-black text-white line-clamp-1">{mercadoMaisLucrativo()[0]}</strong>
@@ -688,7 +686,7 @@ export default function App() {
                       </div>
 
                       {/* SIMULADOR DE STAKE */}
-                      <div className="bg-[#0f172a] p-5 rounded-3xl mb-6 shadow-lg border border-white/5 relative z-10">
+                      <div className="bg-[#0f172a] p-5 rounded-3xl mb-6 shadow-lg border border-white/5">
                           <h2 className="text-sm font-black text-white mb-4 uppercase tracking-wider flex items-center gap-2"><Calculator className="w-4 h-4 text-blue-500"/> Simulador de Stake (Kelly: {calcularKelly(Number(simOdd)||1.01, 65).toFixed(1)}%)</h2>
                           <div className="flex gap-3 mb-4">
                               <input type="number" placeholder="Stake (R$)" value={simStake} onChange={(e)=>setSimStake(e.target.value)} className="w-full bg-[#050816] border border-slate-800 p-3 rounded-xl text-xs text-white font-bold outline-none focus:border-blue-500 transition-colors" />
@@ -701,7 +699,7 @@ export default function App() {
                       </div>
 
                       {/* GRÁFICO DA BANCA */}
-                      <div className="bg-[#0f172a] border border-green-500/20 rounded-3xl p-6 mb-6 shadow-lg relative z-10">
+                      <div className="bg-[#0f172a] border border-green-500/20 rounded-3xl p-6 mb-6 shadow-lg">
                           <h2 className="text-sm font-black text-green-400 mb-4 flex items-center gap-2 uppercase tracking-wider"><TrendingUp className="w-5 h-5"/> Evolução da Banca</h2>
                           <div className="w-full relative" style={{ height: '250px' }}>
                               <ResponsiveContainer width="99%" height={249}>
@@ -716,7 +714,7 @@ export default function App() {
                           </div>
                       </div>
 
-                      {/* IMPORTAÇÃO DO NOVO COMPONENTE DE ESTATÍSTICAS AVANÇADAS */}
+                      {/* IMPORTAÇÃO DO COMPONENTE DE ESTATÍSTICAS AVANÇADAS */}
                       <EstatisticasAvancadas 
                           apostas={apostas} 
                           isPro={userData?.is_vip} 
@@ -724,7 +722,7 @@ export default function App() {
                       />
 
                       {/* HISTÓRICO DE APOSTAS COM FILTROS */}
-                      <div className="bg-[#0f172a] rounded-3xl p-5 mb-6 shadow-lg border border-white/5 relative z-10">
+                      <div className="bg-[#0f172a] rounded-3xl p-5 mb-6 shadow-lg border border-white/5">
                           <h2 className="text-sm font-black text-white mb-4 uppercase tracking-wider flex items-center gap-2"><List className="w-4 h-4 text-slate-400"/> Histórico de Apostas</h2>
                           
                           <div className="flex gap-2 mb-5">
@@ -762,7 +760,7 @@ export default function App() {
                       </div>
 
                       {/* MENUS VERTICAIS COMPACTOS: CENTRAL IA */}
-                      <div className="flex flex-col gap-3 mb-6 relative z-10">
+                      <div className="flex flex-col gap-3 mb-6">
                           <button onClick={() => setViewMode('ia_center')} className="w-full bg-[#0f172a] border border-blue-500/30 p-4 rounded-2xl flex items-center gap-4 shadow-sm hover:bg-[#1e293b] transition-colors">
                               <div className="bg-blue-500/10 p-2.5 rounded-xl"><Zap className="w-5 h-5 text-blue-500"/></div>
                               <span className="font-black text-sm uppercase tracking-wider text-white">Central IA</span>
@@ -910,12 +908,12 @@ export default function App() {
          </div>
       )}
 
-      {/* 🔥 ALERTAS AUTOMÁTICOS FLOAT (Apenas fora do painel de perfil) */}
+      {/* 🔥 ALERTAS AUTOMÁTICOS FLOAT */}
       <div className="fixed top-32 left-0 right-0 z-50 flex flex-col items-center gap-2 pointer-events-none">
           <AnimatePresence>
-              {viewMode !== 'perfil' && alertas.slice(0, 2).map((alerta) => (
+              {alertas.slice(0, 2).map((alerta) => (
                   <motion.div key={alerta.id} initial={{opacity:0, y:-20}} animate={{opacity:1, y:0}} exit={{opacity:0}} className="bg-red-600/90 text-white text-[10px] font-black px-4 py-2 rounded-full shadow-lg border border-red-400 flex items-center gap-2">
-                      <Bell className="w-3 h-3"/> {alerta.msg}
+                      <Bell className="w-3 h-3 animate-bounce"/> {alerta.msg}
                   </motion.div>
               ))}
           </AnimatePresence>
