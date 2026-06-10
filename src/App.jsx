@@ -153,20 +153,11 @@ export default function App() {
   const [stopLoss, setStopLoss] = useState(100);
 
   // ============================================================================
-  // ⚡ CÁLCULOS OTIMIZADOS (Prevenção de Render Thrashing / Tremor)
-  // O useMemo garante que os cálculos só ocorrem quando uma nova aposta é inserida
+  // ⚡ CÁLCULOS OTIMIZADOS
   // ============================================================================
   
   const lucroAcumulado = useMemo(() => {
     return apostas.reduce((acc, a) => a.resultado === "green" ? acc + ((a.stake * a.odd) - a.stake) : acc - a.stake, 0);
-  }, [apostas]);
-
-  const yieldMedio = useMemo(() => {
-    return apostas.length === 0 ? "0.00" : (lucroAcumulado / apostas.length).toFixed(2);
-  }, [apostas, lucroAcumulado]);
-
-  const assertividade = useMemo(() => {
-    return apostas.length === 0 ? 0 : (apostas.filter(a => a.resultado === "green").length / apostas.length) * 100;
   }, [apostas]);
 
   const atingiuStopWin = lucroAcumulado >= stopWin;
@@ -212,7 +203,6 @@ export default function App() {
     return Math.min((lucroAcumulado / (metaMensal || 1)) * 100, 100);
   }, [lucroAcumulado, metaMensal]);
 
-  // A GRANDE CORREÇÃO DA TELA TREMENDO:
   const topMercado = useMemo(() => {
     const mercados = {};
     apostas.forEach(a => {
@@ -366,11 +356,11 @@ export default function App() {
     const picks = jogos.filter(j => j.confianca_ia >= 90 && calcularEV(j.confianca_ia, j.odd_principal) >= 10);
     if(picks.length === 0) return null;
     return (
-      <div className="bg-[#0f172a] border border-green-500/40 shadow-[0_0_20px_rgba(34,197,94,0.15)] rounded-3xl p-4 sm:p-6 mb-6 mx-4 overflow-hidden">
+      <div className="bg-[#0f172a] border border-green-500/40 shadow-[0_0_20px_rgba(34,197,94,0.15)] rounded-3xl p-4 sm:p-6 mb-6 mx-4 transform-gpu">
         <h3 className="font-black text-green-400 mb-4 flex items-center gap-2 tracking-wider"><Crown className="w-5 h-5"/> IA BANKER PICKS</h3>
         {picks.map(j => (
             <div key={j.id} onClick={() => abrirPainelDoJogo(j)} className="bg-[#050816] border border-white/5 p-4 rounded-2xl mb-3 last:mb-0 flex justify-between items-center cursor-pointer hover:border-green-500/50 transition-colors">
-                <div className="overflow-hidden pr-2 min-w-0">
+                <div className="min-w-0 pr-2">
                     <div className="font-black text-white text-sm mb-1 truncate">{j.home_team} x {j.away_team}</div>
                     <div className="text-[10px] text-green-400 font-bold uppercase tracking-widest flex gap-2"><span>Confiança: {j.confianca_ia}%</span> <span>•</span> <span>EV: +{calcularEV(j.confianca_ia, j.odd_principal).toFixed(1)}%</span></div>
                 </div>
@@ -395,7 +385,7 @@ export default function App() {
   }
 
   return (
-    <div className="min-h-screen bg-[#050816] text-white font-sans pb-28 overflow-x-hidden w-full max-w-full">
+    <div className="min-h-screen bg-[#050816] text-white font-sans pb-28 w-full max-w-full">
       <header className="flex items-center justify-between px-5 py-4 bg-[#050816] sticky top-0 z-40 border-b border-white/5">
         <h1 className="font-black text-xl sm:text-2xl tracking-tight flex items-center"><span className="italic">BET</span><span className="text-blue-500">ANALYTICS</span><span className="ml-2 bg-blue-600 text-[10px] px-2 py-0.5 rounded-md">PRO</span></h1>
         <button onClick={() => setMenuAtivo('assinar pro')} className="bg-gradient-to-r from-yellow-500 to-yellow-600 text-black font-black px-3 sm:px-4 py-2 rounded-xl flex items-center gap-2 shadow-[0_0_15px_rgba(234,179,8,0.3)] flex-shrink-0 text-xs sm:text-sm"><Crown className="w-4 h-4" /> {userData?.is_vip ? "VIP ATIVO" : "ASSINAR PRO"}</button>
@@ -410,25 +400,24 @@ export default function App() {
               {viewMode === 'jogos' && (
                   <>
                     {userData?.is_vip && (
-                        <div className="mx-4 mb-6 rounded-3xl p-4 sm:p-6 bg-gradient-to-br from-blue-600 to-blue-900 shadow-[0_0_30px_rgba(13,110,253,0.3)] flex justify-between items-center relative overflow-hidden">
-                        <div className="relative z-10"><h2 className="text-lg sm:text-xl font-black text-white flex items-center gap-2 mb-1 sm:mb-2"><Crown className="w-5 h-5 text-yellow-400"/> IA Premium</h2><p className="text-blue-100 text-[10px] sm:text-xs mt-1"><strong>{(performanceStats.acertos/performanceStats.totalAnalises*100).toFixed(1)}%</strong> de precisão geral</p></div>
-                        <button onClick={() => setViewMode('ranking')} className="relative z-10 bg-white/20 border border-white/30 text-white text-[9px] sm:text-[10px] font-bold px-3 sm:px-4 py-2 sm:py-3 rounded-xl uppercase tracking-wider">VER RANKING</button>
+                        <div className="mx-4 mb-6 rounded-3xl p-4 sm:p-6 bg-gradient-to-br from-blue-600 to-blue-900 shadow-[0_0_30px_rgba(13,110,253,0.3)] flex justify-between items-center transform-gpu">
+                        <div><h2 className="text-lg sm:text-xl font-black text-white flex items-center gap-2 mb-1 sm:mb-2"><Crown className="w-5 h-5 text-yellow-400"/> IA Premium</h2><p className="text-blue-100 text-[10px] sm:text-xs mt-1"><strong>{(performanceStats.acertos/performanceStats.totalAnalises*100).toFixed(1)}%</strong> de precisão geral</p></div>
+                        <button onClick={() => setViewMode('ranking')} className="bg-white/20 border border-white/30 text-white text-[9px] sm:text-[10px] font-bold px-3 sm:px-4 py-2 sm:py-3 rounded-xl uppercase tracking-wider">VER RANKING</button>
                         </div>
                     )}
 
                     {bilhetePremium.selecoes.length > 0 && (
-                        <div className="bg-[#0f172a] border border-green-500/30 rounded-3xl p-4 sm:p-6 mb-6 mx-4 shadow-lg relative overflow-hidden">
-                            <div className="absolute top-0 right-0 w-32 h-32 bg-green-500/10 blur-3xl rounded-full"></div>
-                            <h2 className="font-black text-green-400 mb-4 flex items-center gap-2 uppercase tracking-wider relative z-10"><Target className="w-5 h-5"/> Bilhete Inteligente IA</h2>
-                            <div className="relative z-10">
+                        <div className="bg-[#0f172a] border border-green-500/30 rounded-3xl p-4 sm:p-6 mb-6 mx-4 shadow-lg transform-gpu">
+                            <h2 className="font-black text-green-400 mb-4 flex items-center gap-2 uppercase tracking-wider"><Target className="w-5 h-5"/> Bilhete Inteligente IA</h2>
+                            <div>
                                 {bilhetePremium.selecoes.map(jogo => (
-                                    <div key={jogo.id} onClick={() => abrirPainelDoJogo(jogo)} className="bg-[#111827] border border-white/5 p-4 rounded-xl mb-3 cursor-pointer hover:border-green-500/50 transition-colors flex justify-between items-center overflow-hidden">
+                                    <div key={jogo.id} onClick={() => abrirPainelDoJogo(jogo)} className="bg-[#111827] border border-white/5 p-4 rounded-xl mb-3 cursor-pointer hover:border-green-500/50 transition-colors flex justify-between items-center">
                                         <div className="font-bold text-white text-sm truncate pr-2 min-w-0">{jogo.home_team} x {jogo.away_team}</div>
                                         <div className="text-green-400 text-[9px] sm:text-[10px] font-black tracking-widest uppercase flex-shrink-0">Confiança: {jogo.confianca_ia}%</div>
                                     </div>
                                 ))}
                             </div>
-                            <div className="mt-4 pt-4 border-t border-green-500/20 flex justify-between items-center relative z-10 overflow-hidden">
+                            <div className="mt-4 pt-4 border-t border-green-500/20 flex justify-between items-center">
                                 <span className="text-[10px] sm:text-xs text-green-200 font-black uppercase tracking-widest truncate pr-2">Odd Combinada Final</span>
                                 <span className="text-2xl sm:text-3xl font-black text-green-400 drop-shadow-[0_0_10px_rgba(74,222,128,0.5)] flex-shrink-0">@{Number(bilhetePremium.oddFinal || 0).toFixed(2)}</span>
                             </div>
@@ -436,10 +425,10 @@ export default function App() {
                     )}
 
                     {oportunidades.length > 0 && (
-                        <div className="bg-[#0f172a] border border-orange-500/30 rounded-3xl p-4 sm:p-6 mb-6 mx-4 shadow-lg overflow-hidden">
+                        <div className="bg-[#0f172a] border border-orange-500/30 rounded-3xl p-4 sm:p-6 mb-6 mx-4 shadow-lg transform-gpu">
                             <h2 className="font-black text-orange-400 mb-4 flex items-center gap-2 uppercase tracking-wider"><Flame className="w-5 h-5"/> Radar de Oportunidades</h2>
                             {oportunidades.map(j => (
-                                <div key={j.id} onClick={() => abrirPainelDoJogo(j)} className="bg-[#111827] border border-white/5 p-4 rounded-xl mb-3 last:mb-0 cursor-pointer hover:border-orange-500/50 transition-colors flex justify-between items-center overflow-hidden">
+                                <div key={j.id} onClick={() => abrirPainelDoJogo(j)} className="bg-[#111827] border border-white/5 p-4 rounded-xl mb-3 last:mb-0 cursor-pointer hover:border-orange-500/50 transition-colors flex justify-between items-center">
                                     <div className="font-bold text-white text-sm truncate pr-2 min-w-0">{j.home_team}</div>
                                     <div className="text-orange-400 text-[9px] sm:text-[10px] font-black uppercase tracking-widest bg-orange-500/10 px-2 sm:px-3 py-1 sm:py-1.5 rounded-md border border-orange-500/20 flex-shrink-0">EV+ {calcularEV(j.confianca_ia, j.odd_principal).toFixed(1)}%</div>
                                 </div>
@@ -449,9 +438,9 @@ export default function App() {
 
                     <BankerPicksCard />
 
-                    <div className="bg-[#0f172a] border border-purple-500/20 rounded-3xl p-4 sm:p-6 mb-6 mx-4 shadow-lg overflow-hidden w-[calc(100%-2rem)]">
+                    <div className="bg-[#0f172a] border border-purple-500/20 rounded-3xl p-4 sm:p-6 mb-6 mx-4 shadow-lg w-[calc(100%-2rem)] transform-gpu">
                         <h2 className="text-sm font-black text-purple-400 mb-4 flex items-center gap-2 uppercase tracking-wider"><TrendingUp className="w-4 h-4"/> Evolução do Algoritmo IA</h2>
-                        <div className="w-full relative overflow-hidden h-[150px]">
+                        <div className="w-full h-[150px]">
                             <ResponsiveContainer width="99%" height={149}>
                                 <LineChart data={crescimentoBancaGlobal}>
                                     <XAxis dataKey="dia" stroke="#64748b" fontSize={10} tickLine={false} axisLine={false} />
@@ -482,20 +471,20 @@ export default function App() {
                                     const isValueBet = j.odd_principal ? detectarValueBet(j.confianca_ia, j.odd_principal) : false;
                                     
                                     return (
-                                        <div key={j.id} onClick={() => abrirPainelDoJogo(j)} className="bg-[#0f172a] border border-white/10 rounded-3xl p-4 sm:p-5 shadow-lg mb-4 cursor-pointer relative overflow-hidden transition-all hover:border-blue-500/50 w-full">
+                                        <div key={j.id} onClick={() => abrirPainelDoJogo(j)} className="bg-[#0f172a] border border-white/10 rounded-3xl p-4 sm:p-5 shadow-lg mb-4 cursor-pointer relative transition-all hover:border-blue-500/50 w-full transform-gpu">
                                             {heatScore > 50 && <div className="absolute -right-8 top-5 bg-red-600 text-white text-[8px] font-black px-8 py-1 rotate-45 shadow-lg flex items-center justify-center uppercase tracking-widest border-y border-red-400/30">Heat {heatScore}</div>}
                                             <div className="flex justify-between items-center mb-5">
                                                 {isLive ? <span className="bg-red-500 px-3 py-1 rounded-full text-[10px] font-black uppercase">🔴 Ao Vivo {j.time_elapsed}'</span> : <span className="text-slate-400 text-[10px] sm:text-xs font-bold uppercase">{j.status === 'Finished' ? 'Finalizado' : j.starting_at?.split('T')[1]?.substring(0,5)}</span>}
                                                 <button onClick={(e) => toggleFavorito(e, j.id)} className="p-1 z-10 relative mr-6"><Star className={`w-5 h-5 ${favoritos.includes(j.id) ? 'fill-yellow-400 text-yellow-400' : 'text-slate-600'}`} /></button>
                                             </div>
-                                            <div className="flex gap-2 mb-3 overflow-hidden">
+                                            <div className="flex gap-2 mb-3">
                                                 {isValueBet && <div className="bg-green-500/20 border border-green-500/40 text-green-400 font-black text-[9px] px-2.5 py-1 rounded-md uppercase tracking-wider whitespace-nowrap flex-shrink-0">💰 VALUE BET</div>}
                                                 <div className={`border ${risco.cor} font-black text-[9px] px-2.5 py-1 rounded-md uppercase tracking-wider flex items-center gap-1 whitespace-nowrap flex-shrink-0`}><AlertTriangle className="w-3 h-3"/> Risco: {risco.nivel}</div>
                                             </div>
-                                            <div className="grid grid-cols-3 items-center text-center mb-5 mt-2 overflow-hidden w-full">
-                                                <div className="flex flex-col items-center gap-2 overflow-hidden min-w-0"><img src={j.home_image} className="w-10 h-10 sm:w-12 sm:h-12 object-contain drop-shadow-md" alt=""/><span className="text-[10px] sm:text-xs font-bold text-slate-200 truncate w-full">{j.home_team}</span></div>
+                                            <div className="grid grid-cols-3 items-center text-center mb-5 mt-2 w-full">
+                                                <div className="flex flex-col items-center gap-2 min-w-0"><img src={j.home_image} className="w-10 h-10 sm:w-12 sm:h-12 object-contain drop-shadow-md" alt=""/><span className="text-[10px] sm:text-xs font-bold text-slate-200 truncate w-full">{j.home_team}</span></div>
                                                 <div className="text-2xl sm:text-4xl font-black tracking-tighter">{isLive || j.status === 'Finished' ? `${j.scoreHome} - ${j.scoreAway}` : <span className="text-slate-600 text-xl sm:text-2xl">-</span>}</div>
-                                                <div className="flex flex-col items-center gap-2 overflow-hidden min-w-0"><img src={j.away_image} className="w-10 h-10 sm:w-12 sm:h-12 object-contain drop-shadow-md" alt=""/><span className="text-[10px] sm:text-xs font-bold text-slate-200 truncate w-full">{j.away_team}</span></div>
+                                                <div className="flex flex-col items-center gap-2 min-w-0"><img src={j.away_image} className="w-10 h-10 sm:w-12 sm:h-12 object-contain drop-shadow-md" alt=""/><span className="text-[10px] sm:text-xs font-bold text-slate-200 truncate w-full">{j.away_team}</span></div>
                                             </div>
                                         </div>
                                     )
@@ -510,7 +499,7 @@ export default function App() {
                   O NOVO DASHBOARD DO PERFIL COMPLETO
               ========================================= */}
               {viewMode === 'perfil' && (
-                  <div className="px-4 animate-fade-in w-full overflow-hidden">
+                  <div className="px-4 animate-fade-in w-full">
                       <div className="flex justify-between items-center mb-6">
                           <h2 className="text-xl font-black flex items-center gap-2"><User className="w-6 h-6 text-blue-500"/> Meu Perfil</h2>
                           <div className="flex gap-2">
@@ -520,11 +509,11 @@ export default function App() {
                       </div>
                       
                       {/* PERFIL & XP */}
-                      <div className="bg-[#0f172a] border border-blue-500/20 p-6 rounded-3xl shadow-xl flex flex-col items-center text-center mb-6 relative overflow-hidden">
-                          <div className="w-20 h-20 bg-gradient-to-br from-blue-600 to-blue-400 rounded-full flex items-center justify-center mb-4 shadow-[0_0_20px_rgba(37,99,235,0.4)] relative z-10"><User className="w-10 h-10 text-white"/></div>
-                          <h2 className="text-xl font-black text-white mb-1 relative z-10">{form.nome || userData?.nome}</h2>
+                      <div className="bg-[#0f172a] border border-blue-500/20 p-6 rounded-3xl shadow-xl flex flex-col items-center text-center mb-6 transform-gpu">
+                          <div className="w-20 h-20 bg-gradient-to-br from-blue-600 to-blue-400 rounded-full flex items-center justify-center mb-4 shadow-[0_0_20px_rgba(37,99,235,0.4)]"><User className="w-10 h-10 text-white"/></div>
+                          <h2 className="text-xl font-black text-white mb-1">{form.nome || userData?.nome}</h2>
                           
-                          <div className="bg-[#111827] p-4 rounded-xl border border-white/5 w-full mt-4 relative z-10 shadow-inner overflow-hidden">
+                          <div className="bg-[#111827] p-4 rounded-xl border border-white/5 w-full mt-4 shadow-inner">
                               <div className="flex justify-between items-center mb-2">
                                   <span className="text-xs font-bold text-slate-400 flex items-center gap-1"><Award className="w-4 h-4 text-yellow-500"/> Nível Atual:</span>
                                   <strong className="text-sm font-black text-green-400 uppercase tracking-widest">{nivelUsuario()}</strong>
@@ -537,7 +526,7 @@ export default function App() {
                       </div>
 
                       {/* GESTÃO DE RISCO DIÁRIO */}
-                      <div className="bg-[#0f172a] p-4 sm:p-5 rounded-3xl mb-6 shadow-lg border border-white/5 relative z-10 overflow-hidden w-full">
+                      <div className="bg-[#0f172a] p-4 sm:p-5 rounded-3xl mb-6 shadow-lg border border-white/5 w-full transform-gpu">
                           <h3 className="text-sm font-black text-white mb-4 uppercase tracking-wider flex items-center gap-2"><Activity className="w-4 h-4 text-orange-500"/> Gestão de Risco Diário</h3>
                           <div className="flex gap-3 mb-4 w-full">
                               <div className="w-1/2">
@@ -563,18 +552,18 @@ export default function App() {
                       </div>
 
                       {/* META MENSAL */}
-                      <div className="bg-[#0f172a] p-4 sm:p-5 rounded-3xl mb-6 shadow-lg border border-white/5 relative z-10 overflow-hidden w-full">
+                      <div className="bg-[#0f172a] p-4 sm:p-5 rounded-3xl mb-6 shadow-lg border border-white/5 w-full transform-gpu">
                           <div className="flex justify-between mb-2">
                               <span className="text-sm font-black text-white uppercase tracking-wider flex items-center gap-2"><Target className="w-4 h-4 text-green-500"/> Meta Mensal</span>
                               <span className="text-xs font-bold text-slate-300">R$ {Number(lucroAcumulado || 0).toFixed(2)} <span className="text-slate-500">/ R$ {Number(metaMensal || 0).toFixed(2)}</span></span>
                           </div>
                           <div className="bg-slate-800 h-4 rounded-full overflow-hidden mt-3 shadow-inner">
-                              <div className="bg-gradient-to-r from-green-600 to-green-400 h-full rounded-full transition-all duration-1000 relative" style={{width: `${progressoMetaCalc}%`}}></div>
+                              <div className="bg-gradient-to-r from-green-600 to-green-400 h-full rounded-full transition-all duration-1000" style={{width: `${progressoMetaCalc}%`}}></div>
                           </div>
                       </div>
 
                       {/* SISTEMA DE CONQUISTAS */}
-                      <div className="mb-6 w-full overflow-hidden relative z-10">
+                      <div className="mb-6 w-full transform-gpu">
                           <h3 className="text-sm font-black text-white mb-3 uppercase tracking-wider flex items-center gap-2"><Trophy className="w-4 h-4 text-yellow-500"/> Conquistas Desbloqueadas</h3>
                           <div className="flex gap-2 overflow-x-auto no-scrollbar pb-2">
                               {listaConquistasCalc.map((c, index)=>(
@@ -586,75 +575,74 @@ export default function App() {
                       </div>
 
                       {/* GESTÃO PROFISSIONAL */}
-                      <h3 className="text-sm font-black text-white mb-4 uppercase tracking-wider flex items-center gap-2 relative z-10"><Activity className="w-4 h-4 text-red-500"/> Gestão Profissional</h3>
-                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 mb-6 relative z-10 overflow-hidden w-full">
-                          <div className="bg-[#111827] p-4 sm:p-5 rounded-2xl border border-red-500/20 shadow-lg flex flex-col justify-center overflow-hidden min-w-0">
+                      <h3 className="text-sm font-black text-white mb-4 uppercase tracking-wider flex items-center gap-2"><Activity className="w-4 h-4 text-red-500"/> Gestão Profissional</h3>
+                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 mb-6 w-full">
+                          <div className="bg-[#111827] p-4 sm:p-5 rounded-2xl border border-red-500/20 shadow-lg flex flex-col justify-center transform-gpu min-w-0">
                               <div className="text-[10px] text-slate-400 font-bold uppercase tracking-widest mb-1 flex items-center gap-1 truncate"><TrendingDown className="w-3 h-3 text-red-400 flex-shrink-0"/> Drawdown Máx</div>
                               <div className="text-xl sm:text-2xl font-black text-red-400 truncate">{calcularDrawdown(apostas, bancaInicial)}%</div>
                           </div>
-                          <button onClick={handleRunBacktest} className="bg-gradient-to-br from-blue-700 to-blue-500 p-4 sm:p-5 rounded-2xl border border-blue-400/30 shadow-lg flex flex-col items-center justify-center active:scale-95 transition-transform overflow-hidden min-w-0">
+                          <button onClick={handleRunBacktest} className="bg-gradient-to-br from-blue-700 to-blue-500 p-4 sm:p-5 rounded-2xl border border-blue-400/30 shadow-lg flex flex-col items-center justify-center active:scale-95 transition-transform transform-gpu min-w-0">
                               <Calendar className="w-5 h-5 text-white mb-1 flex-shrink-0"/>
                               <div className="text-[10px] text-white font-black uppercase tracking-widest text-center truncate w-full">Rodar Backtest Histórico</div>
                           </button>
                       </div>
 
                       {/* ROI E LUCRO */}
-                      <h3 className="text-sm font-black text-white mb-4 uppercase tracking-wider flex items-center gap-2 relative z-10"><DollarSign className="w-4 h-4 text-green-500"/> Retorno Sobre Investimento</h3>
-                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 mb-6 relative z-10 overflow-hidden w-full">
-                          <div className="bg-[#111827] p-4 rounded-2xl border border-white/5 shadow-lg overflow-hidden min-w-0">
+                      <h3 className="text-sm font-black text-white mb-4 uppercase tracking-wider flex items-center gap-2"><DollarSign className="w-4 h-4 text-green-500"/> Retorno Sobre Investimento</h3>
+                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 mb-6 w-full">
+                          <div className="bg-[#111827] p-4 rounded-2xl border border-white/5 shadow-lg transform-gpu min-w-0">
                               <div className="text-[10px] text-slate-400 font-bold uppercase tracking-widest mb-1 truncate">ROI Semanal</div>
                               <div className={`text-xl font-black truncate ${roiSemanal >= 0 ? 'text-green-400' : 'text-red-400'}`}>{Number(roiSemanal || 0).toFixed(1)}%</div>
                           </div>
-                          <div className="bg-[#111827] p-4 rounded-2xl border border-white/5 shadow-lg overflow-hidden min-w-0">
+                          <div className="bg-[#111827] p-4 rounded-2xl border border-white/5 shadow-lg transform-gpu min-w-0">
                               <div className="text-[10px] text-slate-400 font-bold uppercase tracking-widest mb-1 truncate">ROI Mensal</div>
                               <div className={`text-xl font-black truncate ${roiMensal >= 0 ? 'text-green-400' : 'text-red-400'}`}>{Number(roiMensal || 0).toFixed(1)}%</div>
                           </div>
-                          <div className="bg-[#111827] p-4 rounded-2xl border border-white/5 shadow-lg overflow-hidden min-w-0">
+                          <div className="bg-[#111827] p-4 rounded-2xl border border-white/5 shadow-lg transform-gpu min-w-0">
                               <div className="text-[10px] text-slate-400 font-bold uppercase tracking-widest mb-1 truncate">ROI Anual</div>
                               <div className={`text-xl font-black truncate ${roiAnual >= 0 ? 'text-green-400' : 'text-red-400'}`}>{Number(roiAnual || 0).toFixed(1)}%</div>
                           </div>
-                          <div className="bg-[#111827] p-4 rounded-2xl border border-white/5 shadow-lg overflow-hidden min-w-0">
+                          <div className="bg-[#111827] p-4 rounded-2xl border border-white/5 shadow-lg transform-gpu min-w-0">
                               <div className="text-[10px] text-slate-400 font-bold uppercase tracking-widest mb-1 truncate">Lucro Total</div>
                               <div className={`text-xl font-black truncate ${lucroAcumulado >= 0 ? 'text-green-400' : 'text-red-400'}`}>R$ {Number(lucroAcumulado || 0).toFixed(2)}</div>
                           </div>
                       </div>
 
                       {/* CRESCIMENTO & IA ANALISTA */}
-                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 mb-6 relative z-10 overflow-hidden w-full">
-                          <div className="bg-[#0f172a] p-4 sm:p-5 rounded-3xl border border-white/5 shadow-lg overflow-hidden min-w-0">
+                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 mb-6 w-full">
+                          <div className="bg-[#0f172a] p-4 sm:p-5 rounded-3xl border border-white/5 shadow-lg transform-gpu min-w-0">
                               <div className="text-[10px] text-slate-400 uppercase font-bold tracking-widest mb-2 truncate">Crescimento da Banca</div>
                               <div className={`text-2xl sm:text-3xl font-black truncate ${crescimentoBancaCalc >= 0 ? 'text-green-400' : 'text-red-400'}`}>
                                   {crescimentoBancaCalc >= 0 ? '+' : ''}{Number(crescimentoBancaCalc || 0).toFixed(2)}%
                               </div>
                           </div>
-                          <div className="bg-[#0f172a] p-4 sm:p-5 rounded-3xl border border-blue-500/20 shadow-lg relative overflow-hidden min-w-0">
-                              <div className="absolute top-0 right-0 w-16 h-16 bg-blue-500/10 blur-xl rounded-full"></div>
-                              <div className="text-[10px] text-blue-400 uppercase font-black tracking-widest mb-2 flex items-center gap-1.5 relative z-10 truncate"><BrainCircuit className="w-3 h-3 flex-shrink-0"/> IA Analista</div>
-                              <div className="text-xs text-slate-300 font-medium whitespace-pre-line leading-relaxed relative z-10 break-words">
+                          <div className="bg-[#0f172a] p-4 sm:p-5 rounded-3xl border border-blue-500/20 shadow-lg transform-gpu min-w-0">
+                              <div className="text-[10px] text-blue-400 uppercase font-black tracking-widest mb-2 flex items-center gap-1.5 truncate"><BrainCircuit className="w-3 h-3 flex-shrink-0"/> IA Analista</div>
+                              <div className="text-xs text-slate-300 font-medium whitespace-pre-line leading-relaxed break-words">
                                   {relatorioIACalc}
                               </div>
                           </div>
                       </div>
 
                       {/* RANKINGS DE EQUIPAS E LIGAS */}
-                      <h3 className="text-sm font-black text-white mb-4 uppercase tracking-wider flex items-center gap-2 relative z-10"><Trophy className="w-4 h-4 text-yellow-500"/> Onde você mais lucra</h3>
-                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 mb-4 relative z-10 overflow-hidden w-full">
-                          <div className="bg-[#0f172a] p-4 sm:p-5 rounded-3xl border border-white/5 shadow-lg overflow-hidden min-w-0">
+                      <h3 className="text-sm font-black text-white mb-4 uppercase tracking-wider flex items-center gap-2"><Trophy className="w-4 h-4 text-yellow-500"/> Onde você mais lucra</h3>
+                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 mb-4 w-full">
+                          <div className="bg-[#0f172a] p-4 sm:p-5 rounded-3xl border border-white/5 shadow-lg transform-gpu min-w-0">
                               <h3 className="text-xs font-black text-slate-400 mb-4 uppercase tracking-wider flex items-center gap-2 truncate"><ShieldAlert className="w-3 h-3 text-orange-400 flex-shrink-0"/> Top 5 Equipas</h3>
                               <div className="flex flex-col gap-1">
                                   {topTimes.map((item, index) => (
-                                      <div key={index} className="flex justify-between items-center py-2.5 border-b border-white/5 last:border-0 overflow-hidden">
+                                      <div key={index} className="flex justify-between items-center py-2.5 border-b border-white/5 last:border-0">
                                           <span className="text-xs font-bold text-white truncate pr-2">{index + 1}. {item[0]}</span>
                                           <span className={`text-xs font-black whitespace-nowrap flex-shrink-0 ${item[1] >= 0 ? 'text-green-400' : 'text-red-400'}`}>R$ {Number(item[1]||0).toFixed(2)}</span>
                                       </div>
                                   ))}
                               </div>
                           </div>
-                          <div className="bg-[#0f172a] p-4 sm:p-5 rounded-3xl border border-white/5 shadow-lg overflow-hidden min-w-0">
+                          <div className="bg-[#0f172a] p-4 sm:p-5 rounded-3xl border border-white/5 shadow-lg transform-gpu min-w-0">
                               <h3 className="text-xs font-black text-slate-400 mb-4 uppercase tracking-wider flex items-center gap-2 truncate"><Globe className="w-3 h-3 text-purple-400 flex-shrink-0"/> Top 5 Ligas</h3>
                               <div className="flex flex-col gap-1">
                                   {topLigas.map((item, index) => (
-                                      <div key={index} className="flex justify-between items-center py-2.5 border-b border-white/5 last:border-0 overflow-hidden">
+                                      <div key={index} className="flex justify-between items-center py-2.5 border-b border-white/5 last:border-0">
                                           <span className="text-xs font-bold text-white truncate pr-2">{index + 1}. {item[0]}</span>
                                           <span className={`text-xs font-black whitespace-nowrap flex-shrink-0 ${item[1] >= 0 ? 'text-green-400' : 'text-red-400'}`}>R$ {Number(item[1]||0).toFixed(2)}</span>
                                       </div>
@@ -663,35 +651,35 @@ export default function App() {
                           </div>
                       </div>
 
-                      {/* SUMMARY DE MERCADO E HORÁRIO - ONDE ESTAVA O BUG DA TELA TREMENDO */}
-                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 mb-6 relative z-10 overflow-hidden w-full">
-                          <div className="bg-[#111827] p-4 rounded-2xl border border-white/5 shadow-lg flex flex-col gap-1 overflow-hidden min-w-0">
+                      {/* SUMMARY DE MERCADO E HORÁRIO */}
+                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 mb-6 w-full">
+                          <div className="bg-[#111827] p-4 rounded-2xl border border-white/5 shadow-lg flex flex-col gap-1 transform-gpu min-w-0">
                               <span className="text-[10px] text-slate-400 font-bold uppercase tracking-widest flex items-center gap-1 truncate"><PieChart className="w-3 h-3 text-blue-400 flex-shrink-0"/> Top Mercado</span>
                               <strong className="text-sm font-black text-white truncate">{topMercado[0]}</strong>
                           </div>
-                          <div className="bg-[#111827] p-4 rounded-2xl border border-white/5 shadow-lg flex flex-col gap-1 overflow-hidden min-w-0">
+                          <div className="bg-[#111827] p-4 rounded-2xl border border-white/5 shadow-lg flex flex-col gap-1 transform-gpu min-w-0">
                               <span className="text-[10px] text-slate-400 font-bold uppercase tracking-widest flex items-center gap-1 truncate"><Clock className="w-3 h-3 text-red-400 flex-shrink-0"/> Top Horário</span>
                               <strong className="text-sm font-black text-white truncate">{topHorario[0]}</strong>
                           </div>
                       </div>
 
                       {/* SIMULADOR DE STAKE */}
-                      <div className="bg-[#0f172a] p-4 sm:p-5 rounded-3xl mb-6 shadow-lg border border-white/5 relative z-10 overflow-hidden w-full">
+                      <div className="bg-[#0f172a] p-4 sm:p-5 rounded-3xl mb-6 shadow-lg border border-white/5 transform-gpu w-full">
                           <h2 className="text-sm font-black text-white mb-4 uppercase tracking-wider flex items-center gap-2 truncate"><Calculator className="w-4 h-4 text-blue-500 flex-shrink-0"/> Simulador de Stake</h2>
                           <div className="flex gap-3 mb-4">
                               <input type="number" placeholder="Stake" value={simStake} onChange={(e)=>setSimStake(e.target.value)} className="w-full bg-[#050816] border border-slate-800 p-3 rounded-xl text-xs text-white font-bold outline-none focus:border-blue-500 transition-colors min-w-0" />
                               <input type="number" placeholder="Odd" value={simOdd} onChange={(e)=>setSimOdd(e.target.value)} className="w-full bg-[#050816] border border-slate-800 p-3 rounded-xl text-xs text-white font-bold outline-none focus:border-blue-500 transition-colors min-w-0" />
                           </div>
-                          <div className="flex justify-between items-center bg-[#111827] p-3 rounded-xl border border-white/5 overflow-hidden">
-                              <div className="overflow-hidden pr-2"><span className="text-[10px] text-slate-400 font-bold uppercase tracking-widest block truncate">Lucro Limpo</span><span className="text-green-400 font-black text-sm truncate">R$ {Number(lucroSimulado||0).toFixed(2)}</span></div>
-                              <div className="text-right overflow-hidden"><span className="text-[10px] text-slate-400 font-bold uppercase tracking-widest block truncate">Retorno Total</span><span className="text-blue-400 font-black text-sm truncate">R$ {Number(retornoTotal||0).toFixed(2)}</span></div>
+                          <div className="flex justify-between items-center bg-[#111827] p-3 rounded-xl border border-white/5">
+                              <div className="pr-2"><span className="text-[10px] text-slate-400 font-bold uppercase tracking-widest block truncate">Lucro Limpo</span><span className="text-green-400 font-black text-sm truncate">R$ {Number(lucroSimulado||0).toFixed(2)}</span></div>
+                              <div className="text-right"><span className="text-[10px] text-slate-400 font-bold uppercase tracking-widest block truncate">Retorno Total</span><span className="text-blue-400 font-black text-sm truncate">R$ {Number(retornoTotal||0).toFixed(2)}</span></div>
                           </div>
                       </div>
 
                       {/* GRÁFICO DA BANCA TOTALMENTE BLOQUEADO DE REDIMENSIONAMENTO */}
-                      <div className="bg-[#0f172a] border border-green-500/20 rounded-3xl p-4 sm:p-6 mb-6 shadow-lg relative z-10 overflow-hidden w-full">
+                      <div className="bg-[#0f172a] border border-green-500/20 rounded-3xl p-4 sm:p-6 mb-6 shadow-lg transform-gpu w-full">
                           <h2 className="text-sm font-black text-green-400 mb-4 flex items-center gap-2 uppercase tracking-wider"><TrendingUp className="w-5 h-5"/> Evolução da Banca</h2>
-                          <div className="w-full overflow-hidden" style={{ height: '250px' }}>
+                          <div className="w-full h-[250px]">
                               <ResponsiveContainer width="99%" height={249}>
                                   <LineChart data={dadosGraficoBanca}>
                                       <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.05)" vertical={false} />
@@ -705,7 +693,7 @@ export default function App() {
                       </div>
 
                       {/* IMPORTAÇÃO DO COMPONENTE DE ESTATÍSTICAS AVANÇADAS PROTEGIDO */}
-                      <div className="w-full overflow-hidden relative z-10">
+                      <div className="w-full transform-gpu">
                           {userData?.is_vip ? (
                             <EstatisticasAvancadas apostas={apostas} isPro={true} onUnlockPro={() => setMenuAtivo('assinar pro')} />
                           ) : (
@@ -714,7 +702,7 @@ export default function App() {
                       </div>
 
                       {/* HISTÓRICO DE APOSTAS COM FILTROS */}
-                      <div className="bg-[#0f172a] rounded-3xl p-4 sm:p-5 mb-6 shadow-lg border border-white/5 relative z-10 overflow-hidden w-full">
+                      <div className="bg-[#0f172a] rounded-3xl p-4 sm:p-5 mb-6 shadow-lg border border-white/5 transform-gpu w-full">
                           <h2 className="text-sm font-black text-white mb-4 uppercase tracking-wider flex items-center gap-2"><List className="w-4 h-4 text-slate-400"/> Histórico de Apostas</h2>
                           
                           <div className="flex gap-2 mb-5">
@@ -736,8 +724,8 @@ export default function App() {
 
                           <div className="flex flex-col gap-3">
                               {apostasFiltradas.length > 0 ? apostasFiltradas.map((a, index)=>(
-                                  <div key={index} className="bg-[#111827] border border-white/5 p-4 rounded-2xl flex justify-between items-center overflow-hidden">
-                                      <div className="overflow-hidden pr-2 min-w-0">
+                                  <div key={index} className="bg-[#111827] border border-white/5 p-4 rounded-2xl flex justify-between items-center">
+                                      <div className="pr-2 min-w-0">
                                           <div className="font-bold text-white text-xs mb-1 truncate">{a.jogo}</div>
                                           <div className="text-[9px] font-black text-slate-500 uppercase tracking-widest flex items-center gap-2 truncate"><span>{a.mercado}</span> <span>•</span> <span>Odd: @{Number(a.odd||0).toFixed(2)}</span></div>
                                       </div>
@@ -752,8 +740,8 @@ export default function App() {
                       </div>
 
                       {/* MENUS VERTICAIS COMPACTOS: CENTRAL IA */}
-                      <div className="flex flex-col gap-3 mb-6 relative z-10 w-full">
-                          <button onClick={() => setViewMode('ia_center')} className="w-full bg-[#0f172a] border border-blue-500/30 p-4 rounded-2xl flex items-center gap-4 shadow-sm hover:bg-[#1e293b] transition-colors overflow-hidden">
+                      <div className="flex flex-col gap-3 mb-6 w-full transform-gpu">
+                          <button onClick={() => setViewMode('ia_center')} className="w-full bg-[#0f172a] border border-blue-500/30 p-4 rounded-2xl flex items-center gap-4 shadow-sm hover:bg-[#1e293b] transition-colors">
                               <div className="bg-blue-500/10 p-2.5 rounded-xl flex-shrink-0"><Zap className="w-5 h-5 text-blue-500"/></div>
                               <span className="font-black text-sm uppercase tracking-wider text-white truncate">Central IA</span>
                               <ChevronRight className="w-5 h-5 text-slate-600 ml-auto flex-shrink-0"/>
@@ -766,14 +754,14 @@ export default function App() {
                   RANKING & CENTRAL IA
               ========================================= */}
               {viewMode === 'ranking' && (
-                  <div className="px-4 animate-fade-in w-full overflow-hidden">
+                  <div className="px-4 animate-fade-in w-full">
                       <HeaderNav title="🏆 Comunidade" onBack={() => setViewMode('perfil')} />
-                      <div className="bg-[#0f172a] border border-yellow-500/30 rounded-3xl p-4 sm:p-6 mb-6 shadow-[0_0_20px_rgba(234,179,8,0.1)]">
+                      <div className="bg-[#0f172a] border border-yellow-500/30 rounded-3xl p-4 sm:p-6 mb-6 shadow-[0_0_20px_rgba(234,179,8,0.1)] transform-gpu">
                           <h3 className="text-sm font-black text-yellow-400 mb-4 flex items-center gap-2 uppercase tracking-wider"><Users className="w-5 h-5"/> Ranking Global</h3>
                           <div className="flex flex-col gap-3">
                               {rankingUsuarios.map((user, index) => (
-                                  <div key={index} className="bg-[#111827] border border-white/5 p-4 rounded-2xl flex justify-between items-center transition-colors overflow-hidden">
-                                      <div className="flex items-center gap-3 overflow-hidden min-w-0"><span className="text-xs font-black text-slate-400 flex-shrink-0">#{index+1}</span><span className="font-bold text-white text-sm truncate">{user.nome}</span></div>
+                                  <div key={index} className="bg-[#111827] border border-white/5 p-4 rounded-2xl flex justify-between items-center transition-colors">
+                                      <div className="flex items-center gap-3 min-w-0"><span className="text-xs font-black text-slate-400 flex-shrink-0">#{index+1}</span><span className="font-bold text-white text-sm truncate">{user.nome}</span></div>
                                       <strong className="text-green-400 font-black flex-shrink-0">R$ {Number(user.lucro_total||0).toFixed(2)}</strong>
                                   </div>
                               ))}
@@ -786,20 +774,20 @@ export default function App() {
                   DASHBOARD ADMIN
               ========================================= */}
               {viewMode === 'admin' && (
-                  <div className="px-4 animate-fade-in pb-20 w-full overflow-hidden">
+                  <div className="px-4 animate-fade-in pb-20 w-full">
                       <HeaderNav title="⚙️ Painel de Controle Admin" onBack={() => setViewMode('perfil')} />
                       
                       <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 mb-6">
-                          <div className="bg-[#0f172a] p-4 sm:p-5 rounded-3xl border border-white/5 shadow-lg overflow-hidden min-w-0">
+                          <div className="bg-[#0f172a] p-4 sm:p-5 rounded-3xl border border-white/5 shadow-lg transform-gpu min-w-0">
                               <div className="text-[10px] text-slate-400 uppercase tracking-widest mb-1 font-bold truncate">Total Usuários</div>
                               <div className="text-2xl sm:text-3xl font-black text-white truncate">1,248</div>
                           </div>
-                          <div className="bg-[#0f172a] p-4 sm:p-5 rounded-3xl border border-yellow-500/20 shadow-lg overflow-hidden min-w-0">
+                          <div className="bg-[#0f172a] p-4 sm:p-5 rounded-3xl border border-yellow-500/20 shadow-lg transform-gpu min-w-0">
                               <div className="text-[10px] text-slate-400 uppercase tracking-widest mb-1 font-bold truncate">Assinantes PRO</div>
                               <div className="text-2xl sm:text-3xl font-black text-yellow-400 truncate">312</div>
                           </div>
-                          <div className="bg-[#0f172a] p-4 sm:p-5 rounded-3xl border border-green-500/20 shadow-lg col-span-1 sm:col-span-2 flex justify-between items-center overflow-hidden">
-                              <div className="overflow-hidden pr-2 min-w-0">
+                          <div className="bg-[#0f172a] p-4 sm:p-5 rounded-3xl border border-green-500/20 shadow-lg col-span-1 sm:col-span-2 flex justify-between items-center transform-gpu min-w-0">
+                              <div className="pr-2 min-w-0">
                                 <div className="text-[10px] text-slate-400 uppercase tracking-widest mb-1 font-bold truncate">Receita Mensal Estimada</div>
                                 <div className="text-2xl sm:text-3xl font-black text-green-400 truncate">R$ 9.328,80</div>
                               </div>
@@ -807,12 +795,12 @@ export default function App() {
                           </div>
                       </div>
 
-                      <div className="bg-[#0f172a] rounded-3xl p-4 sm:p-5 mb-6 shadow-lg border border-white/5 overflow-hidden">
+                      <div className="bg-[#0f172a] rounded-3xl p-4 sm:p-5 mb-6 shadow-lg border border-white/5 transform-gpu">
                           <h3 className="text-sm font-black text-white mb-4 uppercase tracking-wider flex items-center gap-2 truncate"><Smartphone className="w-4 h-4 text-blue-500 flex-shrink-0"/> Ações Globais</h3>
-                          <button onClick={() => dispararAlertaPush("Alerta Global", "Nova Value Bet detectada na Premier League!")} className="w-full bg-blue-600 hover:bg-blue-500 text-white font-black text-xs py-4 rounded-xl flex items-center justify-center gap-2 mb-3 transition-colors shadow-lg overflow-hidden">
+                          <button onClick={() => dispararAlertaPush("Alerta Global", "Nova Value Bet detectada na Premier League!")} className="w-full bg-blue-600 hover:bg-blue-500 text-white font-black text-xs py-4 rounded-xl flex items-center justify-center gap-2 mb-3 transition-colors shadow-lg">
                               <Bell className="w-4 h-4 flex-shrink-0"/> <span className="truncate">Disparar Push Notification Global</span>
                           </button>
-                          <button className="w-full bg-[#111827] hover:bg-slate-800 border border-white/10 text-white font-black text-xs py-4 rounded-xl flex items-center justify-center gap-2 transition-colors overflow-hidden">
+                          <button className="w-full bg-[#111827] hover:bg-slate-800 border border-white/10 text-white font-black text-xs py-4 rounded-xl flex items-center justify-center gap-2 transition-colors">
                               <Users className="w-4 h-4 flex-shrink-0"/> <span className="truncate">Gerir Permissões de Utilizadores</span>
                           </button>
                       </div>
@@ -820,13 +808,13 @@ export default function App() {
               )}
 
               {viewMode === 'ia_center' && (
-                  <div className="px-4 animate-fade-in w-full overflow-hidden">
+                  <div className="px-4 animate-fade-in w-full">
                       <HeaderNav title="🤖 Central IA" onBack={() => setViewMode('perfil')} />
-                      <div className="bg-[#0f172a] border border-white/10 rounded-3xl p-4 sm:p-6 mb-6 shadow-lg mx-0 sm:mx-4 overflow-hidden">
+                      <div className="bg-[#0f172a] border border-white/10 rounded-3xl p-4 sm:p-6 mb-6 shadow-lg mx-0 sm:mx-4 transform-gpu">
                           <h2 className="text-sm font-black text-white mb-4 uppercase tracking-wider truncate">Precisão Histórica</h2>
                           <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                              <div className="bg-[#111827] rounded-2xl p-4 text-center border border-white/5 overflow-hidden"><span className="text-[10px] font-bold text-slate-400 uppercase truncate block">Acertos IA</span><strong className="text-2xl font-black text-green-400 block truncate">{performanceStats.acertos}</strong></div>
-                              <div className="bg-[#111827] rounded-2xl p-4 text-center border border-white/5 overflow-hidden"><span className="text-[10px] font-bold text-slate-400 uppercase truncate block">Erros IA</span><strong className="text-2xl font-black text-red-400 block truncate">{performanceStats.erros}</strong></div>
+                              <div className="bg-[#111827] rounded-2xl p-4 text-center border border-white/5"><span className="text-[10px] font-bold text-slate-400 uppercase truncate block">Acertos IA</span><strong className="text-2xl font-black text-green-400 block truncate">{performanceStats.acertos}</strong></div>
+                              <div className="bg-[#111827] rounded-2xl p-4 text-center border border-white/5"><span className="text-[10px] font-bold text-slate-400 uppercase truncate block">Erros IA</span><strong className="text-2xl font-black text-red-400 block truncate">{performanceStats.erros}</strong></div>
                           </div>
                       </div>
                   </div>
@@ -838,17 +826,17 @@ export default function App() {
           PAINEL DO JOGO ABERTO
       ========================================= */}
       {jogoSelecionado && !jogoSelecionado.is_loading && menuAtivo !== 'assinar pro' && (
-        <div className="px-4 mt-4 pb-20 animate-fade-in w-full overflow-hidden">
+        <div className="px-4 mt-4 pb-20 animate-fade-in w-full">
             <button onClick={() => setJogoSelecionado(null)} className="text-slate-400 text-xs font-bold flex items-center gap-1 mb-6 bg-[#0f172a] border border-white/10 px-4 py-2 rounded-xl uppercase tracking-wider"><X className="w-4 h-4"/> Voltar</button>
-            <div className="bg-[#0f172a] rounded-3xl p-4 sm:p-6 border border-blue-500/30 shadow-2xl shadow-blue-500/10 mb-6 relative overflow-hidden">
+            <div className="bg-[#0f172a] rounded-3xl p-4 sm:p-6 border border-blue-500/30 shadow-2xl shadow-blue-500/10 mb-6 transform-gpu">
                 <div className="flex justify-between items-center mb-6 relative z-10">
-                    <div className="flex flex-col items-center w-1/3 overflow-hidden min-w-0"><img src={jogoSelecionado.home_image} className="w-12 h-12 sm:w-16 sm:h-16 mb-2 drop-shadow-lg" alt=""/><span className="font-black text-[10px] sm:text-xs text-center truncate w-full">{jogoSelecionado.home_team}</span></div>
-                    <div className="w-1/3 text-center overflow-hidden"><div className="text-3xl sm:text-4xl font-black mb-1 tracking-tighter truncate">{jogoSelecionado.status === 'Not Started' ? 'VS' : `${jogoSelecionado.scoreHome} - ${jogoSelecionado.scoreAway}`}</div></div>
-                    <div className="flex flex-col items-center w-1/3 overflow-hidden min-w-0"><img src={jogoSelecionado.away_image} className="w-12 h-12 sm:w-16 sm:h-16 mb-2 drop-shadow-lg" alt=""/><span className="font-black text-[10px] sm:text-xs text-center truncate w-full">{jogoSelecionado.away_team}</span></div>
+                    <div className="flex flex-col items-center w-1/3 min-w-0"><img src={jogoSelecionado.home_image} className="w-12 h-12 sm:w-16 sm:h-16 mb-2 drop-shadow-lg" alt=""/><span className="font-black text-[10px] sm:text-xs text-center truncate w-full">{jogoSelecionado.home_team}</span></div>
+                    <div className="w-1/3 text-center"><div className="text-3xl sm:text-4xl font-black mb-1 tracking-tighter truncate">{jogoSelecionado.status === 'Not Started' ? 'VS' : `${jogoSelecionado.scoreHome} - ${jogoSelecionado.scoreAway}`}</div></div>
+                    <div className="flex flex-col items-center w-1/3 min-w-0"><img src={jogoSelecionado.away_image} className="w-12 h-12 sm:w-16 sm:h-16 mb-2 drop-shadow-lg" alt=""/><span className="font-black text-[10px] sm:text-xs text-center truncate w-full">{jogoSelecionado.away_team}</span></div>
                 </div>
 
                 {jogoSelecionado.dadosAPI && (
-                    <div className="bg-orange-500/10 border border-orange-500/30 p-4 rounded-xl text-center mb-5 overflow-hidden">
+                    <div className="bg-orange-500/10 border border-orange-500/30 p-4 rounded-xl text-center mb-5">
                         <span className="text-[10px] text-orange-400 font-bold uppercase tracking-widest block mb-1 truncate">🤖 Análise API Football Ao Vivo</span>
                         <strong className="text-xs sm:text-sm font-black text-white truncate block">{jogoSelecionado.dadosAPI.recomendacao} (Conf: {jogoSelecionado.dadosAPI.confianca}%)</strong>
                     </div>
@@ -856,11 +844,11 @@ export default function App() {
 
                 {jogoSelecionado.odd_principal && (
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 mb-5">
-                        <div className="bg-blue-500/10 border border-blue-500/30 p-4 rounded-xl text-center overflow-hidden min-w-0">
+                        <div className="bg-blue-500/10 border border-blue-500/30 p-4 rounded-xl text-center min-w-0">
                             <span className="text-[10px] text-blue-400 font-black uppercase tracking-widest block mb-1 truncate">Stake Recomendada</span>
                             <strong className="text-lg sm:text-xl font-black text-white truncate block">R$ {Number(calcularStake(bancaInicial, jogoSelecionado.confianca_ia)||0).toFixed(2)}</strong>
                         </div>
-                        <div className="bg-purple-500/10 border border-purple-500/20 p-4 rounded-xl text-center overflow-hidden min-w-0">
+                        <div className="bg-purple-500/10 border border-purple-500/20 p-4 rounded-xl text-center min-w-0">
                             <span className="text-[10px] text-purple-400 font-bold uppercase tracking-widest block mb-1 truncate">🧠 Kelly Criterion</span>
                             <strong className="text-lg sm:text-xl font-black text-white truncate block">{Number(calcularKelly(jogoSelecionado.odd_principal, jogoSelecionado.confianca_ia)||0).toFixed(1)}%</strong>
                         </div>
@@ -874,7 +862,7 @@ export default function App() {
                     {jogoSelecionado.explanation ? (
                         <div className="text-slate-300 text-xs leading-relaxed relative z-10 font-semibold whitespace-pre-line">{jogoSelecionado.explanation}</div>
                     ) : (
-                        <button onClick={() => gerarExplicacaoIA(jogoSelecionado)} disabled={jogoSelecionado.is_loading_explanation} className="w-full bg-blue-600 hover:bg-blue-500 text-white font-black text-xs py-3 rounded-xl flex items-center justify-center gap-2 transition-colors disabled:opacity-50 overflow-hidden">
+                        <button onClick={() => gerarExplicacaoIA(jogoSelecionado)} disabled={jogoSelecionado.is_loading_explanation} className="w-full bg-blue-600 hover:bg-blue-500 text-white font-black text-xs py-3 rounded-xl flex items-center justify-center gap-2 transition-colors disabled:opacity-50 relative z-10">
                            {jogoSelecionado.is_loading_explanation ? <span className="animate-pulse truncate">A calcular motivos...</span> : <><Zap className="w-4 h-4 flex-shrink-0"/> <span className="truncate">Gerar Relatório Profissional</span></>}
                         </button>
                     )}
@@ -885,9 +873,9 @@ export default function App() {
 
       {/* CHECKOUT VIP PRO */}
       {menuAtivo === "assinar pro" && (
-         <div className="px-4 pt-4 animate-fade-in w-full overflow-hidden">
+         <div className="px-4 pt-4 animate-fade-in w-full">
              <div className="flex justify-between items-center mb-6"><button onClick={() => setMenuAtivo('Todos os Jogos')} className="text-slate-400 text-sm font-bold flex items-center gap-1"><X className="w-5 h-5"/> Fechar</button></div>
-             <div className="bg-[#0f172a] rounded-3xl p-6 border border-white/10 shadow-2xl overflow-hidden">
+             <div className="bg-[#0f172a] rounded-3xl p-6 border border-white/10 shadow-2xl transform-gpu">
                 <Crown className="w-12 h-12 text-yellow-500 mb-4" />
                 <h2 className="text-2xl font-black text-white mb-2 truncate">Seja PRO 👑</h2>
                 <div className="flex flex-col gap-3">
@@ -901,7 +889,7 @@ export default function App() {
       )}
 
       {/* 🔥 ALERTAS AUTOMÁTICOS FLOAT */}
-      <div className="fixed top-32 left-0 right-0 z-50 flex flex-col items-center gap-2 pointer-events-none w-full px-4 overflow-hidden">
+      <div className="fixed top-32 left-0 right-0 z-50 flex flex-col items-center gap-2 pointer-events-none w-full px-4">
           <AnimatePresence>
               {viewMode !== 'perfil' && alertas.slice(0, 2).map((alerta) => (
                   <motion.div key={alerta.id} initial={{opacity:0, y:-20}} animate={{opacity:1, y:0}} exit={{opacity:0}} className="bg-red-600/90 text-white text-[10px] font-black px-4 py-2 rounded-full shadow-lg border border-red-400 flex items-center gap-2 max-w-full">
