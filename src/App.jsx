@@ -34,11 +34,17 @@ const mockJogosData = [
   { id: 103, league_id: 140, league_name: 'La Liga', starting_at: `${getLocalYYYYMMDD()}T14:00:00`, status: 'Finished', time_elapsed: 90, home_team: 'Real Madrid', home_id: 541, away_team: 'Barcelona', away_id: 529, home_image: 'https://media.api-sports.io/football/teams/541.png', away_image: 'https://media.api-sports.io/football/teams/529.png', scoreHome: 3, scoreAway: 1, confianca_ia: 88, odd_principal: 1.95, odd_abertura: 2.05, homeStats: {form: 90, h2h: 70, attack: 92}, awayStats: {form: 85} }
 ];
 
-const mockJogoDetalhes = { stats_reais: [{type: "Posse (%)", h: 58, a: 42}, {type: "Remates", h: 12, a: 5}, {type: "Cantos", h: 8, a: 4}] };
+// OTIMIZAÇÃO: Inclusão dos novos mercados de Cartões e Faltas para a Análise Ao Vivo
+const mockJogoDetalhes = { 
+    stats_reais: [{type: "Posse (%)", h: 58, a: 42}, {type: "Remates", h: 15, a: 8}, {type: "Cantos", h: 7, a: 3}],
+    amarelosCasa: 2, amarelosFora: 4,
+    vermelhosCasa: 0, vermelhosFora: 1,
+    faltasCasa: 12, faltasFora: 15
+};
 const mockRankingUsuarios = [ { id: 1, nome: "Lucas", lucro_total: 1840 }, { id: 2, nome: "Carlos", lucro_total: 1430 }, { id: 3, nome: "João", lucro_total: 1180 }, { id: 4, nome: "Marcos", lucro_total: 950 } ];
 
 // ============================================================================
-// 🧠 FUNÇÕES GLOBAIS EMBUTIDAS
+// 🧠 FUNÇÕES GLOBAIS EMBUTIDAS (LÓGICA IA MELHORADA COM DISCIPLINA)
 // ============================================================================
 const calcularEV = (probabilidade, odd) => (((probabilidade / 100) * odd - 1) * 100);
 const calcularHeatScore = (jogo) => Math.round((jogo.confianca_ia * 0.5) + (calcularEV(jogo.confianca_ia, jogo.odd_principal) * 2) + (((jogo.homeStats?.form||50) - (jogo.awayStats?.form||50)) * 0.3));
@@ -83,18 +89,51 @@ const executarBacktest = (listaApostas, bancaIni) => {
 };
 
 const buscarEstatisticasJogo = async (fixtureId) => {
-    return [ { shotsOnGoal: 6, ballPossession: 65, corners: 8 }, { shotsOnGoal: 2, ballPossession: 35, corners: 2 } ];
+    // Nova estrutura com dados de faltas e cartões para alimentar a IA
+    return [ 
+        { ballPossession: 58, corners: 7, shotsOnGoal: 15, yellowCards: 2, redCards: 0, fouls: 12 }, 
+        { ballPossession: 42, corners: 3, shotsOnGoal: 8, yellowCards: 4, redCards: 1, fouls: 15 } 
+    ];
 };
 
 const analisarPartidaAoVivo = (stats) => {
     if(!stats || stats.length < 2) return { confianca: 0, recomendacao: "Aguardando dados" };
-    const casa = stats[0]; const fora = stats[1]; let score = 40;
-    if (casa.shotsOnGoal > fora.shotsOnGoal) score += 20;
-    if (casa.ballPossession > fora.ballPossession) score += 15;
-    if (casa.corners > fora.corners) score += 10;
+    const casa = stats[0]; 
+    const fora = stats[1]; 
+    
+    // NOVO ALGORITMO COM PESOS POSITIVOS E NEGATIVOS
+    let scoreCasa = (casa.ballPossession * 0.10) + (casa.corners * 0.20) + (casa.shotsOnGoal * 0.30);
+    let scoreFora = (fora.ballPossession * 0.10) + (fora.corners * 0.20) + (fora.shotsOnGoal * 0.30);
+
+    // Punições disciplinares
+    scoreCasa -= (casa.yellowCards * 0.10) + (casa.redCards * 0.50) + (casa.fouls * 0.05);
+    scoreFora -= (fora.yellowCards * 0.10) + (fora.redCards * 0.50) + (fora.fouls * 0.05);
+
+    const totalFaltas = casa.fouls + fora.fouls;
+    const totalCartoes = casa.yellowCards + fora.yellowCards + casa.redCards + fora.redCards;
+    
+    let recomendacao = "Mercado Indefinido";
+    let confiancaBase = 50 + ((scoreCasa - scoreFora) * 5); // Amplia a diferença de força
+
+    // Identificação de novos Mercados IA (Value Bets Especiais)
+    if (totalCartoes >= 6 || casa.redCards > 0 || fora.redCards > 0) {
+        recomendacao = "🔥 Over 6.5 Cartões / Jogo Quente";
+        confiancaBase += 15;
+    } else if (totalFaltas > 25) {
+        recomendacao = "🔥 Over 28.5 Faltas";
+        confiancaBase += 10;
+    } else if (fora.redCards > 0 && scoreCasa > scoreFora) {
+        recomendacao = "🔥 Vitória Mandante (Vantagem Numérica)";
+        confiancaBase += 20;
+    } else if (scoreCasa > scoreFora + 2) {
+        recomendacao = "Forte Tendência Casa";
+    } else {
+        recomendacao = "Over 1.5 Gols Sugerido";
+    }
+
     return {
-        confianca: Math.min(score, 99),
-        recomendacao: score > 75 ? "Forte Tendência Casa" : score > 60 ? "Over Gols Sugerido" : "Mercado Indefinido"
+        confianca: Math.min(Math.max(Math.round(confiancaBase), 10), 99),
+        recomendacao: recomendacao
     };
 };
 
@@ -285,10 +324,9 @@ export default function App() {
 
                     <BankerPicksCard />
 
-                    {/* CORREÇÃO DO RECHARTS */}
                     <div className="bg-[#0f172a] border border-purple-500/20 rounded-3xl p-4 sm:p-6 mb-6 mx-4 shadow-lg w-[calc(100%-2rem)] transform-gpu">
                         <h2 className="text-sm font-black text-purple-400 mb-4 flex items-center gap-2 uppercase tracking-wider"><TrendingUp className="w-4 h-4"/> Evolução do Algoritmo IA</h2>
-                        <div className="w-full h-[150px]">
+                        <div className="w-full h-[150px] overflow-hidden">
                             <ResponsiveContainer width="100%" height={150}>
                                 <LineChart data={crescimentoBancaGlobal}>
                                     <XAxis dataKey="dia" stroke="#64748b" fontSize={10} tickLine={false} axisLine={false} />
@@ -348,7 +386,7 @@ export default function App() {
               ========================================= */}
               {viewMode === 'perfil' && (
                   <div className="px-4 animate-fade-in w-full">
-                     <Suspense fallback={<div className="text-center p-10 font-black text-blue-500 animate-pulse uppercase tracking-widest text-xs">A abrir o seu Perfil Premium...</div>}>
+                     <Suspense fallback={<div className="text-center p-10 font-black text-blue-500 animate-pulse uppercase tracking-widest text-xs">A carregar Perfil Premium...</div>}>
                         <Perfil 
                             userData={userData} form={form} setForm={setForm} nivelUsuario={nivelUsuario()} 
                             xp={xp} solicitarPermissaoNotificacao={solicitarPermissaoNotificacao} 
@@ -419,11 +457,12 @@ export default function App() {
       )}
 
       {/* =========================================
-          PAINEL DO JOGO ABERTO
+          PAINEL DO JOGO ABERTO (Com Ao Vivo Premium e Disciplina)
       ========================================= */}
       {jogoSelecionado && !jogoSelecionado.is_loading && menuAtivo !== 'assinar pro' && (
         <div className="px-4 mt-4 pb-20 animate-fade-in w-full">
             <button onClick={() => setJogoSelecionado(null)} className="text-slate-400 text-xs font-bold flex items-center gap-1 mb-6 bg-[#0f172a] border border-white/10 px-4 py-2 rounded-xl uppercase tracking-wider"><X className="w-4 h-4"/> Voltar</button>
+            
             <div className="bg-[#0f172a] rounded-3xl p-4 sm:p-6 border border-blue-500/30 shadow-2xl shadow-blue-500/10 mb-6 transform-gpu">
                 <div className="flex justify-between items-center mb-6 relative z-10">
                     <div className="flex flex-col items-center w-1/3 min-w-0"><img src={jogoSelecionado.home_image} className="w-12 h-12 sm:w-16 sm:h-16 mb-2 drop-shadow-lg" alt=""/><span className="font-black text-[10px] sm:text-xs text-center truncate w-full">{jogoSelecionado.home_team}</span></div>
@@ -431,17 +470,44 @@ export default function App() {
                     <div className="flex flex-col items-center w-1/3 min-w-0"><img src={jogoSelecionado.away_image} className="w-12 h-12 sm:w-16 sm:h-16 mb-2 drop-shadow-lg" alt=""/><span className="font-black text-[10px] sm:text-xs text-center truncate w-full">{jogoSelecionado.away_team}</span></div>
                 </div>
 
+                {/* NOVO: AO VIVO PREMIUM (ATAQUE & DISCIPLINA) */}
                 {jogoSelecionado.status === 'Live' && jogoSelecionado.stats_reais && (
-                    <div className="bg-[#111827] p-4 rounded-2xl border border-white/5 mb-5 shadow-inner">
-                        <h4 className="font-black text-[10px] text-slate-400 uppercase tracking-widest mb-4 flex items-center gap-2"><Radio className="w-3 h-3 text-red-500 animate-pulse"/> Ao Vivo Premium</h4>
-                        {jogoSelecionado.stats_reais.map((stat, i) => (
-                            <div key={i} className="flex justify-between items-center mb-3 text-xs font-bold text-white">
-                                <span className="w-8 text-center bg-[#050816] py-1 rounded">{stat.h}</span>
-                                <span className="text-[10px] text-slate-500 uppercase tracking-widest">{stat.type}</span>
-                                <span className="w-8 text-center bg-[#050816] py-1 rounded">{stat.a}</span>
+                    <>
+                        <div className="bg-[#111827] p-4 rounded-2xl border border-white/5 mb-4 shadow-inner">
+                            <h4 className="font-black text-[10px] text-slate-400 uppercase tracking-widest mb-4 flex items-center gap-2"><Radio className="w-3 h-3 text-red-500 animate-pulse"/> Ataque & Posse</h4>
+                            {jogoSelecionado.stats_reais.map((stat, i) => (
+                                <div key={i} className="flex justify-between items-center mb-3 text-xs font-bold text-white">
+                                    <span className="w-8 text-center bg-[#050816] py-1 rounded">{stat.h}</span>
+                                    <span className="text-[10px] text-slate-500 uppercase tracking-widest">{stat.type}</span>
+                                    <span className="w-8 text-center bg-[#050816] py-1 rounded">{stat.a}</span>
+                                </div>
+                            ))}
+                        </div>
+
+                        <div className="bg-[#111827] p-4 rounded-2xl border border-white/5 mb-5 shadow-inner">
+                            <h4 className="font-black text-[10px] text-slate-400 uppercase tracking-widest mb-4 flex items-center gap-2"><AlertTriangle className="w-3 h-3 text-yellow-500"/> Disciplina (Cartões e Faltas)</h4>
+                            <div className="grid grid-cols-3 gap-2">
+                                 <div className="bg-[#050816] p-2 rounded-xl text-center border border-yellow-500/20">
+                                     <span className="text-[9px] text-yellow-400 font-bold uppercase tracking-widest block mb-1">Amarelos</span>
+                                     <div className="flex justify-center gap-2 text-sm font-black text-white">
+                                         <span>{jogoSelecionado.amarelosCasa || 0}</span> <span className="text-slate-600">-</span> <span>{jogoSelecionado.amarelosFora || 0}</span>
+                                     </div>
+                                 </div>
+                                 <div className="bg-[#050816] p-2 rounded-xl text-center border border-red-500/20">
+                                     <span className="text-[9px] text-red-500 font-bold uppercase tracking-widest block mb-1">Vermelhos</span>
+                                     <div className="flex justify-center gap-2 text-sm font-black text-white">
+                                         <span>{jogoSelecionado.vermelhosCasa || 0}</span> <span className="text-slate-600">-</span> <span>{jogoSelecionado.vermelhosFora || 0}</span>
+                                     </div>
+                                 </div>
+                                 <div className="bg-[#050816] p-2 rounded-xl text-center border border-orange-500/20">
+                                     <span className="text-[9px] text-orange-400 font-bold uppercase tracking-widest block mb-1">Faltas</span>
+                                     <div className="flex justify-center gap-2 text-sm font-black text-white">
+                                         <span>{jogoSelecionado.faltasCasa || 0}</span> <span className="text-slate-600">-</span> <span>{jogoSelecionado.faltasFora || 0}</span>
+                                     </div>
+                                 </div>
                             </div>
-                        ))}
-                    </div>
+                        </div>
+                    </>
                 )}
 
                 {jogoSelecionado.dadosAPI && (
@@ -496,7 +562,37 @@ export default function App() {
          </div>
       )}
 
-      {/* AI CHAT E NAVEGAÇÃO NO RODAPÉ OMITIDOS AQUI PARA BREVIDADE (MANTÉM O SEU IGUAL) */}
+      {/* 🔥 ALERTAS AUTOMÁTICOS FLOAT */}
+      <div className="fixed top-32 left-0 right-0 z-50 flex flex-col items-center gap-2 pointer-events-none w-full px-4">
+          <AnimatePresence>
+              {viewMode !== 'perfil' && alertas.slice(0, 2).map((alerta) => (
+                  <motion.div key={alerta.id} initial={{opacity:0, y:-20}} animate={{opacity:1, y:0}} exit={{opacity:0}} className="bg-red-600/90 text-white text-[10px] font-black px-4 py-2 rounded-full shadow-lg border border-red-400 flex items-center gap-2 max-w-full">
+                      <Bell className="w-3 h-3 flex-shrink-0 animate-bounce"/> <span className="truncate">{alerta.msg}</span>
+                  </motion.div>
+              ))}
+          </AnimatePresence>
+      </div>
+
+      <button onClick={() => setAiOpen(true)} className="fixed right-5 bottom-28 w-14 h-14 rounded-full bg-gradient-to-br from-blue-600 to-blue-400 flex items-center justify-center shadow-[0_0_25px_rgba(37,99,235,0.6)] z-40 text-2xl hover:scale-105 transition-transform border border-blue-300/30">🤖</button>
+
+      <AnimatePresence>
+          {aiOpen && (
+              <motion.div initial={{opacity:0, y:20, scale:0.9}} animate={{opacity:1, y:0, scale:1}} exit={{opacity:0, scale:0.9, y:20}} className="fixed right-4 left-4 bottom-24 bg-[#0f172a] border border-slate-700 p-4 rounded-3xl shadow-[0_0_50px_rgba(0,0,0,0.8)] z-50 flex flex-col max-h-[70vh]">
+                  <div className="flex justify-between items-center mb-4 pb-3 border-b border-white/5"><h3 className="font-black flex items-center gap-2 text-white"><Zap className="w-5 h-5 text-yellow-400"/> Assistente IA</h3><button onClick={() => setAiOpen(false)} className="text-slate-400 bg-slate-800 rounded-full p-1.5"><X className="w-4 h-4"/></button></div>
+                  <div className="flex-1 overflow-y-auto flex flex-col gap-3 mb-4 pr-1 custom-scrollbar">
+                      {aiMessages.map((msg, idx) => (
+                          <div key={idx} className={`flex ${msg.role === 'user' ? 'justify-end' : 'justify-start'}`}><div className={`p-3.5 rounded-2xl max-w-[85%] text-xs font-semibold leading-relaxed shadow-md ${msg.role === 'user' ? 'bg-blue-600 text-white rounded-tr-sm' : 'bg-[#050816] border border-slate-800 text-slate-300 rounded-tl-sm relative'}`}>{msg.role === 'assistant' && <div className="absolute top-4 left-0 w-1 h-[60%] bg-blue-500 rounded-r-md"></div>}{msg.text}</div></div>
+                      ))}
+                      {aiLoading && <div className="flex justify-start"><div className="p-3.5 rounded-2xl bg-[#050816] border border-slate-800 text-slate-300 rounded-tl-sm text-xs font-bold"><span className="animate-pulse flex items-center gap-2"><Zap className="w-3 h-3 text-blue-500"/> A processar...</span></div></div>}
+                  </div>
+                  <form onSubmit={handleAskAI} className="flex gap-2">
+                      <input type="text" placeholder="Qual a melhor aposta?" value={aiQuery} onChange={(e)=>setAiQuery(e.target.value)} disabled={aiLoading} className="flex-1 bg-[#050816] border border-slate-700 rounded-2xl px-4 py-3 text-xs text-white outline-none focus:border-blue-500 font-bold disabled:opacity-50"/>
+                      <button type="submit" disabled={aiLoading || !aiQuery.trim()} className="bg-blue-600 text-white p-3 rounded-2xl hover:bg-blue-500 transition-colors disabled:opacity-50 flex items-center justify-center"><Send className="w-5 h-5"/></button>
+                  </form>
+              </motion.div>
+          )}
+      </AnimatePresence>
+
       <nav className="fixed bottom-0 left-0 right-0 h-20 bg-[#050816] border-t border-white/5 flex justify-around items-center z-50 shadow-[0_-10px_40px_rgba(0,0,0,0.5)]">
         <button onClick={() => {setViewMode('jogos'); setFilterCentro('Todos'); setJogoSelecionado(null);}} className={`flex flex-col items-center gap-1.5 transition-colors ${viewMode === 'jogos' && filterCentro !== 'Ao Vivo' && !jogoSelecionado ? 'text-blue-500' : 'text-slate-500 hover:text-slate-300'}`}><Home className="w-6 h-6" /><span className="text-[9px] font-black uppercase tracking-widest">Início</span></button>
         <button onClick={() => {setViewMode('jogos'); setFilterCentro('Ao Vivo'); setJogoSelecionado(null);}} className={`flex flex-col items-center gap-1.5 transition-colors ${filterCentro === 'Ao Vivo' && !jogoSelecionado ? 'text-red-500' : 'text-slate-500 hover:text-slate-300'}`}><div className="relative"><Radio className="w-6 h-6" />{filterCentro === 'Ao Vivo' && <span className="absolute top-0 right-0 w-2 h-2 bg-red-500 rounded-full animate-pulse"></span>}</div><span className="text-[9px] font-black uppercase tracking-widest">Ao Vivo</span></button>
