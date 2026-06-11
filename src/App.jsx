@@ -5,14 +5,15 @@ import { LineChart, Line, ResponsiveContainer, XAxis, YAxis, CartesianGrid, Tool
 import { motion, AnimatePresence } from 'framer-motion';
 import { initMercadoPago } from '@mercadopago/sdk-react'; 
 import { createClient } from '@supabase/supabase-js';
-import { Home, Radio, Trophy, Crown, Star, ChevronRight, X, User, Zap, TrendingUp, Crosshair, Bell, AlertTriangle, Users, Flame, ArrowLeft, Send, DollarSign, Smartphone, Target, ShieldAlert } from 'lucide-react';
+import { Home, Radio, Trophy, Crown, Star, ChevronRight, X, User, Zap, TrendingUp, Bell, AlertTriangle, Users, Flame, ArrowLeft, Send, DollarSign, Smartphone } from 'lucide-react';
 
 import { solicitarPermissaoNotificacao, dispararAlertaPush } from './services/notificacoes.js';
 
 // ============================================================================
-// 🚀 CODE SPLITTING (Lazy Loading para esvaziar o Bundle Principal)
+// 🚀 CODE SPLITTING
 // ============================================================================
 const Perfil = lazy(() => import('./components/Perfil.jsx'));
+const PainelJogo = lazy(() => import('./components/PainelJogo.jsx'));
 
 // ============================================================================
 // ⚙️ CONFIGURAÇÕES PRINCIPAIS & DADOS GLOBAIS
@@ -30,22 +31,11 @@ const crescimentoBancaGlobal = [ { dia: "1", banca: 1000 }, { dia: "2", banca: 1
 
 const mockJogosData = [
   { id: 101, league_id: 71, league_name: 'Brasileirão Série A', starting_at: `${getLocalYYYYMMDD()}T16:00:00`, status: 'Live', time_elapsed: 62, home_team: 'Flamengo', home_id: 127, away_team: 'Palmeiras', away_id: 121, home_image: 'https://media.api-sports.io/football/teams/127.png', away_image: 'https://media.api-sports.io/football/teams/121.png', scoreHome: 2, scoreAway: 1, confianca_ia: 92, odd_principal: 1.82, odd_abertura: 1.95, homeStats: {form: 85, h2h: 80, attack: 88}, awayStats: {form: 75} },
-  { id: 102, league_id: 39, league_name: 'Premier League', starting_at: `${getLocalYYYYMMDD()}T19:30:00`, status: 'Not Started', time_elapsed: 0, home_team: 'Liverpool', home_id: 40, away_team: 'Man City', away_id: 50, home_image: 'https://media.api-sports.io/football/teams/40.png', away_image: 'https://media.api-sports.io/football/teams/50.png', scoreHome: null, scoreAway: null, confianca_ia: 89, odd_principal: 2.10, odd_abertura: 2.10, homeStats: {form: 78, h2h: 60, attack: 85}, awayStats: {form: 82} },
-  { id: 103, league_id: 140, league_name: 'La Liga', starting_at: `${getLocalYYYYMMDD()}T14:00:00`, status: 'Finished', time_elapsed: 90, home_team: 'Real Madrid', home_id: 541, away_team: 'Barcelona', away_id: 529, home_image: 'https://media.api-sports.io/football/teams/541.png', away_image: 'https://media.api-sports.io/football/teams/529.png', scoreHome: 3, scoreAway: 1, confianca_ia: 88, odd_principal: 1.95, odd_abertura: 2.05, homeStats: {form: 90, h2h: 70, attack: 92}, awayStats: {form: 85} }
+  { id: 102, league_id: 39, league_name: 'Premier League', starting_at: `${getLocalYYYYMMDD()}T19:30:00`, status: 'Not Started', time_elapsed: 0, home_team: 'Liverpool', home_id: 40, away_team: 'Man City', away_id: 50, home_image: 'https://media.api-sports.io/football/teams/40.png', away_image: 'https://media.api-sports.io/football/teams/50.png', scoreHome: null, scoreAway: null, confianca_ia: 89, odd_principal: 2.10, odd_abertura: 2.10, homeStats: {form: 78, h2h: 60, attack: 85}, awayStats: {form: 82} }
 ];
 
-// OTIMIZAÇÃO: Inclusão dos novos mercados de Cartões e Faltas para a Análise Ao Vivo
-const mockJogoDetalhes = { 
-    stats_reais: [{type: "Posse (%)", h: 58, a: 42}, {type: "Remates", h: 15, a: 8}, {type: "Cantos", h: 7, a: 3}],
-    amarelosCasa: 2, amarelosFora: 4,
-    vermelhosCasa: 0, vermelhosFora: 1,
-    faltasCasa: 12, faltasFora: 15
-};
-const mockRankingUsuarios = [ { id: 1, nome: "Lucas", lucro_total: 1840 }, { id: 2, nome: "Carlos", lucro_total: 1430 }, { id: 3, nome: "João", lucro_total: 1180 }, { id: 4, nome: "Marcos", lucro_total: 950 } ];
+const mockRankingUsuarios = [ { id: 1, nome: "Lucas", lucro_total: 1840 }, { id: 2, nome: "Carlos", lucro_total: 1430 }, { id: 3, nome: "João", lucro_total: 1180 } ];
 
-// ============================================================================
-// 🧠 FUNÇÕES GLOBAIS EMBUTIDAS (LÓGICA IA MELHORADA COM DISCIPLINA)
-// ============================================================================
 const calcularEV = (probabilidade, odd) => (((probabilidade / 100) * odd - 1) * 100);
 const calcularHeatScore = (jogo) => Math.round((jogo.confianca_ia * 0.5) + (calcularEV(jogo.confianca_ia, jogo.odd_principal) * 2) + (((jogo.homeStats?.form||50) - (jogo.awayStats?.form||50)) * 0.3));
 const detectarValueBet = (probabilidadeIA, odd) => probabilidadeIA > (100 / odd);
@@ -69,74 +59,6 @@ const calcularKelly = (odd, probabilidade) => {
     return Math.max((((b * p) - (1 - p)) / b) * 100, 0);
 };
 
-const calcularDrawdown = (listaApostas, bancaIni) => {
-    let pico = bancaIni; let maxDD = 0; let b = bancaIni;
-    listaApostas.forEach(a => {
-        if(a.resultado === "green") b += (a.stake * a.odd) - a.stake; else b -= a.stake;
-        if(b > pico) pico = b;
-        const dd = ((pico - b) / pico) * 100;
-        if(dd > maxDD) maxDD = dd;
-    });
-    return maxDD.toFixed(2);
-};
-
-const executarBacktest = (listaApostas, bancaIni) => {
-    let b = bancaIni;
-    listaApostas.forEach(a => {
-        if(a.resultado === "green") b += (a.stake * a.odd) - a.stake; else b -= a.stake;
-    });
-    return { bancaFinal: b, lucro: b - bancaIni, roi: ((b - bancaIni) / bancaIni) * 100 };
-};
-
-const buscarEstatisticasJogo = async (fixtureId) => {
-    // Nova estrutura com dados de faltas e cartões para alimentar a IA
-    return [ 
-        { ballPossession: 58, corners: 7, shotsOnGoal: 15, yellowCards: 2, redCards: 0, fouls: 12 }, 
-        { ballPossession: 42, corners: 3, shotsOnGoal: 8, yellowCards: 4, redCards: 1, fouls: 15 } 
-    ];
-};
-
-const analisarPartidaAoVivo = (stats) => {
-    if(!stats || stats.length < 2) return { confianca: 0, recomendacao: "Aguardando dados" };
-    const casa = stats[0]; 
-    const fora = stats[1]; 
-    
-    // NOVO ALGORITMO COM PESOS POSITIVOS E NEGATIVOS
-    let scoreCasa = (casa.ballPossession * 0.10) + (casa.corners * 0.20) + (casa.shotsOnGoal * 0.30);
-    let scoreFora = (fora.ballPossession * 0.10) + (fora.corners * 0.20) + (fora.shotsOnGoal * 0.30);
-
-    // Punições disciplinares
-    scoreCasa -= (casa.yellowCards * 0.10) + (casa.redCards * 0.50) + (casa.fouls * 0.05);
-    scoreFora -= (fora.yellowCards * 0.10) + (fora.redCards * 0.50) + (fora.fouls * 0.05);
-
-    const totalFaltas = casa.fouls + fora.fouls;
-    const totalCartoes = casa.yellowCards + fora.yellowCards + casa.redCards + fora.redCards;
-    
-    let recomendacao = "Mercado Indefinido";
-    let confiancaBase = 50 + ((scoreCasa - scoreFora) * 5); // Amplia a diferença de força
-
-    // Identificação de novos Mercados IA (Value Bets Especiais)
-    if (totalCartoes >= 6 || casa.redCards > 0 || fora.redCards > 0) {
-        recomendacao = "🔥 Over 6.5 Cartões / Jogo Quente";
-        confiancaBase += 15;
-    } else if (totalFaltas > 25) {
-        recomendacao = "🔥 Over 28.5 Faltas";
-        confiancaBase += 10;
-    } else if (fora.redCards > 0 && scoreCasa > scoreFora) {
-        recomendacao = "🔥 Vitória Mandante (Vantagem Numérica)";
-        confiancaBase += 20;
-    } else if (scoreCasa > scoreFora + 2) {
-        recomendacao = "Forte Tendência Casa";
-    } else {
-        recomendacao = "Over 1.5 Gols Sugerido";
-    }
-
-    return {
-        confianca: Math.min(Math.max(Math.round(confiancaBase), 10), 99),
-        recomendacao: recomendacao
-    };
-};
-
 export default function App() {
   const [showSplash, setShowSplash] = useState(true);
   const [ligaAtivaId, setLigaAtivaId] = useState(null); 
@@ -153,21 +75,16 @@ export default function App() {
   const [performanceStats] = useState({ totalAnalises: 512, acertos: 431, erros: 81, roi: 18.4, ultimaSemana: 87 });
   const [bancaInicial, setBancaInicial] = useState(1000);
   const [alertas, setAlertas] = useState([{ id: 1, msg: "O Flamengo chegou a 94% de confiança.", lida: false }]);
-  const [topPick] = useState({ jogo: "Flamengo x Palmeiras", confianca: 92, ev: 14.2, mercado: "Vitória Flamengo" });
   const [rankingUsuarios, setRankingUsuarios] = useState([]);
-
   const [oportunidades, setOportunidades] = useState([]);
   const [bilhetePremium, setBilhetePremium] = useState({ selecoes: [], oddFinal: 1 });
   const [xp, setXp] = useState(350);
 
   const [apostas, setApostas] = useState([
-    { id: 1, jogo: "Flamengo x Palmeiras", liga: "Brasileirão", time: "Flamengo", mercado: "Vitória Casa", stake: 100, odd: 1.85, resultado: "green", data: "2026-06-01", hora: "19:30" },
-    { id: 2, jogo: "Liverpool x Arsenal", liga: "Premier League", time: "Liverpool", mercado: "Over 2.5", stake: 50, odd: 2.10, resultado: "red", data: "2026-06-02", hora: "16:00" },
-    { id: 3, jogo: "Real Madrid x Barcelona", liga: "La Liga", time: "Real Madrid", mercado: "Ambos Marcam", stake: 75, odd: 1.95, resultado: "green", data: "2026-06-03", hora: "20:00" }
+    { id: 1, jogo: "Flamengo x Palmeiras", liga: "Brasileirão", time: "Flamengo", mercado: "Vitória Casa", stake: 100, odd: 1.85, resultado: "green", data: "2026-06-01", hora: "19:30" }
   ]);
   const metaMensal = 2000;
 
-  // IA CHAT & EFFECTS
   const [aiOpen, setAiOpen] = useState(false);
   const [aiQuery, setAiQuery] = useState('');
   const [aiLoading, setAiLoading] = useState(false);
@@ -175,10 +92,20 @@ export default function App() {
 
   useEffect(() => { const carregarDados = async () => { setRankingUsuarios(mockRankingUsuarios); }; carregarDados(); }, []);
   useEffect(() => { setTimeout(() => setShowSplash(false), 2000); }, []);
+  
+  // ========================================================================
+  // 🔒 AQUI ESTÁ A PROTEÇÃO MÁXIMA DE EMAIL DO ADMIN
+  // ========================================================================
   useEffect(() => { 
       const em = localStorage.getItem('bet_sessao_ativa'); 
-      if (em) { setUserData({ email: em, nome: localStorage.getItem('bet_user_nome') || "Lucas Montesso", is_vip: true, is_admin: true }); }
-      else if (MODO_DEMONSTRACAO) { setUserData({ email: "lucas@vip.com", nome: "Lucas Montesso", is_vip: true, is_admin: true }); } 
+      const emailsAdministradores = ["lucasmontesso@admin.com"]; // COLOQUE O SEU EMAIL AQUI
+      
+      if (em) { 
+          setUserData({ email: em, nome: localStorage.getItem('bet_user_nome') || "Lucas Montesso", is_vip: true, is_admin: emailsAdministradores.includes(em) }); 
+      }
+      else if (MODO_DEMONSTRACAO) { 
+          setUserData({ email: "lucas@vip.com", nome: "Lucas Montesso", is_vip: true, is_admin: true }); // Mude para false se quiser bloquear até no seu PC de testes
+      } 
   }, []);
   
   useEffect(() => {
@@ -200,18 +127,6 @@ export default function App() {
       }
   }, [jogos]);
 
-  const nivelUsuario = () => {
-    if(xp > 5000) return "Lenda"; if(xp > 3000) return "Mestre"; if(xp > 1000) return "Especialista"; if(xp > 500) return "Profissional"; return "Iniciante";
-  };
-
-  const abrirPainelDoJogo = async (j) => {
-    if(!userData?.is_vip) return setMenuAtivo('assinar pro');
-    setJogoSelecionado({ ...j, is_loading: true });
-    const stats = await buscarEstatisticasJogo(j.id);
-    const analiseTempoReal = analisarPartidaAoVivo(stats);
-    setTimeout(() => { setJogoSelecionado({ ...j, ...mockJogoDetalhes, dadosAPI: analiseTempoReal, is_loading: false }); }, 800); 
-  };
-  
   const toggleFavorito = (e, id) => { e.stopPropagation(); setFavoritos(p => p.includes(id) ? p.filter(f => f !== id) : [...p, id]); };
 
   const handleAskAI = async (e) => {
@@ -245,7 +160,7 @@ export default function App() {
       <div className="bg-[#0f172a] border border-green-500/40 shadow-[0_0_20px_rgba(34,197,94,0.15)] rounded-3xl p-4 sm:p-6 mb-6 mx-4 transform-gpu">
         <h3 className="font-black text-green-400 mb-4 flex items-center gap-2 tracking-wider"><Crown className="w-5 h-5"/> IA BANKER PICKS</h3>
         {picks.map(j => (
-            <div key={j.id} onClick={() => abrirPainelDoJogo(j)} className="bg-[#050816] border border-white/5 p-4 rounded-2xl mb-3 last:mb-0 flex justify-between items-center cursor-pointer hover:border-green-500/50 transition-colors">
+            <div key={j.id} onClick={() => { if(!userData?.is_vip) return setMenuAtivo('assinar pro'); setJogoSelecionado(j); }} className="bg-[#050816] border border-white/5 p-4 rounded-2xl mb-3 last:mb-0 flex justify-between items-center cursor-pointer hover:border-green-500/50 transition-colors">
                 <div className="min-w-0 pr-2">
                     <div className="font-black text-white text-sm mb-1 truncate">{j.home_team} x {j.away_team}</div>
                     <div className="text-[10px] text-green-400 font-bold uppercase tracking-widest flex gap-2"><span>Confiança: {j.confianca_ia}%</span> <span>•</span> <span>EV: +{calcularEV(j.confianca_ia, j.odd_principal).toFixed(1)}%</span></div>
@@ -280,9 +195,7 @@ export default function App() {
       {menuAtivo !== 'assinar pro' && !jogoSelecionado && (
           <div className="animate-fade-in pt-4 w-full">
               
-              {/* =========================================
-                  HOME / JOGOS
-              ========================================= */}
+              {/* JOGOS */}
               {viewMode === 'jogos' && (
                   <>
                     {userData?.is_vip && (
@@ -297,7 +210,7 @@ export default function App() {
                             <h2 className="font-black text-green-400 mb-4 flex items-center gap-2 uppercase tracking-wider"><Target className="w-5 h-5"/> Bilhete Inteligente IA</h2>
                             <div>
                                 {bilhetePremium.selecoes.map(jogo => (
-                                    <div key={jogo.id} onClick={() => abrirPainelDoJogo(jogo)} className="bg-[#111827] border border-white/5 p-4 rounded-xl mb-3 cursor-pointer hover:border-green-500/50 transition-colors flex justify-between items-center">
+                                    <div key={jogo.id} onClick={() => { if(!userData?.is_vip) return setMenuAtivo('assinar pro'); setJogoSelecionado(jogo); }} className="bg-[#111827] border border-white/5 p-4 rounded-xl mb-3 cursor-pointer hover:border-green-500/50 transition-colors flex justify-between items-center">
                                         <div className="font-bold text-white text-sm truncate pr-2 min-w-0">{jogo.home_team} x {jogo.away_team}</div>
                                         <div className="text-green-400 text-[9px] sm:text-[10px] font-black tracking-widest uppercase flex-shrink-0">Confiança: {jogo.confianca_ia}%</div>
                                     </div>
@@ -307,18 +220,6 @@ export default function App() {
                                 <span className="text-[10px] sm:text-xs text-green-200 font-black uppercase tracking-widest truncate pr-2">Odd Combinada Final</span>
                                 <span className="text-2xl sm:text-3xl font-black text-green-400 drop-shadow-[0_0_10px_rgba(74,222,128,0.5)] flex-shrink-0">@{Number(bilhetePremium.oddFinal || 0).toFixed(2)}</span>
                             </div>
-                        </div>
-                    )}
-
-                    {oportunidades.length > 0 && (
-                        <div className="bg-[#0f172a] border border-orange-500/30 rounded-3xl p-4 sm:p-6 mb-6 mx-4 shadow-lg transform-gpu">
-                            <h2 className="font-black text-orange-400 mb-4 flex items-center gap-2 uppercase tracking-wider"><Flame className="w-5 h-5"/> Radar de Oportunidades</h2>
-                            {oportunidades.map(j => (
-                                <div key={j.id} onClick={() => abrirPainelDoJogo(j)} className="bg-[#111827] border border-white/5 p-4 rounded-xl mb-3 last:mb-0 cursor-pointer hover:border-orange-500/50 transition-colors flex justify-between items-center">
-                                    <div className="font-bold text-white text-sm truncate pr-2 min-w-0">{j.home_team}</div>
-                                    <div className="text-orange-400 text-[9px] sm:text-[10px] font-black uppercase tracking-widest bg-orange-500/10 px-2 sm:px-3 py-1 sm:py-1.5 rounded-md border border-orange-500/20 flex-shrink-0">EV+ {calcularEV(j.confianca_ia, j.odd_principal).toFixed(1)}%</div>
-                                </div>
-                            ))}
                         </div>
                     )}
 
@@ -357,7 +258,7 @@ export default function App() {
                                     const isValueBet = j.odd_principal ? detectarValueBet(j.confianca_ia, j.odd_principal) : false;
                                     
                                     return (
-                                        <div key={j.id} onClick={() => abrirPainelDoJogo(j)} className="bg-[#0f172a] border border-white/10 rounded-3xl p-4 sm:p-5 shadow-lg mb-4 cursor-pointer relative transition-all hover:border-blue-500/50 w-full transform-gpu">
+                                        <div key={j.id} onClick={() => { if(!userData?.is_vip) return setMenuAtivo('assinar pro'); setJogoSelecionado(j); }} className="bg-[#0f172a] border border-white/10 rounded-3xl p-4 sm:p-5 shadow-lg mb-4 cursor-pointer relative transition-all hover:border-blue-500/50 w-full transform-gpu">
                                             {heatScore > 50 && <div className="absolute -right-8 top-5 bg-red-600 text-white text-[8px] font-black px-8 py-1 rotate-45 shadow-lg flex items-center justify-center uppercase tracking-widest border-y border-red-400/30">Heat {heatScore}</div>}
                                             <div className="flex justify-between items-center mb-5">
                                                 {isLive ? <span className="bg-red-500 px-3 py-1 rounded-full text-[10px] font-black uppercase">🔴 Ao Vivo {j.time_elapsed}'</span> : <span className="text-slate-400 text-[10px] sm:text-xs font-bold uppercase">{j.status === 'Finished' ? 'Finalizado' : j.starting_at?.split('T')[1]?.substring(0,5)}</span>}
@@ -381,9 +282,7 @@ export default function App() {
                   </>
               )}
 
-              {/* =========================================
-                  O NOVO DASHBOARD DO PERFIL COMPLETO (LAZY)
-              ========================================= */}
+              {/* O NOVO DASHBOARD DO PERFIL COMPLETO (LAZY) */}
               {viewMode === 'perfil' && (
                   <div className="px-4 animate-fade-in w-full">
                      <Suspense fallback={<div className="text-center p-10 font-black text-blue-500 animate-pulse uppercase tracking-widest text-xs">A carregar Perfil Premium...</div>}>
@@ -398,9 +297,7 @@ export default function App() {
                   </div>
               )}
 
-              {/* =========================================
-                  RANKING & CENTRAL IA & ADMIN
-              ========================================= */}
+              {/* RANKING & ADMIN */}
               {viewMode === 'ranking' && (
                   <div className="px-4 animate-fade-in w-full">
                       <HeaderNav title="🏆 Comunidade" onBack={() => setViewMode('perfil')} />
@@ -440,109 +337,21 @@ export default function App() {
                       </div>
                   </div>
               )}
-
-              {viewMode === 'ia_center' && (
-                  <div className="px-4 animate-fade-in w-full">
-                      <HeaderNav title="🤖 Central IA" onBack={() => setViewMode('perfil')} />
-                      <div className="bg-[#0f172a] border border-white/10 rounded-3xl p-4 sm:p-6 mb-6 shadow-lg mx-0 sm:mx-4 transform-gpu">
-                          <h2 className="text-sm font-black text-white mb-4 uppercase tracking-wider truncate">Precisão Histórica</h2>
-                          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                              <div className="bg-[#111827] rounded-2xl p-4 text-center border border-white/5"><span className="text-[10px] font-bold text-slate-400 uppercase truncate block">Acertos IA</span><strong className="text-2xl font-black text-green-400 block truncate">{performanceStats.acertos}</strong></div>
-                              <div className="bg-[#111827] rounded-2xl p-4 text-center border border-white/5"><span className="text-[10px] font-bold text-slate-400 uppercase truncate block">Erros IA</span><strong className="text-2xl font-black text-red-400 block truncate">{performanceStats.erros}</strong></div>
-                          </div>
-                      </div>
-                  </div>
-              )}
           </div>
       )}
 
-      {/* =========================================
-          PAINEL DO JOGO ABERTO (Com Ao Vivo Premium e Disciplina)
-      ========================================= */}
-      {jogoSelecionado && !jogoSelecionado.is_loading && menuAtivo !== 'assinar pro' && (
-        <div className="px-4 mt-4 pb-20 animate-fade-in w-full">
-            <button onClick={() => setJogoSelecionado(null)} className="text-slate-400 text-xs font-bold flex items-center gap-1 mb-6 bg-[#0f172a] border border-white/10 px-4 py-2 rounded-xl uppercase tracking-wider"><X className="w-4 h-4"/> Voltar</button>
-            
-            <div className="bg-[#0f172a] rounded-3xl p-4 sm:p-6 border border-blue-500/30 shadow-2xl shadow-blue-500/10 mb-6 transform-gpu">
-                <div className="flex justify-between items-center mb-6 relative z-10">
-                    <div className="flex flex-col items-center w-1/3 min-w-0"><img src={jogoSelecionado.home_image} className="w-12 h-12 sm:w-16 sm:h-16 mb-2 drop-shadow-lg" alt=""/><span className="font-black text-[10px] sm:text-xs text-center truncate w-full">{jogoSelecionado.home_team}</span></div>
-                    <div className="w-1/3 text-center"><div className="text-3xl sm:text-4xl font-black mb-1 tracking-tighter truncate">{jogoSelecionado.status === 'Not Started' ? 'VS' : `${jogoSelecionado.scoreHome} - ${jogoSelecionado.scoreAway}`}</div></div>
-                    <div className="flex flex-col items-center w-1/3 min-w-0"><img src={jogoSelecionado.away_image} className="w-12 h-12 sm:w-16 sm:h-16 mb-2 drop-shadow-lg" alt=""/><span className="font-black text-[10px] sm:text-xs text-center truncate w-full">{jogoSelecionado.away_team}</span></div>
-                </div>
-
-                {/* NOVO: AO VIVO PREMIUM (ATAQUE & DISCIPLINA) */}
-                {jogoSelecionado.status === 'Live' && jogoSelecionado.stats_reais && (
-                    <>
-                        <div className="bg-[#111827] p-4 rounded-2xl border border-white/5 mb-4 shadow-inner">
-                            <h4 className="font-black text-[10px] text-slate-400 uppercase tracking-widest mb-4 flex items-center gap-2"><Radio className="w-3 h-3 text-red-500 animate-pulse"/> Ataque & Posse</h4>
-                            {jogoSelecionado.stats_reais.map((stat, i) => (
-                                <div key={i} className="flex justify-between items-center mb-3 text-xs font-bold text-white">
-                                    <span className="w-8 text-center bg-[#050816] py-1 rounded">{stat.h}</span>
-                                    <span className="text-[10px] text-slate-500 uppercase tracking-widest">{stat.type}</span>
-                                    <span className="w-8 text-center bg-[#050816] py-1 rounded">{stat.a}</span>
-                                </div>
-                            ))}
-                        </div>
-
-                        <div className="bg-[#111827] p-4 rounded-2xl border border-white/5 mb-5 shadow-inner">
-                            <h4 className="font-black text-[10px] text-slate-400 uppercase tracking-widest mb-4 flex items-center gap-2"><AlertTriangle className="w-3 h-3 text-yellow-500"/> Disciplina (Cartões e Faltas)</h4>
-                            <div className="grid grid-cols-3 gap-2">
-                                 <div className="bg-[#050816] p-2 rounded-xl text-center border border-yellow-500/20">
-                                     <span className="text-[9px] text-yellow-400 font-bold uppercase tracking-widest block mb-1">Amarelos</span>
-                                     <div className="flex justify-center gap-2 text-sm font-black text-white">
-                                         <span>{jogoSelecionado.amarelosCasa || 0}</span> <span className="text-slate-600">-</span> <span>{jogoSelecionado.amarelosFora || 0}</span>
-                                     </div>
-                                 </div>
-                                 <div className="bg-[#050816] p-2 rounded-xl text-center border border-red-500/20">
-                                     <span className="text-[9px] text-red-500 font-bold uppercase tracking-widest block mb-1">Vermelhos</span>
-                                     <div className="flex justify-center gap-2 text-sm font-black text-white">
-                                         <span>{jogoSelecionado.vermelhosCasa || 0}</span> <span className="text-slate-600">-</span> <span>{jogoSelecionado.vermelhosFora || 0}</span>
-                                     </div>
-                                 </div>
-                                 <div className="bg-[#050816] p-2 rounded-xl text-center border border-orange-500/20">
-                                     <span className="text-[9px] text-orange-400 font-bold uppercase tracking-widest block mb-1">Faltas</span>
-                                     <div className="flex justify-center gap-2 text-sm font-black text-white">
-                                         <span>{jogoSelecionado.faltasCasa || 0}</span> <span className="text-slate-600">-</span> <span>{jogoSelecionado.faltasFora || 0}</span>
-                                     </div>
-                                 </div>
-                            </div>
-                        </div>
-                    </>
-                )}
-
-                {jogoSelecionado.dadosAPI && (
-                    <div className="bg-orange-500/10 border border-orange-500/30 p-4 rounded-xl text-center mb-5">
-                        <span className="text-[10px] text-orange-400 font-bold uppercase tracking-widest block mb-1 truncate">🤖 Análise API Football Ao Vivo</span>
-                        <strong className="text-xs sm:text-sm font-black text-white truncate block">{jogoSelecionado.dadosAPI.recomendacao} (Conf: {jogoSelecionado.dadosAPI.confianca}%)</strong>
-                    </div>
-                )}
-
-                {jogoSelecionado.odd_principal && (
-                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 mb-5">
-                        <div className="bg-blue-500/10 border border-blue-500/30 p-4 rounded-xl text-center min-w-0">
-                            <span className="text-[10px] text-blue-400 font-black uppercase tracking-widest block mb-1 truncate">Stake Recomendada</span>
-                            <strong className="text-lg sm:text-xl font-black text-white truncate block">R$ {Number(calcularStake(bancaInicial, jogoSelecionado.confianca_ia)||0).toFixed(2)}</strong>
-                        </div>
-                        <div className="bg-purple-500/10 border border-purple-500/20 p-4 rounded-xl text-center min-w-0">
-                            <span className="text-[10px] text-purple-400 font-bold uppercase tracking-widest block mb-1 truncate">🧠 Kelly Criterion</span>
-                            <strong className="text-lg sm:text-xl font-black text-white truncate block">{Number(calcularKelly(jogoSelecionado.odd_principal, jogoSelecionado.confianca_ia)||0).toFixed(1)}%</strong>
-                        </div>
-                    </div>
-                )}
-                
-                <div className="bg-[#050816] rounded-2xl p-4 sm:p-5 border border-slate-800/80 relative overflow-hidden flex flex-col items-start mb-4">
-                    <div className="absolute top-0 right-0 w-24 h-24 bg-blue-600/10 blur-xl rounded-full"></div>
-                    <div className="flex items-center gap-2 mb-3 relative z-10"><Crosshair className="w-5 h-5 text-blue-500 flex-shrink-0" /><h4 className="font-black text-xs text-blue-400 uppercase tracking-widest truncate">ANÁLISE ESTATÍSTICA IA</h4></div>
-                    {jogoSelecionado.explanation ? (
-                        <div className="text-slate-300 text-xs leading-relaxed relative z-10 font-semibold whitespace-pre-line">{jogoSelecionado.explanation}</div>
-                    ) : (
-                        <button onClick={() => gerarExplicacaoIA(jogoSelecionado)} disabled={jogoSelecionado.is_loading_explanation} className="w-full bg-blue-600 hover:bg-blue-500 text-white font-black text-xs py-3 rounded-xl flex items-center justify-center gap-2 transition-colors disabled:opacity-50 relative z-10">
-                           {jogoSelecionado.is_loading_explanation ? <span className="animate-pulse truncate">A calcular motivos...</span> : <><Zap className="w-4 h-4 flex-shrink-0"/> <span className="truncate">Gerar Relatório Profissional</span></>}
-                        </button>
-                    )}
-                </div>
-            </div>
-        </div>
+      {/* O PAINEL DE JOGO AGORA USA LAZY LOADING */}
+      {jogoSelecionado && menuAtivo !== 'assinar pro' && (
+          <Suspense fallback={<div className="text-center p-10 font-black text-blue-500 animate-pulse text-xs uppercase tracking-widest">A carregar estatísticas do jogo...</div>}>
+              <PainelJogo 
+                  jogo={jogoSelecionado} 
+                  setJogoSelecionado={setJogoSelecionado} 
+                  bancaInicial={bancaInicial} 
+                  gerarExplicacaoIA={gerarExplicacaoIA} 
+                  calcularStake={calcularStake} 
+                  calcularKelly={calcularKelly} 
+              />
+          </Suspense>
       )}
 
       {/* CHECKOUT VIP PRO */}
@@ -562,7 +371,7 @@ export default function App() {
          </div>
       )}
 
-      {/* 🔥 ALERTAS AUTOMÁTICOS FLOAT */}
+      {/* ALERTAS AUTOMÁTICOS E CHAT BOT MANTIDOS */}
       <div className="fixed top-32 left-0 right-0 z-50 flex flex-col items-center gap-2 pointer-events-none w-full px-4">
           <AnimatePresence>
               {viewMode !== 'perfil' && alertas.slice(0, 2).map((alerta) => (

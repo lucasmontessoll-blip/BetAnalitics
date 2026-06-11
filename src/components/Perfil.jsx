@@ -1,7 +1,8 @@
 import React, { useMemo, useState, lazy, Suspense } from 'react';
 import { LineChart, Line, ResponsiveContainer, XAxis, YAxis, CartesianGrid, Tooltip } from 'recharts';
-import { User, Settings, Bell, Award, Trophy, Target, DollarSign, BrainCircuit, ShieldAlert, Globe, PieChart, Clock, TrendingUp, Zap, ChevronRight, Activity } from 'lucide-react';
-// Lazy loading the heavy blocks
+import { User, Settings, Bell, Award, Trophy, Target, DollarSign, BrainCircuit, ShieldAlert, Globe, PieChart, Clock, TrendingUp, Zap, ChevronRight } from 'lucide-react';
+
+// Lazy loading para manter o telemóvel super rápido
 const GestaoBanca = lazy(() => import('./GestaoBanca.jsx'));
 const SimuladorStake = lazy(() => import('./SimuladorStake.jsx'));
 const Historico = lazy(() => import('./Historico.jsx'));
@@ -19,7 +20,9 @@ export default function Perfil({
     const [filtroResultado, setFiltroResultado] = useState('todos');
     const [filtroLiga, setFiltroLiga] = useState('todas');
 
-    // Cálculos pesados (O useMemo garante que só calcula 1 vez)
+    // ============================================================================
+    // ⚡ CÁLCULOS OTIMIZADOS (Protegidos pelo useMemo)
+    // ============================================================================
     const lucroAcumulado = useMemo(() => apostas.reduce((acc, a) => a.resultado === "green" ? acc + ((a.stake * a.odd) - a.stake) : acc - a.stake, 0), [apostas]);
     const atingiuStopWin = lucroAcumulado >= stopWin;
     const atingiuStopLoss = lucroAcumulado <= -stopLoss;
@@ -130,8 +133,22 @@ export default function Perfil({
             <div className="flex justify-between items-center mb-6">
                 <h2 className="text-xl font-black flex items-center gap-2"><User className="w-6 h-6 text-blue-500"/> Meu Perfil</h2>
                 <div className="flex gap-2">
-                <button onClick={solicitarPermissaoNotificacao} className="bg-blue-600 hover:bg-blue-500 text-white text-[10px] font-black px-3 py-1.5 rounded-lg flex items-center gap-1 shadow-lg transition-colors uppercase tracking-widest flex-shrink-0"><Bell className="w-3 h-3"/> Alertas</button>
-                {userData?.is_admin && <button onClick={() => setViewMode('admin')} className="bg-purple-600 hover:bg-purple-500 text-white text-[10px] font-black px-3 py-1.5 rounded-lg flex items-center gap-1 shadow-lg transition-colors uppercase tracking-widest flex-shrink-0"><Settings className="w-3 h-3"/> Admin</button>}
+                    <button onClick={solicitarPermissaoNotificacao} className="bg-blue-600 hover:bg-blue-500 text-white text-[10px] font-black px-3 py-1.5 rounded-lg flex items-center gap-1 shadow-lg transition-colors uppercase tracking-widest flex-shrink-0"><Bell className="w-3 h-3"/> Alertas</button>
+                    
+                    {/* 🔒 BOTÃO ADMIN COM DUPLA PROTEÇÃO (Email autorizado + Senha) */}
+                    {userData?.is_admin && (
+                        <button onClick={() => {
+                            const pwd = window.prompt("Acesso Restrito. Digite a senha do Administrador:");
+                            // Pode trocar 'lucasadmin2026' pela senha que quiser
+                            if(pwd === "lucasadmin2026") { 
+                                setViewMode('admin');
+                            } else if (pwd !== null) {
+                                alert("Senha Incorreta! Acesso negado.");
+                            }
+                        }} className="bg-purple-600 hover:bg-purple-500 text-white text-[10px] font-black px-3 py-1.5 rounded-lg flex items-center gap-1 shadow-lg transition-colors uppercase tracking-widest flex-shrink-0">
+                            <Settings className="w-3 h-3"/> Admin
+                        </button>
+                    )}
                 </div>
             </div>
             
@@ -160,7 +177,7 @@ export default function Perfil({
                     <span className="text-xs font-bold text-slate-300">R$ {Number(lucroAcumulado || 0).toFixed(2)} <span className="text-slate-500">/ R$ {Number(metaMensal || 0).toFixed(2)}</span></span>
                 </div>
                 <div className="bg-slate-800 h-4 rounded-full overflow-hidden mt-3 shadow-inner">
-                    <div className="bg-gradient-to-r from-green-600 to-green-400 h-full rounded-full transition-all duration-1000 relative" style={{width: `${progressoMetaCalc}%`}}></div>
+                    <div className="bg-gradient-to-r from-green-600 to-green-400 h-full rounded-full" style={{width: `${progressoMetaCalc}%`}}></div>
                 </div>
             </div>
 
@@ -259,7 +276,7 @@ export default function Perfil({
                 <SimuladorStake simStake={simStake} setSimStake={setSimStake} simOdd={simOdd} setSimOdd={setSimOdd} lucroSimulado={lucroSimulado} retornoTotal={retornoTotal} />
             </Suspense>
 
-            {/* RESOLUÇÃO DO RECHARTS - WIDTH 100% */}
+            {/* GRÁFICO DA BANCA TOTALMENTE BLOQUEADO DE REDIMENSIONAMENTO */}
             <div className="bg-[#0f172a] border border-green-500/20 rounded-3xl p-4 sm:p-6 mb-6 shadow-lg transform-gpu w-full">
                 <h2 className="text-sm font-black text-green-400 mb-4 flex items-center gap-2 uppercase tracking-wider"><TrendingUp className="w-5 h-5"/> Evolução da Banca</h2>
                 <div className="w-full h-[250px] overflow-hidden">
