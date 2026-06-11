@@ -5,7 +5,7 @@ import { LineChart, Line, ResponsiveContainer, XAxis, YAxis, CartesianGrid, Tool
 import { motion, AnimatePresence } from 'framer-motion';
 import { initMercadoPago } from '@mercadopago/sdk-react'; 
 import { createClient } from '@supabase/supabase-js';
-import { Home, Radio, Trophy, Crown, Star, ChevronRight, X, User, Zap, TrendingUp, Crosshair, Bell, AlertTriangle, Users, Flame, ArrowLeft, Send, DollarSign, Smartphone } from 'lucide-react';
+import { Home, Radio, Trophy, Crown, Star, ChevronRight, X, User, Zap, TrendingUp, Crosshair, Bell, AlertTriangle, Users, Flame, ArrowLeft, Send, DollarSign, Smartphone, Target, ShieldAlert } from 'lucide-react';
 
 import { solicitarPermissaoNotificacao, dispararAlertaPush } from './services/notificacoes.js';
 

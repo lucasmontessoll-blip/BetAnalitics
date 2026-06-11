@@ -1,7 +1,6 @@
 import React, { useMemo, useState, lazy, Suspense } from 'react';
 import { LineChart, Line, ResponsiveContainer, XAxis, YAxis, CartesianGrid, Tooltip } from 'recharts';
-import { User, Settings, Bell, Award, Trophy, Target, DollarSign, BrainCircuit, ShieldAlert, Globe, PieChart, Clock, TrendingUp, Zap, ChevronRight } from 'lucide-react';
-
+import { User, Settings, Bell, Award, Trophy, Target, DollarSign, BrainCircuit, ShieldAlert, Globe, PieChart, Clock, TrendingUp, Zap, ChevronRight, Activity } from 'lucide-react';
 // Lazy loading the heavy blocks
 const GestaoBanca = lazy(() => import('./GestaoBanca.jsx'));
 const SimuladorStake = lazy(() => import('./SimuladorStake.jsx'));
