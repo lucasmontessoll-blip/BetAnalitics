@@ -20,23 +20,23 @@
     "cors": "^2.8.6",
     "dotenv": "^17.4.2",
     "express": "^4.22.2",
-    "firebase": "^10.14.1",
+    "firebase": "^12.14.0",
     "framer-motion": "^12.40.0",
     "jspdf": "^4.2.1",
     "lucide-react": "^1.17.0",
-    "mercadopago": "^1.5.17",
+    "mercadopago": "^3.1.0",
     "mongoose": "^9.4.1",
     "react": "^18.2.0",
     "react-dom": "^18.2.0",
     "recharts": "^2.15.4"
   },
-  "devDependencies": {
-    "@tailwindcss/postcss": "^4.3.0",
-    "@tailwindcss/vite": "^4.3.0",
-    "@vitejs/plugin-react": "^4.0.0",
-    "autoprefixer": "^10.5.0",
-    "postcss": "^8.5.15",
-    "tailwindcss": "^4.3.0",
-    "vite": "^5.4.21"
-  }
-}
+ "devDependencies": {
+  "@tailwindcss/postcss": "^4.3.0",
+  "@tailwindcss/vite": "^4.3.0",
+  "@vitejs/plugin-react": "^4.3.4",
+  "autoprefixer": "^10.5.0",
+  "postcss": "^8.5.15",
+  "tailwindcss": "^4.3.0",
+  "vite": "^5.4.21"
+ }
+} 
