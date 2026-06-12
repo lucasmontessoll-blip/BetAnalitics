@@ -268,7 +268,7 @@ export default function Perfil({
                 </div>
                 <div className="bg-[#111827] p-4 rounded-2xl border border-white/5 shadow-lg flex flex-col gap-1 transform-gpu min-w-0">
                     <span className="text-[10px] text-slate-400 font-bold uppercase tracking-widest flex items-center gap-1 truncate"><Clock className="w-3 h-3 text-red-400 flex-shrink-0"/> Top Horário</span>
-                    <strong className="text-sm font-black text-white truncate">{topHorario[0]}</strong>
+                    <strong className="text-sm font-black text-green-400 uppercase tracking-widest">{nivelUsuario}</strong>
                 </div>
             </div>
 
