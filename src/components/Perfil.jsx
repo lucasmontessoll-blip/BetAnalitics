@@ -161,18 +161,17 @@ export default function Perfil({
                 <div className="flex gap-2">
                     <button onClick={solicitarPermissaoNotificacao} className="bg-blue-600 hover:bg-blue-500 text-white text-[10px] font-black px-3 py-1.5 rounded-lg flex items-center gap-1 shadow-lg transition-colors uppercase tracking-widest flex-shrink-0"><Bell className="w-3 h-3"/> Alertas</button>
                     
-                    {userData?.is_admin && (
-                        <button onClick={() => {
-                            const pwd = window.prompt("Acesso Restrito. Digite a senha do Administrador:");
-                            if(pwd === "lucasadmin2026") { 
-                                setViewMode('admin');
-                            } else if (pwd !== null) {
-                                alert("Senha Incorreta! Acesso negado.");
-                            }
-                        }} className="bg-purple-600 hover:bg-purple-500 text-white text-[10px] font-black px-3 py-1.5 rounded-lg flex items-center gap-1 shadow-lg transition-colors uppercase tracking-widest flex-shrink-0">
-                            <Settings className="w-3 h-3"/> Admin
-                        </button>
-                    )}
+                    {/* BOTÃO ADMIN - Sempre visível, acionado pela senha */}
+                    <button onClick={() => {
+                        const pwd = window.prompt("Acesso Restrito. Digite a senha do Administrador:");
+                        if(pwd === "lucasadmin2026") { 
+                            setViewMode('admin');
+                        } else if (pwd !== null) {
+                            alert("Senha Incorreta! Acesso negado.");
+                        }
+                    }} className="bg-purple-600 hover:bg-purple-500 text-white text-[10px] font-black px-3 py-1.5 rounded-lg flex items-center gap-1 shadow-lg transition-colors uppercase tracking-widest flex-shrink-0">
+                        <Settings className="w-3 h-3"/> Admin
+                    </button>
                 </div>
             </div>
             
@@ -301,7 +300,7 @@ export default function Perfil({
             </Suspense>
 
             {/* ============================================================================
-                📊 NOVO GRÁFICO DA BANCA PREMIUM COM DEGRADÊ (ÁREA RESPONSIVA)
+                📊 GRÁFICO DA BANCA PREMIUM COM DEGRADÊ (ÁREA RESPONSIVA)
                ============================================================================ */}
             <div className="bg-[#0f172a] border border-green-500/20 rounded-3xl p-4 sm:p-6 mb-6 shadow-lg transform-gpu w-full">
                 <h2 className="text-sm font-black text-green-400 mb-4 flex items-center gap-2 uppercase tracking-wider"><TrendingUp className="w-5 h-5"/> Evolução da Banca</h2>
