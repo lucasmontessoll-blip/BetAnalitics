@@ -1,5 +1,5 @@
 import React, { useMemo, useState, lazy, Suspense } from 'react';
-import { LineChart, Line, ResponsiveContainer, XAxis, YAxis, CartesianGrid, Tooltip } from 'recharts';
+import { AreaChart, Area, ResponsiveContainer, XAxis, YAxis, CartesianGrid, Tooltip } from 'recharts';
 import { User, Settings, Bell, Award, Trophy, Target, DollarSign, BrainCircuit, ShieldAlert, Globe, PieChart, Clock, TrendingUp, Zap, ChevronRight, Activity } from 'lucide-react';
 
 const GestaoBanca = lazy(() => import('./GestaoBanca.jsx'));
@@ -19,7 +19,7 @@ export default function Perfil({
     const [filtroLiga, setFiltroLiga] = useState('todas');
 
     // ============================================================================
-    // 🛡️ CORREÇÃO: AS FUNÇÕES AGORA VIVEM AQUI DENTRO (ADEUS REFERENCE ERROR)
+    // 🛡️ FUNÇÕES MATEMÁTICAS DA GESTÃO DE BANCA
     // ============================================================================
     const calcularDrawdown = (listaApostas, bancaIni) => {
         let pico = bancaIni; let maxDD = 0; let b = bancaIni;
@@ -43,7 +43,7 @@ export default function Perfil({
     };
 
     // ============================================================================
-    // ⚡ CÁLCULOS OTIMIZADOS
+    // ⚡ CÁLCULOS OTIMIZADOS E FIX DO GRÁFICO (GARANTIR MINÍMO DE 2 PONTOS)
     // ============================================================================
     const lucroAcumulado = useMemo(() => apostas.reduce((acc, a) => a.resultado === "green" ? acc + ((a.stake * a.odd) - a.stake) : acc - a.stake, 0), [apostas]);
     const atingiuStopWin = lucroAcumulado >= stopWin;
@@ -51,10 +51,14 @@ export default function Perfil({
 
     const dadosGraficoBanca = useMemo(() => {
         let banca = bancaInicial || 1000;
-        return apostas.map((a, index) => {
+        // Ponto de partida fixo para desenhar a linha corretamente mesmo com 1 aposta
+        const data = [{ aposta: 'Início', banca: Number(banca.toFixed(2)) }];
+        
+        apostas.forEach((a, index) => {
             if(a.resultado === "green") banca += (a.stake * a.odd) - a.stake; else banca -= a.stake;
-            return { aposta: `Bet ${index+1}`, banca: Number(banca.toFixed(2)) };
+            data.push({ aposta: `Bet ${index+1}`, banca: Number(banca.toFixed(2)) });
         });
+        return data;
     }, [apostas, bancaInicial]);
 
     const roiSemanal = useMemo(() => {
@@ -197,7 +201,7 @@ export default function Perfil({
                     <span className="text-xs font-bold text-slate-300">R$ {Number(lucroAcumulado || 0).toFixed(2)} <span className="text-slate-500">/ R$ {Number(metaMensal || 0).toFixed(2)}</span></span>
                 </div>
                 <div className="bg-slate-800 h-4 rounded-full overflow-hidden mt-3 shadow-inner">
-                    <div className="bg-gradient-to-r from-green-600 to-green-400 h-full rounded-full" style={{width: `${progressoMetaCalc}%`}}></div>
+                    <div className="bg-gradient-to-r from-green-600 to-green-400 h-full rounded-full" style={{width: `${(lucroAcumulado / (metaMensal || 1)) * 100}%`}}></div>
                 </div>
             </div>
 
@@ -296,18 +300,29 @@ export default function Perfil({
                 <SimuladorStake simStake={simStake} setSimStake={setSimStake} simOdd={simOdd} setSimOdd={setSimOdd} lucroSimulado={lucroSimulado} retornoTotal={retornoTotal} />
             </Suspense>
 
-            {/* GRÁFICO DA BANCA TOTALMENTE BLOQUEADO DE REDIMENSIONAMENTO */}
+            {/* ============================================================================
+                📊 NOVO GRÁFICO DA BANCA PREMIUM COM DEGRADÊ (ÁREA RESPONSIVA)
+               ============================================================================ */}
             <div className="bg-[#0f172a] border border-green-500/20 rounded-3xl p-4 sm:p-6 mb-6 shadow-lg transform-gpu w-full">
                 <h2 className="text-sm font-black text-green-400 mb-4 flex items-center gap-2 uppercase tracking-wider"><TrendingUp className="w-5 h-5"/> Evolução da Banca</h2>
                 <div className="w-full h-[250px] overflow-hidden">
-                    <ResponsiveContainer width="100%" height={250}>
-                        <LineChart data={dadosGraficoBanca}>
+                    <ResponsiveContainer width="100%" height="100%">
+                        <AreaChart data={dadosGraficoBanca} margin={{ top: 10, right: 5, left: -25, bottom: 0 }}>
+                            <defs>
+                                <linearGradient id="corBanca" x1="0" y1="0" x2="0" y2="1">
+                                    <stop offset="5%" stopColor="#22c55e" stopOpacity={0.4}/>
+                                    <stop offset="95%" stopColor="#22c55e" stopOpacity={0}/>
+                                </linearGradient>
+                            </defs>
                             <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.05)" vertical={false} />
                             <XAxis dataKey="aposta" stroke="#64748b" fontSize={10} tickLine={false} axisLine={false} />
                             <YAxis stroke="#64748b" fontSize={10} tickLine={false} axisLine={false} domain={['dataMin - 50', 'dataMax + 50']} />
-                            <Tooltip contentStyle={{backgroundColor: '#0f172a', border: 'none', borderRadius: '10px', color: '#fff'}} />
-                            <Line type="monotone" dataKey="banca" stroke="#22c55e" strokeWidth={4} dot={{r:5, fill:"#22c55e", stroke:"#fff", strokeWidth:2}} isAnimationActive={false} />
-                        </LineChart>
+                            <Tooltip 
+                                contentStyle={{ backgroundColor: '#0f172a', border: '1px solid rgba(34,197,94,0.3)', borderRadius: '12px', color: '#fff', boxShadow: '0 4px 20px rgba(0,0,0,0.6)' }}
+                                itemStyle={{ color: '#22c55e', fontWeight: '900' }}
+                            />
+                            <Area type="monotone" dataKey="banca" stroke="#22c55e" strokeWidth={3} fillOpacity={1} fill="url(#corBanca)" isAnimationActive={false} />
+                        </AreaChart>
                     </ResponsiveContainer>
                 </div>
             </div>
