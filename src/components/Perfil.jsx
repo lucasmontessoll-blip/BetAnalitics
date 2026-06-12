@@ -2,7 +2,6 @@ import React, { useMemo, useState, lazy, Suspense } from 'react';
 import { LineChart, Line, ResponsiveContainer, XAxis, YAxis, CartesianGrid, Tooltip } from 'recharts';
 import { User, Settings, Bell, Award, Trophy, Target, DollarSign, BrainCircuit, ShieldAlert, Globe, PieChart, Clock, TrendingUp, Zap, ChevronRight, Activity } from 'lucide-react';
 
-// Lazy loading para manter o telemóvel super rápido
 const GestaoBanca = lazy(() => import('./GestaoBanca.jsx'));
 const SimuladorStake = lazy(() => import('./SimuladorStake.jsx'));
 const Historico = lazy(() => import('./Historico.jsx'));
@@ -10,8 +9,7 @@ const EstatisticasAvancadas = lazy(() => import('./EstatisticasAvancadas.jsx'));
 
 export default function Perfil({ 
     userData, form, setForm, nivelUsuario, xp, solicitarPermissaoNotificacao, 
-    setViewMode, apostas, bancaInicial, metaMensal, setMenuAtivo,
-    calcularDrawdown, executarBacktest 
+    setViewMode, apostas, bancaInicial, metaMensal, setMenuAtivo
 }) {
     const [stopWin, setStopWin] = useState(200);
     const [stopLoss, setStopLoss] = useState(100);
@@ -21,7 +19,31 @@ export default function Perfil({
     const [filtroLiga, setFiltroLiga] = useState('todas');
 
     // ============================================================================
-    // ⚡ CÁLCULOS OTIMIZADOS (Protegidos pelo useMemo)
+    // 🛡️ CORREÇÃO: AS FUNÇÕES AGORA VIVEM AQUI DENTRO (ADEUS REFERENCE ERROR)
+    // ============================================================================
+    const calcularDrawdown = (listaApostas, bancaIni) => {
+        let pico = bancaIni; let maxDD = 0; let b = bancaIni;
+        listaApostas.forEach(a => {
+            if(a.resultado === "green") b += (a.stake * a.odd) - a.stake; else b -= a.stake;
+            if(b > pico) pico = b;
+            const dd = ((pico - b) / pico) * 100;
+            if(dd > maxDD) maxDD = dd;
+        });
+        return maxDD.toFixed(2);
+    };
+
+    const handleRunBacktest = () => {
+        let b = bancaInicial;
+        apostas.forEach(a => {
+            if(a.resultado === "green") b += (a.stake * a.odd) - a.stake; else b -= a.stake;
+        });
+        const lucro = b - bancaInicial;
+        const roi = (lucro / bancaInicial) * 100;
+        alert(`📊 RESULTADO DO BACKTEST:\n\nBanca Final: R$ ${b.toFixed(2)}\nLucro: R$ ${lucro.toFixed(2)}\nROI Histórico: ${roi.toFixed(2)}%`);
+    };
+
+    // ============================================================================
+    // ⚡ CÁLCULOS OTIMIZADOS
     // ============================================================================
     const lucroAcumulado = useMemo(() => apostas.reduce((acc, a) => a.resultado === "green" ? acc + ((a.stake * a.odd) - a.stake) : acc - a.stake, 0), [apostas]);
     const atingiuStopWin = lucroAcumulado >= stopWin;
@@ -135,11 +157,9 @@ export default function Perfil({
                 <div className="flex gap-2">
                     <button onClick={solicitarPermissaoNotificacao} className="bg-blue-600 hover:bg-blue-500 text-white text-[10px] font-black px-3 py-1.5 rounded-lg flex items-center gap-1 shadow-lg transition-colors uppercase tracking-widest flex-shrink-0"><Bell className="w-3 h-3"/> Alertas</button>
                     
-                    {/* 🔒 BOTÃO ADMIN COM DUPLA PROTEÇÃO (Email autorizado + Senha) */}
                     {userData?.is_admin && (
                         <button onClick={() => {
                             const pwd = window.prompt("Acesso Restrito. Digite a senha do Administrador:");
-                            // Pode trocar 'lucasadmin2026' pela senha que quiser
                             if(pwd === "lucasadmin2026") { 
                                 setViewMode('admin');
                             } else if (pwd !== null) {
@@ -168,7 +188,7 @@ export default function Perfil({
             </div>
 
             <Suspense fallback={fallbackSpinner}>
-                <GestaoBanca stopWin={stopWin} setStopWin={setStopWin} stopLoss={stopLoss} setStopLoss={setStopLoss} atingiuStopWin={atingiuStopWin} atingiuStopLoss={atingiuStopLoss} calcularDrawdown={calcularDrawdown} apostas={apostas} bancaInicial={bancaInicial} handleRunBacktest={() => executarBacktest(apostas, bancaInicial)}/>
+                <GestaoBanca stopWin={stopWin} setStopWin={setStopWin} stopLoss={stopLoss} setStopLoss={setStopLoss} atingiuStopWin={atingiuStopWin} atingiuStopLoss={atingiuStopLoss} calcularDrawdown={() => calcularDrawdown(apostas, bancaInicial)} apostas={apostas} bancaInicial={bancaInicial} handleRunBacktest={handleRunBacktest}/>
             </Suspense>
 
             <div className="bg-[#0f172a] p-4 sm:p-5 rounded-3xl mb-6 shadow-lg border border-white/5 w-full transform-gpu">
@@ -268,7 +288,7 @@ export default function Perfil({
                 </div>
                 <div className="bg-[#111827] p-4 rounded-2xl border border-white/5 shadow-lg flex flex-col gap-1 transform-gpu min-w-0">
                     <span className="text-[10px] text-slate-400 font-bold uppercase tracking-widest flex items-center gap-1 truncate"><Clock className="w-3 h-3 text-red-400 flex-shrink-0"/> Top Horário</span>
-                    <strong className="text-sm font-black text-green-400 uppercase tracking-widest">{nivelUsuario}</strong>
+                    <strong className="text-sm font-black text-white truncate">{topHorario[0]}</strong>
                 </div>
             </div>
 

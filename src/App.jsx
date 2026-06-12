@@ -10,7 +10,7 @@ import { Home, Radio, Trophy, Crown, Star, ChevronRight, X, User, Zap, TrendingU
 import { solicitarPermissaoNotificacao, dispararAlertaPush } from './services/notificacoes.js';
 
 // ============================================================================
-// 🚀 CODE SPLITTING
+// 🚀 CODE SPLITTING (Lazy Loading)
 // ============================================================================
 const Perfil = lazy(() => import('./components/Perfil.jsx'));
 const PainelJogo = lazy(() => import('./components/PainelJogo.jsx'));
@@ -36,8 +36,13 @@ const mockJogosData = [
 
 const mockRankingUsuarios = [ { id: 1, nome: "Lucas", lucro_total: 1840 }, { id: 2, nome: "Carlos", lucro_total: 1430 }, { id: 3, nome: "João", lucro_total: 1180 } ];
 
+// ============================================================================
+// 🧠 FUNÇÕES GLOBAIS DA IA & MATEMÁTICA
+// ============================================================================
 const calcularEV = (probabilidade, odd) => (((probabilidade / 100) * odd - 1) * 100);
+
 const calcularHeatScore = (jogo) => Math.round((jogo.confianca_ia * 0.5) + (calcularEV(jogo.confianca_ia, jogo.odd_principal) * 2) + (((jogo.homeStats?.form||50) - (jogo.awayStats?.form||50)) * 0.3));
+
 const detectarValueBet = (probabilidadeIA, odd) => probabilidadeIA > (100 / odd);
 
 const calcularRisco = (jogo) => {
@@ -59,6 +64,29 @@ const calcularKelly = (odd, probabilidade) => {
     return Math.max((((b * p) - (1 - p)) / b) * 100, 0);
 };
 
+// AS FUNÇÕES QUE FALTAVAM ESTÃO AQUI:
+const calcularDrawdown = (listaApostas, bancaIni) => {
+    let pico = bancaIni; let maxDD = 0; let b = bancaIni;
+    listaApostas.forEach(a => {
+        if(a.resultado === "green") b += (a.stake * a.odd) - a.stake; else b -= a.stake;
+        if(b > pico) pico = b;
+        const dd = ((pico - b) / pico) * 100;
+        if(dd > maxDD) maxDD = dd;
+    });
+    return maxDD.toFixed(2);
+};
+
+const executarBacktest = (listaApostas, bancaIni) => {
+    let b = bancaIni;
+    listaApostas.forEach(a => {
+        if(a.resultado === "green") b += (a.stake * a.odd) - a.stake; else b -= a.stake;
+    });
+    return { bancaFinal: b, lucro: b - bancaIni, roi: ((b - bancaIni) / bancaIni) * 100 };
+};
+
+// ============================================================================
+// 📱 COMPONENTE PRINCIPAL
+// ============================================================================
 export default function App() {
   const [showSplash, setShowSplash] = useState(true);
   const [ligaAtivaId, setLigaAtivaId] = useState(null); 
@@ -78,14 +106,18 @@ export default function App() {
   const [rankingUsuarios, setRankingUsuarios] = useState([]);
   const [oportunidades, setOportunidades] = useState([]);
   const [bilhetePremium, setBilhetePremium] = useState({ selecoes: [], oddFinal: 1 });
+  
   const [xp, setXp] = useState(350);
+  
+  // A FUNÇÃO DO NÍVEL DO UTILIZADOR
   const nivelUsuario = () => {
-  if (xp > 5000) return "Lenda";
-  if (xp > 3000) return "Mestre";
-  if (xp > 1000) return "Especialista";
-  if (xp > 500) return "Profissional";
-  return "Iniciante";
-};
+    if (xp > 5000) return "Lenda";
+    if (xp > 3000) return "Mestre";
+    if (xp > 1000) return "Especialista";
+    if (xp > 500) return "Profissional";
+    return "Iniciante";
+  };
+
   const [apostas, setApostas] = useState([
     { id: 1, jogo: "Flamengo x Palmeiras", liga: "Brasileirão", time: "Flamengo", mercado: "Vitória Casa", stake: 100, odd: 1.85, resultado: "green", data: "2026-06-01", hora: "19:30" }
   ]);
@@ -100,17 +132,17 @@ export default function App() {
   useEffect(() => { setTimeout(() => setShowSplash(false), 2000); }, []);
   
   // ========================================================================
-  // 🔒 AQUI ESTÁ A PROTEÇÃO MÁXIMA DE EMAIL DO ADMIN
+  // 🔒 PROTEÇÃO MÁXIMA DE EMAIL DO ADMIN
   // ========================================================================
   useEffect(() => { 
       const em = localStorage.getItem('bet_sessao_ativa'); 
-      const emailsAdministradores = ["lucasmontesso@admin.com"]; // COLOQUE O SEU EMAIL AQUI
+      const emailsAdministradores = ["lucasmontesso@admin.com"]; // O seu email
       
       if (em) { 
           setUserData({ email: em, nome: localStorage.getItem('bet_user_nome') || "Lucas Montesso", is_vip: true, is_admin: emailsAdministradores.includes(em) }); 
       }
       else if (MODO_DEMONSTRACAO) { 
-          setUserData({ email: "lucas@vip.com", nome: "Lucas Montesso", is_vip: true, is_admin: true }); // Mude para false se quiser bloquear até no seu PC de testes
+          setUserData({ email: "lucas@vip.com", nome: "Lucas Montesso", is_vip: true, is_admin: true }); 
       } 
   }, []);
   
@@ -201,7 +233,7 @@ export default function App() {
       {menuAtivo !== 'assinar pro' && !jogoSelecionado && (
           <div className="animate-fade-in pt-4 w-full">
               
-              {/* JOGOS */}
+              {/* JOGOS E RADAR */}
               {viewMode === 'jogos' && (
                   <>
                     {userData?.is_vip && (
@@ -288,7 +320,7 @@ export default function App() {
                   </>
               )}
 
-              {/* O NOVO DASHBOARD DO PERFIL COMPLETO (LAZY) */}
+              {/* PERFIL (LAZY) */}
               {viewMode === 'perfil' && (
                   <div className="px-4 animate-fade-in w-full">
                      <Suspense fallback={<div className="text-center p-10 font-black text-blue-500 animate-pulse uppercase tracking-widest text-xs">A carregar Perfil Premium...</div>}>
@@ -346,7 +378,7 @@ export default function App() {
           </div>
       )}
 
-      {/* O PAINEL DE JOGO AGORA USA LAZY LOADING */}
+      {/* PAINEL DE JOGO PREMIUM (LAZY) */}
       {jogoSelecionado && menuAtivo !== 'assinar pro' && (
           <Suspense fallback={<div className="text-center p-10 font-black text-blue-500 animate-pulse text-xs uppercase tracking-widest">A carregar estatísticas do jogo...</div>}>
               <PainelJogo 
@@ -377,17 +409,7 @@ export default function App() {
          </div>
       )}
 
-      {/* ALERTAS AUTOMÁTICOS E CHAT BOT MANTIDOS */}
-      <div className="fixed top-32 left-0 right-0 z-50 flex flex-col items-center gap-2 pointer-events-none w-full px-4">
-          <AnimatePresence>
-              {viewMode !== 'perfil' && alertas.slice(0, 2).map((alerta) => (
-                  <motion.div key={alerta.id} initial={{opacity:0, y:-20}} animate={{opacity:1, y:0}} exit={{opacity:0}} className="bg-red-600/90 text-white text-[10px] font-black px-4 py-2 rounded-full shadow-lg border border-red-400 flex items-center gap-2 max-w-full">
-                      <Bell className="w-3 h-3 flex-shrink-0 animate-bounce"/> <span className="truncate">{alerta.msg}</span>
-                  </motion.div>
-              ))}
-          </AnimatePresence>
-      </div>
-
+      {/* CHATBOT */}
       <button onClick={() => setAiOpen(true)} className="fixed right-5 bottom-28 w-14 h-14 rounded-full bg-gradient-to-br from-blue-600 to-blue-400 flex items-center justify-center shadow-[0_0_25px_rgba(37,99,235,0.6)] z-40 text-2xl hover:scale-105 transition-transform border border-blue-300/30">🤖</button>
 
       <AnimatePresence>
@@ -408,11 +430,12 @@ export default function App() {
           )}
       </AnimatePresence>
 
+      {/* BARRA DE NAVEGAÇÃO */}
       <nav className="fixed bottom-0 left-0 right-0 h-20 bg-[#050816] border-t border-white/5 flex justify-around items-center z-50 shadow-[0_-10px_40px_rgba(0,0,0,0.5)]">
         <button onClick={() => {setViewMode('jogos'); setFilterCentro('Todos'); setJogoSelecionado(null);}} className={`flex flex-col items-center gap-1.5 transition-colors ${viewMode === 'jogos' && filterCentro !== 'Ao Vivo' && !jogoSelecionado ? 'text-blue-500' : 'text-slate-500 hover:text-slate-300'}`}><Home className="w-6 h-6" /><span className="text-[9px] font-black uppercase tracking-widest">Início</span></button>
         <button onClick={() => {setViewMode('jogos'); setFilterCentro('Ao Vivo'); setJogoSelecionado(null);}} className={`flex flex-col items-center gap-1.5 transition-colors ${filterCentro === 'Ao Vivo' && !jogoSelecionado ? 'text-red-500' : 'text-slate-500 hover:text-slate-300'}`}><div className="relative"><Radio className="w-6 h-6" />{filterCentro === 'Ao Vivo' && <span className="absolute top-0 right-0 w-2 h-2 bg-red-500 rounded-full animate-pulse"></span>}</div><span className="text-[9px] font-black uppercase tracking-widest">Ao Vivo</span></button>
         <button onClick={() => {setViewMode('ranking'); setJogoSelecionado(null);}} className={`flex flex-col items-center gap-1.5 transition-colors ${viewMode === 'ranking' ? 'text-yellow-500 drop-shadow-[0_0_8px_rgba(234,179,8,0.4)]' : 'text-slate-500 hover:text-slate-300'}`}><Trophy className="w-6 h-6" /><span className="text-[9px] font-black uppercase tracking-widest">Ranking</span></button>
-        <button onClick={() => {setViewMode('perfil'); setJogoSelecionado(null);}} className={`flex flex-col items-center gap-1.5 transition-colors ${['perfil','ia_center','admin'].includes(viewMode) ? 'text-blue-500' : 'text-slate-500 hover:text-slate-300'}`}><User className="w-6 h-6" /><span className="text-[9px] font-black uppercase tracking-widest">Perfil</span></button>
+        <button onClick={() => {setViewMode('perfil'); setJogoSelecionado(null);}} className={`flex flex-col items-center gap-1.5 transition-colors ${['perfil','admin'].includes(viewMode) ? 'text-blue-500' : 'text-slate-500 hover:text-slate-300'}`}><User className="w-6 h-6" /><span className="text-[9px] font-black uppercase tracking-widest">Perfil</span></button>
       </nav>
     </div>
   );
