@@ -79,7 +79,13 @@ export default function App() {
   const [oportunidades, setOportunidades] = useState([]);
   const [bilhetePremium, setBilhetePremium] = useState({ selecoes: [], oddFinal: 1 });
   const [xp, setXp] = useState(350);
-
+  const nivelUsuario = () => {
+  if (xp > 5000) return "Lenda";
+  if (xp > 3000) return "Mestre";
+  if (xp > 1000) return "Especialista";
+  if (xp > 500) return "Profissional";
+  return "Iniciante";
+};
   const [apostas, setApostas] = useState([
     { id: 1, jogo: "Flamengo x Palmeiras", liga: "Brasileirão", time: "Flamengo", mercado: "Vitória Casa", stake: 100, odd: 1.85, resultado: "green", data: "2026-06-01", hora: "19:30" }
   ]);
