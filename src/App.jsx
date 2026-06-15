@@ -5,19 +5,22 @@ import { LineChart, Line, ResponsiveContainer, XAxis, YAxis, CartesianGrid, Tool
 import { motion, AnimatePresence } from 'framer-motion';
 import { initMercadoPago } from '@mercadopago/sdk-react'; 
 import { createClient } from '@supabase/supabase-js';
-import { Home, Radio, Trophy, Crown, Star, ChevronRight, X, User, Zap, TrendingUp, Crosshair, Bell, AlertTriangle, Users, Flame, ArrowLeft, Send, DollarSign, Smartphone, Target, ShieldAlert } from 'lucide-react';
+import { Home, Radio, Trophy, Crown, Star, ChevronRight, X, User, Zap, TrendingUp, AlertTriangle, Users, ArrowLeft, Send, DollarSign, Target } from 'lucide-react';
 
-import { solicitarPermissaoNotificacao, dispararAlertaPush } from './services/notificacoes.js';
+// ============================================================================
+// ⚙️ IMPORTAÇÃO DOS NOVOS MOTORES (ALGORITMOS E MATEMÁTICA)
+// ============================================================================
+import { detectarValueBetReal } from './algorithms/valueBet.js';
+import { calcularEV, calcularHeatScore, calcularKelly } from './utils/math.js';
+import { calcularRisco, calcularStake } from './utils/risk.js';
 
 // ============================================================================
 // 🚀 CODE SPLITTING (Lazy Loading)
 // ============================================================================
 const Perfil = lazy(() => import('./components/Perfil.jsx'));
 const PainelJogo = lazy(() => import('./components/PainelJogo.jsx'));
+// Nota: Componentes como RadarPressao, OddsComparison, etc., devem ser importados dentro do PainelJogo.jsx no futuro para manter a organização Sênior.
 
-// ============================================================================
-// ⚙️ CONFIGURAÇÕES PRINCIPAIS & DADOS GLOBAIS
-// ============================================================================
 const MODO_DEMONSTRACAO = true; 
 const API_URL = 'https://betanalitics-1-9stc.onrender.com';
 
@@ -37,55 +40,7 @@ const mockJogosData = [
 const mockRankingUsuarios = [ { id: 1, nome: "Lucas", lucro_total: 1840 }, { id: 2, nome: "Carlos", lucro_total: 1430 }, { id: 3, nome: "João", lucro_total: 1180 } ];
 
 // ============================================================================
-// 🧠 FUNÇÕES GLOBAIS DA IA & MATEMÁTICA
-// ============================================================================
-const calcularEV = (probabilidade, odd) => (((probabilidade / 100) * odd - 1) * 100);
-
-const calcularHeatScore = (jogo) => Math.round((jogo.confianca_ia * 0.5) + (calcularEV(jogo.confianca_ia, jogo.odd_principal) * 2) + (((jogo.homeStats?.form||50) - (jogo.awayStats?.form||50)) * 0.3));
-
-const detectarValueBet = (probabilidadeIA, odd) => probabilidadeIA > (100 / odd);
-
-const calcularRisco = (jogo) => {
-    if(jogo.confianca_ia >= 90 && jogo.odd_principal <= 2.0) return { nivel: 'BAIXO', cor: 'text-green-400 bg-green-500/10 border-green-500/30' };
-    if(jogo.confianca_ia >= 80) return { nivel: 'MÉDIO', cor: 'text-yellow-400 bg-yellow-500/10 border-yellow-500/30' };
-    return { nivel: 'ALTO', cor: 'text-red-400 bg-red-500/10 border-red-500/30' };
-};
-
-const calcularStake = (banca, confianca) => {
-    if(confianca >= 90) return banca * 0.05;
-    if(confianca >= 85) return banca * 0.03;
-    if(confianca >= 80) return banca * 0.02;
-    return banca * 0.01;
-};
-
-const calcularKelly = (odd, probabilidade) => {
-    const p = probabilidade / 100;
-    const b = odd - 1;
-    return Math.max((((b * p) - (1 - p)) / b) * 100, 0);
-};
-
-// AS FUNÇÕES QUE FALTAVAM ESTÃO AQUI:
-const calcularDrawdown = (listaApostas, bancaIni) => {
-    let pico = bancaIni; let maxDD = 0; let b = bancaIni;
-    listaApostas.forEach(a => {
-        if(a.resultado === "green") b += (a.stake * a.odd) - a.stake; else b -= a.stake;
-        if(b > pico) pico = b;
-        const dd = ((pico - b) / pico) * 100;
-        if(dd > maxDD) maxDD = dd;
-    });
-    return maxDD.toFixed(2);
-};
-
-const executarBacktest = (listaApostas, bancaIni) => {
-    let b = bancaIni;
-    listaApostas.forEach(a => {
-        if(a.resultado === "green") b += (a.stake * a.odd) - a.stake; else b -= a.stake;
-    });
-    return { bancaFinal: b, lucro: b - bancaIni, roi: ((b - bancaIni) / bancaIni) * 100 };
-};
-
-// ============================================================================
-// 📱 COMPONENTE PRINCIPAL
+// 📱 COMPONENTE PRINCIPAL (Agora focado apenas em UI)
 // ============================================================================
 export default function App() {
   const [showSplash, setShowSplash] = useState(true);
@@ -109,7 +64,6 @@ export default function App() {
   
   const [xp, setXp] = useState(350);
   
-  // A FUNÇÃO DO NÍVEL DO UTILIZADOR
   const nivelUsuario = () => {
     if (xp > 5000) return "Lenda";
     if (xp > 3000) return "Mestre";
@@ -131,12 +85,9 @@ export default function App() {
   useEffect(() => { const carregarDados = async () => { setRankingUsuarios(mockRankingUsuarios); }; carregarDados(); }, []);
   useEffect(() => { setTimeout(() => setShowSplash(false), 2000); }, []);
   
-  // ========================================================================
-  // 🔒 PROTEÇÃO MÁXIMA DE EMAIL DO ADMIN
-  // ========================================================================
   useEffect(() => { 
       const em = localStorage.getItem('bet_sessao_ativa'); 
-      const emailsAdministradores = ["lucasmontesso@admin.com"]; // O seu email
+      const emailsAdministradores = ["lucasmontesso@admin.com"]; 
       
       if (em) { 
           setUserData({ email: em, nome: localStorage.getItem('bet_user_nome') || "Lucas Montesso", is_vip: true, is_admin: emailsAdministradores.includes(em) }); 
@@ -233,7 +184,6 @@ export default function App() {
       {menuAtivo !== 'assinar pro' && !jogoSelecionado && (
           <div className="animate-fade-in pt-4 w-full">
               
-              {/* JOGOS E RADAR */}
               {viewMode === 'jogos' && (
                   <>
                     {userData?.is_vip && (
@@ -293,7 +243,8 @@ export default function App() {
                                     const isLive = j.status === 'Live';
                                     const heatScore = calcularHeatScore(j);
                                     const risco = calcularRisco(j);
-                                    const isValueBet = j.odd_principal ? detectarValueBet(j.confianca_ia, j.odd_principal) : false;
+                                    // AQUI USAMOS O NOVO MOTOR DE VALUE BET:
+                                    const isValueBet = j.odd_principal ? detectarValueBetReal(j.odd_principal, j.confianca_ia).isValue : false;
                                     
                                     return (
                                         <div key={j.id} onClick={() => { if(!userData?.is_vip) return setMenuAtivo('assinar pro'); setJogoSelecionado(j); }} className="bg-[#0f172a] border border-white/10 rounded-3xl p-4 sm:p-5 shadow-lg mb-4 cursor-pointer relative transition-all hover:border-blue-500/50 w-full transform-gpu">
@@ -324,13 +275,7 @@ export default function App() {
               {viewMode === 'perfil' && (
                   <div className="px-4 animate-fade-in w-full">
                      <Suspense fallback={<div className="text-center p-10 font-black text-blue-500 animate-pulse uppercase tracking-widest text-xs">A carregar Perfil Premium...</div>}>
-                        <Perfil 
-                            userData={userData} form={form} setForm={setForm} nivelUsuario={nivelUsuario()} 
-                            xp={xp} solicitarPermissaoNotificacao={solicitarPermissaoNotificacao} 
-                            setViewMode={setViewMode} apostas={apostas} bancaInicial={bancaInicial} 
-                            metaMensal={metaMensal} setMenuAtivo={setMenuAtivo}
-                            calcularDrawdown={calcularDrawdown} executarBacktest={executarBacktest}
-                        />
+                        <Perfil userData={userData} form={form} setForm={setForm} nivelUsuario={nivelUsuario()} xp={xp} setViewMode={setViewMode} apostas={apostas} bancaInicial={bancaInicial} metaMensal={metaMensal} setMenuAtivo={setMenuAtivo} />
                      </Suspense>
                   </div>
               )}
@@ -381,32 +326,8 @@ export default function App() {
       {/* PAINEL DE JOGO PREMIUM (LAZY) */}
       {jogoSelecionado && menuAtivo !== 'assinar pro' && (
           <Suspense fallback={<div className="text-center p-10 font-black text-blue-500 animate-pulse text-xs uppercase tracking-widest">A carregar estatísticas do jogo...</div>}>
-              <PainelJogo 
-                  jogo={jogoSelecionado} 
-                  setJogoSelecionado={setJogoSelecionado} 
-                  bancaInicial={bancaInicial} 
-                  gerarExplicacaoIA={gerarExplicacaoIA} 
-                  calcularStake={calcularStake} 
-                  calcularKelly={calcularKelly} 
-              />
+              <PainelJogo jogo={jogoSelecionado} setJogoSelecionado={setJogoSelecionado} bancaInicial={bancaInicial} gerarExplicacaoIA={gerarExplicacaoIA} calcularStake={calcularStake} calcularKelly={calcularKelly} />
           </Suspense>
-      )}
-
-      {/* CHECKOUT VIP PRO */}
-      {menuAtivo === "assinar pro" && (
-         <div className="px-4 pt-4 animate-fade-in w-full">
-             <div className="flex justify-between items-center mb-6"><button onClick={() => setMenuAtivo('Todos os Jogos')} className="text-slate-400 text-sm font-bold flex items-center gap-1"><X className="w-5 h-5"/> Fechar</button></div>
-             <div className="bg-[#0f172a] rounded-3xl p-6 border border-white/10 shadow-2xl transform-gpu">
-                <Crown className="w-12 h-12 text-yellow-500 mb-4" />
-                <h2 className="text-2xl font-black text-white mb-2 truncate">Seja PRO 👑</h2>
-                <div className="flex flex-col gap-3">
-                    <input placeholder="Nome Completo" value={form.nome} onChange={e=>setForm({...form,nome:e.target.value})} className="w-full bg-[#050816] border border-slate-800 p-4 rounded-2xl text-sm outline-none focus:border-blue-500 text-white font-bold" />
-                    <input type="email" placeholder="E-mail" value={form.email} onChange={e=>setForm({...form,email:e.target.value})} className="w-full bg-[#050816] border border-slate-800 p-4 rounded-2xl text-sm outline-none focus:border-blue-500 text-white font-bold" />
-                    <input placeholder="CPF (Apenas números)" maxLength={11} value={form.cpf} onChange={e=>setForm({...form,cpf:e.target.value.replace(/\D/g, '')})} className="w-full bg-[#050816] border border-slate-800 p-4 rounded-2xl text-sm outline-none focus:border-blue-500 text-white font-bold" />
-                    <button className="mt-4 w-full bg-green-500 hover:bg-green-600 transition-colors text-white font-black py-4 rounded-2xl shadow-lg text-sm uppercase tracking-wider truncate">⚡ PAGAR R$ 29,90 COM PIX</button>
-                </div>
-             </div>
-         </div>
       )}
 
       {/* CHATBOT */}
