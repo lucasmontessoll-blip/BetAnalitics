@@ -1,46 +1,66 @@
 @import "tailwindcss";
 
-@theme {
-  --color-app: #050816;
-  --color-panel: #0F172A;
-  --color-panel2: #111827;
-  --color-blue1: #2563EB;
-  --color-blue2: #0D6EFD;
-}
-
-/* =========================================================
-   SCROLL NATIVO MOBILE PERFEITO
-========================================================= */
-html {
-  /* Trava o balanço lateral, mas liberta a altura para o scroll natural */
-  overflow-x: hidden; 
-}
-
-body {
-  overflow-x: hidden;
-  background-color: var(--color-app);
+/* ============================================================================
+   🎨 RESET GLOBAL DE INTERFACE (BetAnalytics Pro)
+   ============================================================================ */
+html,
+body,
+#root {
+  width: 100%;
+  min-height: 100vh;
   margin: 0;
   padding: 0;
+  background-color: #050816;
+  color: #ffffff;
+  overflow-x: hidden;
+  font-family: ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, "Noto Sans", sans-serif;
   -webkit-font-smoothing: antialiased;
-  /* Removemos o overflow-y: auto e o overscroll para o dedo (touch) voltar a funcionar! */
+  -moz-osx-font-smoothing: grayscale;
 }
 
-/* =========================================================
-   BARRAS DE ROLAGEM CUSTOMIZADAS
-========================================================= */
-/* Oculta scrollbar onde aplicamos a classe no-scrollbar (ex: Menu de Ligas) */
-.no-scrollbar::-webkit-scrollbar { 
-  display: none; 
+/* ============================================================================
+   ⚡ UTILITÁRIOS CUSTOMIZADOS COMPATÍVEIS COM V4
+   ============================================================================ */
+
+/* Esconder barra de scroll mantendo a funcionalidade de arrastar (Carrossel de Ligas) */
+.no-scrollbar::-webkit-scrollbar {
+  display: none;
+}
+.no-scrollbar {
+  -ms-overflow-style: none;  /* IE e Edge */
+  scrollbar-width: none;  /* Firefox */
 }
 
-/* Scrollbar fininha e elegante para o Chat da IA */
+/* Barra de scroll fina e elegante para o Chatbot IA */
 .custom-scrollbar::-webkit-scrollbar {
-  width: 4px;
+  width: 5px;
 }
 .custom-scrollbar::-webkit-scrollbar-track {
-  background: rgba(255, 255, 255, 0.05);
+  background: rgba(255, 255, 255, 0.02);
+  border-radius: 8px;
 }
 .custom-scrollbar::-webkit-scrollbar-thumb {
+  background: rgba(59, 130, 246, 0.3);
+  border-radius: 8px;
+}
+.custom-scrollbar::-webkit-scrollbar-thumb:hover {
   background: rgba(59, 130, 246, 0.5);
-  border-radius: 4px;
+}
+
+/* ============================================================================
+   🎬 ANIMAÇÕES DE TRANSIÇÃO DE MENU E DE PAINÉIS
+   ============================================================================ */
+.animate-fade-in {
+  animation: fadeIn 0.4s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(6px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }
