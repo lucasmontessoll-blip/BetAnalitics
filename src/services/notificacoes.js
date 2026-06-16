@@ -1,23 +1,26 @@
 // Ficheiro: src/services/notificacoes.js
 
-export const solicitarPermissaoNotificacao = () => {
+export async function solicitarPermissaoNotificacao() {
   if (!("Notification" in window)) {
-    alert("Este navegador não suporta notificações de área de trabalho.");
+    alert("O seu navegador ou telemóvel não suporta notificações nativas.");
     return;
   }
 
-  Notification.requestPermission().then(permission => {
-    if (permission === "granted") {
-      new Notification("BetAnalytics PRO", {
-        body: "Notificações ativadas! Receberá alertas de Value Bets em tempo real.",
-        icon: "/vite.svg" 
-      });
-    }
-  });
-};
-
-export const dispararAlertaPush = (titulo, mensagem) => {
-  if (Notification.permission === "granted") {
-    new Notification(titulo, { body: mensagem });
+  const permission = await Notification.requestPermission();
+  
+  if (permission === 'granted') {
+    new Notification('BetAnalytics Pro', {
+      body: 'Radar de Value Bets ativado com sucesso! 💰',
+      icon: '/icon-192.png' // Ícone correto da PWA
+    });
   }
-};
+}
+
+export function dispararAlerta(titulo, mensagem) {
+  if ('Notification' in window && Notification.permission === 'granted') {
+    new Notification(titulo, { 
+      body: mensagem, 
+      icon: '/icon-192.png' 
+    });
+  }
+}
