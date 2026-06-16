@@ -1,38 +1,26 @@
 import React, { useState, useEffect } from 'react';
-// IMPORTANTE: Adicionámos o ícone Bell (Sino) aqui em cima!
-import { Home, Search, User, Bell } from 'lucide-react'; 
-
-// 1. Importando o nosso novo Custom Hook
+import { Home, Search, User, Bell, Activity, ChevronRight, Star } from 'lucide-react'; 
 import { useFavoritos } from './hooks/useFavoritos';
 
-// (Mantenha aqui as importações dos seus outros componentes)
-// import HeaderNav from './components/HeaderNav';
-// import PainelJogo from './components/PainelJogo';
-
 export default function App() {
-  // Estados principais da navegação
   const [viewMode, setViewMode] = useState('jogos');
   const [jogoSelecionado, setJogoSelecionado] = useState(null);
   
-  // Estado para os jogos e para o Loading
   const [jogos, setJogos] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
 
-  // 2. Usando o Custom Hook (Apagámos o useState antigo dos favoritos!)
   const { favoritos, toggleFavorito } = useFavoritos();
 
-  // 3. Otimização de Velocidade: Carregando o dados.json de forma assíncrona
   useEffect(() => {
     const carregarDadosPesados = async () => {
       try {
-        // O ficheiro dados.json agora deve estar dentro da pasta 'public/'
         const response = await fetch('/dados.json');
         const data = await response.json();
-        setJogos(data);
+        // Se os dados vierem encapsulados (ex: data.response), ajuste aqui.
+        setJogos(Array.isArray(data) ? data : (data.response || []));
       } catch (error) {
         console.error("Erro ao carregar os dados:", error);
       } finally {
-        // Quer dê erro ou sucesso, tiramos a tela de loading
         setIsLoading(false);
       }
     };
@@ -44,33 +32,39 @@ export default function App() {
     <div className="min-h-screen bg-[#050816] text-white pb-24 font-sans selection:bg-blue-500/30">
       
       {/* ==========================================
+          CABEÇALHO GLOBAL
+          ========================================== */}
+      <header className="px-6 py-5 flex justify-between items-center sticky top-0 bg-[#050816]/90 backdrop-blur-md z-40 border-b border-white/5">
+         <div>
+            <h1 className="text-xl font-black tracking-tighter text-transparent bg-clip-text bg-gradient-to-r from-blue-400 to-blue-600">
+               BETANALYTICS<span className="text-white">PRO</span>
+            </h1>
+            <p className="text-[10px] text-blue-400 font-bold uppercase tracking-widest mt-0.5">Inteligência Artificial</p>
+         </div>
+         <div className="w-10 h-10 rounded-full bg-[#0f172a] border border-blue-500/30 flex items-center justify-center">
+            <User className="w-5 h-5 text-blue-400" />
+         </div>
+      </header>
+
+      {/* ==========================================
           ÁREA CENTRAL DE CONTEÚDO
           ========================================== */}
       <main className="w-full max-w-3xl mx-auto pt-6">
 
-        {/* Efeito de Loading elegante enquanto baixa o JSON */}
+        {/* LOADING STATE */}
         {isLoading && (
-          <div className="flex flex-col justify-center items-center h-64 gap-4">
+          <div className="flex flex-col justify-center items-center h-64 gap-4 animate-fade-in">
             <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-blue-500"></div>
-            <p className="text-sm text-slate-400 animate-pulse">A carregar algoritmos...</p>
+            <p className="text-sm text-slate-400 font-medium">A sincronizar algoritmos...</p>
           </div>
         )}
 
-        {/* TELA 1: ALERTAS INTELIGENTES (Substituiu o Ranking) */}
+        {/* TELA 1: RADAR DE ALERTAS */}
         {!isLoading && viewMode === 'alertas' && (
           <div className="px-4 animate-fade-in w-full">
-            {/* Se você tiver o componente HeaderNav, ele entra aqui. Senão, pode criar um cabeçalho simples */}
-            <div className="mb-6 flex items-center justify-between">
-                <button onClick={() => setViewMode('jogos')} className="text-slate-400 hover:text-white">
-                   &larr; Voltar
-                </button>
-                <h2 className="text-lg font-black uppercase tracking-wider">🔔 Radar de Oportunidades</h2>
-                <div className="w-8"></div> {/* Espaçador para centralizar o título */}
-            </div>
-
             <div className="bg-[#0f172a] border border-yellow-500/30 rounded-3xl p-4 sm:p-6 mb-6 shadow-[0_0_20px_rgba(234,179,8,0.1)] transform-gpu">
                 <h3 className="text-sm font-black text-yellow-400 mb-4 flex items-center gap-2 uppercase tracking-wider">
-                   Configurar Notificações Push
+                   🔔 Configurar Push
                 </h3>
                 <p className="text-xs text-slate-400 mb-4">
                    Receba avisos diretos no telemóvel quando os nossos algoritmos detetarem padrões de alta probabilidade.
@@ -89,34 +83,93 @@ export default function App() {
                 <div className="space-y-3">
                     <div className="flex justify-between items-center bg-[#050816] p-3 rounded-xl border border-white/5">
                         <span className="text-sm font-bold text-white">Value Bets (EV > 10%)</span>
-                        <input type="checkbox" className="toggle-checkbox" defaultChecked />
+                        <input type="checkbox" className="toggle-checkbox w-5 h-5 accent-blue-500" defaultChecked />
                     </div>
                     <div className="flex justify-between items-center bg-[#050816] p-3 rounded-xl border border-white/5">
-                        <span className="text-sm font-bold text-white">Pressão Alta Ao Vivo (Heat > 80)</span>
-                        <input type="checkbox" className="toggle-checkbox" defaultChecked />
+                        <span className="text-sm font-bold text-white">Pressão Alta Ao Vivo</span>
+                        <input type="checkbox" className="toggle-checkbox w-5 h-5 accent-blue-500" defaultChecked />
                     </div>
                     <div className="flex justify-between items-center bg-[#050816] p-3 rounded-xl border border-white/5">
                         <span className="text-sm font-bold text-white">Queda brusca de Odds</span>
-                        <input type="checkbox" className="toggle-checkbox" />
+                        <input type="checkbox" className="toggle-checkbox w-5 h-5 accent-blue-500" />
                     </div>
                 </div>
             </div>
           </div>
         )}
 
-        {/* TELA 2: LISTA DE JOGOS (Mantenha o seu código original aqui) */}
+        {/* TELA 2: LISTA DE JOGOS PREMIUM */}
         {!isLoading && viewMode === 'jogos' && !jogoSelecionado && (
-          <div className="px-4 animate-fade-in">
-             <p>Aqui entra a sua lista de jogos...</p>
-             {/* Exemplo: <ListaJogos jogos={jogos} onSelect={setJogoSelecionado} /> */}
+          <div className="px-4 animate-fade-in pb-10">
+             <div className="flex items-center justify-between mb-4">
+                <h2 className="text-lg font-black uppercase tracking-wider flex items-center gap-2">
+                   <Activity className="w-5 h-5 text-blue-500" />
+                   Jogos do Dia
+                </h2>
+             </div>
+
+             <div className="space-y-3">
+                {jogos.length > 0 ? (
+                   jogos.map((jogo, index) => (
+                      <div 
+                         key={index} 
+                         onClick={() => setJogoSelecionado(jogo)}
+                         className="bg-[#0f172a] border border-white/5 rounded-2xl p-4 cursor-pointer hover:border-blue-500/50 hover:bg-[#151f38] transition-all group"
+                      >
+                         <div className="flex justify-between items-center mb-3">
+                            <span className="text-[10px] font-bold uppercase tracking-widest text-slate-400 bg-[#050816] px-2 py-1 rounded-md">
+                               {jogo.liga || jogo.league?.name || "Liga Principal"}
+                            </span>
+                            <span className="text-xs font-bold text-blue-400">
+                               {jogo.tempo || jogo.fixture?.status?.elapsed || "Em breve"}'
+                            </span>
+                         </div>
+                         
+                         <div className="flex justify-between items-center">
+                            <div className="flex-1">
+                               <div className="flex justify-between items-center mb-2">
+                                  <span className="font-bold text-sm sm:text-base">{jogo.timeCasa || jogo.teams?.home?.name || "Time Casa"}</span>
+                                  <span className="font-black text-lg">{jogo.golsCasa || jogo.goals?.home || 0}</span>
+                               </div>
+                               <div className="flex justify-between items-center">
+                                  <span className="font-bold text-sm sm:text-base">{jogo.timeFora || jogo.teams?.away?.name || "Time Fora"}</span>
+                                  <span className="font-black text-lg">{jogo.golsFora || jogo.goals?.away || 0}</span>
+                               </div>
+                            </div>
+                            <div className="ml-4 pl-4 border-l border-white/5 flex flex-col items-center justify-center">
+                               <ChevronRight className="w-6 h-6 text-slate-500 group-hover:text-blue-500 transition-colors" />
+                            </div>
+                         </div>
+                      </div>
+                   ))
+                ) : (
+                   <div className="text-center bg-[#0f172a] rounded-2xl p-8 border border-white/5">
+                      <p className="text-slate-400 text-sm">Nenhum jogo encontrado no momento.</p>
+                   </div>
+                )}
+             </div>
           </div>
         )}
 
-        {/* TELA 3: PAINEL DE JOGO (Mantenha o seu código original aqui) */}
+        {/* TELA 3: PAINEL DE JOGO */}
         {!isLoading && jogoSelecionado && (
-          <div className="animate-fade-in">
-             <p>Aqui entra o seu Painel de Jogo Premium...</p>
-             {/* Exemplo: <PainelJogo jogo={jogoSelecionado} onBack={() => setJogoSelecionado(null)} /> */}
+          <div className="px-4 animate-fade-in">
+             <button 
+                onClick={() => setJogoSelecionado(null)}
+                className="mb-4 text-sm font-bold text-slate-400 hover:text-white flex items-center gap-1"
+             >
+                &larr; Voltar à Lista
+             </button>
+             
+             {/* O SEU COMPONENTE DE PAINEL DE JOGO ENTRA AQUI */}
+             <div className="bg-[#0f172a] border border-white/5 rounded-3xl p-6 text-center">
+                <h2 className="text-xl font-black mb-2">
+                   {jogoSelecionado.timeCasa || jogoSelecionado.teams?.home?.name} vs {jogoSelecionado.timeFora || jogoSelecionado.teams?.away?.name}
+                </h2>
+                <p className="text-slate-400 text-sm mb-6">Painel de Análise Avançada em Construção</p>
+                
+                {/* Aqui você vai importar o <PainelJogo jogo={jogoSelecionado} /> */}
+             </div>
           </div>
         )}
 
@@ -135,14 +188,11 @@ export default function App() {
           <span className="text-[9px] font-black uppercase tracking-widest">Início</span>
         </button>
 
-        <button 
-          className="flex flex-col items-center gap-1.5 transition-colors text-slate-500 hover:text-slate-300"
-        >
+        <button className="flex flex-col items-center gap-1.5 transition-colors text-slate-500 hover:text-slate-300">
           <Search className="w-6 h-6" />
           <span className="text-[9px] font-black uppercase tracking-widest">Busca</span>
         </button>
 
-        {/* O NOVO BOTÃO DE ALERTAS (Substituiu o Ranking) */}
         <button 
           onClick={() => {setViewMode('alertas'); setJogoSelecionado(null);}} 
           className={`flex flex-col items-center gap-1.5 transition-colors ${viewMode === 'alertas' ? 'text-yellow-500 drop-shadow-[0_0_8px_rgba(234,179,8,0.4)]' : 'text-slate-500 hover:text-slate-300'}`}
