@@ -1,6 +1,4 @@
-@tailwind base;
-@tailwind components;
-@tailwind utilities;
+@import "tailwindcss";
 
 /* ============================================================================
    🎨 RESET GLOBAL DE INTERFACE (BetAnalytics Pro)
@@ -23,17 +21,14 @@ body,
 /* ============================================================================
    ⚡ UTILITÁRIOS CUSTOMIZADOS
    ============================================================================ */
-
-/* Esconder barra de scroll mantendo a funcionalidade de arrastar (Carrossel de Ligas) */
 .no-scrollbar::-webkit-scrollbar {
   display: none;
 }
 .no-scrollbar {
-  -ms-overflow-style: none;  /* IE e Edge */
-  scrollbar-width: none;  /* Firefox */
+  -ms-overflow-style: none;
+  scrollbar-width: none;
 }
 
-/* Barra de scroll fina e elegante para o Chatbot IA */
 .custom-scrollbar::-webkit-scrollbar {
   width: 5px;
 }
@@ -50,7 +45,7 @@ body,
 }
 
 /* ============================================================================
-   🎬 ANIMAÇÕES DE TRANSIÇÃO DE MENU E DE PAINÉIS
+   🎬 ANIMAÇÕES DE TRANSIÇÃO
    ============================================================================ */
 .animate-fade-in {
   animation: fadeIn 0.4s cubic-bezier(0.16, 1, 0.3, 1) forwards;
