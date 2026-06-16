@@ -1,4 +1,6 @@
-@import "tailwindcss";
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
 
 /* ============================================================================
    🎨 RESET GLOBAL DE INTERFACE (BetAnalytics Pro)
@@ -19,7 +21,7 @@ body,
 }
 
 /* ============================================================================
-   ⚡ UTILITÁRIOS CUSTOMIZADOS COMPATÍVEIS COM V4
+   ⚡ UTILITÁRIOS CUSTOMIZADOS
    ============================================================================ */
 
 /* Esconder barra de scroll mantendo a funcionalidade de arrastar (Carrossel de Ligas) */
