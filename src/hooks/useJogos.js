@@ -1,30 +1,34 @@
 import { useState, useEffect } from 'react';
-import axios from 'axios';
 
-export function useJogos(API_URL, ligaAtivaId, mockJogosData) {
-  const [jogos, setJogos] = useState([]);
-  const [loading, setLoading] = useState(false);
+export function useJogos(apiUrl, ligaAtivaId, mockJogosData) {
+    const [jogos, setJogos] = useState([]);
+    const [loading, setLoading] = useState(true);
 
-  useEffect(() => {
-    const carregarJogosDaRodada = async () => {
-      setLoading(true);
-      try {
-        // Agora bate direto na API do backend em vez de carregar arquivo local!
-        const response = await axios.get(`${API_URL}/api/dados`);
-        const data = Array.isArray(response.data) ? response.data : (response.data.response || mockJogosData);
-        const loadedJogos = data.filter(x => ligaAtivaId === null ? true : x.league_id === ligaAtivaId);
-        setJogos(loadedJogos);
-      } catch (error) {
-        console.error("Erro na API, usando mock local por segurança.", error);
-        const loadedJogos = mockJogosData.filter(x => ligaAtivaId === null ? true : x.league_id === ligaAtivaId);
-        setJogos(loadedJogos);
-      } finally {
-        setLoading(false); 
-      }
-    };
-    
-    carregarJogosDaRodada();
-  }, [ligaAtivaId, API_URL]);
+    useEffect(() => {
+        setLoading(true);
+        
+        // Simula o tempo de resposta de um servidor (500ms) e carrega os dados
+        // sem tentar aceder à rota /api/dados inexistente.
+        const timer = setTimeout(() => {
+            try {
+                const todosJogos = mockJogosData || [];
+                
+                // Filtra os jogos de acordo com a liga clicada no topo do App.jsx
+                const jogosFiltrados = ligaAtivaId === null 
+                    ? todosJogos 
+                    : todosJogos.filter(j => j.league_id === ligaAtivaId);
+                
+                setJogos(jogosFiltrados);
+            } catch (erro) {
+                console.error("Erro ao carregar jogos:", erro);
+                setJogos([]);
+            } finally {
+                setLoading(false);
+            }
+        }, 500);
 
-  return { jogos, setJogos, loading };
+        return () => clearTimeout(timer);
+    }, [ligaAtivaId, mockJogosData]);
+
+    return { jogos, loading };
 }
