@@ -3,6 +3,12 @@ import cors from 'cors';
 import axios from 'axios';
 import { createClient } from '@supabase/supabase-js';
 import { GoogleGenerativeAI } from '@google/generative-ai';
+import path from 'path';
+import { fileURLToPath } from 'url';
+
+// Configuração obrigatória para usar rotas de ficheiros locais com ES Modules
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
 
 const app = express();
 app.use(cors());
@@ -126,6 +132,20 @@ app.post('/api/chat-ia', async (req, res) => {
     }
 });
 
+// ============================================================================
+// 🌐 ROTAS DE FRONTEND (A CORREÇÃO DO ERRO 404 ENTRA AQUI)
+// ============================================================================
+// 1. O Express agora serve a pasta "dist" onde estão as imagens, icones e o React compilado
+app.use(express.static(path.join(__dirname, 'dist')));
+
+// 2. Se o utilizador navegar para uma página que não seja API, carrega o frontend
+app.get('*', (req, res) => {
+  res.sendFile(path.join(__dirname, 'dist', 'index.html'));
+});
+
+// ============================================================================
+// 🚀 INICIALIZAR SERVIDOR
+// ============================================================================
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => {
     console.log(`🚀 Motor BetAnalytics PRO a correr na porta ${PORT}`);
