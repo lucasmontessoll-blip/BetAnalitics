@@ -1,15 +1,11 @@
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 
-export function useFavoritos() {
-  const [favoritos, setFavoritos] = useState([]);
+export function useFavoritos(initial = [101, 102]) {
+  const [favoritos, setFavoritos] = useState(initial);
 
-  // Se já tivermos o Supabase a funcionar, mais tarde chamamos aqui a API
-  const toggleFavorito = (id) => {
-    setFavoritos(prev => 
-      prev.includes(id) 
-        ? prev.filter(x => x !== id) 
-        : [...prev, id]
-    );
+  const toggleFavorito = (e, id) => {
+    if (e) e.stopPropagation();
+    setFavoritos(p => p.includes(id) ? p.filter(f => f !== id) : [...p, id]);
   };
 
   return { favoritos, toggleFavorito };

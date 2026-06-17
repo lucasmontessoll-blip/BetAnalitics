@@ -1,7 +1,6 @@
 import React, { useState, useEffect, lazy, Suspense } from 'react';
 import './App.css'; 
-import axios from 'axios';
-import { LineChart, Line, ResponsiveContainer, XAxis, YAxis, CartesianGrid, Tooltip } from 'recharts';
+import { LineChart, Line, ResponsiveContainer, XAxis, YAxis } from 'recharts';
 import { motion, AnimatePresence } from 'framer-motion';
 import { initMercadoPago } from '@mercadopago/sdk-react'; 
 import { createClient } from '@supabase/supabase-js';
@@ -15,54 +14,60 @@ import { calcularEV, calcularHeatScore, calcularKelly } from './utils/math.js';
 import { calcularRisco, calcularStake } from './utils/risk.js';
 
 // ============================================================================
-// 🚀 CODE SPLITTING (Lazy Loading)
+// 🪝 IMPORTAÇÃO DOS HOOKS E CODE SPLITTING
 // ============================================================================
+import { useFavoritos } from './hooks/useFavoritos.js';
+import { useJogos } from './hooks/useJogos.js';
+import { useIA } from './hooks/useIA.js';
+
 const Perfil = lazy(() => import('./components/Perfil.jsx'));
 const PainelJogo = lazy(() => import('./components/PainelJogo.jsx'));
-// Nota: Componentes como RadarPressao, OddsComparison, etc., devem ser importados dentro do PainelJogo.jsx no futuro para manter a organização Sênior.
 
+// ============================================================================
+// 🔒 CONFIGURAÇÕES DE SEGURANÇA (Usando Variáveis de Ambiente)
+// ============================================================================
 const MODO_DEMONSTRACAO = true; 
 const API_URL = 'https://betanalitics-1-9stc.onrender.com';
 
-const supabase = createClient('https://sua-url.supabase.co', 'sua-chave-anon');
-initMercadoPago('APP_USR-c05e91db-5e62-4838-8790-e73906d11dbc', { locale: 'pt-BR' });
+const supabase = createClient(
+  import.meta.env.VITE_SUPABASE_URL,
+  import.meta.env.VITE_SUPABASE_KEY
+);
 
+initMercadoPago(import.meta.env.VITE_MP_PUBLIC_KEY, { locale: 'pt-BR' });
+
+// ============================================================================
+// 📊 DADOS ESTÁTICOS
+// ============================================================================
 const getLocalYYYYMMDD = () => { const d = new Date(); d.setMinutes(d.getMinutes() - d.getTimezoneOffset()); return d.toISOString().split('T')[0]; };
 const listaLigas = [{name:'Todos', id: null}, {name:'Serie A', id: 71}, {name:'Champions', id: 2}, {name:'Premier', id: 39}];
-
 const crescimentoBancaGlobal = [ { dia: "1", banca: 1000 }, { dia: "2", banca: 1080 }, { dia: "3", banca: 1150 }, { dia: "4", banca: 1210 }, { dia: "5", banca: 1280 }, { dia: "6", banca: 1350 }, { dia: "7", banca: 1420 } ];
+const mockRankingUsuarios = [ { id: 1, nome: "Lucas", lucro_total: 1840 }, { id: 2, nome: "Carlos", lucro_total: 1430 }, { id: 3, nome: "João", lucro_total: 1180 } ];
 
 const mockJogosData = [
   { id: 101, league_id: 71, league_name: 'Brasileirão Série A', starting_at: `${getLocalYYYYMMDD()}T16:00:00`, status: 'Live', time_elapsed: 62, home_team: 'Flamengo', home_id: 127, away_team: 'Palmeiras', away_id: 121, home_image: 'https://media.api-sports.io/football/teams/127.png', away_image: 'https://media.api-sports.io/football/teams/121.png', scoreHome: 2, scoreAway: 1, confianca_ia: 92, odd_principal: 1.82, odd_abertura: 1.95, homeStats: {form: 85, h2h: 80, attack: 88}, awayStats: {form: 75} },
   { id: 102, league_id: 39, league_name: 'Premier League', starting_at: `${getLocalYYYYMMDD()}T19:30:00`, status: 'Not Started', time_elapsed: 0, home_team: 'Liverpool', home_id: 40, away_team: 'Man City', away_id: 50, home_image: 'https://media.api-sports.io/football/teams/40.png', away_image: 'https://media.api-sports.io/football/teams/50.png', scoreHome: null, scoreAway: null, confianca_ia: 89, odd_principal: 2.10, odd_abertura: 2.10, homeStats: {form: 78, h2h: 60, attack: 85}, awayStats: {form: 82} }
 ];
 
-const mockRankingUsuarios = [ { id: 1, nome: "Lucas", lucro_total: 1840 }, { id: 2, nome: "Carlos", lucro_total: 1430 }, { id: 3, nome: "João", lucro_total: 1180 } ];
-
 // ============================================================================
-// 📱 COMPONENTE PRINCIPAL (Agora focado apenas em UI)
+// 📱 COMPONENTE PRINCIPAL
 // ============================================================================
 export default function App() {
   const [showSplash, setShowSplash] = useState(true);
   const [ligaAtivaId, setLigaAtivaId] = useState(null); 
   const [menuAtivo, setMenuAtivo] = useState('Todos os Jogos'); 
   const [userData, setUserData] = useState(null); 
-  const [jogos, setJogos] = useState([]); 
-  const [loading, setLoading] = useState(false); 
   const [viewMode, setViewMode] = useState('jogos'); 
   const [filterCentro, setFilterCentro] = useState('Todos'); 
   const [jogoSelecionado, setJogoSelecionado] = useState(null); 
-  const [favoritos, setFavoritos] = useState([101, 102]); 
   const [form, setForm] = useState({ nome: '', email: '', cpf: '' }); 
   
   const [performanceStats] = useState({ totalAnalises: 512, acertos: 431, erros: 81, roi: 18.4, ultimaSemana: 87 });
-  const [bancaInicial, setBancaInicial] = useState(1000);
-  const [alertas, setAlertas] = useState([{ id: 1, msg: "O Flamengo chegou a 94% de confiança.", lida: false }]);
+  const [bancaInicial] = useState(1000);
   const [rankingUsuarios, setRankingUsuarios] = useState([]);
   const [oportunidades, setOportunidades] = useState([]);
   const [bilhetePremium, setBilhetePremium] = useState({ selecoes: [], oddFinal: 1 });
-  
-  const [xp, setXp] = useState(350);
+  const [xp] = useState(350);
   
   const nivelUsuario = () => {
     if (xp > 5000) return "Lenda";
@@ -72,15 +77,15 @@ export default function App() {
     return "Iniciante";
   };
 
-  const [apostas, setApostas] = useState([
+  const [apostas] = useState([
     { id: 1, jogo: "Flamengo x Palmeiras", liga: "Brasileirão", time: "Flamengo", mercado: "Vitória Casa", stake: 100, odd: 1.85, resultado: "green", data: "2026-06-01", hora: "19:30" }
   ]);
   const metaMensal = 2000;
 
-  const [aiOpen, setAiOpen] = useState(false);
-  const [aiQuery, setAiQuery] = useState('');
-  const [aiLoading, setAiLoading] = useState(false);
-  const [aiMessages, setAiMessages] = useState([{ role: 'assistant', text: "Olá! Sou o motor IA do BetAnalytics. Qual é a sua dúvida?" }]);
+  // Chamadas dos Custom Hooks
+  const { favoritos, toggleFavorito } = useFavoritos();
+  const { jogos, loading } = useJogos(API_URL, ligaAtivaId, mockJogosData);
+  const { aiOpen, setAiOpen, aiQuery, setAiQuery, aiLoading, aiMessages, handleAskAI, gerarExplicacaoIA } = useIA(API_URL, jogos, setJogoSelecionado);
 
   useEffect(() => { const carregarDados = async () => { setRankingUsuarios(mockRankingUsuarios); }; carregarDados(); }, []);
   useEffect(() => { setTimeout(() => setShowSplash(false), 2000); }, []);
@@ -88,7 +93,6 @@ export default function App() {
   useEffect(() => { 
       const em = localStorage.getItem('bet_sessao_ativa'); 
       const emailsAdministradores = ["lucasmontesso@admin.com"]; 
-      
       if (em) { 
           setUserData({ email: em, nome: localStorage.getItem('bet_user_nome') || "Lucas Montesso", is_vip: true, is_admin: emailsAdministradores.includes(em) }); 
       }
@@ -96,32 +100,6 @@ export default function App() {
           setUserData({ email: "lucas@vip.com", nome: "Lucas Montesso", is_vip: true, is_admin: true }); 
       } 
   }, []);
-  
-  // ============================================================================
-  // MELHORIA DE PERFORMANCE: CARREGAMENTO ASSÍNCRONO DO DADOS.JSON
-  // ============================================================================
-  useEffect(() => {
-      const carregarJogosDaRodada = async () => {
-          setLoading(true);
-          try {
-              // Tenta carregar o JSON pesado da pasta public para não travar a tela
-              const response = await fetch('/dados.json');
-              const data = await response.json();
-              const allJogos = Array.isArray(data) ? data : (data.response || mockJogosData);
-              const loadedJogos = allJogos.filter(x => ligaAtivaId === null ? true : x.league_id === ligaAtivaId);
-              setJogos(loadedJogos);
-          } catch (error) {
-              console.error("Erro ao carregar o dados.json, usando dados de demonstração.", error);
-              // Fallback de segurança para não deixar a tela preta caso o JSON não seja encontrado
-              const loadedJogos = mockJogosData.filter(x => ligaAtivaId === null ? true : x.league_id === ligaAtivaId);
-              setJogos(loadedJogos);
-          } finally {
-              setLoading(false); 
-          }
-      };
-      
-      carregarJogosDaRodada();
-  }, [ligaAtivaId]);
 
   useEffect(() => {
       if(jogos.length){
@@ -133,29 +111,6 @@ export default function App() {
           setOportunidades(radar);
       }
   }, [jogos]);
-
-  const toggleFavorito = (e, id) => { e.stopPropagation(); setFavoritos(p => p.includes(id) ? p.filter(f => f !== id) : [...p, id]); };
-
-  const handleAskAI = async (e) => {
-      e?.preventDefault();
-      if(!aiQuery.trim() || aiLoading) return;
-      setAiMessages(prev => [...prev, { role: 'user', text: aiQuery }]);
-      const perguntaAtual = aiQuery; setAiQuery(''); setAiLoading(true);
-      try {
-          const resumoJogos = jogos.map(j => `${j.home_team} vs ${j.away_team}`).join(", ");
-          const resposta = await axios.post(`${API_URL}/api/chat-ia`, { pergunta: perguntaAtual, dadosDaRodada: resumoJogos || "Sem jogos no momento" });
-          setAiMessages(prev => [...prev, { role: 'assistant', text: resposta.data.resposta }]);
-      } catch (error) { setAiMessages(prev => [...prev, { role: 'assistant', text: "Falha de comunicação." }]); } finally { setAiLoading(false); }
-  };
-
-  const gerarExplicacaoIA = async (jogo) => {
-      setJogoSelecionado(prev => ({...prev, is_loading_explanation: true}));
-      const promptGemini = `Você é um analista profissional.\nJogo: ${jogo.home_team} x ${jogo.away_team}\nConfiança: ${jogo.confianca_ia}%\nOdd: ${jogo.odd_principal}\nExplique:\n1 Motivos da entrada\n2 Riscos\n3 Melhor mercado\n4 Gestão recomendada\n5 Conclusão final\nResposta curta e estruturada em tópicos.`;
-      try {
-          const resposta = await axios.post(`${API_URL}/api/chat-ia`, { pergunta: promptGemini, dadosDaRodada: jogo });
-          setJogoSelecionado(prev => ({...prev, explanation: resposta.data.resposta, is_loading_explanation: false}));
-      } catch (e) { setJogoSelecionado(prev => ({...prev, explanation: "Análise forte indica superioridade e EV+ no mercado.", is_loading_explanation: false})); }
-  };
 
   let jFilt = (jogos||[]).filter(j => { if(filterCentro === 'Ao Vivo') return j.status==='Live'; if(filterCentro === 'Favoritos') return favoritos.includes(j.id); return true; });
   const jGrp = jFilt.reduce((a, j) => { if (!a[j.league_name]) a[j.league_name] = []; a[j.league_name].push(j); return a; }, {});
@@ -207,7 +162,6 @@ export default function App() {
                     {userData?.is_vip && (
                         <div className="mx-4 mb-6 rounded-3xl p-4 sm:p-6 bg-gradient-to-br from-blue-600 to-blue-900 shadow-[0_0_30px_rgba(13,110,253,0.3)] flex justify-between items-center transform-gpu">
                         <div><h2 className="text-lg sm:text-xl font-black text-white flex items-center gap-2 mb-1 sm:mb-2"><Crown className="w-5 h-5 text-yellow-400"/> IA Premium</h2><p className="text-blue-100 text-[10px] sm:text-xs mt-1"><strong>{(performanceStats.acertos/performanceStats.totalAnalises*100).toFixed(1)}%</strong> de precisão geral</p></div>
-                        {/* ALTERADO AQUI PARA ABRIR A NOVA ABA DE ALERTAS EM VEZ DO RANKING */}
                         <button onClick={() => setViewMode('alertas')} className="bg-white/20 border border-white/30 text-white text-[9px] sm:text-[10px] font-bold px-3 sm:px-4 py-2 sm:py-3 rounded-xl uppercase tracking-wider">CONFIGURAR ALERTAS</button>
                         </div>
                     )}
@@ -262,7 +216,6 @@ export default function App() {
                                     const isLive = j.status === 'Live';
                                     const heatScore = calcularHeatScore(j);
                                     const risco = calcularRisco(j);
-                                    // AQUI USAMOS O NOVO MOTOR DE VALUE BET:
                                     const isValueBet = j.odd_principal ? detectarValueBetReal(j.odd_principal, j.confianca_ia).isValue : false;
                                     
                                     return (
@@ -290,7 +243,6 @@ export default function App() {
                   </>
               )}
 
-              {/* PERFIL (LAZY) */}
               {viewMode === 'perfil' && (
                   <div className="px-4 animate-fade-in w-full">
                      <Suspense fallback={<div className="text-center p-10 font-black text-blue-500 animate-pulse uppercase tracking-widest text-xs">A carregar Perfil Premium...</div>}>
@@ -299,7 +251,6 @@ export default function App() {
                   </div>
               )}
 
-              {/* A NOVA ABA DE ALERTAS (Substituindo o antigo Ranking) */}
               {viewMode === 'alertas' && (
                   <div className="px-4 animate-fade-in w-full pb-10">
                       <HeaderNav title="🔔 Radar de Oportunidades" onBack={() => setViewMode('jogos')} />
@@ -362,14 +313,12 @@ export default function App() {
           </div>
       )}
 
-      {/* PAINEL DE JOGO PREMIUM (LAZY) */}
       {jogoSelecionado && menuAtivo !== 'assinar pro' && (
           <Suspense fallback={<div className="text-center p-10 font-black text-blue-500 animate-pulse text-xs uppercase tracking-widest">A carregar estatísticas do jogo...</div>}>
               <PainelJogo jogo={jogoSelecionado} setJogoSelecionado={setJogoSelecionado} bancaInicial={bancaInicial} gerarExplicacaoIA={gerarExplicacaoIA} calcularStake={calcularStake} calcularKelly={calcularKelly} />
           </Suspense>
       )}
 
-      {/* CHATBOT */}
       <button onClick={() => setAiOpen(true)} className="fixed right-5 bottom-28 w-14 h-14 rounded-full bg-gradient-to-br from-blue-600 to-blue-400 flex items-center justify-center shadow-[0_0_25px_rgba(37,99,235,0.6)] z-40 text-2xl hover:scale-105 transition-transform border border-blue-300/30">🤖</button>
 
       <AnimatePresence>
@@ -390,14 +339,10 @@ export default function App() {
           )}
       </AnimatePresence>
 
-      {/* BARRA DE NAVEGAÇÃO - Botão Atualizado para Alertas */}
       <nav className="fixed bottom-0 left-0 right-0 h-20 bg-[#050816] border-t border-white/5 flex justify-around items-center z-50 shadow-[0_-10px_40px_rgba(0,0,0,0.5)]">
         <button onClick={() => {setViewMode('jogos'); setFilterCentro('Todos'); setJogoSelecionado(null);}} className={`flex flex-col items-center gap-1.5 transition-colors ${viewMode === 'jogos' && filterCentro !== 'Ao Vivo' && !jogoSelecionado ? 'text-blue-500' : 'text-slate-500 hover:text-slate-300'}`}><Home className="w-6 h-6" /><span className="text-[9px] font-black uppercase tracking-widest">Início</span></button>
         <button onClick={() => {setViewMode('jogos'); setFilterCentro('Ao Vivo'); setJogoSelecionado(null);}} className={`flex flex-col items-center gap-1.5 transition-colors ${filterCentro === 'Ao Vivo' && !jogoSelecionado ? 'text-red-500' : 'text-slate-500 hover:text-slate-300'}`}><div className="relative"><Radio className="w-6 h-6" />{filterCentro === 'Ao Vivo' && <span className="absolute top-0 right-0 w-2 h-2 bg-red-500 rounded-full animate-pulse"></span>}</div><span className="text-[9px] font-black uppercase tracking-widest">Ao Vivo</span></button>
-        
-        {/* NOVO BOTÃO DE ALERTAS SUBSTITUINDO RANKING */}
         <button onClick={() => {setViewMode('alertas'); setJogoSelecionado(null);}} className={`flex flex-col items-center gap-1.5 transition-colors ${viewMode === 'alertas' ? 'text-yellow-500 drop-shadow-[0_0_8px_rgba(234,179,8,0.4)]' : 'text-slate-500 hover:text-slate-300'}`}><Bell className="w-6 h-6" /><span className="text-[9px] font-black uppercase tracking-widest">Alertas</span></button>
-        
         <button onClick={() => {setViewMode('perfil'); setJogoSelecionado(null);}} className={`flex flex-col items-center gap-1.5 transition-colors ${['perfil','admin'].includes(viewMode) ? 'text-blue-500' : 'text-slate-500 hover:text-slate-300'}`}><User className="w-6 h-6" /><span className="text-[9px] font-black uppercase tracking-widest">Perfil</span></button>
       </nav>
     </div>
