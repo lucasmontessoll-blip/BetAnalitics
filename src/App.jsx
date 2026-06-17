@@ -26,15 +26,18 @@ const PainelJogo = lazy(() => import('./components/PainelJogo.jsx'));
 // ============================================================================
 // 🔒 CONFIGURAÇÕES DE SEGURANÇA (Usando Variáveis de Ambiente)
 // ============================================================================
+// ============================================================================
+// 🔒 CONFIGURAÇÕES DE SEGURANÇA (Usando Variáveis de Ambiente com Fallback)
+// ============================================================================
 const MODO_DEMONSTRACAO = true; 
 const API_URL = 'https://betanalitics-1-9stc.onrender.com';
 
-const supabase = createClient(
-  import.meta.env.VITE_SUPABASE_URL,
-  import.meta.env.VITE_SUPABASE_KEY
-);
+const supabaseUrl = import.meta.env.VITE_SUPABASE_URL || 'https://projeto-temporario.supabase.co';
+const supabaseKey = import.meta.env.VITE_SUPABASE_KEY || 'chave-temporaria-anon';
+const supabase = createClient(supabaseUrl, supabaseKey);
 
-initMercadoPago(import.meta.env.VITE_MP_PUBLIC_KEY, { locale: 'pt-BR' });
+const mpKey = import.meta.env.VITE_MP_PUBLIC_KEY || 'APP_USR-c05e91db-5e62-4838-8790-e73906d11dbc';
+initMercadoPago(mpKey, { locale: 'pt-BR' });
 
 // ============================================================================
 // 📊 DADOS ESTÁTICOS
