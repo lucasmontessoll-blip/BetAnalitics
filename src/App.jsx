@@ -298,11 +298,11 @@ export default function App() {
 
                           <div className="space-y-3">
                               <div className="flex justify-between items-center bg-[#050816] p-4 rounded-xl border border-white/5">
-                                  <span className="text-sm font-bold text-white">Value Bets (EV > 10%)</span>
+                                  <span className="text-sm font-bold text-white">Value Bets (EV &gt; 10%)</span>
                                   <input type="checkbox" className="w-5 h-5 accent-blue-500 rounded" defaultChecked />
                               </div>
                               <div className="flex justify-between items-center bg-[#050816] p-4 rounded-xl border border-white/5">
-                                  <span className="text-sm font-bold text-white">Pressão Alta Ao Vivo (Heat > 80)</span>
+                                  <span className="text-sm font-bold text-white">Pressão Alta Ao Vivo (Heat &gt; 80)</span>
                                   <input type="checkbox" className="w-5 h-5 accent-blue-500 rounded" defaultChecked />
                               </div>
                               <div className="flex justify-between items-center bg-[#050816] p-4 rounded-xl border border-white/5">
