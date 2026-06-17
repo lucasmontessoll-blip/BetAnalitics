@@ -4,7 +4,7 @@ import { LineChart, Line, ResponsiveContainer, XAxis, YAxis } from 'recharts';
 import { motion, AnimatePresence } from 'framer-motion';
 import { initMercadoPago } from '@mercadopago/sdk-react'; 
 import { createClient } from '@supabase/supabase-js';
-import { Home, Radio, Trophy, Crown, Star, ChevronRight, X, User, Zap, TrendingUp, AlertTriangle, Users, ArrowLeft, Send, DollarSign, Target, Bell } from 'lucide-react';
+import { Home, Radio, Trophy, Crown, Star, ChevronRight, X, User, Zap, TrendingUp, AlertTriangle, ArrowLeft, Send, DollarSign, Target, Bell } from 'lucide-react';
 
 // ============================================================================
 // ⚙️ IMPORTAÇÃO DOS NOVOS MOTORES (ALGORITMOS E MATEMÁTICA)
@@ -20,30 +20,48 @@ import { useFavoritos } from './hooks/useFavoritos.js';
 import { useJogos } from './hooks/useJogos.js';
 import { useIA } from './hooks/useIA.js';
 
+// Importação da nova área da Copa do Mundo
+import CopaDoMundo from './components/CopaDoMundo.jsx';
+
 const Perfil = lazy(() => import('./components/Perfil.jsx'));
 const PainelJogo = lazy(() => import('./components/PainelJogo.jsx'));
 
 // ============================================================================
-// 🔒 CONFIGURAÇÕES DE SEGURANÇA (Usando Variáveis de Ambiente)
-// ============================================================================
-// ============================================================================
-// 🔒 CONFIGURAÇÕES DE SEGURANÇA (Usando Variáveis de Ambiente com Fallback)
+// 🔒 CONFIGURAÇÕES DE SEGURANÇA À PROVA DE ERROS
 // ============================================================================
 const MODO_DEMONSTRACAO = true; 
 const API_URL = 'https://betanalitics-1-9stc.onrender.com';
 
-const supabaseUrl = import.meta.env.VITE_SUPABASE_URL || 'https://projeto-temporario.supabase.co';
-const supabaseKey = import.meta.env.VITE_SUPABASE_KEY || 'chave-temporaria-anon';
-const supabase = createClient(supabaseUrl, supabaseKey);
+let supabase = { from: () => ({ select: () => ({ eq: () => ({ single: () => ({ data: null }) }) }) }) };
 
-const mpKey = import.meta.env.VITE_MP_PUBLIC_KEY || 'APP_USR-c05e91db-5e62-4838-8790-e73906d11dbc';
+try {
+  const url = import.meta.env.VITE_SUPABASE_URL;
+  const key = import.meta.env.VITE_SUPABASE_KEY;
+  
+  if (url && url.startsWith('http')) {
+    supabase = createClient(url, key);
+  } else {
+    console.warn("Supabase URL inválida ou ausente. Iniciando em modo offline.");
+  }
+} catch (e) {
+  console.error("Erro ao inicializar Supabase:", e);
+}
+
+const mpKey = import.meta.env.VITE_MP_PUBLIC_KEY || 'APP_USR-5947285218976034-050113-a9857b202a29e411236349f75b6b25c3-669622996';
 initMercadoPago(mpKey, { locale: 'pt-BR' });
 
 // ============================================================================
-// 📊 DADOS ESTÁTICOS
+// 📊 DADOS ESTÁTICOS E LIGAS (LIMPADO, COPA AGORA TEM TELA PRÓPRIA)
 // ============================================================================
 const getLocalYYYYMMDD = () => { const d = new Date(); d.setMinutes(d.getMinutes() - d.getTimezoneOffset()); return d.toISOString().split('T')[0]; };
-const listaLigas = [{name:'Todos', id: null}, {name:'Serie A', id: 71}, {name:'Champions', id: 2}, {name:'Premier', id: 39}];
+
+const listaLigas = [
+  {name:'Todos', id: null}, 
+  {name:'Serie A', id: 71}, 
+  {name:'Champions', id: 2}, 
+  {name:'Premier', id: 39}
+];
+
 const crescimentoBancaGlobal = [ { dia: "1", banca: 1000 }, { dia: "2", banca: 1080 }, { dia: "3", banca: 1150 }, { dia: "4", banca: 1210 }, { dia: "5", banca: 1280 }, { dia: "6", banca: 1350 }, { dia: "7", banca: 1420 } ];
 const mockRankingUsuarios = [ { id: 1, nome: "Lucas", lucro_total: 1840 }, { id: 2, nome: "Carlos", lucro_total: 1430 }, { id: 3, nome: "João", lucro_total: 1180 } ];
 
@@ -160,6 +178,11 @@ export default function App() {
       {menuAtivo !== 'assinar pro' && !jogoSelecionado && (
           <div className="animate-fade-in pt-4 w-full">
               
+              {/* === RENDERIZAÇÃO DA COPA DO MUNDO INDEPENDENTE === */}
+              {viewMode === 'copa' && (
+                  <CopaDoMundo onBack={() => setViewMode('jogos')} />
+              )}
+
               {viewMode === 'jogos' && (
                   <>
                     {userData?.is_vip && (
@@ -345,7 +368,11 @@ export default function App() {
       <nav className="fixed bottom-0 left-0 right-0 h-20 bg-[#050816] border-t border-white/5 flex justify-around items-center z-50 shadow-[0_-10px_40px_rgba(0,0,0,0.5)]">
         <button onClick={() => {setViewMode('jogos'); setFilterCentro('Todos'); setJogoSelecionado(null);}} className={`flex flex-col items-center gap-1.5 transition-colors ${viewMode === 'jogos' && filterCentro !== 'Ao Vivo' && !jogoSelecionado ? 'text-blue-500' : 'text-slate-500 hover:text-slate-300'}`}><Home className="w-6 h-6" /><span className="text-[9px] font-black uppercase tracking-widest">Início</span></button>
         <button onClick={() => {setViewMode('jogos'); setFilterCentro('Ao Vivo'); setJogoSelecionado(null);}} className={`flex flex-col items-center gap-1.5 transition-colors ${filterCentro === 'Ao Vivo' && !jogoSelecionado ? 'text-red-500' : 'text-slate-500 hover:text-slate-300'}`}><div className="relative"><Radio className="w-6 h-6" />{filterCentro === 'Ao Vivo' && <span className="absolute top-0 right-0 w-2 h-2 bg-red-500 rounded-full animate-pulse"></span>}</div><span className="text-[9px] font-black uppercase tracking-widest">Ao Vivo</span></button>
-        <button onClick={() => {setViewMode('alertas'); setJogoSelecionado(null);}} className={`flex flex-col items-center gap-1.5 transition-colors ${viewMode === 'alertas' ? 'text-yellow-500 drop-shadow-[0_0_8px_rgba(234,179,8,0.4)]' : 'text-slate-500 hover:text-slate-300'}`}><Bell className="w-6 h-6" /><span className="text-[9px] font-black uppercase tracking-widest">Alertas</span></button>
+        
+        {/* BOTÃO DA COPA NO CENTRO COM DESTAQUE */}
+        <button onClick={() => {setViewMode('copa'); setJogoSelecionado(null);}} className={`flex flex-col items-center gap-1.5 transition-colors ${viewMode === 'copa' ? 'text-yellow-500 drop-shadow-[0_0_8px_rgba(234,179,8,0.4)]' : 'text-slate-500 hover:text-slate-300'}`}><Trophy className="w-6 h-6" /><span className="text-[9px] font-black uppercase tracking-widest">Copa</span></button>
+
+        <button onClick={() => {setViewMode('alertas'); setJogoSelecionado(null);}} className={`flex flex-col items-center gap-1.5 transition-colors ${viewMode === 'alertas' ? 'text-blue-500' : 'text-slate-500 hover:text-slate-300'}`}><Bell className="w-6 h-6" /><span className="text-[9px] font-black uppercase tracking-widest">Alertas</span></button>
         <button onClick={() => {setViewMode('perfil'); setJogoSelecionado(null);}} className={`flex flex-col items-center gap-1.5 transition-colors ${['perfil','admin'].includes(viewMode) ? 'text-blue-500' : 'text-slate-500 hover:text-slate-300'}`}><User className="w-6 h-6" /><span className="text-[9px] font-black uppercase tracking-widest">Perfil</span></button>
       </nav>
     </div>
