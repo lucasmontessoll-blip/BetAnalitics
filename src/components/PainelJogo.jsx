@@ -1,4 +1,3 @@
-// src/components/PainelJogo.jsx
 import React, { useState, useEffect } from 'react';
 import { X, Crosshair, Zap, Radio, AlertTriangle, ShieldAlert, Target, Flame, DollarSign, Clock, Users } from 'lucide-react';
 import { buscarOddsJogo, buscarEscalacoes, buscarEventos } from '../services/apiFootball';
@@ -26,7 +25,7 @@ export default function PainelJogo({ jogo, setJogoSelecionado, bancaInicial, ger
 
     // Cálculo do Radar de Pressão Mágico da IA
     const calcularPressao = (stats) => {
-        if(!stats) return { h: 50, a: 50 };
+        if(!stats || stats.length < 2) return { h: 50, a: 50 }; // Proteção extra caso stats venha incompleto
         const pressaoCasa = (stats[0].shotsOnGoal * 3) + (stats[0].corners * 2) + (stats[0].ballPossession * 0.2);
         const pressaoFora = (stats[1].shotsOnGoal * 3) + (stats[1].corners * 2) + (stats[1].ballPossession * 0.2);
         const total = pressaoCasa + pressaoFora;
@@ -40,10 +39,10 @@ export default function PainelJogo({ jogo, setJogoSelecionado, bancaInicial, ger
     const timeDominante = pressao.h > 60 ? jogo.home_team : pressao.a > 60 ? jogo.away_team : null;
 
     // Cálculo de Value Bet Real
-    const melhorOddCasa = odds.length > 0 ? Math.max(...odds.map(o => o.oddCasa)) : jogo.odd_principal;
+    const melhorOddCasa = odds.length > 0 ? Math.max(...odds.map(o => o.oddCasa)) : (jogo.odd_principal || 1.85);
     const probMercado = 100 / melhorOddCasa;
-    const isValueBet = jogo.confianca_ia > probMercado;
-    const valueEdge = jogo.confianca_ia - probMercado;
+    const isValueBet = (jogo.confianca_ia || 50) > probMercado;
+    const valueEdge = (jogo.confianca_ia || 50) - probMercado;
 
     return (
         <div className="px-4 mt-4 pb-20 animate-fade-in w-full">
@@ -81,7 +80,7 @@ export default function PainelJogo({ jogo, setJogoSelecionado, bancaInicial, ger
                         <div className="bg-[#111827] p-4 rounded-2xl border border-white/5 mb-5 shadow-inner flex flex-col sm:flex-row gap-4 items-center justify-between">
                             <div>
                                 <h4 className="font-black text-[10px] text-slate-400 uppercase tracking-widest mb-1 flex items-center gap-2"><Target className="w-3 h-3 text-green-500"/> Value Bet Detector</h4>
-                                <p className="text-xs text-slate-300 font-bold">Prob. IA: <span className="text-white">{jogo.confianca_ia}%</span> | Prob. Mercado: <span className="text-white">{probMercado.toFixed(1)}%</span></p>
+                                <p className="text-xs text-slate-300 font-bold">Prob. IA: <span className="text-white">{jogo.confianca_ia || 50}%</span> | Prob. Mercado: <span className="text-white">{probMercado.toFixed(1)}%</span></p>
                             </div>
                             {isValueBet ? (
                                 <div className="bg-green-500/20 border border-green-500/50 text-green-400 font-black text-xs px-4 py-2 rounded-xl whitespace-nowrap">💰 VALUE BET (+{valueEdge.toFixed(1)}%)</div>
@@ -95,12 +94,14 @@ export default function PainelJogo({ jogo, setJogoSelecionado, bancaInicial, ger
                             <h4 className="font-black text-[10px] text-slate-400 uppercase tracking-widest mb-3 flex items-center gap-2"><DollarSign className="w-3 h-3 text-yellow-500"/> Comparação de Casas</h4>
                             <div className="overflow-x-auto no-scrollbar pb-2">
                                 <div className="flex gap-3">
-                                    {odds.map((casa, i) => (
+                                    {odds.length > 0 ? odds.map((casa, i) => (
                                         <div key={i} className="bg-[#050816] p-3 rounded-xl border border-white/5 min-w-[120px] flex-shrink-0 text-center">
                                             <span className="text-[10px] font-bold text-white block mb-1">{casa.nome}</span>
                                             <span className={`text-sm font-black ${casa.oddCasa === melhorOddCasa ? 'text-green-400' : 'text-slate-300'}`}>@{casa.oddCasa.toFixed(2)}</span>
                                         </div>
-                                    ))}
+                                    )) : (
+                                        <span className="text-xs text-slate-500 italic">Buscando odds no mercado...</span>
+                                    )}
                                 </div>
                             </div>
                         </div>
@@ -131,32 +132,47 @@ export default function PainelJogo({ jogo, setJogoSelecionado, bancaInicial, ger
                             </div>
                         )}
 
-                        {/* 5. TIMELINE E ESCALAÇÕES */}
+                        {/* 5. TIMELINE E ESCALAÇÕES BLINDADAS CONTRA ERROS */}
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-5">
                             <div className="bg-[#111827] p-4 rounded-2xl border border-white/5 shadow-inner">
                                 <h4 className="font-black text-[10px] text-slate-400 uppercase tracking-widest mb-3 flex items-center gap-2"><Clock className="w-3 h-3 text-blue-500"/> Timeline do Jogo</h4>
                                 <div className="flex flex-col gap-2 h-40 overflow-y-auto custom-scrollbar pr-2">
-                                    {eventos.map((ev, i) => (
+                                    {eventos.length > 0 ? eventos.map((ev, i) => (
                                         <div key={i} className="flex gap-3 items-center text-xs">
                                             <span className="font-black text-blue-400 w-8">{ev.tempo}</span>
                                             <div className="bg-[#050816] p-2 rounded-lg border border-white/5 flex-1 font-bold text-slate-200">
                                                 {ev.tipo}: {ev.time} {ev.detalhe && <span className="text-slate-400 font-normal">({ev.detalhe})</span>}
                                             </div>
                                         </div>
-                                    ))}
+                                    )) : (
+                                        <div className="text-xs text-slate-500 italic mt-2">Sem eventos registrados até o momento.</div>
+                                    )}
                                 </div>
                             </div>
 
                             <div className="bg-[#111827] p-4 rounded-2xl border border-white/5 shadow-inner">
-                                <h4 className="font-black text-[10px] text-slate-400 uppercase tracking-widest mb-3 flex items-center gap-2"><Users className="w-3 h-3 text-purple-500"/> Escalações ({escalacoes?.casa.formacao})</h4>
+                                {/* 🔥 AQUI ESTAVA O ERRO PRINCIPAL: Adicionado ? de segurança */}
+                                <h4 className="font-black text-[10px] text-slate-400 uppercase tracking-widest mb-3 flex items-center gap-2">
+                                    <Users className="w-3 h-3 text-purple-500"/> Escalações ({escalacoes?.casa?.formacao || "N/A"})
+                                </h4>
                                 <div className="flex gap-4 h-40 overflow-y-auto custom-scrollbar text-xs text-slate-300 font-semibold">
                                     <div className="w-1/2 border-r border-white/5 pr-2">
                                         <div className="text-white font-black mb-2 truncate">{jogo.home_team}</div>
-                                        {escalacoes?.casa.titulares.map((j, i) => <div key={i} className="mb-1 truncate">{j}</div>)}
+                                        {/* 🔥 BLINDAGEM NOS TITULARES DA CASA */}
+                                        {escalacoes?.casa?.titulares?.length > 0 ? (
+                                            escalacoes.casa.titulares.map((j, i) => <div key={i} className="mb-1 truncate">{j}</div>)
+                                        ) : (
+                                            <div className="text-slate-600 text-[10px] italic">Escalação indisponível</div>
+                                        )}
                                     </div>
                                     <div className="w-1/2 pl-2">
                                         <div className="text-white font-black mb-2 truncate">{jogo.away_team}</div>
-                                        {escalacoes?.fora.titulares.map((j, i) => <div key={i} className="mb-1 truncate">{j}</div>)}
+                                        {/* 🔥 BLINDAGEM NOS TITULARES DE FORA */}
+                                        {escalacoes?.fora?.titulares?.length > 0 ? (
+                                            escalacoes.fora.titulares.map((j, i) => <div key={i} className="mb-1 truncate">{j}</div>)
+                                        ) : (
+                                            <div className="text-slate-600 text-[10px] italic">Escalação indisponível</div>
+                                        )}
                                     </div>
                                 </div>
                             </div>
