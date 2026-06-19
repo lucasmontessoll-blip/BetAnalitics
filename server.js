@@ -27,7 +27,7 @@ const MP_ACCESS_TOKEN = process.env.MP_ACCESS_TOKEN || 'APP_USR-5947285218976034
 // Inicializar Supabase e Gemini
 const supabase = createClient(SUPABASE_URL, SUPABASE_KEY);
 let genAI;
-if (GEMINI_API_KEY !== 'COLOQUE_AQUI_A_SUA_CHAVE_DO_GEMINI') {
+if (GEMINI_API_KEY !== 'AIzaSyBKlaNtj0uEAJwOReTblDcLDGfpCjYqP18') {
     genAI = new GoogleGenerativeAI(GEMINI_API_KEY);
 }
 
@@ -38,7 +38,6 @@ app.post('/api/processar-pagamento', async (req, res) => {
     const { payer, transaction_amount } = req.body;
 
     try {
-        // 1. Criar utilizador no Supabase com VIP = false
         const { data: userExistente } = await supabase.from('usuarios').select('*').eq('email', payer.email).single();
         if (!userExistente) {
             await supabase.from('usuarios').insert([{ 
@@ -49,7 +48,6 @@ app.post('/api/processar-pagamento', async (req, res) => {
             }]);
         }
 
-        // 2. Gerar o PIX no Mercado Pago
         const mpResponse = await axios.post('https://api.mercadopago.com/v1/payments', {
             transaction_amount: Number(transaction_amount),
             payment_method_id: 'pix',
@@ -87,7 +85,6 @@ app.post('/api/webhook', async (req, res) => {
 
             if (paymentInfo.data.status === 'approved') {
                 const emailPagador = paymentInfo.data.payer.email;
-                // 🔥 MAGIA: Atualiza a Base de Dados na nuvem ativando o VIP!
                 await supabase.from('usuarios').update({ is_vip: true }).eq('email', emailPagador);
                 console.log(`🎉 VIP ATIVADO COM SUCESSO PARA: ${emailPagador}`);
             }
@@ -133,12 +130,39 @@ app.post('/api/chat-ia', async (req, res) => {
 });
 
 // ============================================================================
-// 🌐 ROTAS DE FRONTEND (A CORREÇÃO DO ERRO 404 ENTRA AQUI)
+// ⚽ ROTA 4: LEITURA RÁPIDA DE JOGOS AO VIVO (CONSUMINDO DO SUPABASE)
 // ============================================================================
-// 1. O Express agora serve a pasta "dist" onde estão as imagens, icones e o React compilado
+app.get('/api/jogos-ao-vivo', async (req, res) => {
+    try {
+        // Busca todos os jogos na tabela 'jogos_ao_vivo'
+        // Ordena para que os que estão 'LIVE' (a acontecer agora) apareçam primeiro
+        const { data, error } = await supabase
+            .from('jogos_ao_vivo')
+            .select('*')
+            .order('status', { ascending: true }) 
+            .order('ultima_atualizacao', { ascending: false });
+
+        if (error) {
+            throw error;
+        }
+
+        // Devolve o JSON limpo para o Frontend React consumir
+        res.json(data);
+    } catch (error) {
+        console.error("Erro ao buscar jogos no Supabase:", error.message);
+        res.status(500).json({ error: "Falha ao carregar jogos ao vivo." });
+    }
+});
+
+// ============================================================================
+// 🌐 ROTAS DE FRONTEND E ARQUIVOS ESTÁTICOS
+// ============================================================================
+
+// 1. Liberta o acesso às pastas públicas e de build
+app.use(express.static(path.join(__dirname, 'public')));
 app.use(express.static(path.join(__dirname, 'dist')));
 
-// 2. Se o utilizador navegar para uma página que não seja API, carrega o frontend
+// 2. Fallback do React (SPA) - Tem de ser a ÚLTIMA rota antes do app.listen!
 app.get('*', (req, res) => {
   res.sendFile(path.join(__dirname, 'dist', 'index.html'));
 });
