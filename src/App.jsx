@@ -89,6 +89,10 @@ export default function App() {
   const [oportunidades, setOportunidades] = useState([]);
   const [bilhetePremium, setBilhetePremium] = useState({ selecoes: [], oddFinal: 1 });
   const [xp] = useState(350);
+
+  // 📡 NOVO ESTADO: Jogos capturados em tempo real pelo Robô Crawler
+  const [jogosTempoReal, setJogosTempoReal] = useState([]);
+  const [loadingReal, setLoadingReal] = useState(true);
   
   const nivelUsuario = () => {
     if (xp > 5000) return "Lenda";
@@ -103,9 +107,61 @@ export default function App() {
   ]);
   const metaMensal = 2000;
 
-  // Chamadas dos Custom Hooks
+  // Chamadas dos Custom Hooks originais
   const { favoritos, toggleFavorito } = useFavoritos();
-  const { jogos, loading } = useJogos(API_URL, ligaAtivaId, mockJogosData);
+  const { jogos: jogosDoHook, loading: loadingHook } = useJogos(API_URL, ligaAtivaId, mockJogosData);
+
+  // 🔄 SINCRONIZAÇÃO EM TEMPO REAL COM O SEU SERVER.JS
+  useEffect(() => {
+    const puxarJogosDoServidor = async () => {
+      try {
+        const resposta = await fetch(`${API_URL}/api/jogos-ao-vivo`);
+        if (!resposta.ok) throw new Error("Erro na rede");
+        const dadosBrutos = await resposta.json();
+
+        // Normalização cirúrgica para adaptar o banco de dados ao layout do React
+        const dadosFormatados = dadosBrutos.map(j => {
+          const isLiveMatch = j.tempo_jogo === 'INTERVALO' || j.tempo_jogo.includes("'") || j.tempo_jogo.includes('MIN');
+          
+          return {
+            id: j.id_jogo,
+            league_id: 999, // Categoria exclusiva para monitoramento direto
+            league_name: '📡 Monitorados Real-Time',
+            starting_at: `${getLocalYYYYMMDD()}T00:00:00`,
+            status: isLiveMatch ? 'Live' : (j.tempo_jogo.includes('ENCERRADO') ? 'Finished' : 'Not Started'),
+            time_elapsed: j.tempo_jogo, // Injeta diretamente a string limpa ("INTERVALO", "3 MIN")
+            home_team: j.time_casa,
+            away_team: j.time_fora,
+            home_image: 'https://cdn-icons-png.flaticon.com/512/5323/5323814.png', // Escudo padrão de segurança
+            away_image: 'https://cdn-icons-png.flaticon.com/512/5323/5323814.png',
+            scoreHome: j.placar_casa,
+            scoreAway: j.placar_fora,
+            confianca_ia: j.confianca_ia || 89, // Mapeamento inteligente para ativar motores do app
+            odd_principal: j.odd_principal || 1.85,
+            odd_abertura: 1.80,
+            homeStats: { form: 80, h2h: 75, attack: 82 },
+            awayStats: { form: 70 }
+          };
+        });
+
+        setJogosTempoReal(dadosFormatados);
+      } catch (err) {
+        console.error("Erro ao sincronizar crawler com o frontend:", err);
+      } finally {
+        setLoadingReal(false);
+      }
+    };
+
+    puxarJogosDoServidor();
+    const timerSincronismo = setInterval(puxarJogosDoServidor, 30000); // Varredura automática a cada 30 segundos
+    return () => clearInterval(timerSincronismo);
+  }, []);
+
+  // 🔥 INTEGRAÇÃO UNIFICADA: Junta os dados do Hook com os dados reais capturados pelo Robô
+  const jogos = [...jogosTempoReal, ...jogosDoHook];
+  const loading = loadingHook && loadingReal;
+
+  // Cérebro da IA conectado à lista unificada de jogos
   const { aiOpen, setAiOpen, aiQuery, setAiQuery, aiLoading, aiMessages, handleAskAI, gerarExplicacaoIA } = useIA(API_URL, jogos, setJogoSelecionado);
 
   useEffect(() => { const carregarDados = async () => { setRankingUsuarios(mockRankingUsuarios); }; carregarDados(); }, []);
@@ -248,7 +304,7 @@ export default function App() {
                                         <div key={j.id} onClick={() => { if(!userData?.is_vip) return setMenuAtivo('assinar pro'); setJogoSelecionado(j); }} className="bg-[#0f172a] border border-white/10 rounded-3xl p-4 sm:p-5 shadow-lg mb-4 cursor-pointer relative transition-all hover:border-blue-500/50 w-full transform-gpu">
                                             {heatScore > 50 && <div className="absolute -right-8 top-5 bg-red-600 text-white text-[8px] font-black px-8 py-1 rotate-45 shadow-lg flex items-center justify-center uppercase tracking-widest border-y border-red-400/30">Heat {heatScore}</div>}
                                             <div className="flex justify-between items-center mb-5">
-                                                {isLive ? <span className="bg-red-500 px-3 py-1 rounded-full text-[10px] font-black uppercase">🔴 Ao Vivo {j.time_elapsed}'</span> : <span className="text-slate-400 text-[10px] sm:text-xs font-bold uppercase">{j.status === 'Finished' ? 'Finalizado' : j.starting_at?.split('T')[1]?.substring(0,5)}</span>}
+                                                {isLive ? <span className="bg-red-500 px-3 py-1 rounded-full text-[10px] font-black uppercase">🔴 Ao Vivo {j.time_elapsed}{typeof j.time_elapsed === 'number' || !isNaN(j.time_elapsed) ? "'" : ""}</span> : <span className="text-slate-400 text-[10px] sm:text-xs font-bold uppercase">{j.status === 'Finished' ? 'Finalizado' : j.starting_at?.split('T')[1]?.substring(0,5)}</span>}
                                                 <button onClick={(e) => toggleFavorito(e, j.id)} className="p-1 relative mr-6"><Star className={`w-5 h-5 ${favoritos.includes(j.id) ? 'fill-yellow-400 text-yellow-400' : 'text-slate-600'}`} /></button>
                                             </div>
                                             <div className="flex gap-2 mb-3">
@@ -257,7 +313,7 @@ export default function App() {
                                             </div>
                                             <div className="grid grid-cols-3 items-center text-center mb-5 mt-2 w-full">
                                                 <div className="flex flex-col items-center gap-2 min-w-0"><img src={j.home_image} className="w-10 h-10 sm:w-12 sm:h-12 object-contain drop-shadow-md" alt=""/><span className="text-[10px] sm:text-xs font-bold text-slate-200 truncate w-full">{j.home_team}</span></div>
-                                                <div className="text-2xl sm:text-4xl font-black tracking-tighter">{isLive || j.status === 'Finished' ? `${j.scoreHome} - ${j.scoreAway}` : <span className="text-slate-600 text-xl sm:text-2xl">-</span>}</div>
+                                                <div className="text-2xl sm:text-4xl font-black tracking-tighter">{isLive || j.status === 'Finished' ? `${j.scoreHome} - ${j.scoreAway}` : <span className="text-slate-600 textxl sm:text-2xl">-</span>}</div>
                                                 <div className="flex flex-col items-center gap-2 min-w-0"><img src={j.away_image} className="w-10 h-10 sm:w-12 sm:h-12 object-contain drop-shadow-md" alt=""/><span className="text-[10px] sm:text-xs font-bold text-slate-200 truncate w-full">{j.away_team}</span></div>
                                             </div>
                                         </div>
@@ -282,7 +338,7 @@ export default function App() {
                       <HeaderNav title="🔔 Radar de Oportunidades" onBack={() => setViewMode('jogos')} />
                       <div className="bg-[#0f172a] border border-yellow-500/30 rounded-3xl p-4 sm:p-6 mb-6 shadow-[0_0_20px_rgba(234,179,8,0.1)] transform-gpu">
                           <h3 className="text-sm font-black text-yellow-400 mb-4 flex items-center gap-2 uppercase tracking-wider">
-                             Configurar Notificações Push
+                               Configurar Notificações Push
                           </h3>
                           <p className="text-xs text-slate-400 mb-4">Receba avisos diretos no telemóvel quando os nossos algoritmos detetarem padrões de alta probabilidade.</p>
                           

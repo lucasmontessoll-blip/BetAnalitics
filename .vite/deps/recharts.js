@@ -3213,7 +3213,7 @@ var require_use_sync_external_store_shim_development = /* @__PURE__ */ __commonJ
 				value,
 				getSnapshot
 			]);
-			useEffect(function() {
+			(function() {
 				checkIfSnapshotChanged(inst) && forceUpdate({ inst });
 				return subscribe(function() {
 					checkIfSnapshotChanged(inst) && forceUpdate({ inst });
@@ -3231,7 +3231,7 @@ var require_use_sync_external_store_shim_development = /* @__PURE__ */ __commonJ
 			} catch (error) {
 				return !0;
 			}
-		}
+		}useEffect
 		function useSyncExternalStore$1(subscribe, getSnapshot) {
 			return getSnapshot();
 		}

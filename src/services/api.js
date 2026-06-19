@@ -5,7 +5,7 @@ import axios from "axios";
 const api = axios.create({
   baseURL: "https://v3.football.api-sports.io",
   headers: {
-    "x-apisports-key": import.meta.env.VITE_API_FOOTBALL_KEY || "SUA_CHAVE_AQUI"
+    "x-apisports-key": import.meta.env.VITE_API_FOOTBALL_KEY || "4fdbad40c44545a9ae3460ecb45b4c44"
   }
 });
 
