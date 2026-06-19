@@ -30,7 +30,7 @@ const PainelJogo = lazy(() => import('./components/PainelJogo.jsx'));
 // 🔒 CONFIGURAÇÕES DE SEGURANÇA À PROVA DE ERROS
 // ============================================================================
 const MODO_DEMONSTRACAO = true; 
-const API_URL = 'https://betanalitics-1-9stc.onrender.com';
+const API_URL = '';
 
 let supabase = { from: () => ({ select: () => ({ eq: () => ({ single: () => ({ data: null }) }) }) }) };
 
