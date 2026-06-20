@@ -9,7 +9,7 @@ from supabase import create_client, Client
 # =========================================================
 SUPABASE_URL = os.environ.get("https://pztnppbmonhrrzfbnvh.supabase.co")
 SUPABASE_KEY = os.environ.get("eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InB6dHpucHBibW9uaHJyemZibnZoIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODA2MTcwOTIsImV4cCI6MjA5NjE5MzA5Mn0.4ztEexACzSpsa0cikJjDlniXUeCnA-DPh20LQhg9qvM")
-API_FOOTBALL_KEY = os.environ.get("API_FOOTBALL_KEY") # Nova chave!
+API_FOOTBALL_KEY = os.environ.get("API_FOOTBALL_KEY")
 
 supabase: Client = create_client(SUPABASE_URL, SUPABASE_KEY)
 
@@ -49,10 +49,8 @@ def salvar_no_banco(jogos):
         teams = j["teams"]
         goals = j["goals"]
         
-        # Usa o ID oficial da API-Football (Essencial para o React achar a escalação depois)
         id_jogo = fixture["id"]
         
-        # Validação do tempo de jogo
         tempo_jogo = str(fixture["status"]["elapsed"]) if fixture["status"]["elapsed"] else fixture["status"]["short"]
         if tempo_jogo == "HT": tempo_jogo = "INTERVALO"
         
@@ -64,17 +62,19 @@ def salvar_no_banco(jogos):
             "placar_casa": goals["home"] if goals["home"] is not None else 0,
             "placar_fora": goals["away"] if goals["away"] is not None else 0,
             "tempo_jogo": tempo_jogo,
-            "odd_principal": 1.85, # O frontend React recalcula a odd dinamicamente para poupar a API de odds
-            "confianca_ia": 89   # O frontend processa a variação
+            "odd_principal": 1.85, 
+            "confianca_ia": 89,
+            # 🔥 CAPTURA DOS ESCUDOS OFICIAIS
+            "logo_casa": teams["home"]["logo"],
+            "logo_fora": teams["away"]["logo"]
         }
         
         try:
-            # UPSERT: Insere se for novo, Atualiza se o jogo já existir
             supabase.table("jogos_ao_vivo").upsert(dados_db).execute()
         except Exception as e:
             print(f"Erro ao salvar jogo ID {id_jogo}: {e}")
             
-    print(f"✅ GOOOOOL! {len(jogos)} jogos salvos no banco de dados!")
+    print(f"✅ GOOOOOL! {len(jogos)} jogos salvos no banco de dados com escudos!")
 
 def iniciar_robo():
     print("🤖 Robô BetAnalytics PRO (API-Football) Iniciado!")

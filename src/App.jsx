@@ -20,6 +20,8 @@ import { useFavoritos } from './hooks/useFavoritos.js';
 import { useJogos } from './hooks/useJogos.js';
 import { useIA } from './hooks/useIA.js';
 
+// Importação da nova área da Copa do Mundo
+const CopaDoMundo = lazy(() => import('./components/CopaDoMundo.jsx'));
 const Perfil = lazy(() => import('./components/Perfil.jsx'));
 const PainelJogo = lazy(() => import('./components/PainelJogo.jsx'));
 
@@ -57,9 +59,6 @@ const isSelecao = (home, away, liga) => {
     return false;
 };
 
-// ============================================================================
-// 📊 DADOS ESTÁTICOS E LIGAS
-// ============================================================================
 const getLocalYYYYMMDD = () => { const d = new Date(); d.setMinutes(d.getMinutes() - d.getTimezoneOffset()); return d.toISOString().split('T')[0]; };
 
 const listaLigas = [
@@ -72,10 +71,7 @@ const listaLigas = [
 const crescimentoBancaGlobal = [ { dia: "1", banca: 1000 }, { dia: "2", banca: 1080 }, { dia: "3", banca: 1150 }, { dia: "4", banca: 1210 }, { dia: "5", banca: 1280 }, { dia: "6", banca: 1350 }, { dia: "7", banca: 1420 } ];
 const mockRankingUsuarios = [ { id: 1, nome: "Lucas", lucro_total: 1840 }, { id: 2, nome: "Carlos", lucro_total: 1430 }, { id: 3, nome: "João", lucro_total: 1180 } ];
 
-const mockJogosData = [
-  { id: 101, league_id: 71, league_name: 'Brasileirão Série A', starting_at: `${getLocalYYYYMMDD()}T16:00:00`, status: 'Live', time_elapsed: 62, home_team: 'Flamengo', home_id: 127, away_team: 'Palmeiras', away_id: 121, home_image: 'https://media.api-sports.io/football/teams/127.png', away_image: 'https://media.api-sports.io/football/teams/121.png', scoreHome: 2, scoreAway: 1, confianca_ia: 86, odd_principal: 1.82, odd_abertura: 1.95, homeStats: {form: 85, h2h: 80, attack: 88, formacao: "4-3-3"}, awayStats: {form: 75, formacao: "4-4-2"} },
-  { id: 102, league_id: 999, league_name: 'Copa América', starting_at: `${getLocalYYYYMMDD()}T19:30:00`, status: 'Not Started', time_elapsed: 0, home_team: 'Brasil', home_id: 40, away_team: 'Colômbia', away_id: 50, home_image: 'https://media.api-sports.io/football/teams/6.png', away_image: 'https://media.api-sports.io/football/teams/8.png', scoreHome: null, scoreAway: null, confianca_ia: 91, odd_principal: 1.65, odd_abertura: 1.70, homeStats: {form: 78, h2h: 60, attack: 85, formacao: "4-3-3"}, awayStats: {form: 82, formacao: "4-2-3-1"} }
-];
+const mockJogosData = [];
 
 // ============================================================================
 // 📱 COMPONENTE PRINCIPAL
@@ -114,7 +110,7 @@ export default function App() {
   const { favoritos, toggleFavorito } = useFavoritos();
   const { jogos: jogosDoHook, loading: loadingHook } = useJogos(API_URL, ligaAtivaId, mockJogosData);
 
-  // 🔄 SINCRONIZAÇÃO EM TEMPO REAL E CÁLCULO DE PROBABILIDADE
+  // 🔄 SINCRONIZAÇÃO EM TEMPO REAL E LEITURA DE ESCUDOS
   useEffect(() => {
     const puxarJogosDoServidor = async () => {
       try {
@@ -125,26 +121,28 @@ export default function App() {
         const dadosFormatados = dadosBrutos.map(j => {
           const isLiveMatch = j.tempo_jogo === 'INTERVALO' || j.tempo_jogo.includes("'") || j.tempo_jogo.includes('MIN');
           
-          // 🔥 MOTOR DE PROBABILIDADE REALISTA: Baseado na odd com um toque de IA
           const oddPrincipal = j.odd_principal || (Math.random() * (2.8 - 1.2) + 1.2);
           const probMercado = 100 / oddPrincipal;
-          const edgeIA = Math.floor(Math.random() * 9) - 2; // Variação de -2% a +6%
+          const edgeIA = Math.floor(Math.random() * 9) - 2; 
           const confiancaReal = (j.confianca_ia && j.confianca_ia !== 89) ? j.confianca_ia : Math.min(99, Math.round(probMercado + edgeIA));
 
           return {
             id: j.id_jogo,
             league_id: 999, 
-            league_name: j.liga || j.campeonato || 'Monitoramento Ao Vivo', // Preserva o nome da liga original
+            league_name: j.liga || j.campeonato || 'Monitoramento Ao Vivo',
             starting_at: `${getLocalYYYYMMDD()}T00:00:00`,
             status: isLiveMatch ? 'Live' : (j.tempo_jogo.includes('ENCERRADO') ? 'Finished' : 'Not Started'),
             time_elapsed: j.tempo_jogo, 
             home_team: j.time_casa,
             away_team: j.time_fora,
-            home_image: 'https://cdn-icons-png.flaticon.com/512/5323/5323814.png', 
-            away_image: 'https://cdn-icons-png.flaticon.com/512/5323/5323814.png',
+            
+            // 🔥 MÁGICA DOS ESCUDOS: Puxa a imagem do banco, se não tiver, usa o padrão
+            home_image: j.logo_casa || 'https://cdn-icons-png.flaticon.com/512/5323/5323814.png', 
+            away_image: j.logo_fora || 'https://cdn-icons-png.flaticon.com/512/5323/5323814.png',
+            
             scoreHome: j.placar_casa,
             scoreAway: j.placar_fora,
-            confianca_ia: confiancaReal, // Agora cada jogo tem uma probabilidade matemática real!
+            confianca_ia: confiancaReal, 
             odd_principal: oddPrincipal,
             odd_abertura: oddPrincipal + 0.1,
             homeStats: { form: Math.floor(Math.random()*40)+50, h2h: 75, attack: 82, formacao: "4-3-3" },
@@ -175,13 +173,19 @@ export default function App() {
   
   useEffect(() => { 
       const em = localStorage.getItem('bet_sessao_ativa'); 
-      if (em) setUserData({ email: em, nome: localStorage.getItem('bet_user_nome') || "Lucas Montesso", is_vip: true, is_admin: true }); 
-      else if (MODO_DEMONSTRACAO) setUserData({ email: "lucas@vip.com", nome: "Lucas Montesso", is_vip: true, is_admin: true }); 
+      const ADMIN_EMAIL = "lucasmontesso@admin.com"; // 🔥 COLOQUE SEU EMAIL DE ADMIN AQUI
+      
+      if (em) {
+          setUserData({ email: em, nome: localStorage.getItem('bet_user_nome') || "Lucas Montesso", is_vip: true, is_admin: (em === ADMIN_EMAIL) }); 
+      }
+      else if (MODO_DEMONSTRACAO) {
+          // No modo demo, se você quiser ver a aba admin, deixe is_admin: true
+          setUserData({ email: "lucas@vip.com", nome: "Lucas Montesso", is_vip: true, is_admin: true }); 
+      } 
   }, []);
 
   useEffect(() => {
       if(jogos.length){
-          // O Bilhete Premium agora respeita a aba atual
           const jogosValidos = viewMode === 'copa' 
               ? jogos.filter(j => isSelecao(j.home_team, j.away_team, j.league_name))
               : jogos.filter(j => !isSelecao(j.home_team, j.away_team, j.league_name));
@@ -192,14 +196,10 @@ export default function App() {
       }
   }, [jogos, viewMode]);
 
-  // 🔥 O GRANDE FILTRO SEPARADOR: Analisa quem é clube e quem é seleção
   let jFilt = (jogos||[]).filter(j => { 
       const sel = isSelecao(j.home_team, j.away_team, j.league_name);
-      
-      // Regra de Separação
-      if (viewMode === 'jogos' && sel) return false; // Esconde seleções da Home
-      if (viewMode === 'copa' && !sel) return false;  // Esconde clubes da Copa
-
+      if (viewMode === 'jogos' && sel) return false; 
+      if (viewMode === 'copa' && !sel) return false;  
       if (filterCentro === 'Ao Vivo') return j.status === 'Live'; 
       if (filterCentro === 'Favoritos') return favoritos.includes(j.id); 
       if (ligaAtivaId !== null && j.league_id !== ligaAtivaId && j.league_id !== 999) return false;
@@ -270,9 +270,6 @@ export default function App() {
       {menuAtivo !== 'assinar pro' && !jogoSelecionado && (
           <div className="animate-fade-in pt-4 w-full">
               
-              {/* =========================================================
-                  A TELA DA COPA (APENAS SELEÇÕES)
-              ========================================================= */}
               {viewMode === 'copa' && (
                   <div className="px-4 w-full">
                       <div className="bg-gradient-to-br from-yellow-600 to-yellow-900 rounded-3xl p-6 mb-6 shadow-lg shadow-yellow-500/20 relative overflow-hidden">
@@ -286,7 +283,6 @@ export default function App() {
                           <button onClick={() => setFilterCentro('Ao Vivo')} className={`px-5 py-2.5 rounded-full text-xs font-black whitespace-nowrap flex items-center gap-2 border ${filterCentro==='Ao Vivo' ? 'bg-white text-black border-white' : 'bg-[#050816] border-slate-700 text-slate-400'}`}>Ao Vivo <span className="w-2 h-2 rounded-full bg-red-500 animate-pulse"></span></button>
                       </div>
 
-                      {/* Bilhete Premium Específico para Seleções */}
                       {bilhetePremium.selecoes.length > 0 && (
                           <div className="bg-[#0f172a] border border-green-500/30 rounded-3xl p-4 mb-6 shadow-lg transform-gpu">
                               <h2 className="font-black text-green-400 mb-4 flex items-center gap-2 uppercase tracking-wider text-xs"><Target className="w-4 h-4"/> Múltipla de Seleções</h2>
@@ -309,9 +305,6 @@ export default function App() {
                   </div>
               )}
 
-              {/* =========================================================
-                  A TELA PRINCIPAL (APENAS CLUBES)
-              ========================================================= */}
               {viewMode === 'jogos' && (
                   <>
                     {userData?.is_vip && (
@@ -353,7 +346,6 @@ export default function App() {
                   </>
               )}
 
-              {/* OUTRAS TELAS */}
               {viewMode === 'perfil' && (
                   <div className="px-4 animate-fade-in w-full">
                      <Suspense fallback={<div className="text-center p-10 font-black text-blue-500 animate-pulse uppercase tracking-widest text-xs">A carregar Perfil Premium...</div>}>
@@ -374,10 +366,33 @@ export default function App() {
                       </div>
                   </div>
               )}
+
+              {/* TELA ADMIN */}
+              {viewMode === 'admin' && (
+                  <div className="px-4 animate-fade-in pb-20 w-full">
+                      <HeaderNav title="⚙️ Painel de Controle Admin" onBack={() => setViewMode('perfil')} />
+                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 mb-6">
+                          <div className="bg-[#0f172a] p-4 sm:p-5 rounded-3xl border border-white/5 shadow-lg transform-gpu min-w-0">
+                              <div className="text-[10px] text-slate-400 uppercase tracking-widest mb-1 font-bold truncate">Total Usuários</div>
+                              <div className="text-2xl sm:text-3xl font-black text-white truncate">1,248</div>
+                          </div>
+                          <div className="bg-[#0f172a] p-4 sm:p-5 rounded-3xl border border-yellow-500/20 shadow-lg transform-gpu min-w-0">
+                              <div className="text-[10px] text-slate-400 uppercase tracking-widest mb-1 font-bold truncate">Assinantes PRO</div>
+                              <div className="text-2xl sm:text-3xl font-black text-yellow-400 truncate">312</div>
+                          </div>
+                          <div className="bg-[#0f172a] p-4 sm:p-5 rounded-3xl border border-green-500/20 shadow-lg col-span-1 sm:col-span-2 flex justify-between items-center transform-gpu min-w-0">
+                              <div className="pr-2 min-w-0">
+                                <div className="text-[10px] text-slate-400 uppercase tracking-widest mb-1 font-bold truncate">Receita Mensal Estimada</div>
+                                <div className="text-2xl sm:text-3xl font-black text-green-400 truncate">R$ 9.328,80</div>
+                              </div>
+                              <DollarSign className="w-8 h-8 text-green-500 opacity-50 flex-shrink-0"/>
+                          </div>
+                      </div>
+                  </div>
+              )}
           </div>
       )}
 
-      {/* COMPONENTE DO PAINEL DO JOGO SELECIONADO */}
       {jogoSelecionado && menuAtivo !== 'assinar pro' && (
           <Suspense fallback={<div className="text-center p-10 font-black text-blue-500 animate-pulse text-xs uppercase tracking-widest">A carregar estatísticas do jogo...</div>}>
               <PainelJogo jogo={jogoSelecionado} setJogoSelecionado={setJogoSelecionado} bancaInicial={bancaInicial} gerarExplicacaoIA={gerarExplicacaoIA} calcularStake={calcularStake} calcularKelly={calcularKelly} />
@@ -411,6 +426,14 @@ export default function App() {
         <button onClick={() => {setViewMode('copa'); setJogoSelecionado(null);}} className={`flex flex-col items-center gap-1.5 transition-colors ${viewMode === 'copa' ? 'text-yellow-500 drop-shadow-[0_0_8px_rgba(234,179,8,0.4)]' : 'text-slate-500 hover:text-slate-300'}`}><Trophy className="w-6 h-6" /><span className="text-[9px] font-black uppercase tracking-widest">Copa</span></button>
         <button onClick={() => {setViewMode('alertas'); setJogoSelecionado(null);}} className={`flex flex-col items-center gap-1.5 transition-colors ${viewMode === 'alertas' ? 'text-blue-500' : 'text-slate-500 hover:text-slate-300'}`}><Bell className="w-6 h-6" /><span className="text-[9px] font-black uppercase tracking-widest">Alertas</span></button>
         <button onClick={() => {setViewMode('perfil'); setJogoSelecionado(null);}} className={`flex flex-col items-center gap-1.5 transition-colors ${['perfil','admin'].includes(viewMode) ? 'text-blue-500' : 'text-slate-500 hover:text-slate-300'}`}><User className="w-6 h-6" /><span className="text-[9px] font-black uppercase tracking-widest">Perfil</span></button>
+        
+        {/* 🔥 ABA ADMIN BLINDADA */}
+        {userData?.is_admin && (
+             <button onClick={() => {setViewMode('admin'); setJogoSelecionado(null);}} className={`flex flex-col items-center gap-1.5 transition-colors ${viewMode === 'admin' ? 'text-blue-500' : 'text-slate-500 hover:text-slate-300'}`}>
+                 <Zap className="w-6 h-6 text-yellow-500" />
+                 <span className="text-[9px] font-black text-yellow-500 uppercase tracking-widest">Admin</span>
+             </button>
+        )}
       </nav>
     </div>
   );
