@@ -1,128 +1,94 @@
+import os
 import time
 import requests
-from bs4 import BeautifulSoup
-from supabase import create_client, Client
 from datetime import datetime
+from supabase import create_client, Client
 
-# ==========================================
-# 🔐 CONFIGURAÇÕES DE SEGURANÇA E APIS
-# ==========================================
-# A sua chave da ScraperAPI
-SCRAPER_API_KEY = '04016419f7fb783b38ae2fe116693b7c' 
-
-# A sua configuração do Supabase
-SUPABASE_URL = 'https://pztznppbmonhrrzfbnvh.supabase.co'
-SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InB6dHpucHBibW9uaHJyemZibnZoIiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc4MDYxNzA5MiwiZXhwIjoyMDk2MTkzMDkyfQ.t3Dvvcc6jpa9joGECZmIX4QigdjlseuVjDhiLU_Q0mY' # <--- Cole sua chave do Supabase aqui
+# =========================================================
+# 🔒 CONFIGURAÇÕES DE SEGURANÇA E CHAVES
+# =========================================================
+SUPABASE_URL = os.environ.get("https://pztnppbmonhrrzfbnvh.supabase.co")
+SUPABASE_KEY = os.environ.get("eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InB6dHpucHBibW9uaHJyemZibnZoIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODA2MTcwOTIsImV4cCI6MjA5NjE5MzA5Mn0.4ztEexACzSpsa0cikJjDlniXUeCnA-DPh20LQhg9qvM")
+API_FOOTBALL_KEY = os.environ.get("API_FOOTBALL_KEY") # Nova chave!
 
 supabase: Client = create_client(SUPABASE_URL, SUPABASE_KEY)
 
-# ==========================================
-# 🤖 MOTOR DE RASPAGEM PROTEGIDA (ANTI-BAN)
-# ==========================================
-def buscar_html_seguro(url_alvo):
-    print(f"[{datetime.now().strftime('%H:%M:%S')}] 🛡️ Fazendo requisição blindada via ScraperAPI...")
-    
-    payload = {
-        'api_key': SCRAPER_API_KEY, 
-        'url': url_alvo, 
-        'render': 'false' # Mantido false para evitar o Erro 500 de timeout do servidor deles
-    }
+HEADERS = {
+    "x-apisports-key": API_FOOTBALL_KEY,
+    "x-rapidapi-host": "v3.football.api-sports.io"
+}
+
+# CONFIGURAÇÃO DE ECONOMIA DE API (20 min = 72 req/dia = 2160/mês)
+INTERVALO_MINUTOS = 20  
+
+def buscar_jogos_ao_vivo():
+    hora_atual = datetime.now().strftime('%H:%M:%S')
+    print(f"[{hora_atual}] Buscando jogos na API-Football (Modo Economia)...")
+    url = "https://v3.football.api-sports.io/fixtures?live=all"
     
     try:
-        response = requests.get('https://api.scraperapi.com/', params=payload)
-        response.raise_for_status()
-        return response.text
+        response = requests.get(url, headers=HEADERS, timeout=10)
+        dados = response.json()
+        
+        if not dados.get("response"):
+            print("Nenhum jogo ao vivo encontrado neste momento.")
+            return []
+            
+        return dados["response"]
     except Exception as e:
-        print(f"❌ Erro na requisição segura: {e}")
-        return None
+        print(f"Erro ao consultar a API-Football: {e}")
+        return []
 
-# ==========================================
-# ⚽ EXTRATOR E CONVERSOR DE DADOS (ATUALIZADO)
-# ==========================================
-def extrair_e_salvar_jogos(html):
-    # 1. Salva um "Raio-X" (Mantemos para segurança)
-    try:
-        with open("debug_site.html", "w", encoding="utf-8") as arquivo:
-            arquivo.write(html)
-    except:
-        pass
-
-    # 2. Processa o HTML
-    soup = BeautifulSoup(html, 'html.parser')
-    
-    # A NOVA CLASSE MÁGICA QUE VOCÊ DESCOBRIU:
-    jogos_html = soup.find_all('div', class_='row align-items-center content')
-    
-    if not jogos_html:
-        print("⚠️ Nenhum jogo encontrado. O site pode estar sem jogos ao vivo agora.")
+def salvar_no_banco(jogos):
+    if not jogos:
         return
-
-    for jogo in jogos_html:
+        
+    for j in jogos:
+        fixture = j["fixture"]
+        league = j["league"]
+        teams = j["teams"]
+        goals = j["goals"]
+        
+        # Usa o ID oficial da API-Football (Essencial para o React achar a escalação depois)
+        id_jogo = fixture["id"]
+        
+        # Validação do tempo de jogo
+        tempo_jogo = str(fixture["status"]["elapsed"]) if fixture["status"]["elapsed"] else fixture["status"]["short"]
+        if tempo_jogo == "HT": tempo_jogo = "INTERVALO"
+        
+        dados_db = {
+            "id_jogo": id_jogo,
+            "liga": league["name"],
+            "time_casa": teams["home"]["name"],
+            "time_fora": teams["away"]["name"],
+            "placar_casa": goals["home"] if goals["home"] is not None else 0,
+            "placar_fora": goals["away"] if goals["away"] is not None else 0,
+            "tempo_jogo": tempo_jogo,
+            "odd_principal": 1.85, # O frontend React recalcula a odd dinamicamente para poupar a API de odds
+            "confianca_ia": 89   # O frontend processa a variação
+        }
+        
         try:
-            # Pega os nomes dos times (Estão dentro da classe 'team-name')
-            times = jogo.find_all('div', class_='team-name')
-            if len(times) < 2:
-                continue 
-                
-            time_casa = times[0].text.strip()
-            time_fora = times[1].text.strip()
-            
-            # Pega os placares (Estão na classe 'badge-default' dentro de 'match-score')
-            placares = jogo.select('.match-score span.badge-default')
-            
-            placar_casa = 0
-            placar_fora = 0
-            
-            # Alguns jogos agendados ainda não têm placar, então garantimos que não dê erro
-            if len(placares) >= 2:
-                try:
-                    placar_casa = int(placares[0].text.strip())
-                    placar_fora = int(placares[1].text.strip())
-                except ValueError:
-                    pass # Se o texto for vazio, fica zero.
-            
-            # Pega o tempo/status (Classe 'status-name')
-            status_elemento = jogo.find('span', class_='status-name')
-            tempo_jogo = status_elemento.text.strip() if status_elemento else "AGENDADO"
-            
-            # Cria um ID único
-            data_hoje = datetime.now().strftime("%Y%m%d")
-            id_jogo = f"{time_casa[:3]}_{time_fora[:3]}_{data_hoje}".replace(" ", "_").upper()
-            
-            dados_jogo = {
-                "id_jogo": id_jogo,
-                "time_casa": time_casa,
-                "time_fora": time_fora,
-                "placar_casa": placar_casa,
-                "placar_fora": placar_fora,
-                "tempo_jogo": tempo_jogo,
-                "status": "LIVE" if "INTERVALO" in tempo_jogo or "'" in tempo_jogo else "INFO"
-            }
-            
-            # Executa o UPSERT no Supabase
-            supabase.table('jogos_ao_vivo').upsert(dados_jogo).execute()
-            print(f"✅ GOOOOOL! Salvo no banco: {time_casa} {placar_casa} x {placar_fora} {time_fora} ({tempo_jogo})")
-            
+            # UPSERT: Insere se for novo, Atualiza se o jogo já existir
+            supabase.table("jogos_ao_vivo").upsert(dados_db).execute()
         except Exception as e:
-            # Se uma linha específica falhar, ele pula pro próximo jogo sem travar
-            continue
+            print(f"Erro ao salvar jogo ID {id_jogo}: {e}")
+            
+    print(f"✅ GOOOOOL! {len(jogos)} jogos salvos no banco de dados!")
 
-# ==========================================
-# 🔄 LOOP CONTÍNUO (MANTÉM O APP VIVO)
-# ==========================================
-def iniciar_crawler():
-    url_alvo = 'https://www.placardefutebol.com.br/jogos-de-hoje'
-    
-    print("🚀 Robô Crawler BetAnalytics ativo e monitorando em tempo real!")
+def iniciar_robo():
+    print("🤖 Robô BetAnalytics PRO (API-Football) Iniciado!")
+    print(f"💰 Custo Mensal Estimado: 2.160 requisições (Limite: 7.500)")
     
     while True:
-        html = buscar_html_seguro(url_alvo)
+        jogos = buscar_jogos_ao_vivo()
+        salvar_no_banco(jogos)
         
-        if html:
-            extrair_e_salvar_jogos(html)
-        
-        print("💤 Aguardando 2 minutos para a próxima varredura...\n")
-        time.sleep(120)
+        print(f"⏳ Dormindo por {INTERVALO_MINUTOS} minutos para poupar limites da API...")
+        time.sleep(INTERVALO_MINUTOS * 60)
 
 if __name__ == "__main__":
-    iniciar_crawler()
+    if not API_FOOTBALL_KEY:
+        print("❌ ERRO: Chave da API-Football não encontrada nas variáveis de ambiente!")
+    else:
+        iniciar_robo()
