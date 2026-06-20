@@ -114,9 +114,13 @@ export default function App() {
   useEffect(() => {
     const puxarJogosDoServidor = async () => {
       try {
-        const resposta = await fetch(`${API_URL}/api/jogos-ao-vivo`);
-        if (!resposta.ok) throw new Error("Erro na rede");
-        const dadosBrutos = await resposta.json();
+        // 🔥 AGORA O REACT LÊ DIRETO DO SUPABASE (Sem erro 404)
+        const { data: dadosBrutos, error } = await supabase
+          .from('jogos_ao_vivo')
+          .select('*');
+
+        if (error) throw error;
+        if (!dadosBrutos) return;
 
         const dadosFormatados = dadosBrutos.map(j => {
           const isLiveMatch = j.tempo_jogo === 'INTERVALO' || j.tempo_jogo.includes("'") || j.tempo_jogo.includes('MIN');
