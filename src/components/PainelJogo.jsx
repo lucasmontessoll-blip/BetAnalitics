@@ -1,7 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { X, Crosshair, Zap, Radio, AlertTriangle, ShieldAlert, Target, Flame, DollarSign, Clock, Users } from 'lucide-react';
 import { buscarOddsJogo, buscarEscalacoes, buscarEventos } from '../services/apiFootball';
-
 export default function PainelJogo({ jogo, setJogoSelecionado, bancaInicial, gerarExplicacaoIA, calcularStake, calcularKelly }) {
     const [odds, setOdds] = useState([]);
     const [escalacoes, setEscalacoes] = useState(null);

@@ -1,6 +1,8 @@
 import React, { useMemo, useState, lazy, Suspense } from 'react';
 import { AreaChart, Area, ResponsiveContainer, XAxis, YAxis, CartesianGrid, Tooltip } from 'recharts';
 import { User, Settings, Bell, Award, Trophy, Target, DollarSign, BrainCircuit, ShieldAlert, Globe, PieChart, Clock, TrendingUp, Zap, ChevronRight, Activity } from 'lucide-react';
+import HistoricoApostas from './HistoricoApostas.jsx';
+import RankingGlobal from './RankingGlobal.jsx';
 
 const GestaoBanca = lazy(() => import('./GestaoBanca.jsx'));
 const SimuladorStake = lazy(() => import('./SimuladorStake.jsx'));
