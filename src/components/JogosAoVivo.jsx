@@ -13,7 +13,7 @@ export default function JogosAoVivo() {
       if (!resposta.ok) {
         throw new Error('Falha ao conectar com o servidor');
       }
-      const dados = await respuesta.json();
+      const dados = await resposta.json();
       setJogos(dados);
       setErro(null);
     } catch (err) {

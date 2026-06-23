@@ -4,7 +4,13 @@ import { LineChart, Line, ResponsiveContainer, XAxis, YAxis } from 'recharts';
 import { motion, AnimatePresence } from 'framer-motion';
 import { initMercadoPago } from '@mercadopago/sdk-react'; 
 import { createClient } from '@supabase/supabase-js';
+import { useAlertas } from './hooks/useAlertas.js';
+import DashboardIA from './components/DashboardIA.jsx';
+import RadarMundial from './components/RadarMundial.jsx';
+import OddsComparison from './components/OddsComparison.jsx';
 import { Home, Radio, Trophy, Crown, Star, ChevronRight, X, User, Zap, TrendingUp, AlertTriangle, ArrowLeft, Send, DollarSign, Target, Bell, Globe } from 'lucide-react';
+import IAInsights from './components/IAInsights.jsx';
+import CopaStats from './components/CopaStats.jsx';
 
 // ============================================================================
 // ⚙️ IMPORTAÇÃO DOS NOVOS MOTORES (ALGORITMOS E MATEMÁTICA)
@@ -114,7 +120,6 @@ export default function App() {
   useEffect(() => {
     const puxarJogosDoServidor = async () => {
       try {
-        // 🔥 AGORA O REACT LÊ DIRETO DO SUPABASE (Sem erro 404)
         const { data: dadosBrutos, error } = await supabase
           .from('jogos_ao_vivo')
           .select('*');
@@ -140,7 +145,6 @@ export default function App() {
             home_team: j.time_casa,
             away_team: j.time_fora,
             
-            // 🔥 MÁGICA DOS ESCUDOS: Puxa a imagem do banco, se não tiver, usa o padrão
             home_image: j.logo_casa || 'https://cdn-icons-png.flaticon.com/512/5323/5323814.png', 
             away_image: j.logo_fora || 'https://cdn-icons-png.flaticon.com/512/5323/5323814.png',
             
@@ -171,19 +175,29 @@ export default function App() {
   const loading = loadingHook && loadingReal;
 
   const { aiOpen, setAiOpen, aiQuery, setAiQuery, aiLoading, aiMessages, handleAskAI, gerarExplicacaoIA } = useIA(API_URL, jogos, setJogoSelecionado);
+  
+  // Ativa a vigilância constante dos jogos de alta confiança
+  useAlertas(jogos);
+  
+  // Insights simulados para o Dashboard
+  const mockInsights = {
+      valueBet: "Flamengo x Palmeiras (Over 2.5)",
+      golIminente: "Real Madrid (Ataque Perigoso 88')",
+      mercadoErrado: "Empate Anulado odd 2.10",
+      evPositivo: "+14.2% EV (Escanteios)"
+  };
 
   useEffect(() => { const carregarDados = async () => { setRankingUsuarios(mockRankingUsuarios); }; carregarDados(); }, []);
   useEffect(() => { setTimeout(() => setShowSplash(false), 2000); }, []);
   
   useEffect(() => { 
       const em = localStorage.getItem('bet_sessao_ativa'); 
-      const ADMIN_EMAIL = "lucasmontesso@admin.com"; // 🔥 COLOQUE SEU EMAIL DE ADMIN AQUI
+      const ADMIN_EMAIL = "lucasmontesso@admin.com"; 
       
       if (em) {
           setUserData({ email: em, nome: localStorage.getItem('bet_user_nome') || "Lucas Montesso", is_vip: true, is_admin: (em === ADMIN_EMAIL) }); 
       }
       else if (MODO_DEMONSTRACAO) {
-          // No modo demo, se você quiser ver a aba admin, deixe is_admin: true
           setUserData({ email: "lucas@vip.com", nome: "Lucas Montesso", is_vip: true, is_admin: true }); 
       } 
   }, []);
@@ -209,7 +223,8 @@ export default function App() {
       if (ligaAtivaId !== null && j.league_id !== ligaAtivaId && j.league_id !== 999) return false;
       return true; 
   });
-  
+
+  // O jGrp agora fica juntinho do jFilt, sem o HTML no meio
   const jGrp = jFilt.reduce((a, j) => { if (!a[j.league_name]) a[j.league_name] = []; a[j.league_name].push(j); return a; }, {});
 
   // ============================================================================
@@ -274,6 +289,7 @@ export default function App() {
       {menuAtivo !== 'assinar pro' && !jogoSelecionado && (
           <div className="animate-fade-in pt-4 w-full">
               
+              {/* 🏆 SEÇÃO DA COPA DO MUNDO */}
               {viewMode === 'copa' && (
                   <div className="px-4 w-full">
                       <div className="bg-gradient-to-br from-yellow-600 to-yellow-900 rounded-3xl p-6 mb-6 shadow-lg shadow-yellow-500/20 relative overflow-hidden">
@@ -306,9 +322,15 @@ export default function App() {
                       )}
 
                       <RenderizarListaJogos />
+
+                      {/* 🏆 ESTATÍSTICAS DA COPA (Artilheiros e Assistências) */}
+                      <div className="mt-6 w-full">
+                          <CopaStats artilheiros={[]} assistencias={[]} />
+                      </div>
                   </div>
               )}
 
+              {/* ⚽ SEÇÃO PRINCIPAL DE JOGOS */}
               {viewMode === 'jogos' && (
                   <>
                     {userData?.is_vip && (
@@ -350,6 +372,34 @@ export default function App() {
                   </>
               )}
 
+              {/* 🔥 NOVA ABA: RADAR IA */}
+              {viewMode === 'radar' && (
+                  <div className="px-4 animate-fade-in w-full pb-10">
+                      <HeaderNav title="🧠 Central de Inteligência" onBack={() => setViewMode('jogos')} />
+                      
+                      {userData?.is_vip ? (
+                          <>
+                            <DashboardIA insights={mockInsights} />
+                            <RadarMundial jogos={jogos} />
+                            
+                            {/* Exemplo de comparador de odds solto no radar */}
+                            <OddsComparison odds={{bet365: 1.85, betano: 1.90, xbet: 1.92, pinnacle: 2.05}} />
+                            
+                            {/* 🧠 DESTILADOR DE JOGOS (IA Insights) */}
+                            <IAInsights jogos={jogos} />
+                          </>
+                      ) : (
+                          <div className="bg-[#0f172a] border border-yellow-500/30 p-8 rounded-3xl text-center">
+                              <Target className="w-12 h-12 text-yellow-500 mx-auto mb-4 opacity-50" />
+                              <h3 className="text-white font-black mb-2">Acesso Restrito PRO</h3>
+                              <p className="text-slate-400 text-xs mb-6">O Radar Mundial varre mais de 100 ligas buscando falhas nas casas de apostas.</p>
+                              <button onClick={() => setMenuAtivo('assinar pro')} className="bg-yellow-500 text-black font-black px-6 py-3 rounded-xl text-sm w-full shadow-[0_0_15px_rgba(234,179,8,0.4)]">DESBLOQUEAR RADAR</button>
+                          </div>
+                      )}
+                  </div>
+              )}
+
+              {/* 👤 SEÇÃO DE PERFIL */}
               {viewMode === 'perfil' && (
                   <div className="px-4 animate-fade-in w-full">
                      <Suspense fallback={<div className="text-center p-10 font-black text-blue-500 animate-pulse uppercase tracking-widest text-xs">A carregar Perfil Premium...</div>}>
@@ -358,6 +408,7 @@ export default function App() {
                   </div>
               )}
 
+              {/* 🔔 SEÇÃO DE ALERTAS */}
               {viewMode === 'alertas' && (
                   <div className="px-4 animate-fade-in w-full pb-10">
                       <HeaderNav title="🔔 Radar de Oportunidades" onBack={() => setViewMode('jogos')} />
@@ -371,7 +422,7 @@ export default function App() {
                   </div>
               )}
 
-              {/* TELA ADMIN */}
+              {/* ⚙️ TELA ADMIN */}
               {viewMode === 'admin' && (
                   <div className="px-4 animate-fade-in pb-20 w-full">
                       <HeaderNav title="⚙️ Painel de Controle Admin" onBack={() => setViewMode('perfil')} />
@@ -397,6 +448,7 @@ export default function App() {
           </div>
       )}
 
+      {/* TELA DE JOGO ABERTO */}
       {jogoSelecionado && menuAtivo !== 'assinar pro' && (
           <Suspense fallback={<div className="text-center p-10 font-black text-blue-500 animate-pulse text-xs uppercase tracking-widest">A carregar estatísticas do jogo...</div>}>
               <PainelJogo jogo={jogoSelecionado} setJogoSelecionado={setJogoSelecionado} bancaInicial={bancaInicial} gerarExplicacaoIA={gerarExplicacaoIA} calcularStake={calcularStake} calcularKelly={calcularKelly} />
@@ -428,8 +480,8 @@ export default function App() {
         <button onClick={() => {setViewMode('jogos'); setFilterCentro('Todos'); setJogoSelecionado(null);}} className={`flex flex-col items-center gap-1.5 transition-colors ${viewMode === 'jogos' && filterCentro !== 'Ao Vivo' && !jogoSelecionado ? 'text-blue-500' : 'text-slate-500 hover:text-slate-300'}`}><Home className="w-6 h-6" /><span className="text-[9px] font-black uppercase tracking-widest">Início</span></button>
         <button onClick={() => {setViewMode('jogos'); setFilterCentro('Ao Vivo'); setJogoSelecionado(null);}} className={`flex flex-col items-center gap-1.5 transition-colors ${filterCentro === 'Ao Vivo' && !jogoSelecionado ? 'text-red-500' : 'text-slate-500 hover:text-slate-300'}`}><div className="relative"><Radio className="w-6 h-6" />{filterCentro === 'Ao Vivo' && <span className="absolute top-0 right-0 w-2 h-2 bg-red-500 rounded-full animate-pulse"></span>}</div><span className="text-[9px] font-black uppercase tracking-widest">Ao Vivo</span></button>
         <button onClick={() => {setViewMode('copa'); setJogoSelecionado(null);}} className={`flex flex-col items-center gap-1.5 transition-colors ${viewMode === 'copa' ? 'text-yellow-500 drop-shadow-[0_0_8px_rgba(234,179,8,0.4)]' : 'text-slate-500 hover:text-slate-300'}`}><Trophy className="w-6 h-6" /><span className="text-[9px] font-black uppercase tracking-widest">Copa</span></button>
-        <button onClick={() => {setViewMode('alertas'); setJogoSelecionado(null);}} className={`flex flex-col items-center gap-1.5 transition-colors ${viewMode === 'alertas' ? 'text-blue-500' : 'text-slate-500 hover:text-slate-300'}`}><Bell className="w-6 h-6" /><span className="text-[9px] font-black uppercase tracking-widest">Alertas</span></button>
         <button onClick={() => {setViewMode('perfil'); setJogoSelecionado(null);}} className={`flex flex-col items-center gap-1.5 transition-colors ${['perfil','admin'].includes(viewMode) ? 'text-blue-500' : 'text-slate-500 hover:text-slate-300'}`}><User className="w-6 h-6" /><span className="text-[9px] font-black uppercase tracking-widest">Perfil</span></button>
+        <button onClick={() => {setViewMode('radar'); setJogoSelecionado(null);}} className={`flex flex-col items-center gap-1.5 transition-colors ${viewMode === 'radar' ? 'text-blue-500 drop-shadow-[0_0_8px_rgba(37,99,235,0.4)]' : 'text-slate-500 hover:text-slate-300'}`}><Zap className="w-6 h-6" /><span className="text-[9px] font-black uppercase tracking-widest">Radar IA</span></button>
         
         {/* 🔥 ABA ADMIN BLINDADA */}
         {userData?.is_admin && (
