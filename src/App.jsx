@@ -280,25 +280,29 @@ export default function App() {
         <button onClick={() => setMenuAtivo('assinar pro')} className="bg-gradient-to-r from-yellow-500 to-yellow-600 text-black font-black px-3 sm:px-4 py-2 rounded-xl flex items-center gap-2 shadow-[0_0_15px_rgba(234,179,8,0.3)] flex-shrink-0 text-xs sm:text-sm"><Crown className="w-4 h-4" /> {userData?.is_vip ? "VIP ATIVO" : "ASSINAR PRO"}</button>
       </header>
 
-      {/* 🚀 TELA VIP CORRIGIDA COM SETA DE VOLTAR DESTACADA */}
+      {/* =========================================================
+          🚀 TELA VIP COM SETA BLINDADA (FIXA E COM Z-INDEX MÁXIMO)
+      ========================================================= */}
       {menuAtivo === 'assinar pro' && (
-        <div className="px-4 pt-5 animate-fade-in pb-28">
+        <div className="px-4 pt-24 animate-fade-in pb-28 min-h-screen bg-[#050816]">
           
-          <div className="flex items-center gap-3 mb-6">
+          {/* BARRA SUPERIOR FIXA EXCLUSIVA PARA O BOTÃO VOLTAR */}
+          <div className="fixed top-0 left-0 w-full bg-[#050816]/95 backdrop-blur-xl z-[9999] px-5 py-4 border-b border-white/10 flex items-center gap-3 shadow-xl">
             <button
               onClick={() => {
                 setMenuAtivo('Todos os Jogos');
                 setViewMode('jogos');
                 setJogoSelecionado(null);
               }}
-              className="p-2 bg-[#0f172a] rounded-full hover:bg-slate-800 transition border border-white/10 shadow-lg"
+              className="p-2 bg-blue-600 rounded-full hover:bg-blue-500 transition shadow-[0_0_15px_rgba(37,99,235,0.6)] flex-shrink-0"
             >
-              <ArrowLeft className="w-5 h-5 text-white" />
+              <ArrowLeft className="w-6 h-6 text-white" />
             </button>
-            <h2 className="text-lg font-black text-slate-300 uppercase tracking-widest text-[11px]">Voltar ao Início</h2>
+            <span className="font-black text-white uppercase tracking-widest text-xs">Voltar ao App</span>
           </div>
 
-          <div className="bg-gradient-to-br from-yellow-500 to-yellow-700 rounded-3xl p-6 text-black shadow-[0_0_30px_rgba(234,179,8,0.25)] relative overflow-hidden">
+          {/* CARTÃO VIP */}
+          <div className="bg-gradient-to-br from-yellow-500 to-yellow-700 rounded-3xl p-6 text-black shadow-[0_0_30px_rgba(234,179,8,0.25)] relative overflow-hidden mt-4">
             <h2 className="text-2xl font-black mb-2 flex items-center gap-2 relative z-10">
               <Crown className="w-6 h-6" />
               BetAnalytics PRO
@@ -314,9 +318,6 @@ export default function App() {
           </div>
         </div>
       )}
-
-      {menuAtivo !== 'assinar pro' && !jogoSelecionado && (
-          <div className="animate-fade-in pt-4 w-full">
               
               {/* 🏆 SEÇÃO DA COPA DO MUNDO */}
               {viewMode === 'copa' && (
