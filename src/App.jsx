@@ -224,7 +224,6 @@ export default function App() {
       return true; 
   });
 
-  // O jGrp agora fica juntinho do jFilt, sem o HTML no meio
   const jGrp = jFilt.reduce((a, j) => { if (!a[j.league_name]) a[j.league_name] = []; a[j.league_name].push(j); return a; }, {});
 
   // ============================================================================
@@ -285,6 +284,38 @@ export default function App() {
         <h1 className="font-black text-xl sm:text-2xl tracking-tight flex items-center"><span className="italic">BET</span><span className="text-blue-500">ANALYTICS</span><span className="ml-2 bg-blue-600 text-[10px] px-2 py-0.5 rounded-md">PRO</span></h1>
         <button onClick={() => setMenuAtivo('assinar pro')} className="bg-gradient-to-r from-yellow-500 to-yellow-600 text-black font-black px-3 sm:px-4 py-2 rounded-xl flex items-center gap-2 shadow-[0_0_15px_rgba(234,179,8,0.3)] flex-shrink-0 text-xs sm:text-sm"><Crown className="w-4 h-4" /> {userData?.is_vip ? "VIP ATIVO" : "ASSINAR PRO"}</button>
       </header>
+
+      {/* 🚀 TELA VIP CORRIGIDA COM SETA DE VOLTAR */}
+      {menuAtivo === 'assinar pro' && (
+        <div className="px-4 pt-5 animate-fade-in pb-28">
+          <button
+            onClick={() => {
+              setMenuAtivo('Todos os Jogos');
+              setViewMode('jogos');
+              setJogoSelecionado(null);
+            }}
+            className="mb-5 flex items-center gap-2 text-slate-400 hover:text-white text-xs font-black uppercase tracking-widest transition-colors"
+          >
+            <ArrowLeft className="w-4 h-4" />
+            Voltar
+          </button>
+
+          <div className="bg-gradient-to-br from-yellow-500 to-yellow-700 rounded-3xl p-6 text-black shadow-[0_0_30px_rgba(234,179,8,0.25)]">
+            <h2 className="text-2xl font-black mb-2 flex items-center gap-2">
+              <Crown className="w-6 h-6" />
+              BetAnalytics PRO
+            </h2>
+
+            <p className="text-sm font-bold mb-5">
+              Desbloqueie Radar IA, Value Bets, alertas premium, xG, escanteios e análises avançadas.
+            </p>
+
+            <button className="w-full bg-black text-yellow-400 font-black py-4 rounded-2xl text-sm">
+              ASSINAR VIP PRO
+            </button>
+          </div>
+        </div>
+      )}
 
       {menuAtivo !== 'assinar pro' && !jogoSelecionado && (
           <div className="animate-fade-in pt-4 w-full">
@@ -382,10 +413,8 @@ export default function App() {
                             <DashboardIA insights={mockInsights} />
                             <RadarMundial jogos={jogos} />
                             
-                            {/* Exemplo de comparador de odds solto no radar */}
                             <OddsComparison odds={{bet365: 1.85, betano: 1.90, xbet: 1.92, pinnacle: 2.05}} />
                             
-                            {/* 🧠 DESTILADOR DE JOGOS (IA Insights) */}
                             <IAInsights jogos={jogos} />
                           </>
                       ) : (
@@ -476,16 +505,89 @@ export default function App() {
           )}
       </AnimatePresence>
 
+      {/* 🚀 MENU INFERIOR DE NAVEGAÇÃO 100% BLINDADO */}
       <nav className="fixed bottom-0 left-0 right-0 h-20 bg-[#050816] border-t border-white/5 flex justify-around items-center z-50 shadow-[0_-10px_40px_rgba(0,0,0,0.5)]">
-        <button onClick={() => {setViewMode('jogos'); setFilterCentro('Todos'); setJogoSelecionado(null);}} className={`flex flex-col items-center gap-1.5 transition-colors ${viewMode === 'jogos' && filterCentro !== 'Ao Vivo' && !jogoSelecionado ? 'text-blue-500' : 'text-slate-500 hover:text-slate-300'}`}><Home className="w-6 h-6" /><span className="text-[9px] font-black uppercase tracking-widest">Início</span></button>
-        <button onClick={() => {setViewMode('jogos'); setFilterCentro('Ao Vivo'); setJogoSelecionado(null);}} className={`flex flex-col items-center gap-1.5 transition-colors ${filterCentro === 'Ao Vivo' && !jogoSelecionado ? 'text-red-500' : 'text-slate-500 hover:text-slate-300'}`}><div className="relative"><Radio className="w-6 h-6" />{filterCentro === 'Ao Vivo' && <span className="absolute top-0 right-0 w-2 h-2 bg-red-500 rounded-full animate-pulse"></span>}</div><span className="text-[9px] font-black uppercase tracking-widest">Ao Vivo</span></button>
-        <button onClick={() => {setViewMode('copa'); setJogoSelecionado(null);}} className={`flex flex-col items-center gap-1.5 transition-colors ${viewMode === 'copa' ? 'text-yellow-500 drop-shadow-[0_0_8px_rgba(234,179,8,0.4)]' : 'text-slate-500 hover:text-slate-300'}`}><Trophy className="w-6 h-6" /><span className="text-[9px] font-black uppercase tracking-widest">Copa</span></button>
-        <button onClick={() => {setViewMode('perfil'); setJogoSelecionado(null);}} className={`flex flex-col items-center gap-1.5 transition-colors ${['perfil','admin'].includes(viewMode) ? 'text-blue-500' : 'text-slate-500 hover:text-slate-300'}`}><User className="w-6 h-6" /><span className="text-[9px] font-black uppercase tracking-widest">Perfil</span></button>
-        <button onClick={() => {setViewMode('radar'); setJogoSelecionado(null);}} className={`flex flex-col items-center gap-1.5 transition-colors ${viewMode === 'radar' ? 'text-blue-500 drop-shadow-[0_0_8px_rgba(37,99,235,0.4)]' : 'text-slate-500 hover:text-slate-300'}`}><Zap className="w-6 h-6" /><span className="text-[9px] font-black uppercase tracking-widest">Radar IA</span></button>
+        
+        {/* INÍCIO */}
+        <button 
+          onClick={() => {
+            setMenuAtivo('Todos os Jogos');
+            setViewMode('jogos');
+            setFilterCentro('Todos');
+            setJogoSelecionado(null);
+          }} 
+          className={`flex flex-col items-center gap-1.5 transition-colors ${viewMode === 'jogos' && filterCentro !== 'Ao Vivo' && !jogoSelecionado && menuAtivo !== 'assinar pro' ? 'text-blue-500' : 'text-slate-500 hover:text-slate-300'}`}
+        >
+          <Home className="w-6 h-6" />
+          <span className="text-[9px] font-black uppercase tracking-widest">Início</span>
+        </button>
+
+        {/* AO VIVO */}
+        <button 
+          onClick={() => {
+            setMenuAtivo('Todos os Jogos');
+            setViewMode('jogos');
+            setFilterCentro('Ao Vivo');
+            setJogoSelecionado(null);
+          }} 
+          className={`flex flex-col items-center gap-1.5 transition-colors ${filterCentro === 'Ao Vivo' && !jogoSelecionado && menuAtivo !== 'assinar pro' ? 'text-red-500' : 'text-slate-500 hover:text-slate-300'}`}
+        >
+          <div className="relative">
+            <Radio className="w-6 h-6" />
+            {filterCentro === 'Ao Vivo' && <span className="absolute top-0 right-0 w-2 h-2 bg-red-500 rounded-full animate-pulse"></span>}
+          </div>
+          <span className="text-[9px] font-black uppercase tracking-widest">Ao Vivo</span>
+        </button>
+
+        {/* COPA */}
+        <button 
+          onClick={() => {
+            setMenuAtivo('Todos os Jogos');
+            setViewMode('copa');
+            setJogoSelecionado(null);
+          }} 
+          className={`flex flex-col items-center gap-1.5 transition-colors ${viewMode === 'copa' && menuAtivo !== 'assinar pro' ? 'text-yellow-500 drop-shadow-[0_0_8px_rgba(234,179,8,0.4)]' : 'text-slate-500 hover:text-slate-300'}`}
+        >
+          <Trophy className="w-6 h-6" />
+          <span className="text-[9px] font-black uppercase tracking-widest">Copa</span>
+        </button>
+
+        {/* PERFIL */}
+        <button 
+          onClick={() => {
+            setMenuAtivo('Todos os Jogos');
+            setViewMode('perfil');
+            setJogoSelecionado(null);
+          }} 
+          className={`flex flex-col items-center gap-1.5 transition-colors ${['perfil','admin'].includes(viewMode) && menuAtivo !== 'assinar pro' ? 'text-blue-500' : 'text-slate-500 hover:text-slate-300'}`}
+        >
+          <User className="w-6 h-6" />
+          <span className="text-[9px] font-black uppercase tracking-widest">Perfil</span>
+        </button>
+
+        {/* RADAR IA */}
+        <button 
+          onClick={() => {
+            setMenuAtivo('Todos os Jogos');
+            setViewMode('radar');
+            setJogoSelecionado(null);
+          }} 
+          className={`flex flex-col items-center gap-1.5 transition-colors ${viewMode === 'radar' && menuAtivo !== 'assinar pro' ? 'text-blue-500 drop-shadow-[0_0_8px_rgba(37,99,235,0.4)]' : 'text-slate-500 hover:text-slate-300'}`}
+        >
+          <Zap className="w-6 h-6" />
+          <span className="text-[9px] font-black uppercase tracking-widest">Radar IA</span>
+        </button>
         
         {/* 🔥 ABA ADMIN BLINDADA */}
         {userData?.is_admin && (
-             <button onClick={() => {setViewMode('admin'); setJogoSelecionado(null);}} className={`flex flex-col items-center gap-1.5 transition-colors ${viewMode === 'admin' ? 'text-blue-500' : 'text-slate-500 hover:text-slate-300'}`}>
+             <button 
+               onClick={() => {
+                 setMenuAtivo('Todos os Jogos');
+                 setViewMode('admin');
+                 setJogoSelecionado(null);
+               }} 
+               className={`flex flex-col items-center gap-1.5 transition-colors ${viewMode === 'admin' && menuAtivo !== 'assinar pro' ? 'text-blue-500' : 'text-slate-500 hover:text-slate-300'}`}
+             >
                  <Zap className="w-6 h-6 text-yellow-500" />
                  <span className="text-[9px] font-black text-yellow-500 uppercase tracking-widest">Admin</span>
              </button>
