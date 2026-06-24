@@ -318,6 +318,9 @@ export default function App() {
           </div>
         </div>
       )}
+
+      {menuAtivo !== 'assinar pro' && !jogoSelecionado && (
+          <div className="animate-fade-in pt-4 w-full">
               
               {/* 🏆 SEÇÃO DA COPA DO MUNDO */}
               {viewMode === 'copa' && (
