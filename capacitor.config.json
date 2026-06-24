@@ -1,5 +1,9 @@
 {
   "appId": "com.betanalytics.pro",
   "appName": "BetAnalyticsPRO",
-  "webDir": "dist"
+  "webDir": "dist",
+  "server": {
+    "url": "https://betanalitics-q0fq.onrender.com",
+    "cleartext": false
+  }
 }
