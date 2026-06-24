@@ -1,9 +1,29 @@
 self.addEventListener('install', (event) => {
-  console.log('Service Worker BetAnalytics Instalado com Sucesso.');
   self.skipWaiting();
 });
 
+self.addEventListener('activate', (event) => {
+  event.waitUntil(self.clients.claim());
+});
+
 self.addEventListener('fetch', (event) => {
-  // Pass-through básico para manter a app online e não dar erro de no-op
-  event.respondWith(fetch(event.request));
+  // Não intercepta localhost/Vite dev
+  const url = new URL(event.request.url);
+
+  if (
+    url.hostname === 'localhost' ||
+    url.hostname === '127.0.0.1' ||
+    event.request.method !== 'GET'
+  ) {
+    return;
+  }
+
+  event.respondWith(
+    fetch(event.request).catch(() => {
+      return new Response('Offline', {
+        status: 503,
+        statusText: 'Offline',
+      });
+    })
+  );
 });
