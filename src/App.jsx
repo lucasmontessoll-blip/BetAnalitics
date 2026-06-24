@@ -176,10 +176,8 @@ export default function App() {
 
   const { aiOpen, setAiOpen, aiQuery, setAiQuery, aiLoading, aiMessages, handleAskAI, gerarExplicacaoIA } = useIA(API_URL, jogos, setJogoSelecionado);
   
-  // Ativa a vigilância constante dos jogos de alta confiança
   useAlertas(jogos);
   
-  // Insights simulados para o Dashboard
   const mockInsights = {
       valueBet: "Flamengo x Palmeiras (Over 2.5)",
       golIminente: "Real Madrid (Ataque Perigoso 88')",
@@ -226,9 +224,6 @@ export default function App() {
 
   const jGrp = jFilt.reduce((a, j) => { if (!a[j.league_name]) a[j.league_name] = []; a[j.league_name].push(j); return a; }, {});
 
-  // ============================================================================
-  // 🧩 COMPONENTES REUTILIZÁVEIS
-  // ============================================================================
   const RenderizarListaJogos = () => {
       if (loading) return <div className="text-center text-slate-500 py-10">Buscando radar de jogos...</div>;
       if (Object.keys(jGrp).length === 0) return <div className="text-center text-slate-500 py-10 font-bold">Nenhuma oportunidade encontrada com estes filtros.</div>;
@@ -285,32 +280,35 @@ export default function App() {
         <button onClick={() => setMenuAtivo('assinar pro')} className="bg-gradient-to-r from-yellow-500 to-yellow-600 text-black font-black px-3 sm:px-4 py-2 rounded-xl flex items-center gap-2 shadow-[0_0_15px_rgba(234,179,8,0.3)] flex-shrink-0 text-xs sm:text-sm"><Crown className="w-4 h-4" /> {userData?.is_vip ? "VIP ATIVO" : "ASSINAR PRO"}</button>
       </header>
 
-      {/* 🚀 TELA VIP CORRIGIDA COM SETA DE VOLTAR */}
+      {/* 🚀 TELA VIP CORRIGIDA COM SETA DE VOLTAR DESTACADA */}
       {menuAtivo === 'assinar pro' && (
         <div className="px-4 pt-5 animate-fade-in pb-28">
-          <button
-            onClick={() => {
-              setMenuAtivo('Todos os Jogos');
-              setViewMode('jogos');
-              setJogoSelecionado(null);
-            }}
-            className="mb-5 flex items-center gap-2 text-slate-400 hover:text-white text-xs font-black uppercase tracking-widest transition-colors"
-          >
-            <ArrowLeft className="w-4 h-4" />
-            Voltar
-          </button>
+          
+          <div className="flex items-center gap-3 mb-6">
+            <button
+              onClick={() => {
+                setMenuAtivo('Todos os Jogos');
+                setViewMode('jogos');
+                setJogoSelecionado(null);
+              }}
+              className="p-2 bg-[#0f172a] rounded-full hover:bg-slate-800 transition border border-white/10 shadow-lg"
+            >
+              <ArrowLeft className="w-5 h-5 text-white" />
+            </button>
+            <h2 className="text-lg font-black text-slate-300 uppercase tracking-widest text-[11px]">Voltar ao Início</h2>
+          </div>
 
-          <div className="bg-gradient-to-br from-yellow-500 to-yellow-700 rounded-3xl p-6 text-black shadow-[0_0_30px_rgba(234,179,8,0.25)]">
-            <h2 className="text-2xl font-black mb-2 flex items-center gap-2">
+          <div className="bg-gradient-to-br from-yellow-500 to-yellow-700 rounded-3xl p-6 text-black shadow-[0_0_30px_rgba(234,179,8,0.25)] relative overflow-hidden">
+            <h2 className="text-2xl font-black mb-2 flex items-center gap-2 relative z-10">
               <Crown className="w-6 h-6" />
               BetAnalytics PRO
             </h2>
 
-            <p className="text-sm font-bold mb-5">
+            <p className="text-sm font-bold mb-5 relative z-10">
               Desbloqueie Radar IA, Value Bets, alertas premium, xG, escanteios e análises avançadas.
             </p>
 
-            <button className="w-full bg-black text-yellow-400 font-black py-4 rounded-2xl text-sm">
+            <button className="w-full bg-black text-yellow-400 font-black py-4 rounded-2xl text-sm relative z-10 hover:bg-slate-900 transition-colors shadow-xl">
               ASSINAR VIP PRO
             </button>
           </div>
@@ -354,7 +352,6 @@ export default function App() {
 
                       <RenderizarListaJogos />
 
-                      {/* 🏆 ESTATÍSTICAS DA COPA (Artilheiros e Assistências) */}
                       <div className="mt-6 w-full">
                           <CopaStats artilheiros={[]} assistencias={[]} />
                       </div>
@@ -508,7 +505,6 @@ export default function App() {
       {/* 🚀 MENU INFERIOR DE NAVEGAÇÃO 100% BLINDADO */}
       <nav className="fixed bottom-0 left-0 right-0 h-20 bg-[#050816] border-t border-white/5 flex justify-around items-center z-50 shadow-[0_-10px_40px_rgba(0,0,0,0.5)]">
         
-        {/* INÍCIO */}
         <button 
           onClick={() => {
             setMenuAtivo('Todos os Jogos');
@@ -522,7 +518,6 @@ export default function App() {
           <span className="text-[9px] font-black uppercase tracking-widest">Início</span>
         </button>
 
-        {/* AO VIVO */}
         <button 
           onClick={() => {
             setMenuAtivo('Todos os Jogos');
@@ -539,7 +534,6 @@ export default function App() {
           <span className="text-[9px] font-black uppercase tracking-widest">Ao Vivo</span>
         </button>
 
-        {/* COPA */}
         <button 
           onClick={() => {
             setMenuAtivo('Todos os Jogos');
@@ -552,7 +546,6 @@ export default function App() {
           <span className="text-[9px] font-black uppercase tracking-widest">Copa</span>
         </button>
 
-        {/* PERFIL */}
         <button 
           onClick={() => {
             setMenuAtivo('Todos os Jogos');
@@ -565,7 +558,6 @@ export default function App() {
           <span className="text-[9px] font-black uppercase tracking-widest">Perfil</span>
         </button>
 
-        {/* RADAR IA */}
         <button 
           onClick={() => {
             setMenuAtivo('Todos os Jogos');
@@ -578,7 +570,6 @@ export default function App() {
           <span className="text-[9px] font-black uppercase tracking-widest">Radar IA</span>
         </button>
         
-        {/* 🔥 ABA ADMIN BLINDADA */}
         {userData?.is_admin && (
              <button 
                onClick={() => {
