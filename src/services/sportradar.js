@@ -1,24 +1,22 @@
-// src/services/sportradar.js
 import axios from "axios";
 
-// Configuração base da API
-const api = axios.create({
-  baseURL: "https://api.sportradar.com",
-  headers: {
-    "x-api-key": import.meta.env.VITE_SPORTRADAR_KEY,
-    accept: "application/json"
-  }
-});
-
-// Função pronta para ser exportada e usada em qualquer lugar do App
 export const buscarCompeticoes = async () => {
   try {
-    const { data } = await api.get("/soccer/trial/v4/en/competitions.json");
+    const apiKey = import.meta.env.VITE_SPORTRADAR_KEY;
+    
+    // 1. Montamos a URL original da Sportradar
+    const urlOriginal = `https://api.sportradar.com/soccer/trial/v4/en/competitions.json?api_key=${apiKey}`;
+    
+    // 2. Envolvemos a URL no Proxy para burlar o CORS no Render
+    // O encodeURIComponent garante que os caracteres especiais do link não quebrem a requisição
+    const proxyUrl = `https://corsproxy.io/?${encodeURIComponent(urlOriginal)}`;
+    
+    // 3. Fazemos a chamada através do proxy
+    const { data } = await axios.get(proxyUrl);
+    
     return data;
   } catch (error) {
-    console.error("Erro ao conectar com a Sportradar:", error);
+    console.error("Erro ao conectar com a Sportradar (via Proxy):", error);
     return null;
   }
 };
-
-export default api;
