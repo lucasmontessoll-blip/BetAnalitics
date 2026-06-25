@@ -5,17 +5,17 @@ export const buscarCompeticoes = async () => {
     const { data } = await axios.get("/api/sportradar/competicoes");
     return data;
   } catch (error) {
-    console.error("Erro ao buscar competições da Sportradar:", error);
+    console.error("Erro ao conectar com o backend da Sportradar:", error);
     return null;
   }
 };
 
-export const buscarJogosHojeSportradar = async () => {
+export const buscarJogosDeHoje = async () => {
   try {
     const { data } = await axios.get("/api/sportradar/jogos-hoje");
     return data;
   } catch (error) {
-    console.error("Erro ao buscar jogos Sportradar:", error);
+    console.error("Erro ao buscar jogos de hoje da Sportradar:", error);
     return null;
   }
 };
