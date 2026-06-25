@@ -5,6 +5,7 @@ import { createClient } from '@supabase/supabase-js';
 import { GoogleGenerativeAI } from '@google/generative-ai';
 import path from 'path';
 import { fileURLToPath } from 'url';
+import 'dotenv/config'; // Garante a leitura do arquivo .env no backend
 
 // Configuração obrigatória para usar rotas de ficheiros locais com ES Modules
 const __filename = fileURLToPath(import.meta.url);
@@ -15,31 +16,59 @@ app.use(cors());
 app.use(express.json());
 
 // ============================================================================
-// 📊 ROTA: INTEGRAÇÃO SPORTRADAR (Proxy Seguro Backend - No Topo)
+// 🧠 SISTEMA DE CACHE INTELIGENTE (Para economizar requisições da API)
 // ============================================================================
-const SPORTRADAR_KEY = process.env.SPORTRADAR_KEY || '';
+let cacheCompeticoes = null;
+let ultimaAtualizacaoSportradar = 0;
+const TRINTA_MINUTOS = 30 * 60 * 1000; // Tempo em milissegundos
+
+// ============================================================================
+// 📊 ROTA: INTEGRAÇÃO SPORTRADAR (Com Cache de 30 minutos e todas as ligas)
+// ============================================================================
+const SPORTRADAR_KEY = process.env.SPORTRADAR_KEY || process.env.VITE_SPORTRADAR_KEY || '';
 
 app.get('/api/sportradar/competicoes', async (req, res) => {
   try {
-    if (!SPORTRADAR_KEY) {
-      return res.status(500).json({
-        error: 'SPORTRADAR_KEY não configurada no servidor.'
-      });
+    const agora = Date.now();
+
+    // Se os dados já existem no cache e a última busca foi há menos de 30 minutos, devolve direto da memória
+    if (cacheCompeticoes && (agora - ultimaAtualizacaoSportradar < TRINTA_MINUTOS)) {
+      console.log("⚽ Sportradar: Devolvendo dados completos do Cache (Gasto de API: 0)");
+      return res.json(cacheCompeticoes);
     }
 
+    if (!SPORTRADAR_KEY) {
+      console.error("ERRO: Chave da Sportradar não encontrada no .env");
+      return res.status(500).json({ error: 'SPORTRADAR_KEY não configurada no servidor.' });
+    }
+
+    console.log("📡 Sportradar: Cache expirado ou inexistente. Buscando novos dados na API oficial...");
+    
     const { data } = await axios.get(
-      'https://api.sportradar.com/soccer/trial/v4/en/competitions.json',
+      `https://api.sportradar.com/soccer/trial/v4/en/competitions.json?api_key=${SPORTRADAR_KEY}`,
       {
         headers: {
-          'x-api-key': SPORTRADAR_KEY,
-          accept: 'application/json'
+          'accept': 'application/json'
         }
       }
     );
 
+    // Salva o retorno bruto completo (todas as ligas e Copa do Mundo) na memória do servidor
+    cacheCompeticoes = data;
+    ultimaAtualizacaoSportradar = agora;
+
+    console.log(`✅ Novas competições salvas em cache com sucesso às ${new Date().toLocaleTimeString()}`);
     return res.json(data);
+
   } catch (error) {
     console.error('Erro Sportradar Backend:', error.response?.data || error.message);
+    
+    // Mecanismo de segurança: Se a API falhar/bater limite, mas tivermos dados antigos salvos, usamos eles pro app não cair
+    if (cacheCompeticoes) {
+      console.log("⚠️ API falhou ou bateu limite de taxa. Devolvendo cache existente por segurança.");
+      return res.json(cacheCompeticoes);
+    }
+
     return res.status(error.response?.status || 500).json({
       error: 'Falha ao consultar Sportradar',
       details: error.response?.data || error.message
@@ -145,7 +174,7 @@ app.post('/api/chat-ia', async (req, res) => {
         Aqui estão os dados resumidos da rodada de hoje (Equipas e Odds):
         ${JSON.stringify(dadosDaRodada)}
         
-        Responde à seguinte pergunta do utilizador de forma corta, analítica e indicando sempre que a decisão final é do utilizador. Usa no máximo 3 frases curtas.
+        Responde à seguinte pergunta do utilizador de forma curta, analítica e indicando sempre que a decisão final é do utilizador. Usa no máximo 3 frases curtas.
         
         Pergunta do utilizador: "${pergunta}"
         `;
@@ -190,7 +219,6 @@ app.get('/api/jogos-ao-vivo', async (req, res) => {
 app.use(express.static(path.join(__dirname, 'public')));
 app.use(express.static(path.join(__dirname, 'dist')));
 
-// Fallback do React (SPA) - Tem de ser a ÚLTIMA rota antes do app.listen!
 app.get('*', (req, res) => {
   res.sendFile(path.join(__dirname, 'dist', 'index.html'));
 });
