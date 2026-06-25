@@ -1,5 +1,6 @@
 import axios from "axios";
 
+// Busca lista de competições da Sportradar via backend
 export const buscarCompeticoes = async () => {
   try {
     const { data } = await axios.get("/api/sportradar/competicoes");
@@ -10,6 +11,7 @@ export const buscarCompeticoes = async () => {
   }
 };
 
+// Busca jogos de hoje da Sportradar via backend
 export const buscarJogosDeHoje = async () => {
   try {
     const { data } = await axios.get("/api/sportradar/jogos-hoje");
@@ -18,4 +20,9 @@ export const buscarJogosDeHoje = async () => {
     console.error("Erro ao buscar jogos de hoje da Sportradar:", error);
     return null;
   }
+};
+
+export default {
+  buscarCompeticoes,
+  buscarJogosDeHoje
 };
