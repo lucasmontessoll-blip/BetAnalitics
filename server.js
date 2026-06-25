@@ -15,14 +15,13 @@ app.use(cors());
 app.use(express.json());
 
 // ============================================================================
-// 🔑 CHAVES DE ACESSO (Vindas do .env do Render)
+// 🔑 CHAVES DE ACESSO (Configuradas ou lidas do ambiente do Render)
 // ============================================================================
 const SUPABASE_URL = process.env.SUPABASE_URL || 'https://pztznppbmonhrrzfbnvh.supabase.co';
 const SUPABASE_KEY = process.env.SUPABASE_KEY || 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InB6dHpucHBibW9uaHJyemZibnZoIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODA2MTcwOTIsImV4cCI6MjA5NjE5MzA5Mn0.4ztEexACzSpsa0cikJjDlniXUeCnA-DPh20LQhg9qvM';
 
 const GEMINI_API_KEY = process.env.GEMINI_API_KEY || 'AIzaSyBKlaNtj0uEAJwOReTblDcLDGfpCjYqP18';
 const MP_ACCESS_TOKEN = process.env.MP_ACCESS_TOKEN || 'APP_USR-5947285218976034-050113-a9857b202a29e411236349f75b6b25c3-669622996';
-const SPORTRADAR_KEY = process.env.SPORTRADAR_KEY || ''; // Defina no painel do Render!
 
 // Inicializar Supabase e Gemini
 const supabase = createClient(SUPABASE_URL, SUPABASE_KEY);
@@ -30,35 +29,6 @@ let genAI;
 if (GEMINI_API_KEY !== 'AIzaSyBKlaNtj0uEAJwOReTblDcLDGfpCjYqP18') {
     genAI = new GoogleGenerativeAI(GEMINI_API_KEY);
 }
-
-// ============================================================================
-// 📊 ROTA 0: INTEGRAÇÃO SPORTRADAR (Proxy Backend Seguro)
-// ============================================================================
-app.get('/api/sportradar/competicoes', async (req, res) => {
-  try {
-    if (!SPORTRADAR_KEY) {
-      throw new Error("Chave da Sportradar não configurada no servidor.");
-    }
-
-    const { data } = await axios.get(
-      `https://api.sportradar.com/soccer/trial/v4/en/competitions.json?api_key=${SPORTRADAR_KEY}`,
-      {
-        headers: {
-          'x-api-key': SPORTRADAR_KEY,
-          'accept': 'application/json'
-        }
-      }
-    );
-
-    res.json(data);
-  } catch (error) {
-    console.error('Erro Sportradar Backend:', error.response?.data || error.message);
-    res.status(error.response?.status || 500).json({
-      error: 'Falha ao consultar Sportradar',
-      details: error.response?.data || error.message
-    });
-  }
-});
 
 // ============================================================================
 // 💰 ROTA 1: GERAR PAGAMENTO PIX (E CRIAR USUÁRIO NO SUPABASE)
@@ -137,7 +107,7 @@ app.post('/api/chat-ia', async (req, res) => {
     try {
         const promptMestre = `
         Tu és o Analista-Chefe de Inteligência Artificial do BetAnalytics PRO.
-        És direto, profissional, falas com confiança e dás dicas de apostas baseadas em EV+ (Valor Esperado).
+        És direto, profissional, falas com confidence e dás dicas de apostas baseadas em EV+ (Valor Esperado).
         
         Aqui estão os dados resumidos da rodada de hoje (Equipas e Odds):
         ${JSON.stringify(dadosDaRodada)}
@@ -181,12 +151,47 @@ app.get('/api/jogos-ao-vivo', async (req, res) => {
 });
 
 // ============================================================================
+// 📊 ROTA 5: INTEGRAÇÃO SPORTRADAR (Proxy Seguro Backend)
+// ============================================================================
+const SPORTRADAR_KEY = process.env.SPORTRADAR_KEY || '';
+
+app.get('/api/sportradar/competicoes', async (req, res) => {
+  try {
+    if (!SPORTRADAR_KEY) {
+      return res.status(500).json({
+        error: 'SPORTRADAR_KEY não configurada no servidor.'
+      });
+    }
+
+    const { data } = await axios.get(
+      'https://api.sportradar.com/soccer/trial/v4/en/competitions.json',
+      {
+        headers: {
+          'x-api-key': SPORTRADAR_KEY,
+          'accept': 'application/json'
+        }
+      }
+    );
+
+    return res.json(data);
+  } catch (error) {
+    console.error('Erro Sportradar Backend:', error.response?.data || error.message);
+
+    return res.status(error.response?.status || 500).json({
+      error: 'Falha ao consultar Sportradar',
+      details: error.response?.data || error.message
+    });
+  }
+});
+
+// ============================================================================
 // 🌐 ROTAS DE FRONTEND E ARQUIVOS ESTÁTICOS
 // ============================================================================
 
 app.use(express.static(path.join(__dirname, 'public')));
 app.use(express.static(path.join(__dirname, 'dist')));
 
+// Fallback do React (SPA) - Sempre a última rota!
 app.get('*', (req, res) => {
   res.sendFile(path.join(__dirname, 'dist', 'index.html'));
 });

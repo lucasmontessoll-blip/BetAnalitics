@@ -72,9 +72,11 @@ function AppContent() {
   const [userData, setUserData] = useState(null); 
   const [viewMode, setViewMode] = useState('jogos'); 
   const [filterCentro, setFilterCentro] = useState('Todos'); 
-  const [jogoSelecionado, setJogoSelecionado] = useState(null); 
   
+  // Bloco de estados sincronizado e completo:
+  const [jogoSelecionado, setJogoSelecionado] = useState(null); 
   const [bancaInicial] = useState(1000);
+  const [xp, setXp] = useState(0); 
   const [bilhetePremium, setBilhetePremium] = useState({ selecoes: [], oddFinal: 1 });
   
   const [jogosTempoReal, setJogosTempoReal] = useState([]);
