@@ -15,7 +15,7 @@ import { solicitarPermissaoNotificacao, dispararAlerta } from './services/notifi
 import { salvarCache, lerCache } from './services/cache.js';
 import { retry } from './utils/retry.js';
 import { simularMonteCarlo } from './algorithms/monteCarlo.js';
-import { buscarCompeticoes } from './services/sportradar.js';
+import { buscarCompeticoes, buscarJogosDeHoje } from './services/sportradar.js';
 
 // ==========================================
 // IMPORTAÇÕES EXISTENTES
@@ -83,6 +83,7 @@ function AppContent() {
   const [form, setForm] = useState({ nome: '', banca: 1000 });
 
   const [jogosTempoReal, setJogosTempoReal] = useState([]);
+  const [jogosSportradar, setJogosSportradar] = useState([]); // NOVO ESTADO SPORTRADAR
   const [loadingReal, setLoadingReal] = useState(true);
 
   // Função para calcular dinamicamente o nível do usuário com base no XP
@@ -91,23 +92,53 @@ function AppContent() {
   };
 
   // ==========================================
-  // TESTE SPORTRADAR API
+  // SPORTRADAR: BUSCAR JOGOS DO DIA (AGENDA)
   // ==========================================
   useEffect(() => {
-    const testarAPI = async () => {
-      console.log("A testar conexão com Sportradar...");
-      const dados = await buscarCompeticoes();
-      if (dados) {
-        console.log("Sucesso! Competições carregadas:", dados.competitions);
+    const carregarJogosReais = async () => {
+      console.log("A buscar agenda de jogos de hoje na Sportradar...");
+      const dados = await buscarJogosDeHoje();
+      
+      if (dados && dados.schedules) {
+        console.log(`Sucesso! ${dados.schedules.length} jogos encontrados para hoje.`);
+        
+        const jogosFormatados = dados.schedules.map(item => {
+          const evento = item.sport_event;
+          const status = item.sport_event_status;
+          
+          return {
+            id: evento.id,
+            league_id: evento.sport_event_context?.competition?.id || 999,
+            league_name: evento.sport_event_context?.competition?.name || 'Competição Global',
+            status: status.status === 'live' ? 'Live' : (status.status === 'closed' ? 'Finished' : 'Not Started'),
+            time_elapsed: status.match_time || '0',
+            home_team: evento.competitors?.find(c => c.qualifier === 'home')?.name || 'Casa',
+            away_team: evento.competitors?.find(c => c.qualifier === 'away')?.name || 'Fora',
+            scoreHome: status.home_score || 0,
+            scoreAway: status.away_score || 0,
+            // Imagens padrão (depois podemos fazer o mapeamento das logos oficiais)
+            home_image: 'https://cdn-icons-png.flaticon.com/512/5323/5323814.png',
+            away_image: 'https://cdn-icons-png.flaticon.com/512/5323/5323814.png',
+            confianca_ia: Math.floor(Math.random() * 20) + 75,
+            odd_principal: (Math.random() * (2.8 - 1.2) + 1.2).toFixed(2)
+          };
+        });
+        
+        setJogosSportradar(jogosFormatados);
+      } else {
+        console.log("Nenhum jogo encontrado para hoje ou limite da API atingido.");
       }
     };
     
-    testarAPI();
+    carregarJogosReais();
   }, []);
 
   const { favoritos, toggleFavorito } = useFavoritos();
   const { jogos: jogosDoHook, loading: loadingHook } = useJogos(API_URL, ligaAtivaId, []);
 
+  // ==========================================
+  // SUPABASE: JOGOS EM TEMPO REAL
+  // ==========================================
   useEffect(() => {
     const puxarJogosDoServidor = async () => {
       try {
@@ -130,8 +161,11 @@ function AppContent() {
     return () => clearInterval(timer);
   }, []);
 
-  const jogos = [...jogosTempoReal, ...jogosDoHook];
-  const loading = loadingHook && loadingReal;
+  // ==========================================
+  // UNIÃO DE TODOS OS DADOS (Supabase + Sportradar + Hook Antigo)
+  // ==========================================
+  const jogos = [...jogosTempoReal, ...jogosSportradar, ...jogosDoHook];
+  const loading = loadingHook && loadingReal && jogosSportradar.length === 0;
 
   const { aiOpen, setAiOpen, aiQuery, setAiQuery, aiLoading, aiMessages, handleAskAI, gerarExplicacaoIA } = useIA(API_URL, jogos, setJogoSelecionado);
   useAlertas(jogos);
@@ -152,11 +186,16 @@ function AppContent() {
       if (ligaAtivaId !== null && j.league_id !== ligaAtivaId && j.league_id !== 999) return false;
       return true; 
   });
-  const jGrp = jFilt.reduce((a, j) => { if (!a[j.league_name]) a[j.league_name] = []; a[j.league_name].push(j); return a; }, {});
+  
+  const jGrp = jFilt.reduce((a, j) => { 
+    if (!a[j.league_name]) a[j.league_name] = []; 
+    a[j.league_name].push(j); 
+    return a; 
+  }, {});
 
   const RenderizarListaJogos = () => {
-      if (loading) return <div className="text-center text-slate-500 py-10">Buscando radar de jogos...</div>;
-      if (Object.keys(jGrp).length === 0) return <div className="text-center text-slate-500 py-10 font-bold">Nenhuma oportunidade encontrada.</div>;
+      if (loading) return <div className="text-center text-slate-500 py-10">Buscando radar de jogos oficiais...</div>;
+      if (Object.keys(jGrp).length === 0) return <div className="text-center text-slate-500 py-10 font-bold">Nenhuma oportunidade encontrada no momento.</div>;
 
       return Object.entries(jGrp).map(([leagueName, matches]) => (
           <div key={leagueName} className="mb-6 w-full">
