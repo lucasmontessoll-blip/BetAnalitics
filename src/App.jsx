@@ -20,7 +20,7 @@ import RadarMundial from './components/RadarMundial.jsx';
 import CopaStats from './components/CopaStats.jsx';
 import { calcularKelly } from './utils/math.js';
 import { calcularStake } from './utils/risk.js';
-import { buscarCompeticoes, buscarJogosDeHoje } from './services/sportradar.js';
+import { buscarCompeticoes, buscarJogosHojeSportradar } from './services/sportradar.js';
 
 // ==========================================
 // IMPORTAÇÕES EXISTENTES
@@ -76,7 +76,7 @@ const normalizarJogoSportradar = (item, index = 0) => {
     return {
       id: item.id || `sportradar-formatado-${index}`,
       league_id: item.league_id || 999,
-      league_name: item.league_name || 'Sportradar',
+      league_name: item.league_name || 'Sportradar Global',
       starting_at: item.starting_at || item.start_time || new Date().toISOString(),
       status: item.status || 'Not Started',
       time_elapsed: item.time_elapsed || item.match_time || '0',
@@ -104,18 +104,21 @@ const normalizarJogoSportradar = (item, index = 0) => {
   const statusApi = String(status.status || '').toLowerCase();
   let statusApp = 'Not Started';
   
-  if (statusApi === 'live' || statusApi === 'inprogress') { statusApp = 'Live'; }
-  if (statusApi === 'closed' || statusApi === 'ended' || statusApi === 'complete' || statusApi === 'finished') { statusApp = 'Finished'; }
+  if (statusApi === 'live' || statusApi === 'inprogress' || statusApi === 'live_delayed') { 
+    statusApp = 'Live'; 
+  } else if (statusApi === 'closed' || statusApi === 'ended' || statusApi === 'complete' || statusApi === 'finished') { 
+    statusApp = 'Finished'; 
+  }
 
   return {
     id: evento.id || item.id || `sportradar-${index}`,
     league_id: competicao.id || 999,
-    league_name: competicao.name || 'Competição Global',
+    league_name: competicao.name || 'Outras Competições',
     starting_at: evento.start_time || new Date().toISOString(),
     status: statusApp,
-    time_elapsed: status.match_time || status.match_status || status.status || '0',
-    home_team: casa.name || 'Casa',
-    away_team: fora.name || 'Fora',
+    time_elapsed: status.match_time || status.match_status || '0',
+    home_team: casa.name || 'Time Casa',
+    away_team: fora.name || 'Time Fora',
     home_image: logoPadrao,
     away_image: logoPadrao,
     scoreHome: status.home_score ?? 0,
@@ -145,7 +148,6 @@ function AppContent() {
   const [metaMensal] = useState(50);
   const [xp, setXp] = useState(0);
   const [apostas, setApostas] = useState([]);
-  const [bilhetePremium, setBilhetePremium] = useState({ selecoes: [], oddFinal: 1 });
   const [form, setForm] = useState({ nome: '', banca: 1000 });
 
   const [jogosTempoReal, setJogosTempoReal] = useState([]);
@@ -162,25 +164,16 @@ function AppContent() {
     const carregarJogosReais = async () => {
       try {
         setLoadingSportradar(true);
-        console.log('A testar conexão com Sportradar...');
-        const competicoes = await buscarCompeticoes();
-        if (competicoes && competicoes.competitions) {
-          console.log(`Sucesso! Competições carregadas:`, competicoes.competitions.length);
-        }
-
-        console.log('A buscar agenda de jogos de hoje na Sportradar...');
-        const dados = await buscarJogosDeHoje();
+        console.log('A buscar jogos de hoje na Sportradar...');
+        const dados = await buscarJogosHojeSportradar();
 
         const listaBruta = Array.isArray(dados) ? dados : dados?.summaries || dados?.schedules || dados?.response || [];
-        
-        console.log(`Jogos encontrados antes de formatar: ${listaBruta.length}`);
+        console.log("Total bruto recebido da Sportradar:", listaBruta.length);
 
         if (listaBruta.length > 0) {
           const jogosFormatados = listaBruta.map((item, index) => normalizarJogoSportradar(item, index)).filter(Boolean);
-          console.log(`Sucesso! ${jogosFormatados.length} jogos formatados para o app.`);
           setJogosSportradar(jogosFormatados);
         } else {
-          console.log('Nenhum jogo encontrado para hoje na Sportradar.');
           setJogosSportradar([]);
         }
       } catch (error) {
@@ -203,7 +196,6 @@ function AppContent() {
     const puxarJogosDoServidor = async () => {
       try {
         const { data: dadosBrutos, error } = await supabase.from('jogos_ao_vivo').select('*');
-
         if (error || !dadosBrutos) {
           setJogosTempoReal([]);
           return;
@@ -241,15 +233,8 @@ function AppContent() {
     return () => clearInterval(timer);
   }, []);
 
-  // ==========================================
-  // UNIÃO DE TODOS OS DADOS
-  // ==========================================
-  const jogos = [
-    ...(Array.isArray(jogosTempoReal) ? jogosTempoReal : []),
-    ...(Array.isArray(jogosSportradar) ? jogosSportradar : []),
-    ...(Array.isArray(jogosDoHook) ? jogosDoHook : [])
-  ];
-
+  // Unindo todas as fontes
+  const jogos = [...jogosTempoReal, ...jogosSportradar, ...jogosDoHook];
   const loading = loadingHook || loadingReal || loadingSportradar;
 
   const { aiOpen, setAiOpen, aiQuery, setAiQuery, aiLoading, aiMessages, handleAskAI, gerarExplicacaoIA } = useIA(API_URL, jogos, setJogoSelecionado);
@@ -269,18 +254,18 @@ function AppContent() {
     }
   }, []);
 
+  // Filtro inteligente e flexível que não descarta registros por formatação de strings
   let jFilt = jogos.filter((j) => {
     const sel = isSelecao(j.home_team, j.away_team, j.league_name);
     if (viewMode === 'jogos' && sel) return false;
     if (viewMode === 'copa' && !sel) return false;
     if (filterCentro === 'Ao Vivo') return j.status === 'Live';
     if (filterCentro === 'Favoritos') return favoritos.includes(j.id);
-    if (ligaAtivaId !== null && j.league_id !== ligaAtivaId && j.league_id !== 999) return false;
     return true;
   });
 
   const jGrp = jFilt.reduce((a, j) => {
-    const liga = j.league_name || 'Outros Jogos';
+    const liga = j.league_name || 'Outras Competições';
     if (!a[liga]) a[liga] = [];
     a[liga].push(j);
     return a;
@@ -305,7 +290,7 @@ function AppContent() {
         <div className="text-center text-slate-500 py-10 font-bold"> 
           Nenhuma oportunidade encontrada no momento. 
           <div className="text-[10px] font-normal mt-2 text-slate-600"> 
-            Total carregado: {jogos.length} jogos. Altere o filtro ou verifique se está em Ao Vivo. 
+            Total carregado do servidor: {jogos.length} jogos.
           </div> 
         </div> 
       ); 
@@ -470,7 +455,7 @@ function AppContent() {
 } 
 
 export default function App() { 
-  return ( 
+  return (
     <ThemeProvider> 
       <AppContent /> 
     </ThemeProvider> 
