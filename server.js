@@ -28,21 +28,20 @@ const TRINTA_MINUTOS = 30 * 60 * 1000;
 const UM_MINUTO = 60 * 1000;
 
 // ============================================================================
-// 🔑 CHAVES DE ACESSO
+// 🔑 CHAVES DE ACESSO ESSENCIAIS (Supabase, Gemini, Mercado Pago)
 // ============================================================================
-const SPORTRADAR_KEY = process.env.SPORTRADAR_KEY || process.env.VITE_SPORTRADAR_KEY || '';
+// O backend procura pelas chaves com ou sem o prefixo VITE_
+const SUPABASE_URL = process.env.VITE_SUPABASE_URL || process.env.SUPABASE_URL || 'https://pztznppbmonhrrzfbnvh.supabase.co';
+const SUPABASE_KEY = process.env.VITE_SUPABASE_KEY || process.env.SUPABASE_KEY || 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InB6dHpucHBibW9uaHJyemZibnZoIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODA2MTcwOTIsImV4cCI6MjA5NjE5MzA5Mn0.4ztEexACzSpsa0cikJjDlniXUeCnA-DPh20LQhg9qvM';
 
-const SUPABASE_URL = process.env.SUPABASE_URL || 'https://pztznppbmonhrrzfbnvh.supabase.co';
-const SUPABASE_KEY = process.env.SUPABASE_KEY || '';
+const GEMINI_API_KEY = process.env.VITE_GEMINI_API_KEY || process.env.GEMINI_API_KEY || 'AIzaSyBKlaNtj0uEAJwOReTblDcLDGfpCjYqP18';
+const MP_ACCESS_TOKEN = process.env.VITE_MP_ACCESS_TOKEN || process.env.MP_ACCESS_TOKEN || 'APP_USR-5947285218976034-050113-a9857b202a29e411236349f75b6b25c3-669622996';
 
-const GEMINI_API_KEY = process.env.GEMINI_API_KEY || '';
-const MP_ACCESS_TOKEN = process.env.MP_ACCESS_TOKEN || '';
-
+// Inicializar Supabase e Gemini
 const supabase = createClient(SUPABASE_URL, SUPABASE_KEY);
-
 let genAI;
-if (GEMINI_API_KEY) {
-  genAI = new GoogleGenerativeAI(GEMINI_API_KEY);
+if (GEMINI_API_KEY !== 'AIzaSyBKlaNtj0uEAJwOReTblDcLDGfpCjYqP18') {
+    genAI = new GoogleGenerativeAI(GEMINI_API_KEY);
 }
 
 // ============================================================================
