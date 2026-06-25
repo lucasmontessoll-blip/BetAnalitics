@@ -15,7 +15,40 @@ app.use(cors());
 app.use(express.json());
 
 // ============================================================================
-// 🔑 CHAVES DE ACESSO (Configuradas ou lidas do ambiente do Render)
+// 📊 ROTA: INTEGRAÇÃO SPORTRADAR (Proxy Seguro Backend - No Topo)
+// ============================================================================
+const SPORTRADAR_KEY = process.env.SPORTRADAR_KEY || '';
+
+app.get('/api/sportradar/competicoes', async (req, res) => {
+  try {
+    if (!SPORTRADAR_KEY) {
+      return res.status(500).json({
+        error: 'SPORTRADAR_KEY não configurada no servidor.'
+      });
+    }
+
+    const { data } = await axios.get(
+      'https://api.sportradar.com/soccer/trial/v4/en/competitions.json',
+      {
+        headers: {
+          'x-api-key': SPORTRADAR_KEY,
+          accept: 'application/json'
+        }
+      }
+    );
+
+    return res.json(data);
+  } catch (error) {
+    console.error('Erro Sportradar Backend:', error.response?.data || error.message);
+    return res.status(error.response?.status || 500).json({
+      error: 'Falha ao consultar Sportradar',
+      details: error.response?.data || error.message
+    });
+  }
+});
+
+// ============================================================================
+// 🔑 CHAVES DE ACESSO ESSENCIAIS (Supabase, Gemini, Mercado Pago)
 // ============================================================================
 const SUPABASE_URL = process.env.SUPABASE_URL || 'https://pztznppbmonhrrzfbnvh.supabase.co';
 const SUPABASE_KEY = process.env.SUPABASE_KEY || 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InB6dHpucHBibW9uaHJyemZibnZoIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODA2MTcwOTIsImV4cCI6MjA5NjE5MzA5Mn0.4ztEexACzSpsa0cikJjDlniXUeCnA-DPh20LQhg9qvM';
@@ -107,12 +140,12 @@ app.post('/api/chat-ia', async (req, res) => {
     try {
         const promptMestre = `
         Tu és o Analista-Chefe de Inteligência Artificial do BetAnalytics PRO.
-        És direto, profissional, falas com confidence e dás dicas de apostas baseadas em EV+ (Valor Esperado).
+        És direto, profissional, falas com confiança e dás dicas de apostas baseadas em EV+ (Valor Esperado).
         
         Aqui estão os dados resumidos da rodada de hoje (Equipas e Odds):
         ${JSON.stringify(dadosDaRodada)}
         
-        Responde à seguinte pergunta do utilizador de forma curta, analítica e indicando sempre que a decisão final é do utilizador. Usa no máximo 3 frases curtas.
+        Responde à seguinte pergunta do utilizador de forma corta, analítica e indicando sempre que a decisão final é do utilizador. Usa no máximo 3 frases curtas.
         
         Pergunta do utilizador: "${pergunta}"
         `;
@@ -151,47 +184,13 @@ app.get('/api/jogos-ao-vivo', async (req, res) => {
 });
 
 // ============================================================================
-// 📊 ROTA 5: INTEGRAÇÃO SPORTRADAR (Proxy Seguro Backend)
-// ============================================================================
-const SPORTRADAR_KEY = process.env.SPORTRADAR_KEY || '';
-
-app.get('/api/sportradar/competicoes', async (req, res) => {
-  try {
-    if (!SPORTRADAR_KEY) {
-      return res.status(500).json({
-        error: 'SPORTRADAR_KEY não configurada no servidor.'
-      });
-    }
-
-    const { data } = await axios.get(
-      'https://api.sportradar.com/soccer/trial/v4/en/competitions.json',
-      {
-        headers: {
-          'x-api-key': SPORTRADAR_KEY,
-          'accept': 'application/json'
-        }
-      }
-    );
-
-    return res.json(data);
-  } catch (error) {
-    console.error('Erro Sportradar Backend:', error.response?.data || error.message);
-
-    return res.status(error.response?.status || 500).json({
-      error: 'Falha ao consultar Sportradar',
-      details: error.response?.data || error.message
-    });
-  }
-});
-
-// ============================================================================
 // 🌐 ROTAS DE FRONTEND E ARQUIVOS ESTÁTICOS
 // ============================================================================
 
 app.use(express.static(path.join(__dirname, 'public')));
 app.use(express.static(path.join(__dirname, 'dist')));
 
-// Fallback do React (SPA) - Sempre a última rota!
+// Fallback do React (SPA) - Tem de ser a ÚLTIMA rota antes do app.listen!
 app.get('*', (req, res) => {
   res.sendFile(path.join(__dirname, 'dist', 'index.html'));
 });
