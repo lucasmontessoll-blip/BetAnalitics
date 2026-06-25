@@ -22,16 +22,16 @@ let cacheCompeticoes = null;
 let ultimaAtualizacaoSportradar = 0;
 const TRINTA_MINUTOS = 30 * 60 * 1000; // Tempo em milissegundos
 
-// ============================================================================
-// 📊 ROTA: INTEGRAÇÃO SPORTRADAR (Com Cache de 30 minutos e todas as ligas)
-// ============================================================================
-const SPORTRADAR_KEY = process.env.SPORTRADAR_KEY || process.env.VITE_SPORTRADAR_KEY || '';
+// A chave é declarada aqui no topo para ser usada em todas as rotas da Sportradar
+const SPORTRADAR_KEY = process.env.VITE_SPORTRADAR_KEY || process.env.SPORTRADAR_KEY || '';
 
+// ============================================================================
+// 📊 ROTA 1: SPORTRADAR - COMPETIÇÕES (Com Cache de 30 minutos)
+// ============================================================================
 app.get('/api/sportradar/competicoes', async (req, res) => {
   try {
     const agora = Date.now();
 
-    // Se os dados já existem no cache e a última busca foi há menos de 30 minutos, devolve direto da memória
     if (cacheCompeticoes && (agora - ultimaAtualizacaoSportradar < TRINTA_MINUTOS)) {
       console.log("⚽ Sportradar: Devolvendo dados completos do Cache (Gasto de API: 0)");
       return res.json(cacheCompeticoes);
@@ -53,7 +53,6 @@ app.get('/api/sportradar/competicoes', async (req, res) => {
       }
     );
 
-    // Salva o retorno bruto completo (todas as ligas e Copa do Mundo) na memória do servidor
     cacheCompeticoes = data;
     ultimaAtualizacaoSportradar = agora;
 
@@ -63,7 +62,6 @@ app.get('/api/sportradar/competicoes', async (req, res) => {
   } catch (error) {
     console.error('Erro Sportradar Backend:', error.response?.data || error.message);
     
-    // Mecanismo de segurança: Se a API falhar/bater limite, mas tivermos dados antigos salvos, usamos eles pro app não cair
     if (cacheCompeticoes) {
       console.log("⚠️ API falhou ou bateu limite de taxa. Devolvendo cache existente por segurança.");
       return res.json(cacheCompeticoes);
@@ -71,6 +69,38 @@ app.get('/api/sportradar/competicoes', async (req, res) => {
 
     return res.status(error.response?.status || 500).json({
       error: 'Falha ao consultar Sportradar',
+      details: error.response?.data || error.message
+    });
+  }
+});
+
+// ============================================================================
+// ⚽ ROTA 2: SPORTRADAR - JOGOS DE HOJE (Summaries)
+// ============================================================================
+app.get("/api/sportradar/jogos-hoje", async (req, res) => {
+  try {
+    if (!SPORTRADAR_KEY) {
+      return res.status(500).json({
+        error: "SPORTRADAR_KEY não configurada no servidor."
+      });
+    }
+
+    const hoje = new Date().toISOString().split("T")[0];
+
+    const { data } = await axios.get(
+      `https://api.sportradar.com/soccer/trial/v4/en/schedules/${hoje}/summaries.json`,
+      {
+        headers: {
+          "x-api-key": SPORTRADAR_KEY,
+          accept: "application/json"
+        }
+      }
+    );
+
+    return res.json(data);
+  } catch (error) {
+    return res.status(error.response?.status || 500).json({
+      error: "Falha ao buscar jogos da Sportradar",
       details: error.response?.data || error.message
     });
   }
@@ -93,7 +123,7 @@ if (GEMINI_API_KEY !== 'AIzaSyBKlaNtj0uEAJwOReTblDcLDGfpCjYqP18') {
 }
 
 // ============================================================================
-// 💰 ROTA 1: GERAR PAGAMENTO PIX (E CRIAR USUÁRIO NO SUPABASE)
+// 💰 ROTA 3: GERAR PAGAMENTO PIX (E CRIAR USUÁRIO NO SUPABASE)
 // ============================================================================
 app.post('/api/processar-pagamento', async (req, res) => {
     const { payer, transaction_amount } = req.body;
@@ -133,7 +163,7 @@ app.post('/api/processar-pagamento', async (req, res) => {
 });
 
 // ============================================================================
-// 🔔 ROTA 2: WEBHOOK DO MERCADO PAGO (ATIVA O VIP AUTOMATICAMENTE)
+// 🔔 ROTA 4: WEBHOOK DO MERCADO PAGO (ATIVA O VIP AUTOMATICAMENTE)
 // ============================================================================
 app.post('/api/webhook', async (req, res) => {
     const { type, data } = req.body;
@@ -157,7 +187,7 @@ app.post('/api/webhook', async (req, res) => {
 });
 
 // ============================================================================
-// 🤖 ROTA 3: CÉREBRO DA IA (CHATBOT COM GEMINI)
+// 🤖 ROTA 5: CÉREBRO DA IA (CHATBOT COM GEMINI)
 // ============================================================================
 app.post('/api/chat-ia', async (req, res) => {
     const { pergunta, dadosDaRodada } = req.body;
@@ -191,7 +221,7 @@ app.post('/api/chat-ia', async (req, res) => {
 });
 
 // ============================================================================
-// ⚽ ROTA 4: LEITURA RÁPIDA DE JOGOS AO VIVO (CONSUMINDO DO SUPABASE)
+// ⚽ ROTA 6: LEITURA RÁPIDA DE JOGOS AO VIVO (CONSUMINDO DO SUPABASE)
 // ============================================================================
 app.get('/api/jogos-ao-vivo', async (req, res) => {
     try {
