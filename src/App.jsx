@@ -72,15 +72,23 @@ function AppContent() {
   const [userData, setUserData] = useState(null); 
   const [viewMode, setViewMode] = useState('jogos'); 
   const [filterCentro, setFilterCentro] = useState('Todos'); 
-  
-  // Bloco de estados sincronizado e completo:
   const [jogoSelecionado, setJogoSelecionado] = useState(null); 
-  const [bancaInicial] = useState(1000);
-  const [xp, setXp] = useState(0); 
-  const [bilhetePremium, setBilhetePremium] = useState({ selecoes: [], oddFinal: 1 });
   
+  // Estados para gerenciamento de banca, XP e Perfil
+  const [bancaInicial] = useState(1000);
+  const [metaMensal] = useState(50); 
+  const [xp, setXp] = useState(0); 
+  const [apostas, setApostas] = useState([]); 
+  const [bilhetePremium, setBilhetePremium] = useState({ selecoes: [], oddFinal: 1 });
+  const [form, setForm] = useState({ nome: '', banca: 1000 });
+
   const [jogosTempoReal, setJogosTempoReal] = useState([]);
   const [loadingReal, setLoadingReal] = useState(true);
+
+  // Função para calcular dinamicamente o nível do usuário com base no XP
+  const nivelUsuario = () => {
+    return Math.floor(xp / 100) + 1;
+  };
 
   // ==========================================
   // TESTE SPORTRADAR API
@@ -233,7 +241,31 @@ function AppContent() {
               )}
               {viewMode === 'radar' && <div className="px-4 pt-6"><DashboardIA insights={{}} /><RadarMundial jogos={jogos} /></div>}
               {viewMode === 'copa' && <div className="px-4 pt-6"><CopaStats artilheiros={[]} assistencias={[]} /></div>}
-              {viewMode === 'perfil' && <div className="px-4 pt-6"><Suspense fallback={<div/>}><Perfil userData={userData} xp={xp} setViewMode={setViewMode} apostas={[]} bancaInicial={bancaInicial} setMenuAtivo={setMenuAtivo} /></Suspense></div>}
+              
+              {/* RENDEREZAÇÃO SEGURA DO COMPONENTE PERFIL */}
+              {viewMode === 'perfil' && (
+                <div className="px-4 pt-6">
+                  <Suspense fallback={<div className="text-center text-xs text-blue-500 animate-pulse py-10 font-black">A carregar perfil...</div>}>
+                    <Perfil
+                      userData={userData || {
+                        nome: "Usuário",
+                        email: "sem-email",
+                        is_vip: false,
+                        is_admin: false
+                      }}
+                      form={form}
+                      setForm={setForm}
+                      nivelUsuario={nivelUsuario()}
+                      xp={xp}
+                      setViewMode={setViewMode}
+                      apostas={apostas}
+                      bancaInicial={bancaInicial}
+                      metaMensal={metaMensal}
+                      setMenuAtivo={setMenuAtivo}
+                    />
+                  </Suspense>
+                </div>
+              )}
           </div>
       )}
 
