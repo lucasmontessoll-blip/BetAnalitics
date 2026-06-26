@@ -4,7 +4,7 @@ import { LineChart, Line, BarChart, Bar, ResponsiveContainer, XAxis, YAxis, Cart
 import { motion, AnimatePresence } from 'framer-motion';
 import { initMercadoPago } from '@mercadopago/sdk-react'; 
 import { createClient } from '@supabase/supabase-js';
-import { Home, Radio, Trophy, Crown, Star, X, User, Zap, TrendingUp, AlertTriangle, ArrowLeft, Send, DollarSign, Target, Globe } from 'lucide-react';
+import { Home, Radio, Trophy, Crown, Star, ChevronRight, X, User, Zap, TrendingUp, AlertTriangle, ArrowLeft, Send, DollarSign, Target, Bell, Globe, CreditCard, Lock, Calendar } from 'lucide-react';
 
 import { detectarValueBetReal } from './algorithms/valueBet.js';
 import { calcularEV, calcularHeatScore, calcularKelly } from './utils/math.js';
@@ -44,7 +44,6 @@ const listaLigas = [{name:'Todos', id: null}, {name:'Brasileirão', id: 71}, {na
 // 📊 DADOS DOS GRÁFICOS
 const crescimentoBancaGlobal = [ { dia: "Seg", banca: 990 }, { dia: "Ter", banca: 1080 }, { dia: "Qua", banca: 1150 }, { dia: "Qui", banca: 1220 }, { dia: "Sex", banca: 1290 } ];
 const desempenhoDiario = [ { dia: "Seg", acertos: 14, erros: 3 }, { dia: "Ter", acertos: 18, erros: 2 }, { dia: "Qua", acertos: 12, erros: 5 }, { dia: "Qui", acertos: 20, erros: 4 }, { dia: "Sex", acertos: 25, erros: 6 } ];
-const mockRankingUsuarios = [ { id: 1, nome: "Lucas", lucro_total: 1840 }, { id: 2, nome: "Carlos", lucro_total: 1430 }, { id: 3, nome: "João", lucro_total: 1180 } ];
 
 export default function App() {
   const [showSplash, setShowSplash] = useState(true);
@@ -55,10 +54,10 @@ export default function App() {
   const [filterCentro, setFilterCentro] = useState('Todos'); 
   const [jogoSelecionado, setJogoSelecionado] = useState(null); 
   const [form, setForm] = useState({ nome: '', email: '', cpf: '' }); 
+  const [metodoPagamento, setMetodoPagamento] = useState('pix');
   
   const [performanceStats] = useState({ totalAnalises: 512, acertos: 431, erros: 81, roi: 18.4, ultimaSemana: 87 });
   const [bancaInicial] = useState(1000);
-  const [rankingUsuarios, setRankingUsuarios] = useState([]);
   const [bilhetePremium, setBilhetePremium] = useState({ selecoes: [], oddFinal: 1 });
   const [xp] = useState(350);
 
@@ -103,7 +102,7 @@ export default function App() {
 
   const { aiOpen, setAiOpen, aiQuery, setAiQuery, aiLoading, aiMessages, handleAskAI, gerarExplicacaoIA } = useIA(API_URL, jogos, setJogoSelecionado);
 
-  useEffect(() => { setRankingUsuarios(mockRankingUsuarios); setTimeout(() => setShowSplash(false), 2000); }, []);
+  useEffect(() => { setTimeout(() => setShowSplash(false), 2000); }, []);
   
   useEffect(() => { 
       const em = localStorage.getItem('bet_sessao_ativa'); 
@@ -167,11 +166,70 @@ export default function App() {
   );
 
   return (
-    <div className="min-h-screen bg-[#050816] text-white font-sans pb-28 w-full max-w-full overflow-x-hidden">
+    <div className="min-h-screen bg-[#050816] text-white font-sans pb-28 w-full max-w-full overflow-x-hidden relative">
       <header className="flex items-center justify-between px-5 py-4 bg-[#050816] sticky top-0 z-40 border-b border-white/5">
         <h1 className="font-black text-xl sm:text-2xl tracking-tight flex items-center"><span className="italic">BET</span><span className="text-blue-500">ANALYTICS</span><span className="ml-2 bg-blue-600 text-[10px] px-2 py-0.5 rounded-md">PRO</span></h1>
         <button onClick={() => setMenuAtivo('assinar pro')} className="bg-gradient-to-r from-yellow-500 to-yellow-600 text-black font-black px-4 py-2 rounded-xl flex items-center gap-2 text-xs shadow-lg"><Crown className="w-4 h-4" /> {userData?.is_vip ? "VIP ATIVO" : "ASSINAR PRO"}</button>
       </header>
+
+      {/* =======================================================
+          💎 TELA VIP PRO (REGISTRO E PAGAMENTO 100% RESTAURADOS)
+      ========================================================= */}
+      {menuAtivo === 'assinar pro' && (
+        <div className="px-4 pt-24 animate-fade-in pb-28 min-h-screen bg-[#050816] text-white absolute inset-0 z-[999] overflow-y-auto">
+          <div className="fixed top-0 left-0 w-full bg-[#050816]/95 backdrop-blur-xl z-[9999] px-5 py-4 border-b border-white/10 flex items-center gap-3 shadow-xl">
+            <button 
+              onClick={() => { setMenuAtivo('Todos os Jogos'); setViewMode('jogos'); setJogoSelecionado(null); }} 
+              className="p-2 bg-blue-600 rounded-full hover:bg-blue-500 transition shadow-[0_0_15px_rgba(37,99,235,0.6)] flex-shrink-0"
+            >
+              <ArrowLeft className="w-6 h-6 text-white" />
+            </button>
+            <span className="font-black text-white uppercase tracking-widest text-xs">Voltar ao App</span>
+          </div>
+
+          <div className="bg-gradient-to-br from-yellow-500 to-yellow-700 rounded-3xl p-6 text-black shadow-[0_0_30px_rgba(234,179,8,0.25)] mt-4">
+            <h2 className="text-2xl font-black mb-2 flex items-center gap-2"><Crown className="w-6 h-6" /> BetAnalytics PRO</h2>
+            <p className="text-sm font-bold mb-5">Registe-se e desbloqueie o Radar IA, Value Bets e análises avançadas em tempo real.</p>
+            
+            {/* Formulário de Registro / Login */}
+            <div className="bg-black/20 rounded-2xl p-4 mb-5 border border-black/10">
+              <h3 className="text-xs font-black uppercase mb-3 flex items-center gap-2 text-black"><User className="w-4 h-4"/> Criar Conta / Login</h3>
+              <div className="space-y-3">
+                <input type="text" placeholder="Nome Completo" className="w-full bg-black/40 border border-black/20 rounded-xl px-4 py-3 text-white placeholder:text-white/60 text-sm outline-none focus:border-yellow-400 transition" />
+                <input type="email" placeholder="Email (Login)" className="w-full bg-black/40 border border-black/20 rounded-xl px-4 py-3 text-white placeholder:text-white/60 text-sm outline-none focus:border-yellow-400 transition" />
+                <div className="relative">
+                  <Lock className="w-4 h-4 absolute left-4 top-3.5 text-white/60" />
+                  <input type="password" placeholder="Senha" className="w-full bg-black/40 border border-black/20 rounded-xl px-4 py-3 pl-10 text-white placeholder:text-white/60 text-sm outline-none focus:border-yellow-400 transition" />
+                </div>
+                <div className="flex gap-2">
+                  <div className="w-1/2 relative">
+                    <User className="w-4 h-4 absolute left-3 top-3.5 text-white/60" />
+                    <input type="text" placeholder="CPF" className="w-full bg-black/40 border border-black/20 rounded-xl px-3 py-3 pl-9 text-white placeholder:text-white/60 text-xs outline-none focus:border-yellow-400 transition" />
+                  </div>
+                  <div className="w-1/2 relative">
+                    <Calendar className="w-4 h-4 absolute left-3 top-3.5 text-white/60" />
+                    <input type="text" placeholder="Nascimento" className="w-full bg-black/40 border border-black/20 rounded-xl px-3 py-3 pl-9 text-white placeholder:text-white/60 text-xs outline-none focus:border-yellow-400 transition" onFocus={(e) => e.target.type = 'date'} onBlur={(e) => !e.target.value && (e.target.type = 'text')} />
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            {/* Forma de Pagamento */}
+            <div className="bg-black/20 rounded-2xl p-4 mb-5 border border-black/10">
+              <h3 className="text-xs font-black uppercase mb-3 flex items-center gap-2 text-black"><DollarSign className="w-4 h-4"/> Forma de Pagamento</h3>
+              <div className="grid grid-cols-3 gap-2">
+                <button onClick={() => setMetodoPagamento('pix')} className={`font-bold py-3 rounded-xl text-xs flex flex-col items-center gap-1 border transition-all ${metodoPagamento === 'pix' ? 'bg-black text-yellow-400 border-yellow-400' : 'bg-black/40 text-white/70 border-transparent'}`}><Zap className="w-5 h-5"/> PIX</button>
+                <button onClick={() => setMetodoPagamento('credito')} className={`font-bold py-3 rounded-xl text-xs flex flex-col items-center gap-1 border transition-all ${metodoPagamento === 'credito' ? 'bg-black text-yellow-400 border-yellow-400' : 'bg-black/40 text-white/70 border-transparent'}`}><CreditCard className="w-5 h-5"/> Crédito</button>
+                <button onClick={() => setMetodoPagamento('debito')} className={`font-bold py-3 rounded-xl text-xs flex flex-col items-center gap-1 border transition-all ${metodoPagamento === 'debito' ? 'bg-black text-yellow-400 border-yellow-400' : 'bg-black/40 text-white/70 border-transparent'}`}><CreditCard className="w-5 h-5"/> Débito</button>
+              </div>
+            </div>
+
+            <button className="w-full bg-black text-yellow-400 font-black py-4 rounded-2xl text-sm transition-transform active:scale-95 shadow-lg flex justify-center items-center gap-2">
+              CONCLUIR ASSINATURA <ChevronRight className="w-5 h-5"/>
+            </button>
+          </div>
+        </div>
+      )}
 
       {menuAtivo !== 'assinar pro' && !jogoSelecionado && (
           <div className="animate-fade-in pt-4 w-full">
@@ -189,7 +247,7 @@ export default function App() {
 
                       <div className="flex gap-2 overflow-x-auto pb-4 no-scrollbar mb-2 w-full">
                           <button onClick={() => setFilterCentro('Todos')} className={`px-5 py-2.5 rounded-full text-xs font-black border ${filterCentro==='Todos' ? 'bg-white text-black' : 'bg-transparent border-slate-700 text-slate-400'}`}>Todos</button>
-                          <button onClick={() => setFilterCentro('Ao Vivo')} className={`px-5 py-2.5 rounded-full text-xs font-black flex items-center gap-2 border ${filterCentro==='Ao Vivo' ? 'bg-white text-black' : 'bg-transparent border-slate-700 text-slate-400'}`}>Ao Vivo <span className="w-2 h-2 rounded-full bg-red-500 animate-pulse"></span></button>
+                          <button onClick={() => setFilterCentro('Ao Vivo')} className={`px-5 py-2.5 rounded-full text-xs font-black flex items-center gap-2 border ${filterCentro==='Ao Vivo' ? 'bg-white text-black border-white' : 'bg-transparent border-slate-700 text-slate-400'}`}>Ao Vivo <span className="w-2 h-2 rounded-full bg-red-500 animate-pulse"></span></button>
                       </div>
                       
                       <RenderizarListaJogos />
