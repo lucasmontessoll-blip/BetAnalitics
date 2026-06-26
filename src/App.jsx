@@ -1,6 +1,6 @@
 import React, { useState, useEffect, lazy, Suspense } from 'react';
 import './App.css'; 
-import { LineChart, Line, BarChart, Bar, ResponsiveContainer, XAxis, YAxis, CartesianGrid, Tooltip } from 'recharts';
+import { LineChart, Line, AreaChart, Area, BarChart, Bar, ResponsiveContainer, XAxis, YAxis, CartesianGrid, Tooltip } from 'recharts';
 import { motion, AnimatePresence } from 'framer-motion';
 import { initMercadoPago } from '@mercadopago/sdk-react'; 
 import { createClient } from '@supabase/supabase-js';
@@ -13,7 +13,6 @@ import { useFavoritos } from './hooks/useFavoritos.js';
 import { useJogos } from './hooks/useJogos.js';
 import { useIA } from './hooks/useIA.js';
 
-const CopaDoMundo = lazy(() => import('./components/CopaDoMundo.jsx'));
 const Perfil = lazy(() => import('./components/Perfil.jsx'));
 const PainelJogo = lazy(() => import('./components/PainelJogo.jsx'));
 
@@ -41,9 +40,9 @@ const getLocalYYYYMMDD = () => { const d = new Date(); d.setMinutes(d.getMinutes
 
 const listaLigas = [{name:'Todos', id: null}, {name:'Brasileirão', id: 71}, {name:'Champions', id: 2}, {name:'Premier League', id: 39}];
 
-// 📊 DADOS DOS GRÁFICOS
-const crescimentoBancaGlobal = [ { dia: "Seg", banca: 990 }, { dia: "Ter", banca: 1080 }, { dia: "Qua", banca: 1150 }, { dia: "Qui", banca: 1220 }, { dia: "Sex", banca: 1290 } ];
-const desempenhoDiario = [ { dia: "Seg", acertos: 14, erros: 3 }, { dia: "Ter", acertos: 18, erros: 2 }, { dia: "Qua", acertos: 12, erros: 5 }, { dia: "Qui", acertos: 20, erros: 4 }, { dia: "Sex", acertos: 25, erros: 6 } ];
+// 📊 DADOS ESTÁTICOS DE CALIBRAÇÃO DOS GRÁFICOS
+const crescimentoBancaGlobal = [ { dia: "Seg", banca: 1000 }, { dia: "Ter", banca: 1120 }, { dia: "Qua", banca: 1210 }, { dia: "Qui", banca: 1380 }, { dia: "Sex", banca: 1470 }, { dia: "Sáb", banca: 1650 }, { dia: "Dom", banca: 1840 } ];
+const desempenhoDiario = [ { dia: "Seg", acertos: 14, erros: 3 }, { dia: "Ter", acertos: 18, erros: 2 }, { dia: "Qua", acertos: 12, erros: 5 }, { dia: "Qui", acertos: 20, erros: 4 }, { dia: "Sex", acertos: 25, erros: 6 }, { dia: "Sáb", acertos: 32, erros: 5 }, { dia: "Dom", acertos: 29, erros: 3 } ];
 
 export default function App() {
   const [showSplash, setShowSplash] = useState(true);
@@ -135,21 +134,19 @@ export default function App() {
       return Object.entries(jGrp).map(([leagueName, matches]) => (
           <div key={leagueName} className="mb-6 w-full">
               <div className="text-xs font-black text-slate-500 uppercase tracking-widest mb-3 pl-2">{leagueName}</div>
-              {matches.map(j => {
-                  return (
-                      <div key={j.id} onClick={() => { if(!userData?.is_vip) return setMenuAtivo('assinar pro'); setJogoSelecionado(j); }} className="bg-[#0f172a] border border-white/10 rounded-3xl p-5 shadow-lg mb-4 cursor-pointer hover:border-blue-500/50 transform-gpu">
-                          <div className="flex justify-between items-center mb-5">
-                              {j.status === 'Live' ? <span className="bg-red-500 px-3 py-1 rounded-full text-[10px] font-black uppercase">🔴 Ao Vivo {j.time_elapsed}'</span> : <span className="text-slate-400 text-[10px] font-bold uppercase">{j.status === 'Finished' ? 'Finalizado' : 'Agendado'}</span>}
-                              <button onClick={(e) => toggleFavorito(e, j.id)} className="p-1"><Star className={`w-5 h-5 ${favoritos.includes(j.id) ? 'fill-yellow-400 text-yellow-400' : 'text-slate-600'}`} /></button>
-                          </div>
-                          <div className="grid grid-cols-3 items-center text-center mb-4">
-                              <div className="flex flex-col items-center gap-2"><img src={j.home_image} className="w-10 h-10 object-contain" alt=""/><span className="text-[10px] font-bold text-slate-200 truncate w-full">{j.home_team}</span></div>
-                              <div className="text-2xl font-black">{j.status === 'Live' || j.status === 'Finished' ? `${j.scoreHome} - ${j.scoreAway}` : <span className="text-slate-600">-</span>}</div>
-                              <div className="flex flex-col items-center gap-2"><img src={j.away_image} className="w-10 h-10 object-contain" alt=""/><span className="text-[10px] font-bold text-slate-200 truncate w-full">{j.away_team}</span></div>
-                          </div>
+              {matches.map(j => (
+                  <div key={j.id} onClick={() => { if(!userData?.is_vip) return setMenuAtivo('assinar pro'); setJogoSelecionado(j); }} className="bg-[#0f172a] border border-white/10 rounded-3xl p-5 shadow-lg mb-4 cursor-pointer hover:border-blue-500/50 transform-gpu">
+                      <div className="flex justify-between items-center mb-5">
+                          {j.status === 'Live' ? <span className="bg-red-500 px-3 py-1 rounded-full text-[10px] font-black uppercase">🔴 Ao Vivo {j.time_elapsed}'</span> : <span className="text-slate-400 text-[10px] font-bold uppercase">{j.status === 'Finished' ? 'Finalizado' : 'Agendado'}</span>}
+                          <button onClick={(e) => toggleFavorito(e, j.id)} className="p-1"><Star className={`w-5 h-5 ${favoritos.includes(j.id) ? 'fill-yellow-400 text-yellow-400' : 'text-slate-600'}`} /></button>
                       </div>
-                  )
-              })}
+                      <div className="grid grid-cols-3 items-center text-center mb-4">
+                          <div className="flex flex-col items-center gap-2"><img src={j.home_image} className="w-10 h-10 object-contain" alt=""/><span className="text-[10px] font-bold text-slate-200 truncate w-full">{j.home_team}</span></div>
+                          <div className="text-2xl font-black">{j.status === 'Live' || j.status === 'Finished' ? `${j.scoreHome} - ${j.scoreAway}` : <span className="text-slate-600">-</span>}</div>
+                          <div className="flex flex-col items-center gap-2"><img src={j.away_image} className="w-10 h-10 object-contain" alt=""/><span className="text-[10px] font-bold text-slate-200 truncate w-full">{j.away_team}</span></div>
+                      </div>
+                  </div>
+              ))}
           </div>
       ));
   };
@@ -173,15 +170,12 @@ export default function App() {
       </header>
 
       {/* =======================================================
-          💎 TELA VIP PRO (REGISTRO E PAGAMENTO 100% RESTAURADOS)
+          💎 TELA VIP PRO (FORMULÁRIO, SELEÇÃO DE PAGAMENTO E VOLTAR OK)
       ========================================================= */}
       {menuAtivo === 'assinar pro' && (
         <div className="px-4 pt-24 animate-fade-in pb-28 min-h-screen bg-[#050816] text-white absolute inset-0 z-[999] overflow-y-auto">
           <div className="fixed top-0 left-0 w-full bg-[#050816]/95 backdrop-blur-xl z-[9999] px-5 py-4 border-b border-white/10 flex items-center gap-3 shadow-xl">
-            <button 
-              onClick={() => { setMenuAtivo('Todos os Jogos'); setViewMode('jogos'); setJogoSelecionado(null); }} 
-              className="p-2 bg-blue-600 rounded-full hover:bg-blue-500 transition shadow-[0_0_15px_rgba(37,99,235,0.6)] flex-shrink-0"
-            >
+            <button onClick={() => { setMenuAtivo('Todos os Jogos'); setViewMode('jogos'); setJogoSelecionado(null); }} className="p-2 bg-blue-600 rounded-full hover:bg-blue-500 transition shadow-[0_0_15px_rgba(37,99,235,0.6)] flex-shrink-0">
               <ArrowLeft className="w-6 h-6 text-white" />
             </button>
             <span className="font-black text-white uppercase tracking-widest text-xs">Voltar ao App</span>
@@ -191,30 +185,22 @@ export default function App() {
             <h2 className="text-2xl font-black mb-2 flex items-center gap-2"><Crown className="w-6 h-6" /> BetAnalytics PRO</h2>
             <p className="text-sm font-bold mb-5">Registe-se e desbloqueie o Radar IA, Value Bets e análises avançadas em tempo real.</p>
             
-            {/* Formulário de Registro / Login */}
             <div className="bg-black/20 rounded-2xl p-4 mb-5 border border-black/10">
               <h3 className="text-xs font-black uppercase mb-3 flex items-center gap-2 text-black"><User className="w-4 h-4"/> Criar Conta / Login</h3>
               <div className="space-y-3">
-                <input type="text" placeholder="Nome Completo" className="w-full bg-black/40 border border-black/20 rounded-xl px-4 py-3 text-white placeholder:text-white/60 text-sm outline-none focus:border-yellow-400 transition" />
-                <input type="email" placeholder="Email (Login)" className="w-full bg-black/40 border border-black/20 rounded-xl px-4 py-3 text-white placeholder:text-white/60 text-sm outline-none focus:border-yellow-400 transition" />
+                <input type="text" placeholder="Nome Completo" className="w-full bg-black/40 border border-black/20 rounded-xl px-4 py-3 text-white placeholder:text-white/60 text-sm outline-none focus:border-yellow-400" />
+                <input type="email" placeholder="Email (Login)" className="w-full bg-black/40 border border-black/20 rounded-xl px-4 py-3 text-white placeholder:text-white/60 text-sm outline-none focus:border-yellow-400" />
                 <div className="relative">
                   <Lock className="w-4 h-4 absolute left-4 top-3.5 text-white/60" />
-                  <input type="password" placeholder="Senha" className="w-full bg-black/40 border border-black/20 rounded-xl px-4 py-3 pl-10 text-white placeholder:text-white/60 text-sm outline-none focus:border-yellow-400 transition" />
+                  <input type="password" placeholder="Senha" className="w-full bg-black/40 border border-black/20 rounded-xl px-4 py-3 pl-10 text-white placeholder:text-white/60 text-sm outline-none focus:border-yellow-400" />
                 </div>
                 <div className="flex gap-2">
-                  <div className="w-1/2 relative">
-                    <User className="w-4 h-4 absolute left-3 top-3.5 text-white/60" />
-                    <input type="text" placeholder="CPF" className="w-full bg-black/40 border border-black/20 rounded-xl px-3 py-3 pl-9 text-white placeholder:text-white/60 text-xs outline-none focus:border-yellow-400 transition" />
-                  </div>
-                  <div className="w-1/2 relative">
-                    <Calendar className="w-4 h-4 absolute left-3 top-3.5 text-white/60" />
-                    <input type="text" placeholder="Nascimento" className="w-full bg-black/40 border border-black/20 rounded-xl px-3 py-3 pl-9 text-white placeholder:text-white/60 text-xs outline-none focus:border-yellow-400 transition" onFocus={(e) => e.target.type = 'date'} onBlur={(e) => !e.target.value && (e.target.type = 'text')} />
-                  </div>
+                  <div className="w-1/2 relative"><User className="w-4 h-4 absolute left-3 top-3.5 text-white/60" /><input type="text" placeholder="CPF" className="w-full bg-black/40 border border-black/20 rounded-xl px-3 py-3 pl-9 text-white placeholder:text-white/60 text-xs outline-none focus:border-yellow-400" /></div>
+                  <div className="w-1/2 relative"><Calendar className="w-4 h-4 absolute left-3 top-3.5 text-white/60" /><input type="text" placeholder="Nascimento" className="w-full bg-black/40 border border-black/20 rounded-xl px-3 py-3 pl-9 text-white placeholder:text-white/60 text-xs outline-none focus:border-yellow-400" onFocus={(e) => e.target.type = 'date'} onBlur={(e) => !e.target.value && (e.target.type = 'text')} /></div>
                 </div>
               </div>
             </div>
 
-            {/* Forma de Pagamento */}
             <div className="bg-black/20 rounded-2xl p-4 mb-5 border border-black/10">
               <h3 className="text-xs font-black uppercase mb-3 flex items-center gap-2 text-black"><DollarSign className="w-4 h-4"/> Forma de Pagamento</h3>
               <div className="grid grid-cols-3 gap-2">
@@ -224,9 +210,7 @@ export default function App() {
               </div>
             </div>
 
-            <button className="w-full bg-black text-yellow-400 font-black py-4 rounded-2xl text-sm transition-transform active:scale-95 shadow-lg flex justify-center items-center gap-2">
-              CONCLUIR ASSINATURA <ChevronRight className="w-5 h-5"/>
-            </button>
+            <button className="w-full bg-black text-yellow-400 font-black py-4 rounded-2xl text-sm transition-transform active:scale-95 shadow-lg flex justify-center items-center gap-2">CONCLUIR ASSINATURA <ChevronRight className="w-5 h-5"/></button>
           </div>
         </div>
       )}
@@ -294,15 +278,17 @@ export default function App() {
               )}
 
               {/* =======================================================
-                  👤 TELA: PERFIL (Com os 2 Gráficos Injetados)
+                  👤 TELA: PERFIL (AMBOS OS GRÁFICOS DE ELITE ATUALIZADOS)
               ========================================================= */}
               {viewMode === 'perfil' && (
                   <div className="px-4 animate-fade-in w-full pb-6">
+                      
+                      {/* 📊 GRÁFICO 1: EVOLUÇÃO DE BANCA (ESTILO ÁREA VERDE NÉON ELITE) */}
                       <div className="mb-6 bg-[#0f172a] border border-white/5 rounded-3xl p-5 shadow-2xl relative mt-4">
                         <div className="mb-6">
-                          <h3 className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-1">Desempenho Semanal</h3>
+                          <h3 className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-1">Evolução da Banca</h3>
                           <h2 className="text-xl font-black text-white flex items-center gap-3">
-                            Crescimento Líquido 
+                            Desempenho Líquido
                             <span className="text-emerald-400 text-[10px] font-black bg-[#050816] border border-emerald-500/20 px-2 py-0.5 rounded-full flex items-center gap-1">
                               <TrendingUp className="w-3 h-3" /> +47.0%
                             </span>
@@ -310,17 +296,24 @@ export default function App() {
                         </div>
                         <div className="w-full h-48 sm:h-56 relative z-10 -ml-4">
                           <ResponsiveContainer width="100%" height="100%">
-                            <LineChart data={crescimentoBancaGlobal} margin={{ top: 10, right: 10, left: 0, bottom: 0 }}>
+                            <AreaChart data={crescimentoBancaGlobal} margin={{ top: 10, right: 10, left: 0, bottom: 0 }}>
+                              <defs>
+                                <linearGradient id="colorBanca" x1="0" y1="0" x2="0" y2="1">
+                                  <stop offset="5%" stopColor="#10b981" stopOpacity={0.25}/>
+                                  <stop offset="95%" stopColor="#10b981" stopOpacity={0}/>
+                                </linearGradient>
+                              </defs>
                               <CartesianGrid strokeDasharray="0" stroke="rgba(255,255,255,0.02)" vertical={false} />
                               <XAxis dataKey="dia" stroke="rgba(255,255,255,0.3)" fontSize={10} fontWeight="bold" axisLine={false} tickLine={false} tickMargin={10} />
                               <YAxis stroke="rgba(255,255,255,0.3)" fontSize={10} fontWeight="bold" axisLine={false} tickLine={false} tickMargin={10} domain={['dataMin - 50', 'dataMax + 50']} />
-                              <Tooltip contentStyle={{ backgroundColor: '#050816', borderColor: 'rgba(255,255,255,0.1)', borderRadius: '12px' }} itemStyle={{ color: '#3b82f6', fontWeight: 'bold' }} />
-                              <Line type="linear" dataKey="banca" stroke="#3b82f6" strokeWidth={3} dot={{ fill: '#0f172a', stroke: '#3b82f6', strokeWidth: 2, r: 4 }} activeDot={{ r: 6, fill: '#3b82f6', stroke: '#fff', strokeWidth: 2 }} />
-                            </LineChart>
+                              <Tooltip contentStyle={{ backgroundColor: '#050816', borderColor: 'rgba(255,255,255,0.1)', borderRadius: '12px' }} itemStyle={{ color: '#10b981', fontWeight: 'bold' }} />
+                              <Area type="monotone" dataKey="banca" stroke="#10b981" strokeWidth={3} fill="url(#colorBanca)" dot={{ fill: '#0f172a', stroke: '#10b981', strokeWidth: 2, r: 4 }} activeDot={{ r: 6, fill: '#10b981', stroke: '#fff', strokeWidth: 2 }} />
+                            </AreaChart>
                           </ResponsiveContainer>
                         </div>
                       </div>
 
+                      {/* 📊 GRÁFICO 2: PRECISÃO DA IA (BARRAS DE ALTA DENSIDADE) */}
                       <div className="mb-6 bg-[#0f172a] border border-white/5 rounded-3xl p-5 shadow-2xl relative">
                         <div className="mb-6">
                           <h3 className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-1">Precisão da IA</h3>
@@ -357,33 +350,15 @@ export default function App() {
               {viewMode === 'radar' && (
                   <div className="px-4 animate-fade-in pb-20 w-full">
                       <HeaderNav title="🧠 Central de Inteligência" onBack={() => setViewMode('jogos')} />
-                      
                       <div className="grid grid-cols-2 gap-3 mb-6">
-                          <div className="bg-[#0f172a] border border-green-500/30 p-4 rounded-2xl">
-                              <div className="flex items-center gap-1.5 text-green-400 mb-2"><TrendingUp className="w-3 h-3"/><span className="text-[9px] font-black uppercase">Melhor Value Bet</span></div>
-                              <div className="text-xs font-bold text-white truncate">Flamengo x Palmeiras...</div>
-                          </div>
-                          <div className="bg-[#0f172a] border border-red-500/30 p-4 rounded-2xl">
-                              <div className="flex items-center gap-1.5 text-red-400 mb-2"><Target className="w-3 h-3"/><span className="text-[9px] font-black uppercase">Gol Iminente</span></div>
-                              <div className="text-xs font-bold text-white truncate">Real Madrid (Ataque ...</div>
-                          </div>
-                          <div className="bg-[#0f172a] border border-purple-500/30 p-4 rounded-2xl">
-                              <div className="flex items-center gap-1.5 text-purple-400 mb-2"><TrendingUp className="w-3 h-3"/><span className="text-[9px] font-black uppercase">Mercado Errado</span></div>
-                              <div className="text-xs font-bold text-white truncate">Empate Anulado odd ...</div>
-                          </div>
-                          <div className="bg-[#0f172a] border border-blue-500/30 p-4 rounded-2xl">
-                              <div className="flex items-center gap-1.5 text-blue-400 mb-2"><Zap className="w-3 h-3"/><span className="text-[9px] font-black uppercase">Maior EV+</span></div>
-                              <div className="text-xs font-bold text-white truncate">+14.2% EV (Escanteios)</div>
-                          </div>
+                          <div className="bg-[#0f172a] border border-green-500/30 p-4 rounded-2xl"><div className="flex items-center gap-1.5 text-green-400 mb-2"><TrendingUp className="w-3 h-3"/><span className="text-[9px] font-black uppercase">Melhor Value Bet</span></div><div className="text-xs font-bold text-white truncate">Flamengo x Palmeiras...</div></div>
+                          <div className="bg-[#0f172a] border border-red-500/30 p-4 rounded-2xl"><div className="flex items-center gap-1.5 text-red-400 mb-2"><Target className="w-3 h-3"/><span className="text-[9px] font-black uppercase">Gol Iminente</span></div><div className="text-xs font-bold text-white truncate">Real Madrid (Ataque ...</div></div>
+                          <div className="bg-[#0f172a] border border-purple-500/30 p-4 rounded-2xl"><div className="flex items-center gap-1.5 text-purple-400 mb-2"><TrendingUp className="w-3 h-3"/><span className="text-[9px] font-black uppercase">Mercado Errado</span></div><div className="text-xs font-bold text-white truncate">Empate Anulado odd ...</div></div>
+                          <div className="bg-[#0f172a] border border-blue-500/30 p-4 rounded-2xl"><div className="flex items-center gap-1.5 text-blue-400 mb-2"><Zap className="w-3 h-3"/><span className="text-[9px] font-black uppercase">Maior EV+</span></div><div className="text-xs font-bold text-white truncate">+14.2% EV (Escanteios)</div></div>
                       </div>
-
+                      <div className="bg-[#0f172a] rounded-3xl p-5 mb-4 shadow-lg border border-white/5"><h3 className="text-white font-black text-sm flex items-center gap-2 mb-6"><Globe className="w-5 h-5 text-blue-500"/> Radar Mundial PRO</h3><p className="text-xs text-slate-500 font-bold text-center py-6">Nenhuma super-oportunidade detectada no momento.</p></div>
                       <div className="bg-[#0f172a] rounded-3xl p-5 mb-4 shadow-lg border border-white/5">
-                          <h3 className="text-white font-black text-sm flex items-center gap-2 mb-6"><Globe className="w-5 h-5 text-blue-500"/> Radar Mundial PRO</h3>
-                          <p className="text-xs text-slate-500 font-bold text-center py-6">Nenhuma super-oportunidade detectada no momento.</p>
-                      </div>
-
-                      <div className="bg-[#0f172a] rounded-3xl p-5 mb-4 shadow-lg border border-white/5">
-                          <h3 className="text-slate-400 font-black text-[10px] uppercase flex items-center gap-2 mb-4"><DollarSign className="w-3 h-3 text-yellow-500"/> Comparador de Odds (Tempo Real)</h3>
+                          <h3 className="text-slate-400 font-black text-[10px] uppercase flex items-center gap-2 mb-4"><DollarSign className="w-3 h-3 text-yellow-500"/> Comparador de Odds</h3>
                           <div className="flex gap-2">
                               <div className="flex-1 bg-[#050816] rounded-xl p-3 text-center border border-white/5"><div className="text-[9px] font-black text-slate-400 uppercase mb-1">Bet365</div><div className="text-sm font-black text-white">1.85</div></div>
                               <div className="flex-1 bg-[#050816] rounded-xl p-3 text-center border border-white/5"><div className="text-[9px] font-black text-slate-400 uppercase mb-1">Betano</div><div className="text-sm font-black text-white">1.90</div></div>
@@ -395,29 +370,14 @@ export default function App() {
               )}
 
               {/* =======================================================
-                  ⚙️ TELA: ADMIN (Lista Vertical)
+                  ⚙️ TELA: ADMIN (Formato Lista Vertical Exato)
               ========================================================= */}
               {viewMode === 'admin' && (
                   <div className="px-4 animate-fade-in pb-20 w-full">
                       <HeaderNav title="⚙️ Painel de Controle Admin" onBack={() => setViewMode('perfil')} />
-                      
-                      <div className="bg-[#0f172a] p-5 rounded-3xl border border-white/5 shadow-lg mb-3">
-                          <div className="text-[10px] text-slate-400 uppercase font-bold mb-1 tracking-widest">Total Usuários</div>
-                          <div className="text-3xl font-black text-white">1,248</div>
-                      </div>
-                      
-                      <div className="bg-[#0f172a] p-5 rounded-3xl border border-yellow-500/20 shadow-lg mb-3">
-                          <div className="text-[10px] text-slate-400 uppercase font-bold mb-1 tracking-widest">Assinantes PRO</div>
-                          <div className="text-3xl font-black text-yellow-400">312</div>
-                      </div>
-
-                      <div className="bg-[#0f172a] p-5 rounded-3xl border border-green-500/20 shadow-lg flex justify-between items-center">
-                          <div>
-                              <div className="text-[10px] text-slate-400 uppercase font-bold mb-1 tracking-widest">Receita Mensal Estimada</div>
-                              <div className="text-3xl font-black text-green-400">R$ 9.328,80</div>
-                          </div>
-                          <DollarSign className="w-10 h-10 text-green-500 opacity-50"/>
-                      </div>
+                      <div className="bg-[#0f172a] p-5 rounded-3xl border border-white/5 shadow-lg mb-3"><div className="text-[10px] text-slate-400 uppercase font-bold mb-1 tracking-widest">Total Usuários</div><div className="text-3xl font-black text-white">1,248</div></div>
+                      <div className="bg-[#0f172a] p-5 rounded-3xl border border-yellow-500/20 shadow-lg mb-3"><div className="text-[10px] text-slate-400 uppercase font-bold mb-1 tracking-widest">Assinantes PRO</div><div className="text-3xl font-black text-yellow-400">312</div></div>
+                      <div className="bg-[#0f172a] p-5 rounded-3xl border border-green-500/20 shadow-lg flex justify-between items-center"><div><div className="text-[10px] text-slate-400 uppercase font-bold mb-1 tracking-widest">Receita Mensal Estimada</div><div className="text-3xl font-black text-green-400">R$ 9.328,80</div></div><DollarSign className="w-10 h-10 text-green-500 opacity-50"/></div>
                   </div>
               )}
           </div>
@@ -433,7 +393,7 @@ export default function App() {
 
       <AnimatePresence>
           {aiOpen && (
-              <motion.div initial={{opacity:0, y:20, scale:0.9}} animate={{opacity:1, y:0, scale:1}} exit={{opacity:0, scale:0.9, y:20}} className="fixed right-4 left-4 bottom-24 bg-[#0f172a] border border-slate-700 p-4 rounded-3xl shadow-2xl z-50 flex flex-col max-h-[70vh]">
+              <motion.div initial={{opacity:0, y:20, scale:0.9}} animate={{opacity:1, y:0, scale:1}} exit={{opacity:0, scale:0.9, y:20}} className="fixed right-4 left-4 bottom-24 bg-[#0f172a] border border-slate-700 p-4 rounded-3xl shadow-[0_0_50px_rgba(0,0,0,0.8)] z-50 flex flex-col max-h-[70vh]">
                   <div className="flex justify-between items-center mb-4 pb-3 border-b border-white/5"><h3 className="font-black flex items-center gap-2 text-white"><Zap className="w-5 h-5 text-yellow-400"/> Assistente IA</h3><button onClick={() => setAiOpen(false)} className="bg-slate-800 rounded-full p-1.5"><X className="w-4 h-4"/></button></div>
                   <div className="flex-1 overflow-y-auto flex flex-col gap-3 mb-4 pr-1 custom-scrollbar">
                       {aiMessages.map((msg, idx) => (
