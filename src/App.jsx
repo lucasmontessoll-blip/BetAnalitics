@@ -1,6 +1,6 @@
 import React, { useState, useEffect, lazy, Suspense } from 'react';
 import './App.css'; 
-import { LineChart, Line, ResponsiveContainer, XAxis, YAxis } from 'recharts';
+import { AreaChart, Area, ResponsiveContainer, XAxis, YAxis, CartesianGrid, Tooltip } from 'recharts';
 import { motion, AnimatePresence } from 'framer-motion';
 import { initMercadoPago } from '@mercadopago/sdk-react'; 
 import { createClient } from '@supabase/supabase-js';
@@ -68,9 +68,17 @@ const listaLigas = [
   {name:'Premier League', id: 39}
 ];
 
-const crescimentoBancaGlobal = [ { dia: "1", banca: 1000 }, { dia: "2", banca: 1080 }, { dia: "3", banca: 1150 }, { dia: "4", banca: 1210 }, { dia: "5", banca: 1280 }, { dia: "6", banca: 1350 }, { dia: "7", banca: 1420 } ];
-const mockRankingUsuarios = [ { id: 1, nome: "Lucas", lucro_total: 1840 }, { id: 2, nome: "Carlos", lucro_total: 1430 }, { id: 3, nome: "João", lucro_total: 1180 } ];
+const crescimentoBancaGlobal = [ 
+  { dia: "Seg", banca: 1000 }, 
+  { dia: "Ter", banca: 1080 }, 
+  { dia: "Qua", banca: 1150 }, 
+  { dia: "Qui", banca: 1210 }, 
+  { dia: "Sex", banca: 1280 }, 
+  { dia: "Sáb", banca: 1390 }, 
+  { dia: "Dom", banca: 1470 } 
+];
 
+const mockRankingUsuarios = [ { id: 1, nome: "Lucas", lucro_total: 1840 }, { id: 2, nome: "Carlos", lucro_total: 1430 }, { id: 3, nome: "João", lucro_total: 1180 } ];
 const mockJogosData = [];
 
 // ============================================================================
@@ -114,7 +122,6 @@ export default function App() {
   useEffect(() => {
     const puxarJogosDoServidor = async () => {
       try {
-        // 🔥 AGORA O REACT LÊ DIRETO DO SUPABASE (Sem erro 404)
         const { data: dadosBrutos, error } = await supabase
           .from('jogos_ao_vivo')
           .select('*');
@@ -139,11 +146,8 @@ export default function App() {
             time_elapsed: j.tempo_jogo, 
             home_team: j.time_casa,
             away_team: j.time_fora,
-            
-            // 🔥 MÁGICA DOS ESCUDOS: Puxa a imagem do banco, se não tiver, usa o padrão
             home_image: j.logo_casa || 'https://cdn-icons-png.flaticon.com/512/5323/5323814.png', 
             away_image: j.logo_fora || 'https://cdn-icons-png.flaticon.com/512/5323/5323814.png',
-            
             scoreHome: j.placar_casa,
             scoreAway: j.placar_fora,
             confianca_ia: confiancaReal, 
@@ -177,13 +181,12 @@ export default function App() {
   
   useEffect(() => { 
       const em = localStorage.getItem('bet_sessao_ativa'); 
-      const ADMIN_EMAIL = "lucasmontesso@admin.com"; // 🔥 COLOQUE SEU EMAIL DE ADMIN AQUI
+      const ADMIN_EMAIL = "lucasmontesso@admin.com";
       
       if (em) {
           setUserData({ email: em, nome: localStorage.getItem('bet_user_nome') || "Lucas Montesso", is_vip: true, is_admin: (em === ADMIN_EMAIL) }); 
       }
       else if (MODO_DEMONSTRACAO) {
-          // No modo demo, se você quiser ver a aba admin, deixe is_admin: true
           setUserData({ email: "lucas@vip.com", nome: "Lucas Montesso", is_vip: true, is_admin: true }); 
       } 
   }, []);
@@ -311,6 +314,46 @@ export default function App() {
 
               {viewMode === 'jogos' && (
                   <>
+                    {/* =========================================================
+                        📊 SEÇÃO DO GRÁFICO ELITE (Evolução de Banca)
+                    ========================================================= */}
+                    <div className="mx-4 mb-6 bg-[#0f172a] border border-white/10 rounded-3xl p-5 shadow-2xl relative overflow-hidden transform-gpu">
+                      <div className="flex justify-between items-center mb-4">
+                        <div>
+                          <h3 className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Desempenho Semanal</h3>
+                          <h2 className="text-lg font-black text-white flex items-center gap-1.5 mt-0.5">
+                            Crescimento Líquido <span className="text-emerald-400 text-[10px] font-black bg-emerald-500/10 px-2 py-0.5 rounded-lg flex items-center gap-0.5"><TrendingUp className="w-3 h-3" /> +47.0%</span>
+                          </h2>
+                        </div>
+                        <div className="bg-blue-500/10 border border-blue-500/20 p-2.5 rounded-2xl">
+                          <DollarSign className="w-4 pipe h-4 text-blue-400" />
+                        </div>
+                      </div>
+                      
+                      {/* Contêiner com Altura Rígida Fixa para Evitar o Colapso Vetorial */}
+                      <div className="w-full h-48 sm:h-56 mt-2 relative z-10">
+                        <ResponsiveContainer width="100%" height="100%">
+                          <AreaChart data={crescimentoBancaGlobal} margin={{ top: 10, right: 10, left: -25, bottom: 0 }}>
+                            <defs>
+                              <linearGradient id="glowGradiant" x1="0" y1="0" x2="0" y2="1">
+                                <stop offset="5%" stopColor="#3b82f6" stopOpacity={0.25}/>
+                                <stop offset="95%" stopColor="#3b82f6" stopOpacity={0}/>
+                              </linearGradient>
+                            </defs>
+                            <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.03)" vertical={false} />
+                            <XAxis dataKey="dia" stroke="rgba(255,255,255,0.2)" fontSize={10} fontWeight="bold" axisLine={false} tickLine={false} />
+                            <YAxis stroke="rgba(255,255,255,0.2)" fontSize={10} fontWeight="bold" axisLine={false} tickLine={false} domain={['dataMin - 50', 'dataMax + 50']} />
+                            <Tooltip 
+                              contentStyle={{ backgroundColor: '#0f172a', borderColor: 'rgba(255,255,255,0.1)', borderRadius: '16px', boxShadow: '0 10px 30px rgba(0,0,0,0.5)' }}
+                              itemStyle={{ color: '#fff', fontSize: '12px', fontWeight: 'bold' }}
+                              labelStyle={{ color: '#64748b', fontSize: '10px', fontWeight: 'black', uppercase: true }}
+                            />
+                            <Area type="monotone" dataKey="banca" stroke="#3b82f6" strokeWidth={3} fillOpacity={1} fill="url(#glowGradiant)" dot={{ stroke: '#3b82f6', strokeWidth: 2, r: 3, fill: '#050816' }} activeDot={{ r: 5, strokeWidth: 0, fill: '#3b82f6' }} />
+                          </AreaChart>
+                        </ResponsiveContainer>
+                      </div>
+                    </div>
+
                     {userData?.is_vip && (
                         <div className="mx-4 mb-6 rounded-3xl p-4 sm:p-6 bg-gradient-to-br from-blue-600 to-blue-900 shadow-[0_0_30px_rgba(13,110,253,0.3)] flex justify-between items-center transform-gpu">
                         <div><h2 className="text-lg sm:text-xl font-black text-white flex items-center gap-2 mb-1 sm:mb-2"><Crown className="w-5 h-5 text-yellow-400"/> IA Premium</h2><p className="text-blue-100 text-[10px] sm:text-xs mt-1"><strong>{(performanceStats.acertos/performanceStats.totalAnalises*100).toFixed(1)}%</strong> de precisão nos clubes</p></div>
