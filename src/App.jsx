@@ -1,10 +1,9 @@
 import React, { useState, useEffect, lazy, Suspense } from 'react';
 import './App.css'; 
-import { AreaChart, Area, BarChart, Bar, ResponsiveContainer, XAxis, YAxis, CartesianGrid, Tooltip } from 'recharts';
 import { motion, AnimatePresence } from 'framer-motion';
 import { initMercadoPago } from '@mercadopago/sdk-react'; 
 import { createClient } from '@supabase/supabase-js';
-import { Home, Radio, Trophy, Crown, Star, X, User, Zap, TrendingUp, AlertTriangle, ArrowLeft, Send, DollarSign, Target, Bell, Globe } from 'lucide-react';
+import { Home, Radio, Trophy, Crown, Star, X, User, Zap, AlertTriangle, ArrowLeft, Send, Target, Bell, Globe } from 'lucide-react';
 
 // ============================================================================
 // ⚙️ IMPORTAÇÃO DOS NOVOS MOTORES (ALGORITMOS E MATEMÁTICA)
@@ -53,17 +52,6 @@ const isSelecao = (home, away, liga) => {
 const getLocalYYYYMMDD = () => { const d = new Date(); d.setMinutes(d.getMinutes() - d.getTimezoneOffset()); return d.toISOString().split('T')[0]; };
 
 const listaLigas = [{name:'Todos', id: null}, {name:'Brasileirão', id: 71}, {name:'Champions', id: 2}, {name:'Premier League', id: 39}];
-
-// 📊 DADOS DOS GRÁFICOS PREMIUM
-const crescimentoBancaGlobal = [ 
-  { dia: "Seg", banca: 1000 }, { dia: "Ter", banca: 1080 }, { dia: "Qua", banca: 1150 }, 
-  { dia: "Qui", banca: 1210 }, { dia: "Sex", banca: 1280 }, { dia: "Sáb", banca: 1390 }, { dia: "Dom", banca: 1470 } 
-];
-
-const desempenhoDiario = [
-  { dia: "Seg", acertos: 14, erros: 3 }, { dia: "Ter", acertos: 18, erros: 2 }, { dia: "Qua", acertos: 12, erros: 5 },
-  { dia: "Qui", acertos: 20, erros: 4 }, { dia: "Sex", acertos: 25, erros: 6 }, { dia: "Sáb", acertos: 32, erros: 8 }, { dia: "Dom", acertos: 28, erros: 5 }
-];
 
 // ============================================================================
 // 📱 COMPONENTE PRINCIPAL
@@ -197,6 +185,33 @@ export default function App() {
         <button onClick={() => setMenuAtivo('assinar pro')} className="bg-gradient-to-r from-yellow-500 to-yellow-600 text-black font-black px-3 py-2 rounded-xl text-xs"><Crown className="w-4 h-4 inline mr-1" /> VIP</button>
       </header>
 
+      {/* =========================================================
+          💎 TELA VIP PRO (Com Seta de Retorno Restaurada)
+      ========================================================= */}
+      {menuAtivo === 'assinar pro' && (
+        <div className="px-4 pt-24 animate-fade-in pb-28 min-h-screen bg-[#050816] text-white absolute inset-0 z-[999] overflow-y-auto">
+          {/* Header Fixo com Botão de Voltar */}
+          <div className="fixed top-0 left-0 w-full bg-[#050816]/95 backdrop-blur-xl z-[9999] px-5 py-4 border-b border-white/10 flex items-center gap-3 shadow-xl">
+            <button 
+              onClick={() => { setMenuAtivo('Todos os Jogos'); setViewMode('jogos'); setJogoSelecionado(null); }} 
+              className="p-2 bg-blue-600 rounded-full hover:bg-blue-500 transition shadow-[0_0_15px_rgba(37,99,235,0.6)] flex-shrink-0"
+            >
+              <ArrowLeft className="w-6 h-6 text-white" />
+            </button>
+            <span className="font-black text-white uppercase tracking-widest text-xs">Voltar ao App</span>
+          </div>
+
+          {/* Conteúdo da Aba VIP */}
+          <div className="bg-gradient-to-br from-yellow-500 to-yellow-700 rounded-3xl p-6 text-black shadow-[0_0_30px_rgba(234,179,8,0.25)] mt-4">
+            <h2 className="text-2xl font-black mb-2 flex items-center gap-2"><Crown className="w-6 h-6" /> BetAnalytics PRO</h2>
+            <p className="text-sm font-bold mb-5">Desbloqueie Radar IA, Value Bets e análises avançadas com a nossa Inteligência Artificial exclusiva.</p>
+            <button className="w-full bg-black text-yellow-400 font-black py-4 rounded-2xl text-sm transition-transform active:scale-95 shadow-lg">
+              ASSINAR VIP PRO AGORA
+            </button>
+          </div>
+        </div>
+      )}
+
       {menuAtivo !== 'assinar pro' && !jogoSelecionado && (
           <div className="animate-fade-in pt-4 w-full">
               {viewMode === 'copa' && (
@@ -212,63 +227,30 @@ export default function App() {
 
               {viewMode === 'jogos' && (
                   <>
-                    {/* 📊 GRÁFICO 1: EVOLUÇÃO DE BANCA (ÁREA NÉON) */}
-                    <div className="mx-4 mb-4 bg-[#0f172a] border border-white/10 rounded-3xl p-5 shadow-2xl relative overflow-hidden transform-gpu">
-                      <div className="flex justify-between items-center mb-4">
-                        <div>
-                          <h3 className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Desempenho Semanal</h3>
-                          <h2 className="text-lg font-black text-white flex items-center gap-1.5 mt-0.5">
-                            Crescimento Líquido <span className="text-emerald-400 text-[10px] font-black bg-emerald-500/10 px-2 py-0.5 rounded-lg flex items-center gap-0.5"><TrendingUp className="w-3 h-3" /> +47.0%</span>
-                          </h2>
+                    {userData?.is_vip && (
+                        <div className="mx-4 mb-6 rounded-3xl p-4 sm:p-6 bg-gradient-to-br from-blue-600 to-blue-900 shadow-[0_0_30px_rgba(13,110,253,0.3)] flex justify-between items-center transform-gpu">
+                          <div><h2 className="text-lg sm:text-xl font-black text-white flex items-center gap-2 mb-1 sm:mb-2"><Crown className="w-5 h-5 text-yellow-400"/> IA Premium</h2><p className="text-blue-100 text-[10px] sm:text-xs mt-1"><strong>{(performanceStats.acertos/performanceStats.totalAnalises*100).toFixed(1)}%</strong> de precisão nos clubes</p></div>
+                          <button onClick={() => setViewMode('alertas')} className="bg-white/20 border border-white/30 text-white text-[9px] sm:text-[10px] font-bold px-3 sm:px-4 py-2 sm:py-3 rounded-xl uppercase tracking-wider">CONFIGURAR ALERTAS</button>
                         </div>
-                        <div className="bg-blue-500/10 border border-blue-500/20 p-2.5 rounded-2xl">
-                          <DollarSign className="w-4 h-4 text-blue-400" />
-                        </div>
-                      </div>
-                      <div className="w-full h-48 sm:h-56 mt-2 relative z-10">
-                        <ResponsiveContainer width="100%" height="100%">
-                          <AreaChart data={crescimentoBancaGlobal} margin={{ top: 10, right: 10, left: -25, bottom: 0 }}>
-                            <defs>
-                              <linearGradient id="glowGradiant" x1="0" y1="0" x2="0" y2="1">
-                                <stop offset="5%" stopColor="#3b82f6" stopOpacity={0.25}/><stop offset="95%" stopColor="#3b82f6" stopOpacity={0}/>
-                              </linearGradient>
-                            </defs>
-                            <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.03)" vertical={false} />
-                            <XAxis dataKey="dia" stroke="rgba(255,255,255,0.2)" fontSize={10} fontWeight="bold" axisLine={false} tickLine={false} />
-                            <YAxis stroke="rgba(255,255,255,0.2)" fontSize={10} fontWeight="bold" axisLine={false} tickLine={false} domain={['dataMin - 50', 'dataMax + 50']} />
-                            <Tooltip contentStyle={{ backgroundColor: '#0f172a', borderColor: 'rgba(255,255,255,0.1)', borderRadius: '16px' }} itemStyle={{ color: '#fff', fontSize: '12px', fontWeight: 'bold' }} labelStyle={{ color: '#64748b', fontSize: '10px', fontWeight: 'black', textTransform: 'uppercase' }} />
-                            <Area type="monotone" dataKey="banca" stroke="#3b82f6" strokeWidth={3} fillOpacity={1} fill="url(#glowGradiant)" dot={{ stroke: '#3b82f6', strokeWidth: 2, r: 3, fill: '#050816' }} activeDot={{ r: 5, strokeWidth: 0, fill: '#3b82f6' }} />
-                          </AreaChart>
-                        </ResponsiveContainer>
-                      </div>
-                    </div>
+                    )}
 
-                    {/* 📊 GRÁFICO 2: PRECISÃO DIÁRIA (BARRAS ELITE) */}
-                    <div className="mx-4 mb-6 bg-[#0f172a] border border-white/10 rounded-3xl p-5 shadow-2xl relative overflow-hidden transform-gpu">
-                      <div className="flex justify-between items-center mb-4">
-                        <div>
-                          <h3 className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Precisão da IA</h3>
-                          <h2 className="text-lg font-black text-white flex items-center gap-1.5 mt-0.5">
-                            Acertos vs Erros <span className="text-emerald-400 text-[10px] font-black bg-emerald-500/10 px-2 py-0.5 rounded-lg flex items-center gap-0.5"><Target className="w-3 h-3" /> 84% Win Rate</span>
-                          </h2>
+                    {bilhetePremium.selecoes.length > 0 && (
+                        <div className="bg-[#0f172a] border border-green-500/30 rounded-3xl p-4 sm:p-6 mb-6 mx-4 shadow-lg transform-gpu">
+                            <h2 className="font-black text-green-400 mb-4 flex items-center gap-2 uppercase tracking-wider"><Target className="w-5 h-5"/> Bilhete Inteligente IA</h2>
+                            <div>
+                                {bilhetePremium.selecoes.map(jogo => (
+                                    <div key={jogo.id} onClick={() => { if(!userData?.is_vip) return setMenuAtivo('assinar pro'); setJogoSelecionado(jogo); }} className="bg-[#111827] border border-white/5 p-4 rounded-xl mb-3 cursor-pointer hover:border-green-500/50 transition-colors flex justify-between items-center">
+                                        <div className="font-bold text-white text-sm truncate pr-2 min-w-0">{jogo.home_team} x {jogo.away_team}</div>
+                                        <div className="text-green-400 text-[9px] sm:text-[10px] font-black tracking-widest uppercase flex-shrink-0">Confiança: {jogo.confianca_ia}%</div>
+                                    </div>
+                                ))}
+                            </div>
+                            <div className="mt-4 pt-4 border-t border-green-500/20 flex justify-between items-center">
+                                <span className="text-[10px] sm:text-xs text-green-200 font-black uppercase tracking-widest truncate pr-2">Odd Combinada Final</span>
+                                <span className="text-2xl sm:text-3xl font-black text-green-400 drop-shadow-[0_0_10px_rgba(74,222,128,0.5)] flex-shrink-0">@{Number(bilhetePremium.oddFinal || 0).toFixed(2)}</span>
+                            </div>
                         </div>
-                        <div className="bg-purple-500/10 border border-purple-500/20 p-2.5 rounded-2xl">
-                          <Zap className="w-4 h-4 text-purple-400" />
-                        </div>
-                      </div>
-                      <div className="w-full h-48 sm:h-56 mt-2 relative z-10">
-                        <ResponsiveContainer width="100%" height="100%">
-                          <BarChart data={desempenhoDiario} margin={{ top: 10, right: 10, left: -25, bottom: 0 }} barSize={12}>
-                            <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.03)" vertical={false} />
-                            <XAxis dataKey="dia" stroke="rgba(255,255,255,0.2)" fontSize={10} fontWeight="bold" axisLine={false} tickLine={false} />
-                            <YAxis stroke="rgba(255,255,255,0.2)" fontSize={10} fontWeight="bold" axisLine={false} tickLine={false} />
-                            <Tooltip cursor={{ fill: 'rgba(255,255,255,0.05)' }} contentStyle={{ backgroundColor: '#0f172a', borderColor: 'rgba(255,255,255,0.1)', borderRadius: '16px' }} itemStyle={{ fontSize: '12px', fontWeight: 'bold' }} labelStyle={{ color: '#64748b', fontSize: '10px', fontWeight: 'black', textTransform: 'uppercase' }} />
-                            <Bar dataKey="acertos" name="Greens (Acertos)" fill="#10b981" radius={[4, 4, 0, 0]} />
-                            <Bar dataKey="erros" name="Reds (Erros)" fill="#ef4444" radius={[4, 4, 0, 0]} />
-                          </BarChart>
-                        </ResponsiveContainer>
-                      </div>
-                    </div>
+                    )}
 
                     <div className="flex gap-2 px-4 overflow-x-auto pb-4 no-scrollbar mt-4 w-full">
                         <button onClick={() => setFilterCentro('Todos')} className={`px-5 py-2.5 rounded-full text-xs font-black transition-colors border ${filterCentro==='Todos' ? 'bg-white text-black border-white' : 'bg-[#050816] border-slate-700 text-slate-400'}`}>Todos</button>
