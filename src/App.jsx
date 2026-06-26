@@ -4,7 +4,7 @@ import { LineChart, Line, BarChart, Bar, ResponsiveContainer, XAxis, YAxis, Cart
 import { motion, AnimatePresence } from 'framer-motion';
 import { initMercadoPago } from '@mercadopago/sdk-react'; 
 import { createClient } from '@supabase/supabase-js';
-import { Home, Radio, Trophy, Crown, Star, ChevronRight, X, User, Zap, TrendingUp, AlertTriangle, ArrowLeft, Send, DollarSign, Target, Bell, Globe } from 'lucide-react';
+import { Home, Radio, Trophy, Crown, Star, X, User, Zap, TrendingUp, AlertTriangle, ArrowLeft, Send, DollarSign, Target, Globe } from 'lucide-react';
 
 import { detectarValueBetReal } from './algorithms/valueBet.js';
 import { calcularEV, calcularHeatScore, calcularKelly } from './utils/math.js';
@@ -132,12 +132,11 @@ export default function App() {
 
   const RenderizarListaJogos = () => {
       if (loading) return <div className="text-center text-slate-500 py-10">Buscando radar de jogos...</div>;
-      if (Object.keys(jGrp).length === 0) return <div className="text-center text-slate-500 py-10 font-bold">Nenhuma oportunidade encontrada.</div>;
+      if (Object.keys(jGrp).length === 0) return <div className="text-center text-slate-500 py-10 font-bold">Nenhuma oportunidade encontrada com estes filtros.</div>;
       return Object.entries(jGrp).map(([leagueName, matches]) => (
           <div key={leagueName} className="mb-6 w-full">
               <div className="text-xs font-black text-slate-500 uppercase tracking-widest mb-3 pl-2">{leagueName}</div>
               {matches.map(j => {
-                  const risco = calcularRisco(j);
                   return (
                       <div key={j.id} onClick={() => { if(!userData?.is_vip) return setMenuAtivo('assinar pro'); setJogoSelecionado(j); }} className="bg-[#0f172a] border border-white/10 rounded-3xl p-5 shadow-lg mb-4 cursor-pointer hover:border-blue-500/50 transform-gpu">
                           <div className="flex justify-between items-center mb-5">
@@ -157,7 +156,7 @@ export default function App() {
   };
 
   const HeaderNav = ({ title, onBack }) => (
-      <div className="flex items-center justify-between mb-6"><div className="flex items-center gap-3"><button onClick={onBack} className="p-2 bg-[#050816] rounded-full border border-white/10"><ArrowLeft className="w-5 h-5"/></button><h2 className="text-xl font-black">{title}</h2></div></div>
+      <div className="flex items-center gap-3 mb-6"><button onClick={onBack} className="p-2 bg-[#050816] rounded-full border border-white/10"><ArrowLeft className="w-5 h-5"/></button><h2 className="text-xl font-black">{title}</h2></div>
   );
 
   if (showSplash) return (
@@ -176,44 +175,71 @@ export default function App() {
 
       {menuAtivo !== 'assinar pro' && !jogoSelecionado && (
           <div className="animate-fade-in pt-4 w-full">
+              
+              {/* =======================================================
+                  🏆 TELA: COPA (Seleções + Chuteira de Ouro)
+              ========================================================= */}
               {viewMode === 'copa' && (
                   <div className="px-4 w-full">
-                      <div className="bg-gradient-to-br from-yellow-600 to-yellow-900 rounded-3xl p-6 mb-6 shadow-lg relative overflow-hidden">
+                      <div className="bg-gradient-to-br from-yellow-500 to-yellow-700 rounded-3xl p-6 mb-6 shadow-lg relative overflow-hidden">
                           <Globe className="absolute -right-4 -top-4 w-32 h-32 text-yellow-500/20" />
                           <h2 className="text-2xl font-black text-white flex items-center gap-2 relative z-10"><Trophy className="w-6 h-6 text-yellow-300"/> Seleções</h2>
+                          <p className="text-yellow-200 text-xs mt-1 relative z-10 font-bold">Monitoramento de Eurocopa, Copa América e Internacionais</p>
                       </div>
+
+                      <div className="flex gap-2 overflow-x-auto pb-4 no-scrollbar mb-2 w-full">
+                          <button onClick={() => setFilterCentro('Todos')} className={`px-5 py-2.5 rounded-full text-xs font-black border ${filterCentro==='Todos' ? 'bg-white text-black' : 'bg-transparent border-slate-700 text-slate-400'}`}>Todos</button>
+                          <button onClick={() => setFilterCentro('Ao Vivo')} className={`px-5 py-2.5 rounded-full text-xs font-black flex items-center gap-2 border ${filterCentro==='Ao Vivo' ? 'bg-white text-black' : 'bg-transparent border-slate-700 text-slate-400'}`}>Ao Vivo <span className="w-2 h-2 rounded-full bg-red-500 animate-pulse"></span></button>
+                      </div>
+                      
                       <RenderizarListaJogos />
+
+                      <div className="bg-[#0f172a] rounded-3xl p-5 mb-4 shadow-lg border border-white/5 mt-4">
+                          <h3 className="text-yellow-500 font-black text-xs uppercase flex items-center gap-2 mb-4"><Target className="w-4 h-4"/> Chuteira de Ouro</h3>
+                          <div className="bg-[#050816] rounded-xl p-3 mb-2 flex justify-between items-center"><span className="text-xs font-bold text-slate-300"><span className="text-slate-500 mr-2">1º</span> Mbappé</span><span className="text-xs font-black text-yellow-500">5 <span className="text-[9px] text-slate-400">Gols</span></span></div>
+                          <div className="bg-[#050816] rounded-xl p-3 flex justify-between items-center"><span className="text-xs font-bold text-slate-300"><span className="text-slate-500 mr-2">2º</span> Kane</span><span className="text-xs font-black text-yellow-500">4 <span className="text-[9px] text-slate-400">Gols</span></span></div>
+                      </div>
+
+                      <div className="bg-[#0f172a] rounded-3xl p-5 mb-4 shadow-lg border border-white/5">
+                          <h3 className="text-blue-400 font-black text-xs uppercase flex items-center gap-2 mb-4"><User className="w-4 h-4"/> Garçons da Copa</h3>
+                          <div className="bg-[#050816] rounded-xl p-3 mb-2 flex justify-between items-center"><span className="text-xs font-bold text-slate-300"><span className="text-slate-500 mr-2">1º</span> De Bruyne</span><span className="text-xs font-black text-blue-400">4 <span className="text-[9px] text-slate-400">Ast.</span></span></div>
+                          <div className="bg-[#050816] rounded-xl p-3 flex justify-between items-center"><span className="text-xs font-bold text-slate-300"><span className="text-slate-500 mr-2">2º</span> Vinícius Jr</span><span className="text-xs font-black text-blue-400">3 <span className="text-[9px] text-slate-400">Ast.</span></span></div>
+                      </div>
                   </div>
               )}
 
+              {/* =======================================================
+                  ⚽ TELA: INÍCIO (Jogos)
+              ========================================================= */}
               {viewMode === 'jogos' && (
                   <>
-                    {bilhetePremium.selecoes.length > 0 && (
-                        <div className="bg-[#0f172a] border border-green-500/30 rounded-3xl p-4 sm:p-6 mb-6 mx-4 shadow-lg">
-                            <h2 className="font-black text-green-400 mb-4 flex items-center gap-2 uppercase tracking-wider"><Target className="w-5 h-5"/> Bilhete Inteligente IA</h2>
+                    {userData?.is_vip && (
+                        <div className="mx-4 mb-6 rounded-3xl p-5 bg-gradient-to-r from-blue-600 to-blue-700 shadow-lg flex justify-between items-center transform-gpu">
                             <div>
-                                {bilhetePremium.selecoes.map(jogo => (
-                                    <div key={jogo.id} onClick={() => { if(!userData?.is_vip) return setMenuAtivo('assinar pro'); setJogoSelecionado(jogo); }} className="bg-[#111827] border border-white/5 p-4 rounded-xl mb-3 cursor-pointer">
-                                        <div className="font-bold text-white text-sm">{jogo.home_team} x {jogo.away_team}</div>
-                                    </div>
-                                ))}
+                                <h2 className="text-xl font-black text-white flex items-center gap-2 mb-1"><Crown className="w-5 h-5 text-yellow-400"/> IA Premium</h2>
+                                <p className="text-blue-100 text-[10px] font-bold">{(performanceStats.acertos/performanceStats.totalAnalises*100).toFixed(1)}% de precisão nos clubes</p>
                             </div>
+                            <button onClick={() => setViewMode('radar')} className="bg-white/20 border border-white/30 text-white text-[10px] font-black px-4 py-2 rounded-xl uppercase tracking-wider">CONFIGURAR ALERTAS</button>
                         </div>
                     )}
+
                     <div className="flex gap-2 px-4 overflow-x-auto pb-4 no-scrollbar mt-4 w-full">
-                        <button onClick={() => setFilterCentro('Todos')} className={`px-5 py-2.5 rounded-full text-xs font-black border ${filterCentro==='Todos' ? 'bg-white text-black border-white' : 'bg-[#050816] border-slate-700 text-slate-400'}`}>Todos</button>
-                        <button onClick={() => setFilterCentro('Ao Vivo')} className={`px-5 py-2.5 rounded-full text-xs font-black border ${filterCentro==='Ao Vivo' ? 'bg-white text-black border-white' : 'bg-[#050816] border-slate-700 text-slate-400'}`}>Ao Vivo</button>
+                        <button onClick={() => setFilterCentro('Todos')} className={`px-5 py-2.5 rounded-full text-xs font-black border ${filterCentro==='Todos' ? 'bg-white text-black' : 'bg-transparent border-slate-700 text-slate-400'}`}>Todos</button>
+                        <button onClick={() => setFilterCentro('Ao Vivo')} className={`px-5 py-2.5 rounded-full text-xs font-black flex items-center gap-2 border ${filterCentro==='Ao Vivo' ? 'bg-white text-black border-white' : 'bg-transparent border-slate-700 text-slate-400'}`}>Ao Vivo <span className="w-2 h-2 rounded-full bg-red-500 animate-pulse"></span></button>
+                        {listaLigas.filter(l => l.id !== null).map(l => (
+                            <button key={l.name} onClick={() => setLigaAtivaId(l.id)} className={`px-4 py-2.5 rounded-full text-xs font-black border ${ligaAtivaId === l.id ? 'bg-[#0f172a] text-white border-white/10' : 'bg-transparent border-slate-700 text-slate-400'}`}>{l.name}</button>
+                        ))}
                     </div>
+
                     <div className="px-4 w-full"><RenderizarListaJogos /></div>
                   </>
               )}
 
+              {/* =======================================================
+                  👤 TELA: PERFIL (Com os 2 Gráficos Injetados)
+              ========================================================= */}
               {viewMode === 'perfil' && (
                   <div className="px-4 animate-fade-in w-full pb-6">
-                      
-                      {/* =======================================================
-                          📊 GRÁFICOS ELITE (INJETADOS AQUI)
-                      ========================================================= */}
                       <div className="mb-6 bg-[#0f172a] border border-white/5 rounded-3xl p-5 shadow-2xl relative mt-4">
                         <div className="mb-6">
                           <h3 className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-1">Desempenho Semanal</h3>
@@ -261,31 +287,78 @@ export default function App() {
                         </div>
                       </div>
 
-                     {/* =======================================================
-                         COMPONENTE DE PERFIL ORIGINAL
-                     ========================================================= */}
                      <Suspense fallback={<div className="text-center p-10 font-black text-blue-500 animate-pulse uppercase tracking-widest text-xs">A carregar Perfil Premium...</div>}>
                         <Perfil userData={userData} form={form} setForm={setForm} nivelUsuario={nivelUsuario()} xp={xp} setViewMode={setViewMode} apostas={apostas} bancaInicial={bancaInicial} metaMensal={metaMensal} setMenuAtivo={setMenuAtivo} />
                      </Suspense>
                   </div>
               )}
 
-              {viewMode === 'alertas' && (
-                  <div className="px-4 animate-fade-in w-full pb-10">
-                      <HeaderNav title="🔔 Radar de Oportunidades" onBack={() => setViewMode('jogos')} />
-                      <div className="bg-[#0f172a] border border-yellow-500/30 rounded-3xl p-6 shadow-lg">
-                          <h3 className="text-sm font-black text-yellow-400 mb-4 uppercase">Configurar Notificações</h3>
-                          <button onClick={async () => { const { solicitarPermissaoNotificacao } = await import('./services/notificacoes'); solicitarPermissaoNotificacao(); }} className="w-full bg-blue-600 text-white font-bold py-3 rounded-xl">ATIVAR NOTIFICAÇÕES</button>
+              {/* =======================================================
+                  🧠 TELA: RADAR IA (Central de Inteligência)
+              ========================================================= */}
+              {viewMode === 'radar' && (
+                  <div className="px-4 animate-fade-in pb-20 w-full">
+                      <HeaderNav title="🧠 Central de Inteligência" onBack={() => setViewMode('jogos')} />
+                      
+                      <div className="grid grid-cols-2 gap-3 mb-6">
+                          <div className="bg-[#0f172a] border border-green-500/30 p-4 rounded-2xl">
+                              <div className="flex items-center gap-1.5 text-green-400 mb-2"><TrendingUp className="w-3 h-3"/><span className="text-[9px] font-black uppercase">Melhor Value Bet</span></div>
+                              <div className="text-xs font-bold text-white truncate">Flamengo x Palmeiras...</div>
+                          </div>
+                          <div className="bg-[#0f172a] border border-red-500/30 p-4 rounded-2xl">
+                              <div className="flex items-center gap-1.5 text-red-400 mb-2"><Target className="w-3 h-3"/><span className="text-[9px] font-black uppercase">Gol Iminente</span></div>
+                              <div className="text-xs font-bold text-white truncate">Real Madrid (Ataque ...</div>
+                          </div>
+                          <div className="bg-[#0f172a] border border-purple-500/30 p-4 rounded-2xl">
+                              <div className="flex items-center gap-1.5 text-purple-400 mb-2"><TrendingUp className="w-3 h-3"/><span className="text-[9px] font-black uppercase">Mercado Errado</span></div>
+                              <div className="text-xs font-bold text-white truncate">Empate Anulado odd ...</div>
+                          </div>
+                          <div className="bg-[#0f172a] border border-blue-500/30 p-4 rounded-2xl">
+                              <div className="flex items-center gap-1.5 text-blue-400 mb-2"><Zap className="w-3 h-3"/><span className="text-[9px] font-black uppercase">Maior EV+</span></div>
+                              <div className="text-xs font-bold text-white truncate">+14.2% EV (Escanteios)</div>
+                          </div>
+                      </div>
+
+                      <div className="bg-[#0f172a] rounded-3xl p-5 mb-4 shadow-lg border border-white/5">
+                          <h3 className="text-white font-black text-sm flex items-center gap-2 mb-6"><Globe className="w-5 h-5 text-blue-500"/> Radar Mundial PRO</h3>
+                          <p className="text-xs text-slate-500 font-bold text-center py-6">Nenhuma super-oportunidade detectada no momento.</p>
+                      </div>
+
+                      <div className="bg-[#0f172a] rounded-3xl p-5 mb-4 shadow-lg border border-white/5">
+                          <h3 className="text-slate-400 font-black text-[10px] uppercase flex items-center gap-2 mb-4"><DollarSign className="w-3 h-3 text-yellow-500"/> Comparador de Odds (Tempo Real)</h3>
+                          <div className="flex gap-2">
+                              <div className="flex-1 bg-[#050816] rounded-xl p-3 text-center border border-white/5"><div className="text-[9px] font-black text-slate-400 uppercase mb-1">Bet365</div><div className="text-sm font-black text-white">1.85</div></div>
+                              <div className="flex-1 bg-[#050816] rounded-xl p-3 text-center border border-white/5"><div className="text-[9px] font-black text-slate-400 uppercase mb-1">Betano</div><div className="text-sm font-black text-white">1.90</div></div>
+                              <div className="flex-1 bg-[#050816] rounded-xl p-3 text-center border border-white/5"><div className="text-[9px] font-black text-slate-400 uppercase mb-1">1xBet</div><div className="text-sm font-black text-white">1.92</div></div>
+                              <div className="flex-1 bg-[#050816] rounded-xl p-3 text-center border border-green-500/30"><div className="text-[9px] font-black text-green-400 uppercase mb-1">Pinnacle</div><div className="text-sm font-black text-green-400">2.05</div></div>
+                          </div>
                       </div>
                   </div>
               )}
 
+              {/* =======================================================
+                  ⚙️ TELA: ADMIN (Lista Vertical)
+              ========================================================= */}
               {viewMode === 'admin' && (
                   <div className="px-4 animate-fade-in pb-20 w-full">
-                      <HeaderNav title="⚙️ Painel Admin" onBack={() => setViewMode('perfil')} />
-                      <div className="grid grid-cols-2 gap-3 mb-6">
-                          <div className="bg-[#0f172a] p-4 rounded-3xl border border-white/5 shadow-lg"><div className="text-[10px] text-slate-400 uppercase font-bold">Total Usuários</div><div className="text-2xl font-black">1,248</div></div>
-                          <div className="bg-[#0f172a] p-4 rounded-3xl border border-yellow-500/20 shadow-lg"><div className="text-[10px] text-slate-400 uppercase font-bold">VIPs</div><div className="text-2xl font-black text-yellow-400">312</div></div>
+                      <HeaderNav title="⚙️ Painel de Controle Admin" onBack={() => setViewMode('perfil')} />
+                      
+                      <div className="bg-[#0f172a] p-5 rounded-3xl border border-white/5 shadow-lg mb-3">
+                          <div className="text-[10px] text-slate-400 uppercase font-bold mb-1 tracking-widest">Total Usuários</div>
+                          <div className="text-3xl font-black text-white">1,248</div>
+                      </div>
+                      
+                      <div className="bg-[#0f172a] p-5 rounded-3xl border border-yellow-500/20 shadow-lg mb-3">
+                          <div className="text-[10px] text-slate-400 uppercase font-bold mb-1 tracking-widest">Assinantes PRO</div>
+                          <div className="text-3xl font-black text-yellow-400">312</div>
+                      </div>
+
+                      <div className="bg-[#0f172a] p-5 rounded-3xl border border-green-500/20 shadow-lg flex justify-between items-center">
+                          <div>
+                              <div className="text-[10px] text-slate-400 uppercase font-bold mb-1 tracking-widest">Receita Mensal Estimada</div>
+                              <div className="text-3xl font-black text-green-400">R$ 9.328,80</div>
+                          </div>
+                          <DollarSign className="w-10 h-10 text-green-500 opacity-50"/>
                       </div>
                   </div>
               )}
@@ -293,7 +366,7 @@ export default function App() {
       )}
 
       {jogoSelecionado && menuAtivo !== 'assinar pro' && (
-          <Suspense fallback={<div className="text-center p-10 font-black text-blue-500 animate-pulse text-xs">A carregar estatísticas...</div>}>
+          <Suspense fallback={<div className="text-center p-10 font-black text-blue-500 animate-pulse text-xs">A carregar...</div>}>
               <PainelJogo jogo={jogoSelecionado} setJogoSelecionado={setJogoSelecionado} bancaInicial={bancaInicial} gerarExplicacaoIA={gerarExplicacaoIA} calcularStake={calcularStake} calcularKelly={calcularKelly} />
           </Suspense>
       )}
@@ -319,11 +392,14 @@ export default function App() {
       </AnimatePresence>
 
       <nav className="fixed bottom-0 left-0 right-0 h-20 bg-[#050816] border-t border-white/5 flex justify-around items-center z-50">
-        <button onClick={() => {setViewMode('jogos'); setFilterCentro('Todos'); setJogoSelecionado(null);}} className={`flex flex-col items-center gap-1.5 ${viewMode === 'jogos' && filterCentro !== 'Ao Vivo' ? 'text-blue-500' : 'text-slate-500'}`}><Home className="w-6 h-6" /><span className="text-[9px] font-black uppercase">Início</span></button>
-        <button onClick={() => {setViewMode('jogos'); setFilterCentro('Ao Vivo'); setJogoSelecionado(null);}} className={`flex flex-col items-center gap-1.5 ${filterCentro === 'Ao Vivo' ? 'text-red-500' : 'text-slate-500'}`}><Radio className="w-6 h-6" /><span className="text-[9px] font-black uppercase">Ao Vivo</span></button>
-        <button onClick={() => {setViewMode('copa'); setJogoSelecionado(null);}} className={`flex flex-col items-center gap-1.5 ${viewMode === 'copa' ? 'text-yellow-500' : 'text-slate-500'}`}><Trophy className="w-6 h-6" /><span className="text-[9px] font-black uppercase">Copa</span></button>
-        <button onClick={() => {setViewMode('alertas'); setJogoSelecionado(null);}} className={`flex flex-col items-center gap-1.5 ${viewMode === 'alertas' ? 'text-blue-500' : 'text-slate-500'}`}><Bell className="w-6 h-6" /><span className="text-[9px] font-black uppercase">Alertas</span></button>
-        <button onClick={() => {setViewMode('perfil'); setJogoSelecionado(null);}} className={`flex flex-col items-center gap-1.5 ${['perfil','admin'].includes(viewMode) ? 'text-blue-500' : 'text-slate-500'}`}><User className="w-6 h-6" /><span className="text-[9px] font-black uppercase">Perfil</span></button>
+        <button onClick={() => {setViewMode('jogos'); setFilterCentro('Todos'); setJogoSelecionado(null);}} className={`flex flex-col items-center gap-1.5 ${viewMode === 'jogos' && filterCentro !== 'Ao Vivo' ? 'text-blue-500' : 'text-slate-500'}`}><Home className="w-6 h-6" /><span className="text-[9px] font-black uppercase mt-1">Início</span></button>
+        <button onClick={() => {setViewMode('jogos'); setFilterCentro('Ao Vivo'); setJogoSelecionado(null);}} className={`flex flex-col items-center gap-1.5 ${filterCentro === 'Ao Vivo' ? 'text-red-500' : 'text-slate-500'}`}><Radio className="w-6 h-6" /><span className="text-[9px] font-black uppercase mt-1">Ao Vivo</span></button>
+        <button onClick={() => {setViewMode('copa'); setJogoSelecionado(null);}} className={`flex flex-col items-center gap-1.5 ${viewMode === 'copa' ? 'text-yellow-500' : 'text-slate-500'}`}><Trophy className="w-6 h-6" /><span className="text-[9px] font-black uppercase mt-1">Copa</span></button>
+        <button onClick={() => {setViewMode('perfil'); setJogoSelecionado(null);}} className={`flex flex-col items-center gap-1.5 ${viewMode === 'perfil' ? 'text-blue-500' : 'text-slate-500'}`}><User className="w-6 h-6" /><span className="text-[9px] font-black uppercase mt-1">Perfil</span></button>
+        <button onClick={() => {setViewMode('radar'); setJogoSelecionado(null);}} className={`flex flex-col items-center gap-1.5 ${viewMode === 'radar' ? 'text-blue-500' : 'text-slate-500'}`}><Zap className="w-6 h-6" /><span className="text-[9px] font-black uppercase mt-1">Radar IA</span></button>
+        {userData?.is_admin && (
+           <button onClick={() => {setViewMode('admin'); setJogoSelecionado(null);}} className={`flex flex-col items-center gap-1.5 ${viewMode === 'admin' ? 'text-yellow-500' : 'text-slate-500'}`}><Zap className="w-6 h-6" /><span className="text-[9px] font-black uppercase mt-1">Admin</span></button>
+        )}
       </nav>
     </div>
   );
