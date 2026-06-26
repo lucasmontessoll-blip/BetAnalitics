@@ -1,0 +1,1 @@
+DELETE FROM jogos_ao_vivo WHERE ultima_atualizacao < NOW() - INTERVAL '1 day';
