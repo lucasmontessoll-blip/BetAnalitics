@@ -337,7 +337,7 @@ export default function Perfil({
             </Suspense>
 
             <div className="flex flex-col gap-3 mb-6 w-full transform-gpu">
-                <button onClick={() => setViewMode('ia_center')} className="w-full bg-[#0f172a] border border-blue-500/30 p-4 rounded-2xl flex items-center gap-4 shadow-sm hover:bg-[#1e293b] transition-colors">
+                <button onClick={() => setViewMode('radar')} className="w-full bg-[#0f172a] border border-blue-500/30 p-4 rounded-2xl flex items-center gap-4 shadow-sm hover:bg-[#1e293b] transition-colors">
                     <div className="bg-blue-500/10 p-2.5 rounded-xl flex-shrink-0"><Zap className="w-5 h-5 text-blue-500"/></div>
                     <span className="font-black text-sm uppercase tracking-wider text-white truncate">Central IA</span>
                     <ChevronRight className="w-5 h-5 text-slate-600 ml-auto flex-shrink-0"/>
