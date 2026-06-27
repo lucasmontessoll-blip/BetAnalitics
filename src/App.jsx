@@ -41,7 +41,15 @@ const getLocalYYYYMMDD = () => { const d = new Date(); d.setMinutes(d.getMinutes
 const listaLigas = [{name:'Todos', id: null}, {name:'Brasileirão', id: 71}, {name:'Champions', id: 2}, {name:'Premier League', id: 39}];
 
 // 📊 DADOS ESTÁTICOS DE CALIBRAÇÃO DOS GRÁFICOS
-const crescimentoBancaGlobal = [ { dia: "Seg", banca: 1000 }, { dia: "Ter", banca: 1120 }, { dia: "Qua", banca: 1210 }, { dia: "Qui", banca: 1380 }, { dia: "Sex", banca: 1470 }, { dia: "Sáb", banca: 1650 }, { dia: "Dom", banca: 1840 } ];
+const crescimentoBancaGlobal = [ 
+  { dia: "Seg", banca: 1000 }, 
+  { dia: "Ter", banca: 1120 }, 
+  { dia: "Qua", banca: 1210 }, 
+  { dia: "Qui", banca: 1380 }, 
+  { dia: "Sex", banca: 1470 }, 
+  { dia: "Sáb", banca: 1650 }, 
+  { dia: "Dom", banca: 1840 } 
+];
 const desempenhoDiario = [ { dia: "Seg", acertos: 14, erros: 3 }, { dia: "Ter", acertos: 18, erros: 2 }, { dia: "Qua", acertos: 12, erros: 5 }, { dia: "Qui", acertos: 20, erros: 4 }, { dia: "Sex", acertos: 25, erros: 6 }, { dia: "Sáb", acertos: 32, erros: 5 }, { dia: "Dom", acertos: 29, erros: 3 } ];
 
 export default function App() {
@@ -155,6 +163,8 @@ export default function App() {
       <div className="flex items-center gap-3 mb-6"><button onClick={onBack} className="p-2 bg-[#050816] rounded-full border border-white/10"><ArrowLeft className="w-5 h-5"/></button><h2 className="text-xl font-black">{title}</h2></div>
   );
 
+  const fazerLogout = () => { localStorage.removeItem('bet_sessao_ativa'); window.location.reload(); };
+
   if (showSplash) return (
       <div className="flex flex-col justify-center items-center min-h-screen bg-[#050816] text-white">
          <motion.div initial={{ scale: 0.5, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} className="text-6xl mb-4">⚽</motion.div>
@@ -170,7 +180,7 @@ export default function App() {
       </header>
 
       {/* =======================================================
-          💎 TELA VIP PRO (FORMULÁRIO, SELEÇÃO DE PAGAMENTO E VOLTAR OK)
+          💎 TELA VIP PRO
       ========================================================= */}
       {menuAtivo === 'assinar pro' && (
         <div className="px-4 pt-24 animate-fade-in pb-28 min-h-screen bg-[#050816] text-white absolute inset-0 z-[999] overflow-y-auto">
@@ -219,7 +229,7 @@ export default function App() {
           <div className="animate-fade-in pt-4 w-full">
               
               {/* =======================================================
-                  🏆 TELA: COPA (Seleções + Chuteira de Ouro)
+                  🏆 TELA: COPA
               ========================================================= */}
               {viewMode === 'copa' && (
                   <div className="px-4 w-full">
@@ -228,20 +238,16 @@ export default function App() {
                           <h2 className="text-2xl font-black text-white flex items-center gap-2 relative z-10"><Trophy className="w-6 h-6 text-yellow-300"/> Seleções</h2>
                           <p className="text-yellow-200 text-xs mt-1 relative z-10 font-bold">Monitoramento de Eurocopa, Copa América e Internacionais</p>
                       </div>
-
                       <div className="flex gap-2 overflow-x-auto pb-4 no-scrollbar mb-2 w-full">
                           <button onClick={() => setFilterCentro('Todos')} className={`px-5 py-2.5 rounded-full text-xs font-black border ${filterCentro==='Todos' ? 'bg-white text-black' : 'bg-transparent border-slate-700 text-slate-400'}`}>Todos</button>
                           <button onClick={() => setFilterCentro('Ao Vivo')} className={`px-5 py-2.5 rounded-full text-xs font-black flex items-center gap-2 border ${filterCentro==='Ao Vivo' ? 'bg-white text-black border-white' : 'bg-transparent border-slate-700 text-slate-400'}`}>Ao Vivo <span className="w-2 h-2 rounded-full bg-red-500 animate-pulse"></span></button>
                       </div>
-                      
                       <RenderizarListaJogos />
-
                       <div className="bg-[#0f172a] rounded-3xl p-5 mb-4 shadow-lg border border-white/5 mt-4">
                           <h3 className="text-yellow-500 font-black text-xs uppercase flex items-center gap-2 mb-4"><Target className="w-4 h-4"/> Chuteira de Ouro</h3>
                           <div className="bg-[#050816] rounded-xl p-3 mb-2 flex justify-between items-center"><span className="text-xs font-bold text-slate-300"><span className="text-slate-500 mr-2">1º</span> Mbappé</span><span className="text-xs font-black text-yellow-500">5 <span className="text-[9px] text-slate-400">Gols</span></span></div>
                           <div className="bg-[#050816] rounded-xl p-3 flex justify-between items-center"><span className="text-xs font-bold text-slate-300"><span className="text-slate-500 mr-2">2º</span> Kane</span><span className="text-xs font-black text-yellow-500">4 <span className="text-[9px] text-slate-400">Gols</span></span></div>
                       </div>
-
                       <div className="bg-[#0f172a] rounded-3xl p-5 mb-4 shadow-lg border border-white/5">
                           <h3 className="text-blue-400 font-black text-xs uppercase flex items-center gap-2 mb-4"><User className="w-4 h-4"/> Garçons da Copa</h3>
                           <div className="bg-[#050816] rounded-xl p-3 mb-2 flex justify-between items-center"><span className="text-xs font-bold text-slate-300"><span className="text-slate-500 mr-2">1º</span> De Bruyne</span><span className="text-xs font-black text-blue-400">4 <span className="text-[9px] text-slate-400">Ast.</span></span></div>
@@ -257,14 +263,10 @@ export default function App() {
                   <>
                     {userData?.is_vip && (
                         <div className="mx-4 mb-6 rounded-3xl p-5 bg-gradient-to-r from-blue-600 to-blue-700 shadow-lg flex justify-between items-center transform-gpu">
-                            <div>
-                                <h2 className="text-xl font-black text-white flex items-center gap-2 mb-1"><Crown className="w-5 h-5 text-yellow-400"/> IA Premium</h2>
-                                <p className="text-blue-100 text-[10px] font-bold">{(performanceStats.acertos/performanceStats.totalAnalises*100).toFixed(1)}% de precisão nos clubes</p>
-                            </div>
+                            <div><h2 className="text-xl font-black text-white flex items-center gap-2 mb-1"><Crown className="w-5 h-5 text-yellow-400"/> IA Premium</h2><p className="text-blue-100 text-[10px] font-bold">{(performanceStats.acertos/performanceStats.totalAnalises*100).toFixed(1)}% de precisão nos clubes</p></div>
                             <button onClick={() => setViewMode('radar')} className="bg-white/20 border border-white/30 text-white text-[10px] font-black px-4 py-2 rounded-xl uppercase tracking-wider">CONFIGURAR ALERTAS</button>
                         </div>
                     )}
-
                     <div className="flex gap-2 px-4 overflow-x-auto pb-4 no-scrollbar mt-4 w-full">
                         <button onClick={() => setFilterCentro('Todos')} className={`px-5 py-2.5 rounded-full text-xs font-black border ${filterCentro==='Todos' ? 'bg-white text-black' : 'bg-transparent border-slate-700 text-slate-400'}`}>Todos</button>
                         <button onClick={() => setFilterCentro('Ao Vivo')} className={`px-5 py-2.5 rounded-full text-xs font-black flex items-center gap-2 border ${filterCentro==='Ao Vivo' ? 'bg-white text-black border-white' : 'bg-transparent border-slate-700 text-slate-400'}`}>Ao Vivo <span className="w-2 h-2 rounded-full bg-red-500 animate-pulse"></span></button>
@@ -272,18 +274,20 @@ export default function App() {
                             <button key={l.name} onClick={() => setLigaAtivaId(l.id)} className={`px-4 py-2.5 rounded-full text-xs font-black border ${ligaAtivaId === l.id ? 'bg-[#0f172a] text-white border-white/10' : 'bg-transparent border-slate-700 text-slate-400'}`}>{l.name}</button>
                         ))}
                     </div>
-
                     <div className="px-4 w-full"><RenderizarListaJogos /></div>
                   </>
               )}
 
               {/* =======================================================
-                  👤 TELA: PERFIL (AMBOS OS GRÁFICOS DE ELITE ATUALIZADOS)
+                  👤 TELA: PERFIL 
               ========================================================= */}
               {viewMode === 'perfil' && (
-                  <div className="px-4 animate-fade-in w-full pb-6">
-                      
-                      {/* 📊 GRÁFICO 1: EVOLUÇÃO DE BANCA (ESTILO ÁREA VERDE NÉON ELITE) */}
+                  <div className="px-4 animate-fade-in w-full pb-6 pt-4">
+                     
+                     <Suspense fallback={<div className="text-center p-10 font-black text-blue-500 animate-pulse uppercase tracking-widest text-xs">A carregar Perfil Premium...</div>}>
+                        <Perfil userData={userData} form={form} setForm={setForm} nivelUsuario={nivelUsuario()} xp={xp} setViewMode={setViewMode} apostas={apostas} bancaInicial={bancaInicial} metaMensal={metaMensal} setMenuAtivo={setMenuAtivo} />
+                     </Suspense>
+
                       <div className="mb-6 bg-[#0f172a] border border-white/5 rounded-3xl p-5 shadow-2xl relative mt-4">
                         <div className="mb-6">
                           <h3 className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-1">Evolução da Banca</h3>
@@ -313,7 +317,6 @@ export default function App() {
                         </div>
                       </div>
 
-                      {/* 📊 GRÁFICO 2: PRECISÃO DA IA (BARRAS DE ALTA DENSIDADE) */}
                       <div className="mb-6 bg-[#0f172a] border border-white/5 rounded-3xl p-5 shadow-2xl relative">
                         <div className="mb-6">
                           <h3 className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-1">Precisão da IA</h3>
@@ -337,40 +340,69 @@ export default function App() {
                           </ResponsiveContainer>
                         </div>
                       </div>
-
-                     <Suspense fallback={<div className="text-center p-10 font-black text-blue-500 animate-pulse uppercase tracking-widest text-xs">A carregar Perfil Premium...</div>}>
-                        <Perfil userData={userData} form={form} setForm={setForm} nivelUsuario={nivelUsuario()} xp={xp} setViewMode={setViewMode} apostas={apostas} bancaInicial={bancaInicial} metaMensal={metaMensal} setMenuAtivo={setMenuAtivo} />
-                     </Suspense>
                   </div>
               )}
 
               {/* =======================================================
-                  🧠 TELA: RADAR IA (Central de Inteligência)
+                  🧠 TELA: RADAR IA (Ajustada com Links de Afiliados)
               ========================================================= */}
               {viewMode === 'radar' && (
                   <div className="px-4 animate-fade-in pb-20 w-full">
                       <HeaderNav title="🧠 Central de Inteligência" onBack={() => setViewMode('jogos')} />
+                      
                       <div className="grid grid-cols-2 gap-3 mb-6">
                           <div className="bg-[#0f172a] border border-green-500/30 p-4 rounded-2xl"><div className="flex items-center gap-1.5 text-green-400 mb-2"><TrendingUp className="w-3 h-3"/><span className="text-[9px] font-black uppercase">Melhor Value Bet</span></div><div className="text-xs font-bold text-white truncate">Flamengo x Palmeiras...</div></div>
                           <div className="bg-[#0f172a] border border-red-500/30 p-4 rounded-2xl"><div className="flex items-center gap-1.5 text-red-400 mb-2"><Target className="w-3 h-3"/><span className="text-[9px] font-black uppercase">Gol Iminente</span></div><div className="text-xs font-bold text-white truncate">Real Madrid (Ataque ...</div></div>
                           <div className="bg-[#0f172a] border border-purple-500/30 p-4 rounded-2xl"><div className="flex items-center gap-1.5 text-purple-400 mb-2"><TrendingUp className="w-3 h-3"/><span className="text-[9px] font-black uppercase">Mercado Errado</span></div><div className="text-xs font-bold text-white truncate">Empate Anulado odd ...</div></div>
                           <div className="bg-[#0f172a] border border-blue-500/30 p-4 rounded-2xl"><div className="flex items-center gap-1.5 text-blue-400 mb-2"><Zap className="w-3 h-3"/><span className="text-[9px] font-black uppercase">Maior EV+</span></div><div className="text-xs font-bold text-white truncate">+14.2% EV (Escanteios)</div></div>
                       </div>
+
                       <div className="bg-[#0f172a] rounded-3xl p-5 mb-4 shadow-lg border border-white/5"><h3 className="text-white font-black text-sm flex items-center gap-2 mb-6"><Globe className="w-5 h-5 text-blue-500"/> Radar Mundial PRO</h3><p className="text-xs text-slate-500 font-bold text-center py-6">Nenhuma super-oportunidade detectada no momento.</p></div>
+                      
                       <div className="bg-[#0f172a] rounded-3xl p-5 mb-4 shadow-lg border border-white/5">
                           <h3 className="text-slate-400 font-black text-[10px] uppercase flex items-center gap-2 mb-4"><DollarSign className="w-3 h-3 text-yellow-500"/> Comparador de Odds</h3>
-                          <div className="flex gap-2">
-                              <div className="flex-1 bg-[#050816] rounded-xl p-3 text-center border border-white/5"><div className="text-[9px] font-black text-slate-400 uppercase mb-1">Bet365</div><div className="text-sm font-black text-white">1.85</div></div>
-                              <div className="flex-1 bg-[#050816] rounded-xl p-3 text-center border border-white/5"><div className="text-[9px] font-black text-slate-400 uppercase mb-1">Betano</div><div className="text-sm font-black text-white">1.90</div></div>
-                              <div className="flex-1 bg-[#050816] rounded-xl p-3 text-center border border-white/5"><div className="text-[9px] font-black text-slate-400 uppercase mb-1">1xBet</div><div className="text-sm font-black text-white">1.92</div></div>
-                              <div className="flex-1 bg-[#050816] rounded-xl p-3 text-center border border-green-500/30"><div className="text-[9px] font-black text-green-400 uppercase mb-1">Pinnacle</div><div className="text-sm font-black text-green-400">2.05</div></div>
+                          
+                          {/* LISTA DE AFILIADOS COM SCROLL HORIZONTAL IMPONENTE */}
+                          <div className="flex gap-3 overflow-x-auto pb-2 pt-2 no-scrollbar">
+                              
+                              {/* 1. BET365 */}
+                              <a href="#link-bet365" target="_blank" rel="noopener noreferrer" className="min-w-[90px] flex-shrink-0 bg-[#050816] rounded-xl p-3 text-center border border-white/5 hover:border-white/20 transition-colors cursor-pointer active:scale-95">
+                                  <div className="text-[9px] font-black text-slate-400 uppercase mb-1">Bet365</div>
+                                  <div className="text-sm font-black text-white">1.85</div>
+                              </a>
+                              
+                              {/* 2. BETANO */}
+                              <a href="#link-betano" target="_blank" rel="noopener noreferrer" className="min-w-[90px] flex-shrink-0 bg-[#050816] rounded-xl p-3 text-center border border-white/5 hover:border-white/20 transition-colors cursor-pointer active:scale-95">
+                                  <div className="text-[9px] font-black text-slate-400 uppercase mb-1">Betano</div>
+                                  <div className="text-sm font-black text-white">1.90</div>
+                              </a>
+
+                              {/* 3. KTO */}
+                              <a href="#link-kto" target="_blank" rel="noopener noreferrer" className="min-w-[90px] flex-shrink-0 bg-[#050816] rounded-xl p-3 text-center border border-white/5 hover:border-white/20 transition-colors cursor-pointer active:scale-95">
+                                  <div className="text-[9px] font-black text-slate-400 uppercase mb-1">KTO</div>
+                                  <div className="text-sm font-black text-white">1.95</div>
+                              </a>
+                              
+                              {/* 4. 1XBET */}
+                              <a href="#link-1xbet" target="_blank" rel="noopener noreferrer" className="min-w-[90px] flex-shrink-0 bg-[#050816] rounded-xl p-3 text-center border border-white/5 hover:border-white/20 transition-colors cursor-pointer active:scale-95">
+                                  <div className="text-[9px] font-black text-slate-400 uppercase mb-1">1xBet</div>
+                                  <div className="text-sm font-black text-white">1.92</div>
+                              </a>
+                              
+                              {/* 5. PINNACLE (DESTAQUE MAIOR ODD) */}
+                              <a href="#link-pinnacle" target="_blank" rel="noopener noreferrer" className="min-w-[90px] flex-shrink-0 bg-gradient-to-b from-[#050816] to-green-900/20 rounded-xl p-3 text-center border border-green-500/50 shadow-[0_0_15px_rgba(34,197,94,0.15)] relative cursor-pointer active:scale-95">
+                                  <div className="absolute -top-2 left-1/2 -translate-x-1/2 bg-green-500 text-black text-[7px] font-black px-2 py-0.5 rounded-full uppercase tracking-widest whitespace-nowrap shadow-md">Maior Odd</div>
+                                  <div className="text-[9px] font-black text-green-400 uppercase mb-1 mt-1">Pinnacle</div>
+                                  <div className="text-sm font-black text-green-400">2.05</div>
+                              </a>
+
                           </div>
                       </div>
                   </div>
               )}
 
               {/* =======================================================
-                  ⚙️ TELA: ADMIN (Formato Lista Vertical Exato)
+                  ⚙️ TELA: ADMIN
               ========================================================= */}
               {viewMode === 'admin' && (
                   <div className="px-4 animate-fade-in pb-20 w-full">
