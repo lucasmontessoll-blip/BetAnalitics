@@ -180,47 +180,52 @@ export default function App() {
       </header>
 
       {/* =======================================================
-          💎 TELA VIP PRO
+          💎 TELA VIP PRO (DESIGN ELITE)
       ========================================================= */}
       {menuAtivo === 'assinar pro' && (
         <div className="px-4 pt-24 animate-fade-in pb-28 min-h-screen bg-[#050816] text-white absolute inset-0 z-[999] overflow-y-auto">
           <div className="fixed top-0 left-0 w-full bg-[#050816]/95 backdrop-blur-xl z-[9999] px-5 py-4 border-b border-white/10 flex items-center gap-3 shadow-xl">
-            <button onClick={() => { setMenuAtivo('Todos os Jogos'); setViewMode('jogos'); setJogoSelecionado(null); }} className="p-2 bg-blue-600 rounded-full hover:bg-blue-500 transition shadow-[0_0_15px_rgba(37,99,235,0.6)] flex-shrink-0">
-              <ArrowLeft className="w-6 h-6 text-white" />
+            <button onClick={() => { setMenuAtivo('Todos os Jogos'); setViewMode('jogos'); setJogoSelecionado(null); }} className="p-2 bg-[#0f172a] border border-white/10 rounded-full hover:border-yellow-500/50 transition flex-shrink-0">
+              <ArrowLeft className="w-5 h-5 text-white" />
             </button>
             <span className="font-black text-white uppercase tracking-widest text-xs">Voltar ao App</span>
           </div>
 
-          <div className="bg-gradient-to-br from-yellow-500 to-yellow-700 rounded-3xl p-6 text-black shadow-[0_0_30px_rgba(234,179,8,0.25)] mt-4">
-            <h2 className="text-2xl font-black mb-2 flex items-center gap-2"><Crown className="w-6 h-6" /> BetAnalytics PRO</h2>
-            <p className="text-sm font-bold mb-5">Registe-se e desbloqueie o Radar IA, Value Bets e análises avançadas em tempo real.</p>
+          <div className="bg-[#0f172a] border border-yellow-500/20 rounded-3xl p-6 text-white shadow-[0_0_40px_rgba(234,179,8,0.08)] mt-4 relative overflow-hidden">
+            {/* Efeito de brilho de fundo VIP */}
+            <div className="absolute top-0 right-0 w-64 h-64 bg-yellow-500/10 rounded-full blur-[80px] -mr-20 -mt-20 pointer-events-none"></div>
+
+            <h2 className="text-2xl font-black mb-2 flex items-center gap-2 relative z-10"><Crown className="w-6 h-6 text-yellow-400" /> BetAnalytics <span className="text-transparent bg-clip-text bg-gradient-to-r from-yellow-400 to-yellow-600">PRO</span></h2>
+            <p className="text-sm font-bold mb-6 text-slate-400 relative z-10">Registe-se e desbloqueie o Radar IA, Value Bets e análises avançadas em tempo real.</p>
             
-            <div className="bg-black/20 rounded-2xl p-4 mb-5 border border-black/10">
-              <h3 className="text-xs font-black uppercase mb-3 flex items-center gap-2 text-black"><User className="w-4 h-4"/> Criar Conta / Login</h3>
+            <div className="bg-[#050816]/60 rounded-2xl p-5 mb-5 border border-white/5 relative z-10">
+              <h3 className="text-xs font-black uppercase mb-4 flex items-center gap-2 text-slate-300"><User className="w-4 h-4 text-yellow-500"/> Criar Conta / Login</h3>
               <div className="space-y-3">
-                <input type="text" placeholder="Nome Completo" className="w-full bg-black/40 border border-black/20 rounded-xl px-4 py-3 text-white placeholder:text-white/60 text-sm outline-none focus:border-yellow-400" />
-                <input type="email" placeholder="Email (Login)" className="w-full bg-black/40 border border-black/20 rounded-xl px-4 py-3 text-white placeholder:text-white/60 text-sm outline-none focus:border-yellow-400" />
+                <input type="text" placeholder="Nome Completo" className="w-full bg-[#050816] border border-white/10 rounded-xl px-4 py-3 text-white placeholder:text-slate-500 text-sm outline-none focus:border-yellow-500 transition-colors" />
+                <input type="email" placeholder="Email (Login)" className="w-full bg-[#050816] border border-white/10 rounded-xl px-4 py-3 text-white placeholder:text-slate-500 text-sm outline-none focus:border-yellow-500 transition-colors" />
                 <div className="relative">
-                  <Lock className="w-4 h-4 absolute left-4 top-3.5 text-white/60" />
-                  <input type="password" placeholder="Senha" className="w-full bg-black/40 border border-black/20 rounded-xl px-4 py-3 pl-10 text-white placeholder:text-white/60 text-sm outline-none focus:border-yellow-400" />
+                  <Lock className="w-4 h-4 absolute left-4 top-3.5 text-slate-500" />
+                  <input type="password" placeholder="Senha" className="w-full bg-[#050816] border border-white/10 rounded-xl px-4 py-3 pl-10 text-white placeholder:text-slate-500 text-sm outline-none focus:border-yellow-500 transition-colors" />
                 </div>
-                <div className="flex gap-2">
-                  <div className="w-1/2 relative"><User className="w-4 h-4 absolute left-3 top-3.5 text-white/60" /><input type="text" placeholder="CPF" className="w-full bg-black/40 border border-black/20 rounded-xl px-3 py-3 pl-9 text-white placeholder:text-white/60 text-xs outline-none focus:border-yellow-400" /></div>
-                  <div className="w-1/2 relative"><Calendar className="w-4 h-4 absolute left-3 top-3.5 text-white/60" /><input type="text" placeholder="Nascimento" className="w-full bg-black/40 border border-black/20 rounded-xl px-3 py-3 pl-9 text-white placeholder:text-white/60 text-xs outline-none focus:border-yellow-400" onFocus={(e) => e.target.type = 'date'} onBlur={(e) => !e.target.value && (e.target.type = 'text')} /></div>
+                <div className="flex gap-3">
+                  <div className="w-1/2 relative"><User className="w-4 h-4 absolute left-3 top-3.5 text-slate-500" /><input type="text" placeholder="CPF" className="w-full bg-[#050816] border border-white/10 rounded-xl px-3 py-3 pl-9 text-white placeholder:text-slate-500 text-xs outline-none focus:border-yellow-500 transition-colors" /></div>
+                  <div className="w-1/2 relative"><Calendar className="w-4 h-4 absolute left-3 top-3.5 text-slate-500" /><input type="text" placeholder="Nascimento" className="w-full bg-[#050816] border border-white/10 rounded-xl px-3 py-3 pl-9 text-white placeholder:text-slate-500 text-xs outline-none focus:border-yellow-500 transition-colors" onFocus={(e) => e.target.type = 'date'} onBlur={(e) => !e.target.value && (e.target.type = 'text')} /></div>
                 </div>
               </div>
             </div>
 
-            <div className="bg-black/20 rounded-2xl p-4 mb-5 border border-black/10">
-              <h3 className="text-xs font-black uppercase mb-3 flex items-center gap-2 text-black"><DollarSign className="w-4 h-4"/> Forma de Pagamento</h3>
-              <div className="grid grid-cols-3 gap-2">
-                <button onClick={() => setMetodoPagamento('pix')} className={`font-bold py-3 rounded-xl text-xs flex flex-col items-center gap-1 border transition-all ${metodoPagamento === 'pix' ? 'bg-black text-yellow-400 border-yellow-400' : 'bg-black/40 text-white/70 border-transparent'}`}><Zap className="w-5 h-5"/> PIX</button>
-                <button onClick={() => setMetodoPagamento('credito')} className={`font-bold py-3 rounded-xl text-xs flex flex-col items-center gap-1 border transition-all ${metodoPagamento === 'credito' ? 'bg-black text-yellow-400 border-yellow-400' : 'bg-black/40 text-white/70 border-transparent'}`}><CreditCard className="w-5 h-5"/> Crédito</button>
-                <button onClick={() => setMetodoPagamento('debito')} className={`font-bold py-3 rounded-xl text-xs flex flex-col items-center gap-1 border transition-all ${metodoPagamento === 'debito' ? 'bg-black text-yellow-400 border-yellow-400' : 'bg-black/40 text-white/70 border-transparent'}`}><CreditCard className="w-5 h-5"/> Débito</button>
+            <div className="bg-[#050816]/60 rounded-2xl p-5 mb-6 border border-white/5 relative z-10">
+              <h3 className="text-xs font-black uppercase mb-4 flex items-center gap-2 text-slate-300"><DollarSign className="w-4 h-4 text-yellow-500"/> Forma de Pagamento</h3>
+              <div className="grid grid-cols-3 gap-3">
+                <button onClick={() => setMetodoPagamento('pix')} className={`font-bold py-3 rounded-xl text-xs flex flex-col items-center gap-1.5 border transition-all ${metodoPagamento === 'pix' ? 'bg-yellow-500/10 text-yellow-400 border-yellow-500 shadow-[0_0_15px_rgba(234,179,8,0.2)]' : 'bg-[#050816] text-slate-500 border-white/5 hover:border-white/20'}`}><Zap className="w-5 h-5"/> PIX</button>
+                <button onClick={() => setMetodoPagamento('credito')} className={`font-bold py-3 rounded-xl text-xs flex flex-col items-center gap-1.5 border transition-all ${metodoPagamento === 'credito' ? 'bg-yellow-500/10 text-yellow-400 border-yellow-500 shadow-[0_0_15px_rgba(234,179,8,0.2)]' : 'bg-[#050816] text-slate-500 border-white/5 hover:border-white/20'}`}><CreditCard className="w-5 h-5"/> Crédito</button>
+                <button onClick={() => setMetodoPagamento('debito')} className={`font-bold py-3 rounded-xl text-xs flex flex-col items-center gap-1.5 border transition-all ${metodoPagamento === 'debito' ? 'bg-yellow-500/10 text-yellow-400 border-yellow-500 shadow-[0_0_15px_rgba(234,179,8,0.2)]' : 'bg-[#050816] text-slate-500 border-white/5 hover:border-white/20'}`}><CreditCard className="w-5 h-5"/> Débito</button>
               </div>
             </div>
 
-            <button className="w-full bg-black text-yellow-400 font-black py-4 rounded-2xl text-sm transition-transform active:scale-95 shadow-lg flex justify-center items-center gap-2">CONCLUIR ASSINATURA <ChevronRight className="w-5 h-5"/></button>
+            <button className="w-full bg-gradient-to-r from-yellow-500 to-yellow-600 text-black font-black py-4 rounded-2xl text-sm transition-all hover:scale-[1.02] active:scale-95 shadow-[0_0_20px_rgba(234,179,8,0.3)] flex justify-center items-center gap-2 relative z-10">
+              CONCLUIR ASSINATURA <ChevronRight className="w-5 h-5"/>
+            </button>
           </div>
         </div>
       )}
