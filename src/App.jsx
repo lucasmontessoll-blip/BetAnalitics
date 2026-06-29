@@ -12,6 +12,10 @@ import { calcularRisco, calcularStake } from './utils/risk.js';
 import { useFavoritos } from './hooks/useFavoritos.js';
 import { useJogos } from './hooks/useJogos.js';
 import { useIA } from './hooks/useIA.js';
+import HeroPremium from './components/HeroPremium.jsx';
+import ConsensoIA from './components/ConsensoIA.jsx';
+import Onboarding from './components/Onboarding.jsx';
+import LegalCompliance from './components/LegalCompliance.jsx';
 
 const Perfil = lazy(() => import('./components/Perfil.jsx'));
 const PainelJogo = lazy(() => import('./components/PainelJogo.jsx'));
@@ -266,13 +270,13 @@ export default function App() {
               ========================================================= */}
               {viewMode === 'jogos' && (
                   <>
-                    {userData?.is_vip && (
-                        <div className="mx-4 mb-6 rounded-3xl p-5 bg-gradient-to-r from-blue-600 to-blue-700 shadow-lg flex justify-between items-center transform-gpu">
-                            <div><h2 className="text-xl font-black text-white flex items-center gap-2 mb-1"><Crown className="w-5 h-5 text-yellow-400"/> IA Premium</h2><p className="text-blue-100 text-[10px] font-bold">{(performanceStats.acertos/performanceStats.totalAnalises*100).toFixed(1)}% de precisão nos clubes</p></div>
-                            <button onClick={() => setViewMode('radar')} className="bg-white/20 border border-white/30 text-white text-[10px] font-black px-4 py-2 rounded-xl uppercase tracking-wider">CONFIGURAR ALERTAS</button>
-                        </div>
-                    )}
-                    <div className="flex gap-2 px-4 overflow-x-auto pb-4 no-scrollbar mt-4 w-full">
+                   {userData?.is_vip && (
+             <HeroPremium onViewOportunidades={() => setViewMode('radar')} />
+            )}
+
+            <LegalCompliance />
+
+            <div className="flex gap-2 px-4 overflow-x-auto pb-4 no-scrollbar mt-4">
                         <button onClick={() => setFilterCentro('Todos')} className={`px-5 py-2.5 rounded-full text-xs font-black border ${filterCentro==='Todos' ? 'bg-white text-black' : 'bg-transparent border-slate-700 text-slate-400'}`}>Todos</button>
                         <button onClick={() => setFilterCentro('Ao Vivo')} className={`px-5 py-2.5 rounded-full text-xs font-black flex items-center gap-2 border ${filterCentro==='Ao Vivo' ? 'bg-white text-black border-white' : 'bg-transparent border-slate-700 text-slate-400'}`}>Ao Vivo <span className="w-2 h-2 rounded-full bg-red-500 animate-pulse"></span></button>
                         {listaLigas.filter(l => l.id !== null).map(l => (
