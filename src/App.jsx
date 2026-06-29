@@ -16,6 +16,7 @@ import HeroPremium from './components/HeroPremium.jsx';
 import ConsensoIA from './components/ConsensoIA.jsx';
 import Onboarding from './components/Onboarding.jsx';
 import LegalCompliance from './components/LegalCompliance.jsx';
+import CasasAfiliadas from './components/CasasAfiliadas.jsx'; // Garantindo que sua importação nova fique aqui
 
 const Perfil = lazy(() => import('./components/Perfil.jsx'));
 const PainelJogo = lazy(() => import('./components/PainelJogo.jsx'));
@@ -273,7 +274,8 @@ export default function App() {
                    {userData?.is_vip && (
              <HeroPremium onViewOportunidades={() => setViewMode('radar')} />
             )}
-
+            
+            <CasasAfiliadas />
             <LegalCompliance />
 
             <div className="flex gap-2 px-4 overflow-x-auto pb-4 no-scrollbar mt-4">
@@ -430,7 +432,7 @@ export default function App() {
           </Suspense>
       )}
 
-      <button onClick={() => setAiOpen(true)} className="fixed right-5 bottom-28 w-14 h-14 rounded-full bg-gradient-to-br from-blue-600 to-blue-400 flex items-center justify-center shadow-lg z-40 text-2xl">🤖</button>
+      <button onClick={() => setAiOpen(true)} className="fixed right-5 bottom-32 w-14 h-14 rounded-full bg-gradient-to-br from-blue-600 to-blue-400 flex items-center justify-center shadow-lg z-40 text-2xl">🤖</button>
 
       <AnimatePresence>
           {aiOpen && (
@@ -450,15 +452,30 @@ export default function App() {
           )}
       </AnimatePresence>
 
-      <nav className="fixed bottom-0 left-0 right-0 h-20 bg-[#050816] border-t border-white/5 flex justify-around items-center z-50">
-        <button onClick={() => {setViewMode('jogos'); setFilterCentro('Todos'); setJogoSelecionado(null);}} className={`flex flex-col items-center gap-1.5 ${viewMode === 'jogos' && filterCentro !== 'Ao Vivo' ? 'text-blue-500' : 'text-slate-500'}`}><Home className="w-6 h-6" /><span className="text-[9px] font-black uppercase mt-1">Início</span></button>
-        <button onClick={() => {setViewMode('jogos'); setFilterCentro('Ao Vivo'); setJogoSelecionado(null);}} className={`flex flex-col items-center gap-1.5 ${filterCentro === 'Ao Vivo' ? 'text-red-500' : 'text-slate-500'}`}><Radio className="w-6 h-6" /><span className="text-[9px] font-black uppercase mt-1">Ao Vivo</span></button>
-        <button onClick={() => {setViewMode('copa'); setJogoSelecionado(null);}} className={`flex flex-col items-center gap-1.5 ${viewMode === 'copa' ? 'text-yellow-500' : 'text-slate-500'}`}><Trophy className="w-6 h-6" /><span className="text-[9px] font-black uppercase mt-1">Copa</span></button>
-        <button onClick={() => {setViewMode('perfil'); setJogoSelecionado(null);}} className={`flex flex-col items-center gap-1.5 ${viewMode === 'perfil' ? 'text-blue-500' : 'text-slate-500'}`}><User className="w-6 h-6" /><span className="text-[9px] font-black uppercase mt-1">Perfil</span></button>
-        <button onClick={() => {setViewMode('radar'); setJogoSelecionado(null);}} className={`flex flex-col items-center gap-1.5 ${viewMode === 'radar' ? 'text-blue-500' : 'text-slate-500'}`}><Zap className="w-6 h-6" /><span className="text-[9px] font-black uppercase mt-1">Radar IA</span></button>
-        {userData?.is_admin && (
-           <button onClick={() => {setViewMode('admin'); setJogoSelecionado(null);}} className={`flex flex-col items-center gap-1.5 ${viewMode === 'admin' ? 'text-yellow-500' : 'text-slate-500'}`}><Zap className="w-6 h-6" /><span className="text-[9px] font-black uppercase mt-1">Admin</span></button>
-        )}
+      {/* =======================================================
+          📱 BARRA DE NAVEGAÇÃO INFERIOR
+      ========================================================= */}
+      <nav className="fixed bottom-0 left-0 right-0 bg-[#050816] border-t border-white/5 z-50 flex flex-col shadow-[0_-5px_20px_rgba(0,0,0,0.5)]">
+        
+        {/* Andar Superior: Ícones Principais */}
+        <div className="flex justify-around items-center h-16 pt-2 w-full">
+          <button onClick={() => {setViewMode('jogos'); setFilterCentro('Todos'); setJogoSelecionado(null);}} className={`flex flex-col items-center gap-1.5 ${viewMode === 'jogos' && filterCentro !== 'Ao Vivo' ? 'text-blue-500' : 'text-slate-500'}`}><Home className="w-6 h-6" /><span className="text-[9px] font-black uppercase mt-0.5">Início</span></button>
+          <button onClick={() => {setViewMode('jogos'); setFilterCentro('Ao Vivo'); setJogoSelecionado(null);}} className={`flex flex-col items-center gap-1.5 ${filterCentro === 'Ao Vivo' ? 'text-red-500' : 'text-slate-500'}`}><Radio className="w-6 h-6" /><span className="text-[9px] font-black uppercase mt-0.5">Ao Vivo</span></button>
+          <button onClick={() => {setViewMode('copa'); setJogoSelecionado(null);}} className={`flex flex-col items-center gap-1.5 ${viewMode === 'copa' ? 'text-yellow-500' : 'text-slate-500'}`}><Trophy className="w-6 h-6" /><span className="text-[9px] font-black uppercase mt-0.5">Copa</span></button>
+          <button onClick={() => {setViewMode('perfil'); setJogoSelecionado(null);}} className={`flex flex-col items-center gap-1.5 ${viewMode === 'perfil' ? 'text-blue-500' : 'text-slate-500'}`}><User className="w-6 h-6" /><span className="text-[9px] font-black uppercase mt-0.5">Perfil</span></button>
+          <button onClick={() => {setViewMode('radar'); setJogoSelecionado(null);}} className={`flex flex-col items-center gap-1.5 ${viewMode === 'radar' ? 'text-blue-500' : 'text-slate-500'}`}><Zap className="w-6 h-6" /><span className="text-[9px] font-black uppercase mt-0.5">Radar IA</span></button>
+          {userData?.is_admin && (
+             <button onClick={() => {setViewMode('admin'); setJogoSelecionado(null);}} className={`flex flex-col items-center gap-1.5 ${viewMode === 'admin' ? 'text-yellow-500' : 'text-slate-500'}`}><Zap className="w-6 h-6" /><span className="text-[9px] font-black uppercase mt-0.5">Admin</span></button>
+          )}
+        </div>
+
+        {/* Andar Inferior: Rodapé de Termos */}
+        <div className="flex justify-center items-center pb-3 pt-1 w-full gap-4">
+          <button onClick={() => setViewMode('termos')} className="text-[10px] font-bold text-slate-600 hover:text-slate-300 transition-colors uppercase tracking-widest">
+            Termos e Condições
+          </button>
+        </div>
+
       </nav>
     </div>
   );
