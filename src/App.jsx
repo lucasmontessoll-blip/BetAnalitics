@@ -1,6 +1,13 @@
 import React,{useState,useEffect,lazy,Suspense} from 'react';
 import './App.css';
 import {LineChart,Line,AreaChart,Area,BarChart,Bar,ResponsiveContainer,XAxis,YAxis,CartesianGrid,Tooltip} from 'recharts';
+import PlayStoreModeBadge from './components/PlayStoreModeBadge.jsx';
+import ComoIACalcula from './components/ComoIACalcula.jsx';
+import RankingOportunidades from './components/RankingOportunidades.jsx';
+import EducacaoBetAnalytics from './components/EducacaoBetAnalytics.jsx';
+import HistoricoAssertividade from './components/HistoricoAssertividade.jsx';
+import RiskBadge from './components/RiskBadge.jsx';
+import { APP_MODE } from './config/appMode.js';
 import {motion,AnimatePresence} from 'framer-motion';
 import {initMercadoPago} from '@mercadopago/sdk-react';
 import {createClient} from '@supabase/supabase-js';
