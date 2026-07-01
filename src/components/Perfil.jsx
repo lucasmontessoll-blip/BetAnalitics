@@ -1,187 +1,119 @@
-import React, { useMemo, useState } from 'react';
+import React from 'react';
 import {
   User,
-  Bell,
+  Star,
   Settings,
   Crown,
-  Star,
-  Trophy,
-  Target,
-  TrendingUp,
-  Wallet,
-  BrainCircuit,
-  BookOpen,
-  ShieldCheck,
-  ChevronRight,
-  LogOut,
-  Mail,
-  Lock,
-  Zap,
-  Heart,
-  Activity,
   FileText,
+  BookOpen,
   LifeBuoy,
-  Award,
-  BarChart3
+  TrendingUp,
+  LogOut,
+  ChevronRight,
+  Bell,
+  Mail,
+  ShieldCheck
 } from 'lucide-react';
-import {
-  AreaChart,
-  Area,
-  ResponsiveContainer,
-  XAxis,
-  YAxis,
-  CartesianGrid,
-  Tooltip
-} from 'recharts';
 
 export default function Perfil({
   userData,
   form,
-  setForm,
-  nivelUsuario,
-  xp,
   solicitarPermissaoNotificacao,
   setViewMode,
-  apostas = [],
-  bancaInicial = 1000,
-  metaMensal = 2000,
   setMenuAtivo
 }) {
-  const [abaAtiva, setAbaAtiva] = useState('conta');
-
   const nomeUsuario = form?.nome || userData?.nome || 'Usuário BetAnalytics';
   const emailUsuario = userData?.email || form?.email || 'sem-email';
   const isVip = Boolean(userData?.is_vip);
-  const nivel = nivelUsuario || 'Profissional';
-
-  const lucroAcumulado = useMemo(() => {
-    return apostas.reduce((acc, aposta) => {
-      if (aposta.resultado === 'green') {
-        return acc + (Number(aposta.stake || 0) * Number(aposta.odd || 0)) - Number(aposta.stake || 0);
-      }
-
-      return acc - Number(aposta.stake || 0);
-    }, 0);
-  }, [apostas]);
-
-  const totalGreens = useMemo(() => {
-    return apostas.filter((aposta) => aposta.resultado === 'green').length;
-  }, [apostas]);
-
-  const totalApostas = apostas.length || 0;
-  const assertividade = totalApostas ? Math.round((totalGreens / totalApostas) * 100) : 87;
-  const roi = bancaInicial ? (lucroAcumulado / bancaInicial) * 100 : 0;
-  const progressoXP = Math.min((Number(xp || 0) / 5000) * 100, 100);
-  const progressoMeta = Math.min((Number(lucroAcumulado || 0) / Number(metaMensal || 1)) * 100, 100);
-
-  const dadosGrafico = useMemo(() => {
-    if (!apostas.length) {
-      return [
-        { nome: 'Seg', banca: bancaInicial },
-        { nome: 'Ter', banca: bancaInicial + 80 },
-        { nome: 'Qua', banca: bancaInicial + 120 },
-        { nome: 'Qui', banca: bancaInicial + 60 },
-        { nome: 'Sex', banca: bancaInicial + 180 },
-        { nome: 'Sáb', banca: bancaInicial + 240 },
-        { nome: 'Dom', banca: bancaInicial + 300 }
-      ];
-    }
-
-    let banca = bancaInicial;
-    const lista = [{ nome: 'Início', banca }];
-
-    apostas.slice(0, 7).forEach((aposta, index) => {
-      if (aposta.resultado === 'green') {
-        banca += (Number(aposta.stake || 0) * Number(aposta.odd || 0)) - Number(aposta.stake || 0);
-      } else {
-        banca -= Number(aposta.stake || 0);
-      }
-
-      lista.push({
-        nome: `Bet ${index + 1}`,
-        banca: Number(banca.toFixed(2))
-      });
-    });
-
-    return lista;
-  }, [apostas, bancaInicial]);
 
   const fazerLogout = () => {
     localStorage.removeItem('bet_sessao_ativa');
     localStorage.removeItem('bet_user_nome');
+    localStorage.removeItem('bet_user_email');
     window.location.reload();
   };
 
-  const abrirAdmin = () => {
-    const senha = window.prompt('Acesso Restrito. Digite a senha do Administrador:');
-
-    if (senha === 'lucasadmin2026') {
-      setViewMode?.('admin');
-    } else if (senha !== null) {
-      alert('Senha Incorreta! Acesso negado.');
-    }
+  const abrirSuporte = () => {
+    window.location.href = 'mailto:betanlyticspro@gmail.com';
   };
 
-  const cardsMenu = [
+  const abrirPlanoPro = () => {
+    if (setMenuAtivo) {
+      setMenuAtivo('assinar pro');
+      return;
+    }
+
+    setViewMode?.('assinar-pro');
+  };
+
+  const opcoesPerfil = [
     {
-      id: 'conta',
-      titulo: 'Minha Conta',
-      desc: 'Perfil, VIP e dados',
-      icon: User,
-      cor: 'text-blue-400',
-      borda: 'border-blue-500/20'
-    },
-    {
-      id: 'favoritos',
       titulo: 'Favoritos',
-      desc: 'Times e alertas',
-      icon: Heart,
-      cor: 'text-red-400',
-      borda: 'border-red-500/20'
-    },
-    {
-      id: 'desempenho',
-      titulo: 'Desempenho',
-      desc: 'ROI e banca',
-      icon: BarChart3,
-      cor: 'text-emerald-400',
-      borda: 'border-emerald-500/20'
-    },
-    {
-      id: 'ia',
-      titulo: 'Minha IA',
-      desc: 'Análises e risco',
-      icon: BrainCircuit,
-      cor: 'text-purple-400',
-      borda: 'border-purple-500/20'
-    },
-    {
-      id: 'educacao',
-      titulo: 'Educação',
-      desc: 'Odd, EV+ e gestão',
-      icon: BookOpen,
+      descricao: 'Times, jogos salvos e alertas favoritos',
+      icon: Star,
       cor: 'text-yellow-400',
-      borda: 'border-yellow-500/20'
+      borda: 'border-yellow-500/20',
+      acao: () => setViewMode?.('jogos')
     },
     {
-      id: 'config',
       titulo: 'Configurações',
-      desc: 'Privacidade e suporte',
+      descricao: 'Notificações e preferências do aplicativo',
       icon: Settings,
+      cor: 'text-blue-400',
+      borda: 'border-blue-500/20',
+      acao: solicitarPermissaoNotificacao
+    },
+    {
+      titulo: 'Plano PRO',
+      descricao: isVip ? 'Gerenciar assinatura ativa' : 'Ver benefícios e assinar',
+      icon: Crown,
+      cor: 'text-amber-400',
+      borda: 'border-amber-500/20',
+      acao: abrirPlanoPro
+    },
+    {
+      titulo: 'Termos e Privacidade',
+      descricao: 'Política, +18, responsabilidade e condições de uso',
+      icon: FileText,
       cor: 'text-slate-300',
-      borda: 'border-white/10'
+      borda: 'border-white/10',
+      acao: () => setViewMode?.('termos')
+    },
+    {
+      titulo: 'Educação',
+      descricao: 'Odds, EV+, gestão de banca e jogo responsável',
+      icon: BookOpen,
+      cor: 'text-emerald-400',
+      borda: 'border-emerald-500/20',
+      acao: () => setViewMode?.('educacao')
+    },
+    {
+      titulo: 'Suporte',
+      descricao: 'Fale com o suporte do BetAnalytics PRO',
+      icon: LifeBuoy,
+      cor: 'text-cyan-400',
+      borda: 'border-cyan-500/20',
+      acao: abrirSuporte
+    },
+    {
+      titulo: 'Histórico de Assertividade',
+      descricao: 'Acompanhar desempenho e acertos da IA',
+      icon: TrendingUp,
+      cor: 'text-purple-400',
+      borda: 'border-purple-500/20',
+      acao: () => setViewMode?.('historico')
     }
   ];
 
   return (
     <div className="w-full pb-8">
-      <div className="bg-gradient-to-br from-[#0f172a] via-[#111827] to-[#050816] border border-blue-500/20 rounded-3xl p-5 mb-5 shadow-2xl relative overflow-hidden">
-        <div className="absolute -right-10 -top-10 w-40 h-40 bg-blue-500/10 rounded-full blur-3xl"></div>
+      <div className="bg-gradient-to-br from-[#0f172a] via-[#111827] to-[#050816] border border-blue-500/20 rounded-3xl p-5 mb-5 shadow-xl relative overflow-hidden">
+        <div className="absolute -right-12 -top-12 w-40 h-40 bg-blue-500/10 rounded-full blur-3xl"></div>
         <div className="absolute -left-10 bottom-0 w-32 h-32 bg-purple-500/10 rounded-full blur-3xl"></div>
 
         <div className="relative z-10 flex items-center gap-4">
-          <div className="w-20 h-20 rounded-3xl bg-gradient-to-br from-blue-600 to-blue-400 flex items-center justify-center shadow-[0_0_25px_rgba(37,99,235,0.45)] border border-white/10">
-            <User className="w-10 h-10 text-white" />
+          <div className="w-18 h-18 min-w-18 rounded-3xl bg-gradient-to-br from-blue-600 to-blue-400 flex items-center justify-center shadow-[0_0_25px_rgba(37,99,235,0.45)] border border-white/10">
+            <User className="w-9 h-9 text-white" />
           </div>
 
           <div className="min-w-0 flex-1">
@@ -202,326 +134,82 @@ export default function Perfil({
               {emailUsuario}
             </div>
 
-            <div className="flex items-center gap-2 mt-3">
-              <span className="bg-[#050816] border border-white/10 text-blue-300 text-[10px] font-black px-3 py-1 rounded-full uppercase">
-                {nivel}
+            <div className="mt-3 flex items-center gap-2">
+              <span className="bg-[#050816] border border-white/10 text-blue-300 text-[10px] font-black px-3 py-1 rounded-full uppercase flex items-center gap-1">
+                <ShieldCheck className="w-3 h-3" />
+                Conta segura
               </span>
 
               <span className="bg-[#050816] border border-emerald-500/20 text-emerald-400 text-[10px] font-black px-3 py-1 rounded-full uppercase">
-                {assertividade}% IA
+                +18
               </span>
             </div>
           </div>
         </div>
+      </div>
 
-        <div className="relative z-10 mt-5 bg-[#050816]/70 rounded-2xl p-4 border border-white/5">
-          <div className="flex justify-between items-center mb-2">
-            <span className="text-[10px] font-black text-slate-500 uppercase tracking-widest flex items-center gap-1">
-              <Award className="w-3 h-3 text-yellow-400" />
-              Progresso XP
-            </span>
+      <div className="bg-[#0f172a] border border-white/10 rounded-3xl p-4 mb-5">
+        <div className="flex items-center justify-between mb-4">
+          <h3 className="text-sm font-black text-white uppercase">
+            Perfil do usuário
+          </h3>
 
-            <span className="text-[10px] font-black text-slate-400">
-              {xp || 0} / 5000 XP
-            </span>
-          </div>
-
-          <div className="w-full bg-slate-800 h-2.5 rounded-full overflow-hidden">
-            <div
-              className="h-full bg-gradient-to-r from-blue-500 to-emerald-400 rounded-full"
-              style={{ width: `${progressoXP}%` }}
-            ></div>
-          </div>
+          <span className="text-[10px] text-slate-500 font-black uppercase">
+            Central simples
+          </span>
         </div>
-      </div>
 
-      <div className="grid grid-cols-2 gap-3 mb-5">
-        <MiniStat
-          titulo="Lucro Simulado"
-          valor={`R$ ${Number(lucroAcumulado || 0).toFixed(2)}`}
-          positivo={lucroAcumulado >= 0}
-          icon={Wallet}
-        />
+        <div className="flex flex-col gap-3">
+          {opcoesPerfil.map((item) => {
+            const Icon = item.icon;
 
-        <MiniStat
-          titulo="ROI"
-          valor={`${Number(roi || 0).toFixed(1)}%`}
-          positivo={roi >= 0}
-          icon={TrendingUp}
-        />
-
-        <MiniStat
-          titulo="Greens"
-          valor={totalGreens || 31}
-          positivo
-          icon={Target}
-        />
-
-        <MiniStat
-          titulo="Alertas"
-          valor="12"
-          positivo
-          icon={Bell}
-        />
-      </div>
-
-      <div className="grid grid-cols-2 gap-3 mb-5">
-        {cardsMenu.map((item) => {
-          const Icon = item.icon;
-          const ativo = abaAtiva === item.id;
-
-          return (
-            <button
-              key={item.id}
-              onClick={() => setAbaAtiva(item.id)}
-              className={`bg-[#0f172a] rounded-3xl p-4 text-left border transition-all active:scale-95 ${
-                ativo ? `${item.borda} shadow-lg scale-[1.01]` : 'border-white/5'
-              }`}
-            >
-              <div className="flex items-center justify-between mb-3">
-                <div className="w-10 h-10 rounded-2xl bg-[#050816] border border-white/10 flex items-center justify-center">
+            return (
+              <button
+                key={item.titulo}
+                onClick={item.acao}
+                className={`w-full bg-[#050816] border ${item.borda} rounded-2xl p-4 flex items-center gap-3 text-left active:scale-[0.98] transition hover:bg-[#111827]`}
+              >
+                <div className="w-11 h-11 rounded-2xl bg-[#0f172a] border border-white/10 flex items-center justify-center flex-shrink-0">
                   <Icon className={`w-5 h-5 ${item.cor}`} />
                 </div>
 
-                <ChevronRight className={`w-4 h-4 ${ativo ? item.cor : 'text-slate-600'}`} />
-              </div>
+                <div className="min-w-0 flex-1">
+                  <div className="text-sm font-black text-white uppercase truncate">
+                    {item.titulo}
+                  </div>
 
-              <div className="text-xs font-black text-white uppercase">
-                {item.titulo}
-              </div>
+                  <div className="text-[10px] text-slate-500 font-bold mt-1 truncate">
+                    {item.descricao}
+                  </div>
+                </div>
 
-              <div className="text-[10px] text-slate-500 mt-1 font-bold">
-                {item.desc}
-              </div>
-            </button>
-          );
-        })}
+                <ChevronRight className="w-5 h-5 text-slate-600 flex-shrink-0" />
+              </button>
+            );
+          })}
+        </div>
       </div>
 
-      {abaAtiva === 'conta' && (
-        <SecaoCard titulo="Minha Conta" icon={User}>
-          <InfoLinha label="Nome" valor={nomeUsuario} />
-          <InfoLinha label="Email" valor={emailUsuario} />
-          <InfoLinha label="Plano" valor={isVip ? 'VIP PRO ativo' : 'Plano gratuito'} destaque={isVip} />
-          <InfoLinha label="Nível" valor={nivel} />
+      <button
+        onClick={fazerLogout}
+        className="w-full bg-red-500/10 border border-red-500/20 text-red-400 rounded-2xl p-4 flex items-center gap-3 active:scale-[0.98] transition hover:bg-red-500/15"
+      >
+        <div className="w-11 h-11 rounded-2xl bg-red-500/10 border border-red-500/20 flex items-center justify-center flex-shrink-0">
+          <LogOut className="w-5 h-5 text-red-400" />
+        </div>
 
-          <button
-            onClick={() => setMenuAtivo?.('assinar pro')}
-            className="w-full mt-4 bg-gradient-to-r from-yellow-500 to-yellow-600 text-black font-black py-3 rounded-2xl text-xs uppercase flex items-center justify-center gap-2"
-          >
-            <Crown className="w-4 h-4" />
-            {isVip ? 'Gerenciar Plano PRO' : 'Assinar PRO'}
-          </button>
-        </SecaoCard>
-      )}
-
-      {abaAtiva === 'favoritos' && (
-        <SecaoCard titulo="Favoritos e Alertas" icon={Heart}>
-          <div className="grid grid-cols-3 gap-3 mb-4">
-            <ResumoBox titulo="Times" valor="3" />
-            <ResumoBox titulo="Jogos" valor="8" />
-            <ResumoBox titulo="Alertas" valor="12" />
+        <div className="text-left min-w-0 flex-1">
+          <div className="text-sm font-black uppercase">
+            Sair da conta
           </div>
 
-          <AcaoLinha
-            icon={Star}
-            titulo="Times favoritos"
-            desc="Acompanhe seus clubes preferidos"
-            onClick={() => setViewMode?.('jogos')}
-          />
-
-          <AcaoLinha
-            icon={Bell}
-            titulo="Ativar notificações"
-            desc="Receba alertas de jogos, gols e oportunidades"
-            onClick={() => solicitarPermissaoNotificacao?.()}
-          />
-
-          <AcaoLinha
-            icon={Activity}
-            titulo="Jogos ao vivo"
-            desc="Ver partidas monitoradas agora"
-            onClick={() => setViewMode?.('jogos')}
-          />
-        </SecaoCard>
-      )}
-
-      {abaAtiva === 'desempenho' && (
-        <SecaoCard titulo="Meu Desempenho" icon={BarChart3}>
-          <div className="grid grid-cols-2 gap-3 mb-4">
-            <ResumoBox titulo="Assertividade" valor={`${assertividade}%`} />
-            <ResumoBox titulo="Apostas" valor={totalApostas || 42} />
-            <ResumoBox titulo="Meta" valor={`${Number(progressoMeta || 0).toFixed(0)}%`} />
-            <ResumoBox titulo="Banca" valor={`R$ ${Number(bancaInicial || 0).toFixed(0)}`} />
+          <div className="text-[10px] text-red-300/70 font-bold mt-1">
+            Encerrar sessão atual
           </div>
+        </div>
 
-          <div className="bg-[#050816] border border-white/10 rounded-3xl p-4 mb-4">
-            <div className="flex items-center justify-between mb-3">
-              <h3 className="text-xs font-black text-white uppercase">
-                Evolução da Banca
-              </h3>
-
-              <span className={`text-[10px] font-black ${lucroAcumulado >= 0 ? 'text-emerald-400' : 'text-red-400'}`}>
-                {lucroAcumulado >= 0 ? '+' : ''}
-                {Number(roi || 0).toFixed(1)}%
-              </span>
-            </div>
-
-            <div className="w-full h-44">
-              <ResponsiveContainer width="100%" height="100%">
-                <AreaChart data={dadosGrafico} margin={{ top: 10, right: 8, left: -25, bottom: 0 }}>
-                  <defs>
-                    <linearGradient id="perfilBanca" x1="0" y1="0" x2="0" y2="1">
-                      <stop offset="5%" stopColor="#22c55e" stopOpacity={0.35} />
-                      <stop offset="95%" stopColor="#22c55e" stopOpacity={0} />
-                    </linearGradient>
-                  </defs>
-                  <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.05)" vertical={false} />
-                  <XAxis dataKey="nome" stroke="#64748b" fontSize={9} tickLine={false} axisLine={false} />
-                  <YAxis stroke="#64748b" fontSize={9} tickLine={false} axisLine={false} />
-                  <Tooltip
-                    contentStyle={{
-                      backgroundColor: '#0f172a',
-                      border: '1px solid rgba(34,197,94,0.3)',
-                      borderRadius: '12px',
-                      color: '#fff'
-                    }}
-                  />
-                  <Area
-                    type="monotone"
-                    dataKey="banca"
-                    stroke="#22c55e"
-                    strokeWidth={3}
-                    fill="url(#perfilBanca)"
-                    isAnimationActive={false}
-                  />
-                </AreaChart>
-              </ResponsiveContainer>
-            </div>
-          </div>
-
-          <AcaoLinha
-            icon={TrendingUp}
-            titulo="Histórico de Assertividade"
-            desc="Abrir relatório completo de desempenho"
-            onClick={() => setViewMode?.('historico')}
-          />
-        </SecaoCard>
-      )}
-
-      {abaAtiva === 'ia' && (
-        <SecaoCard titulo="Minha IA" icon={BrainCircuit}>
-          <div className="bg-purple-500/10 border border-purple-500/20 rounded-3xl p-4 mb-4">
-            <div className="flex items-center gap-2 mb-2">
-              <BrainCircuit className="w-5 h-5 text-purple-400" />
-              <h3 className="text-sm font-black text-white">
-                Perfil IA do Usuário
-              </h3>
-            </div>
-
-            <p className="text-xs text-slate-400 leading-relaxed">
-              Seu perfil atual indica comportamento de risco moderado, foco em oportunidades com boa confiança e preferência por jogos com mercado equilibrado.
-            </p>
-          </div>
-
-          <AcaoLinha
-            icon={Zap}
-            titulo="Central IA"
-            desc="Abrir radar inteligente"
-            onClick={() => setViewMode?.('radar')}
-          />
-
-          <AcaoLinha
-            icon={BrainCircuit}
-            titulo="Como a IA calcula"
-            desc="Entender critérios, risco e probabilidade"
-            onClick={() => setViewMode?.('como-ia')}
-          />
-
-          <AcaoLinha
-            icon={Trophy}
-            titulo="Ranking de oportunidades"
-            desc="Ver os melhores jogos do dia"
-            onClick={() => setViewMode?.('ranking')}
-          />
-        </SecaoCard>
-      )}
-
-      {abaAtiva === 'educacao' && (
-        <SecaoCard titulo="Educação" icon={BookOpen}>
-          <AcaoLinha
-            icon={BookOpen}
-            titulo="Educação BetAnalytics"
-            desc="Odds, EV+, gestão de banca e responsabilidade"
-            onClick={() => setViewMode?.('educacao')}
-          />
-
-          <AcaoLinha
-            icon={ShieldCheck}
-            titulo="Jogo responsável"
-            desc="Boas práticas, limites e controle emocional"
-            onClick={() => setViewMode?.('termos')}
-          />
-
-          <AcaoLinha
-            icon={FileText}
-            titulo="Termos e Privacidade"
-            desc="Política, +18 e condições de uso"
-            onClick={() => setViewMode?.('termos')}
-          />
-        </SecaoCard>
-      )}
-
-      {abaAtiva === 'config' && (
-        <SecaoCard titulo="Configurações" icon={Settings}>
-          <AcaoLinha
-            icon={Bell}
-            titulo="Notificações"
-            desc="Permitir alertas do BetAnalytics"
-            onClick={() => solicitarPermissaoNotificacao?.()}
-          />
-
-          <AcaoLinha
-            icon={Lock}
-            titulo="Privacidade e segurança"
-            desc="Política de privacidade e termos"
-            onClick={() => setViewMode?.('termos')}
-          />
-
-          <AcaoLinha
-            icon={LifeBuoy}
-            titulo="Suporte"
-            desc="betanlyticspro@gmail.com"
-            onClick={() => {
-              window.location.href = 'mailto:betanlyticspro@gmail.com';
-            }}
-          />
-
-          <AcaoLinha
-            icon={Settings}
-            titulo="Admin"
-            desc="Área restrita do administrador"
-            onClick={abrirAdmin}
-          />
-
-          <button
-            onClick={fazerLogout}
-            className="w-full mt-4 bg-red-500/10 border border-red-500/20 text-red-400 rounded-2xl p-4 flex items-center gap-3 active:scale-95 transition"
-          >
-            <LogOut className="w-5 h-5" />
-
-            <div className="text-left">
-              <div className="text-xs font-black uppercase">
-                Sair da conta
-              </div>
-
-              <div className="text-[10px] text-red-300/70 font-bold">
-                Encerrar sessão atual
-              </div>
-            </div>
-          </button>
-        </SecaoCard>
-      )}
+        <ChevronRight className="w-5 h-5 text-red-400/40 flex-shrink-0" />
+      </button>
 
       <div className="mt-6 text-center">
         <p className="text-[10px] text-slate-600 font-bold leading-relaxed">
@@ -530,94 +218,5 @@ export default function Perfil({
         </p>
       </div>
     </div>
-  );
-}
-
-function MiniStat({ titulo, valor, positivo, icon: Icon }) {
-  return (
-    <div className="bg-[#0f172a] border border-white/5 rounded-3xl p-4">
-      <div className="flex items-center justify-between mb-2">
-        <span className="text-[9px] text-slate-500 font-black uppercase tracking-widest">
-          {titulo}
-        </span>
-
-        <Icon className={`w-4 h-4 ${positivo ? 'text-emerald-400' : 'text-red-400'}`} />
-      </div>
-
-      <div className={`text-lg font-black truncate ${positivo ? 'text-emerald-400' : 'text-red-400'}`}>
-        {valor}
-      </div>
-    </div>
-  );
-}
-
-function SecaoCard({ titulo, icon: Icon, children }) {
-  return (
-    <div className="bg-[#0f172a] border border-white/10 rounded-3xl p-5 shadow-xl mb-5">
-      <div className="flex items-center gap-2 mb-4">
-        <div className="w-9 h-9 rounded-2xl bg-[#050816] border border-white/10 flex items-center justify-center">
-          <Icon className="w-4 h-4 text-blue-400" />
-        </div>
-
-        <h3 className="text-sm font-black text-white uppercase">
-          {titulo}
-        </h3>
-      </div>
-
-      {children}
-    </div>
-  );
-}
-
-function InfoLinha({ label, valor, destaque = false }) {
-  return (
-    <div className="flex justify-between items-center py-3 border-b border-white/5 last:border-0">
-      <span className="text-xs text-slate-500 font-bold">
-        {label}
-      </span>
-
-      <span className={`text-xs font-black text-right ${destaque ? 'text-yellow-400' : 'text-white'}`}>
-        {valor}
-      </span>
-    </div>
-  );
-}
-
-function ResumoBox({ titulo, valor }) {
-  return (
-    <div className="bg-[#050816] border border-white/10 rounded-2xl p-3 text-center">
-      <div className="text-[9px] text-slate-500 font-black uppercase mb-1">
-        {titulo}
-      </div>
-
-      <div className="text-lg font-black text-white">
-        {valor}
-      </div>
-    </div>
-  );
-}
-
-function AcaoLinha({ icon: Icon, titulo, desc, onClick }) {
-  return (
-    <button
-      onClick={onClick}
-      className="w-full bg-[#050816] border border-white/10 rounded-2xl p-4 flex items-center gap-3 mb-3 last:mb-0 text-left active:scale-95 transition hover:border-blue-500/30"
-    >
-      <div className="w-10 h-10 rounded-2xl bg-[#0f172a] border border-white/10 flex items-center justify-center flex-shrink-0">
-        <Icon className="w-5 h-5 text-blue-400" />
-      </div>
-
-      <div className="min-w-0 flex-1">
-        <div className="text-xs font-black text-white uppercase truncate">
-          {titulo}
-        </div>
-
-        <div className="text-[10px] text-slate-500 font-bold mt-1 truncate">
-          {desc}
-        </div>
-      </div>
-
-      <ChevronRight className="w-4 h-4 text-slate-600 flex-shrink-0" />
-    </button>
   );
 }
