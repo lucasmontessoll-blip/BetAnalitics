@@ -54,83 +54,72 @@ export default function PainelJogo({ jogo, setJogoSelecionado, bancaInicial = 10
   const tabsRef = useRef(null);
   const tabRefs = useRef({});
 
-  // Controle real das abas horizontais: dedo no celular, mouse no PC e setas
-  const [isDraggingTabs, setIsDraggingTabs] = useState(false);
-  const [tabsCanLeft, setTabsCanLeft] = useState(false);
-  const [tabsCanRight, setTabsCanRight] = useState(true);
-  const dragStartX = useRef(0);
-  const dragStartScroll = useRef(0);
-  const dragMoved = useRef(false);
+  // Carrossel real das abas: não depende do scroll nativo do navegador
+  const TABS_VISIVEIS = 4;
+  const maxTabStart = Math.max(0, abas.length - TABS_VISIVEIS);
+  const [tabStart, setTabStart] = useState(0);
+  const swipeStartX = useRef(0);
+  const swipeStartY = useRef(0);
+  const swipeAtivo = useRef(false);
 
-  const atualizarSetasAbas = () => {
-    const el = tabsRef.current;
-    if (!el) return;
-    setTabsCanLeft(el.scrollLeft > 4);
-    setTabsCanRight(el.scrollLeft + el.clientWidth < el.scrollWidth - 4);
-  };
+  const abasVisiveis = abas.slice(tabStart, tabStart + TABS_VISIVEIS);
 
-  const scrollParaAba = (id) => {
-    requestAnimationFrame(() => {
-      const el = tabRefs.current[id];
-      if (el && typeof el.scrollIntoView === 'function') {
-        el.scrollIntoView({ behavior: 'smooth', inline: 'center', block: 'nearest' });
-      }
-      setTimeout(atualizarSetasAbas, 250);
-    });
+  const garantirAbaVisivel = (id) => {
+    const idx = abas.findIndex(a => a.id === id);
+    if (idx < 0) return;
+
+    if (idx < tabStart) {
+      setTabStart(clamp(idx, 0, maxTabStart));
+      return;
+    }
+
+    if (idx >= tabStart + TABS_VISIVEIS) {
+      setTabStart(clamp(idx - TABS_VISIVEIS + 1, 0, maxTabStart));
+    }
   };
 
   const escolherAba = (id) => {
-    if (dragMoved.current) {
-      dragMoved.current = false;
-      return;
-    }
     setAba(id);
-    scrollParaAba(id);
+    garantirAbaVisivel(id);
   };
 
   const moverAba = (dir) => {
     const idx = abas.findIndex(a => a.id === aba);
     const prox = abas[clamp(idx + dir, 0, abas.length - 1)] || abas[0];
-    setAba(prox.id);
-    scrollParaAba(prox.id);
-    tabsRef.current?.scrollBy({ left: dir * 170, behavior: 'smooth' });
+    escolherAba(prox.id);
   };
 
-  const iniciarArrastoAbas = (clientX) => {
-    const el = tabsRef.current;
-    if (!el) return;
-    setIsDraggingTabs(true);
-    dragMoved.current = false;
-    dragStartX.current = clientX;
-    dragStartScroll.current = el.scrollLeft;
+  const moverGrupoAbas = (dir) => {
+    setTabStart(prev => clamp(prev + dir, 0, maxTabStart));
   };
 
-  const moverArrastoAbas = (clientX) => {
-    const el = tabsRef.current;
-    if (!isDraggingTabs || !el) return;
-    const dx = dragStartX.current - clientX;
-    if (Math.abs(dx) > 4) dragMoved.current = true;
-    el.scrollLeft = dragStartScroll.current + dx;
-    atualizarSetasAbas();
+  const iniciarSwipeAbas = (e) => {
+    const t = e.touches?.[0] || e;
+    swipeStartX.current = t.clientX;
+    swipeStartY.current = t.clientY;
+    swipeAtivo.current = true;
   };
 
-  const pararArrastoAbas = () => {
-    setIsDraggingTabs(false);
-    setTimeout(() => { dragMoved.current = false; }, 80);
+  const finalizarSwipeAbas = (e) => {
+    if (!swipeAtivo.current) return;
+
+    const t = e.changedTouches?.[0] || e;
+    const dx = t.clientX - swipeStartX.current;
+    const dy = t.clientY - swipeStartY.current;
+
+    swipeAtivo.current = false;
+
+    if (Math.abs(dx) > 35 && Math.abs(dx) > Math.abs(dy)) {
+      if (dx < 0) {
+        moverGrupoAbas(1);
+      } else {
+        moverGrupoAbas(-1);
+      }
+    }
   };
 
   useEffect(() => {
-    scrollParaAba(aba);
-    atualizarSetasAbas();
-    const el = tabsRef.current;
-    if (!el) return;
-    const onScroll = () => atualizarSetasAbas();
-    el.addEventListener('scroll', onScroll, { passive: true });
-    window.addEventListener('resize', onScroll);
-    return () => {
-      el.removeEventListener('scroll', onScroll);
-      window.removeEventListener('resize', onScroll);
-    };
+    garantirAbaVisivel(aba);
   }, [aba]);
 
   const home = partida.home_team || 'Time Casa';
@@ -267,14 +256,20 @@ export default function PainelJogo({ jogo, setJogoSelecionado, bancaInicial = 10
           </div>
         </div>
 
-        {/* --- ABAS MODERNAS EM PILLS COM ROLAGEM HORIZONTAL REAL --- */}
-        <div className="relative -mx-4 bg-[#050816] border-t border-white/10 py-3 select-none">
+        {/* --- ABAS MODERNAS EM PILLS COM SWIPE REAL DE CARROSSEL --- */}
+        <div
+          className="relative -mx-4 bg-[#050816] border-t border-white/10 py-3 select-none overflow-hidden"
+          onTouchStart={iniciarSwipeAbas}
+          onTouchEnd={finalizarSwipeAbas}
+          onPointerDown={iniciarSwipeAbas}
+          onPointerUp={finalizarSwipeAbas}
+        >
           <button
             type="button"
             aria-label="Voltar abas"
-            onClick={() => moverAba(-1)}
-            disabled={!tabsCanLeft && abas.findIndex(a => a.id === aba) === 0}
-            className={`absolute left-2 top-1/2 -translate-y-1/2 z-40 w-9 h-9 rounded-full bg-white text-blue-700 shadow-xl border border-white/30 flex items-center justify-center text-xl font-black active:scale-95 transition-all ${(!tabsCanLeft && abas.findIndex(a => a.id === aba) === 0) ? 'opacity-40' : 'opacity-100'}`}
+            onClick={() => moverGrupoAbas(-1)}
+            disabled={tabStart === 0}
+            className={`absolute left-2 top-1/2 -translate-y-1/2 z-40 w-9 h-9 rounded-full bg-white text-blue-700 shadow-xl border border-white/30 flex items-center justify-center text-xl font-black active:scale-95 transition-all ${tabStart === 0 ? 'opacity-35' : 'opacity-100'}`}
           >
             ‹
           </button>
@@ -282,9 +277,9 @@ export default function PainelJogo({ jogo, setJogoSelecionado, bancaInicial = 10
           <button
             type="button"
             aria-label="Avançar abas"
-            onClick={() => moverAba(1)}
-            disabled={!tabsCanRight && abas.findIndex(a => a.id === aba) === abas.length - 1}
-            className={`absolute right-2 top-1/2 -translate-y-1/2 z-40 w-9 h-9 rounded-full bg-white text-blue-700 shadow-xl border border-white/30 flex items-center justify-center text-xl font-black active:scale-95 transition-all ${(!tabsCanRight && abas.findIndex(a => a.id === aba) === abas.length - 1) ? 'opacity-40' : 'opacity-100'}`}
+            onClick={() => moverGrupoAbas(1)}
+            disabled={tabStart >= maxTabStart}
+            className={`absolute right-2 top-1/2 -translate-y-1/2 z-40 w-9 h-9 rounded-full bg-white text-blue-700 shadow-xl border border-white/30 flex items-center justify-center text-xl font-black active:scale-95 transition-all ${tabStart >= maxTabStart ? 'opacity-35' : 'opacity-100'}`}
           >
             ›
           </button>
@@ -292,35 +287,32 @@ export default function PainelJogo({ jogo, setJogoSelecionado, bancaInicial = 10
           <div className="pointer-events-none absolute left-0 top-0 bottom-0 w-14 bg-gradient-to-r from-[#050816] via-[#050816] to-transparent z-30"></div>
           <div className="pointer-events-none absolute right-0 top-0 bottom-0 w-14 bg-gradient-to-l from-[#050816] via-[#050816] to-transparent z-30"></div>
 
-          <div
-            ref={tabsRef}
-            onPointerDown={(e) => { tabsRef.current?.setPointerCapture?.(e.pointerId); iniciarArrastoAbas(e.clientX); }}
-            onPointerMove={(e) => moverArrastoAbas(e.clientX)}
-            onPointerUp={pararArrastoAbas}
-            onPointerCancel={pararArrastoAbas}
-            onPointerLeave={pararArrastoAbas}
-            onTouchStart={(e) => iniciarArrastoAbas(e.touches[0].clientX)}
-            onTouchMove={(e) => moverArrastoAbas(e.touches[0].clientX)}
-            onTouchEnd={pararArrastoAbas}
-            className={`flex items-center gap-2 overflow-x-auto overflow-y-hidden whitespace-nowrap px-14 scroll-smooth overscroll-x-contain ${isDraggingTabs ? 'cursor-grabbing' : 'cursor-grab'} [&::-webkit-scrollbar]:hidden`}
-            style={{
-              WebkitOverflowScrolling: 'touch',
-              touchAction: 'pan-x',
-              scrollbarWidth: 'none',
-              msOverflowStyle: 'none'
-            }}
-          >
-            {abas.map(a => (
-              <button
-                ref={(el) => { if (el) tabRefs.current[a.id] = el; }}
-                key={a.id}
-                type="button"
-                onClick={() => escolherAba(a.id)}
-                className={`shrink-0 rounded-full px-5 py-3 text-[11px] font-black whitespace-nowrap border transition-all active:scale-95 ${aba === a.id ? 'bg-white text-[#050816] border-white shadow-[0_0_20px_rgba(255,255,255,0.18)]' : 'bg-[#0b1224] text-slate-300 border-slate-700 hover:border-blue-500/70'}`}
-              >
-                {a.label}
-              </button>
-            ))}
+          <div className="px-14">
+            <div className="grid grid-cols-4 gap-2 transition-all duration-300">
+              {abasVisiveis.map(a => (
+                <button
+                  ref={(el) => { if (el) tabRefs.current[a.id] = el; }}
+                  key={a.id}
+                  type="button"
+                  onClick={() => escolherAba(a.id)}
+                  className={`h-[42px] rounded-full px-2 text-[10px] leading-tight font-black whitespace-nowrap border transition-all active:scale-95 overflow-hidden text-ellipsis ${aba === a.id ? 'bg-white text-[#050816] border-white shadow-[0_0_20px_rgba(255,255,255,0.18)]' : 'bg-[#0b1224] text-slate-300 border-slate-700'}`}
+                >
+                  {a.label}
+                </button>
+              ))}
+            </div>
+
+            <div className="flex justify-center gap-1.5 mt-2">
+              {Array.from({ length: maxTabStart + 1 }).map((_, i) => (
+                <button
+                  key={i}
+                  type="button"
+                  onClick={() => setTabStart(i)}
+                  className={`h-1.5 rounded-full transition-all ${tabStart === i ? 'w-5 bg-white' : 'w-1.5 bg-white/30'}`}
+                  aria-label={`Página de abas ${i + 1}`}
+                />
+              ))}
+            </div>
           </div>
         </div>
         {/* --- FIM DAS ABAS --- */}
