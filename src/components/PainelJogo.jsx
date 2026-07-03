@@ -1,4 +1,4 @@
-import React,{useMemo,useState,useRef} from 'react';
+import React,{useMemo,useState,useRef,useEffect} from 'react';
 import {ArrowLeft,Star,BarChart3,MessageCircle,PlayCircle,Image,Shield,Activity,Target,TrendingUp,Trophy,Percent,ChevronRight,Camera,Info,Flame,Zap,Users,Clock,Radio,BarChart2,Sparkles} from 'lucide-react';
 
 const abas=[
@@ -45,10 +45,30 @@ function pct(v){return `${Math.round(v)}%`;}
 function escudo(url,nome){return url||`https://api.dicebear.com/7.x/initials/svg?seed=${encodeURIComponent(nome||'Time')}`;}
 
 export default function PainelJogo({jogo,setJogoSelecionado,bancaInicial=1000,gerarExplicacaoIA,calcularStake,calcularKelly}) {
-  const tabsRef=useRef(null);
-  const moverAbas=(dir)=>tabsRef.current?.scrollBy({left:dir*170,behavior:'smooth'});
   const partida=jogo||JOGO_DEMO_INTERNO;
   const [aba,setAba]=useState('detalhes');
+  const tabsRef=useRef(null);
+  const tabRefs=useRef({});
+  const touchStartX=useRef(0);
+  const touchStartScroll=useRef(0);
+  const scrollParaAba=(id)=>{
+    requestAnimationFrame(()=>{
+      const el=tabRefs.current[id];
+      if(el&&typeof el.scrollIntoView==='function'){
+        el.scrollIntoView({behavior:'smooth',inline:'center',block:'nearest'});
+      }
+    });
+  };
+  const escolherAba=(id)=>{setAba(id);scrollParaAba(id);};
+  const moverAba=(dir)=>{
+    const idx=abas.findIndex(a=>a.id===aba);
+    const prox=abas[clamp(idx+dir,0,abas.length-1)]||abas[0];
+    escolherAba(prox.id);
+    requestAnimationFrame(()=>tabsRef.current?.scrollBy({left:dir*Math.max(150,(tabsRef.current?.clientWidth||260)*0.65),behavior:'smooth'}));
+  };
+  const iniciarArrastoAbas=(e)=>{touchStartX.current=e.touches?.[0]?.clientX||0;touchStartScroll.current=tabsRef.current?.scrollLeft||0;};
+  const moverArrastoAbas=(e)=>{if(!tabsRef.current||!e.touches?.length)return;const dx=touchStartX.current-e.touches[0].clientX;tabsRef.current.scrollLeft=touchStartScroll.current+dx;};
+  useEffect(()=>{scrollParaAba(aba);},[aba]);
   const home=partida.home_team||'Time Casa';
   const away=partida.away_team||'Time Fora';
   const liga=partida.league_name||'Competição';
@@ -183,17 +203,19 @@ export default function PainelJogo({jogo,setJogoSelecionado,bancaInicial=1000,ge
           </div>
         </div>
 
-        <div className="relative -mx-4 bg-white/95 backdrop-blur-xl border-t border-white/20">
-          <button type="button" onClick={()=>moverAbas(-1)} className="absolute left-1 top-1/2 -translate-y-1/2 z-30 w-8 h-8 rounded-full bg-white shadow-lg border border-slate-200 text-blue-600 font-black active:scale-95">‹</button>
-          <button type="button" onClick={()=>moverAbas(1)} className="absolute right-1 top-1/2 -translate-y-1/2 z-30 w-8 h-8 rounded-full bg-white shadow-lg border border-slate-200 text-blue-600 font-black active:scale-95">›</button>
-          <div className="pointer-events-none absolute left-0 top-0 bottom-0 w-10 bg-gradient-to-r from-white via-white to-transparent z-20"></div>
-          <div className="pointer-events-none absolute right-0 top-0 bottom-0 w-10 bg-gradient-to-l from-white via-white to-transparent z-20"></div>
+        <div className="relative -mx-4 bg-white/95 backdrop-blur-xl border-t border-white/20 h-[54px] overflow-hidden">
+          <button type="button" aria-label="Voltar abas" onClick={()=>moverAba(-1)} disabled={abas.findIndex(a=>a.id===aba)===0} className={`absolute left-2 top-1/2 -translate-y-1/2 z-40 w-9 h-9 rounded-full bg-white shadow-xl border border-slate-200 flex items-center justify-center text-blue-600 font-black active:scale-95 ${abas.findIndex(a=>a.id===aba)===0?'opacity-40':'opacity-100'}`}>‹</button>
+          <button type="button" aria-label="Avançar abas" onClick={()=>moverAba(1)} disabled={abas.findIndex(a=>a.id===aba)===abas.length-1} className={`absolute right-2 top-1/2 -translate-y-1/2 z-40 w-9 h-9 rounded-full bg-white shadow-xl border border-slate-200 flex items-center justify-center text-blue-600 font-black active:scale-95 ${abas.findIndex(a=>a.id===aba)===abas.length-1?'opacity-40':'opacity-100'}`}>›</button>
+          <div className="pointer-events-none absolute left-0 top-0 bottom-0 w-14 bg-gradient-to-r from-white via-white to-transparent z-30"></div>
+          <div className="pointer-events-none absolute right-0 top-0 bottom-0 w-14 bg-gradient-to-l from-white via-white to-transparent z-30"></div>
           <div
             ref={tabsRef}
-            className="flex gap-1 overflow-x-scroll overscroll-x-contain scroll-smooth pl-11 pr-11 whitespace-nowrap cursor-grab active:cursor-grabbing"
+            onTouchStart={iniciarArrastoAbas}
+            onTouchMove={moverArrastoAbas}
+            className="h-full flex items-center gap-2 overflow-x-auto overflow-y-hidden scroll-smooth whitespace-nowrap px-14"
             style={{WebkitOverflowScrolling:'touch',touchAction:'pan-x',scrollbarWidth:'none',msOverflowStyle:'none'}}
           >
-            {abas.map(a=><button key={a.id} onClick={()=>setAba(a.id)} className={`shrink-0 min-w-max px-5 py-3 text-[11px] font-black whitespace-nowrap border-b-[3px] transition-all ${aba===a.id?'text-blue-600 border-blue-600 bg-blue-50':'text-blue-400/75 border-transparent'}`}>{a.label}</button>)}
+            {abas.map(a=><button ref={(el)=>{if(el)tabRefs.current[a.id]=el;}} key={a.id} type="button" onClick={()=>escolherAba(a.id)} className={`shrink-0 h-full px-5 text-[11px] font-black whitespace-nowrap border-b-[3px] transition-all ${aba===a.id?'text-blue-600 border-blue-600 bg-blue-50':'text-blue-400/75 border-transparent active:bg-blue-50'}`}>{a.label}</button>)}
           </div>
         </div>
       </div>
