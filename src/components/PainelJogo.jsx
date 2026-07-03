@@ -54,73 +54,93 @@ export default function PainelJogo({ jogo, setJogoSelecionado, bancaInicial = 10
   const tabsRef = useRef(null);
   const tabRefs = useRef({});
 
-  // Carrossel real das abas: não depende do scroll nativo do navegador
-  const TABS_VISIVEIS = 4;
-  const maxTabStart = Math.max(0, abas.length - TABS_VISIVEIS);
-  const [tabStart, setTabStart] = useState(0);
-  const swipeStartX = useRef(0);
-  const swipeStartY = useRef(0);
-  const swipeAtivo = useRef(false);
+  // Abas 100% preparadas para mobile:
+  // não depende de scroll nativo do navegador; usa carrossel por páginas com touch real.
+  const ABAS_POR_PAGINA = 4;
+  const totalPaginasAbas = Math.ceil(abas.length / ABAS_POR_PAGINA);
+  const [paginaAbas, setPaginaAbas] = useState(0);
+  const [arrastandoAbas, setArrastandoAbas] = useState(false);
+  const toqueInicioX = useRef(0);
+  const toqueInicioY = useRef(0);
+  const toqueAtualX = useRef(0);
+  const arrastoConfirmado = useRef(false);
 
-  const abasVisiveis = abas.slice(tabStart, tabStart + TABS_VISIVEIS);
+  const paginasAbas = useMemo(() => {
+    const grupos = [];
+    for (let i = 0; i < abas.length; i += ABAS_POR_PAGINA) {
+      grupos.push(abas.slice(i, i + ABAS_POR_PAGINA));
+    }
+    return grupos;
+  }, []);
 
-  const garantirAbaVisivel = (id) => {
+  const paginaDaAba = (id) => {
     const idx = abas.findIndex(a => a.id === id);
-    if (idx < 0) return;
-
-    if (idx < tabStart) {
-      setTabStart(clamp(idx, 0, maxTabStart));
-      return;
-    }
-
-    if (idx >= tabStart + TABS_VISIVEIS) {
-      setTabStart(clamp(idx - TABS_VISIVEIS + 1, 0, maxTabStart));
-    }
+    if (idx < 0) return 0;
+    return Math.floor(idx / ABAS_POR_PAGINA);
   };
 
   const escolherAba = (id) => {
     setAba(id);
-    garantirAbaVisivel(id);
+    setPaginaAbas(paginaDaAba(id));
   };
 
-  const moverAba = (dir) => {
-    const idx = abas.findIndex(a => a.id === aba);
-    const prox = abas[clamp(idx + dir, 0, abas.length - 1)] || abas[0];
-    escolherAba(prox.id);
-  };
+  const irParaPaginaAbas = (novaPagina) => {
+    const pagina = clamp(novaPagina, 0, totalPaginasAbas - 1);
+    setPaginaAbas(pagina);
 
-  const moverGrupoAbas = (dir) => {
-    setTabStart(prev => clamp(prev + dir, 0, maxTabStart));
-  };
-
-  const iniciarSwipeAbas = (e) => {
-    const t = e.touches?.[0] || e;
-    swipeStartX.current = t.clientX;
-    swipeStartY.current = t.clientY;
-    swipeAtivo.current = true;
-  };
-
-  const finalizarSwipeAbas = (e) => {
-    if (!swipeAtivo.current) return;
-
-    const t = e.changedTouches?.[0] || e;
-    const dx = t.clientX - swipeStartX.current;
-    const dy = t.clientY - swipeStartY.current;
-
-    swipeAtivo.current = false;
-
-    if (Math.abs(dx) > 35 && Math.abs(dx) > Math.abs(dy)) {
-      if (dx < 0) {
-        moverGrupoAbas(1);
-      } else {
-        moverGrupoAbas(-1);
-      }
+    const primeiraAbaDaPagina = abas[pagina * ABAS_POR_PAGINA];
+    if (primeiraAbaDaPagina) {
+      setAba(primeiraAbaDaPagina.id);
     }
   };
 
+  const moverAba = (dir) => {
+    irParaPaginaAbas(paginaAbas + dir);
+  };
+
+  const iniciarToqueAbas = (e) => {
+    const t = e.touches?.[0] || e;
+    toqueInicioX.current = t.clientX;
+    toqueInicioY.current = t.clientY;
+    toqueAtualX.current = t.clientX;
+    arrastoConfirmado.current = false;
+    setArrastandoAbas(true);
+  };
+
+  const moverToqueAbas = (e) => {
+    if (!arrastandoAbas) return;
+    const t = e.touches?.[0] || e;
+    toqueAtualX.current = t.clientX;
+
+    const dx = toqueAtualX.current - toqueInicioX.current;
+    const dy = t.clientY - toqueInicioY.current;
+
+    if (Math.abs(dx) > 8 && Math.abs(dx) > Math.abs(dy)) {
+      arrastoConfirmado.current = true;
+    }
+  };
+
+  const finalizarToqueAbas = () => {
+    if (!arrastandoAbas) return;
+
+    const dx = toqueAtualX.current - toqueInicioX.current;
+    setArrastandoAbas(false);
+
+    if (arrastoConfirmado.current && Math.abs(dx) > 35) {
+      if (dx < 0) {
+        irParaPaginaAbas(paginaAbas + 1);
+      } else {
+        irParaPaginaAbas(paginaAbas - 1);
+      }
+    }
+
+    arrastoConfirmado.current = false;
+  };
+
   useEffect(() => {
-    garantirAbaVisivel(aba);
+    setPaginaAbas(paginaDaAba(aba));
   }, [aba]);
+
 
   const home = partida.home_team || 'Time Casa';
   const away = partida.away_team || 'Time Fora';
@@ -256,30 +276,35 @@ export default function PainelJogo({ jogo, setJogoSelecionado, bancaInicial = 10
           </div>
         </div>
 
-        {/* --- ABAS MODERNAS EM PILLS COM SWIPE REAL DE CARROSSEL --- */}
+        {/* --- ABAS MOBILE EM PILLS COM TOQUE REAL --- */}
         <div
-          className="relative -mx-4 bg-[#050816] border-t border-white/10 py-3 select-none overflow-hidden"
-          onTouchStart={iniciarSwipeAbas}
-          onTouchEnd={finalizarSwipeAbas}
-          onPointerDown={iniciarSwipeAbas}
-          onPointerUp={finalizarSwipeAbas}
+          ref={tabsRef}
+          className="relative -mx-4 bg-[#050816] border-t border-white/10 py-3 select-none overflow-hidden touch-pan-y"
+          onTouchStart={iniciarToqueAbas}
+          onTouchMove={moverToqueAbas}
+          onTouchEnd={finalizarToqueAbas}
+          onTouchCancel={finalizarToqueAbas}
+          onPointerDown={iniciarToqueAbas}
+          onPointerMove={moverToqueAbas}
+          onPointerUp={finalizarToqueAbas}
+          onPointerCancel={finalizarToqueAbas}
         >
           <button
             type="button"
-            aria-label="Voltar abas"
-            onClick={() => moverGrupoAbas(-1)}
-            disabled={tabStart === 0}
-            className={`absolute left-2 top-1/2 -translate-y-1/2 z-40 w-9 h-9 rounded-full bg-white text-blue-700 shadow-xl border border-white/30 flex items-center justify-center text-xl font-black active:scale-95 transition-all ${tabStart === 0 ? 'opacity-35' : 'opacity-100'}`}
+            aria-label="Voltar grupo de abas"
+            onClick={() => moverAba(-1)}
+            disabled={paginaAbas === 0}
+            className={`absolute left-2 top-1/2 -translate-y-1/2 z-40 w-9 h-9 rounded-full bg-white text-blue-700 shadow-xl border border-white/30 flex items-center justify-center text-xl font-black active:scale-95 transition-all ${paginaAbas === 0 ? 'opacity-35' : 'opacity-100'}`}
           >
             ‹
           </button>
 
           <button
             type="button"
-            aria-label="Avançar abas"
-            onClick={() => moverGrupoAbas(1)}
-            disabled={tabStart >= maxTabStart}
-            className={`absolute right-2 top-1/2 -translate-y-1/2 z-40 w-9 h-9 rounded-full bg-white text-blue-700 shadow-xl border border-white/30 flex items-center justify-center text-xl font-black active:scale-95 transition-all ${tabStart >= maxTabStart ? 'opacity-35' : 'opacity-100'}`}
+            aria-label="Avançar grupo de abas"
+            onClick={() => moverAba(1)}
+            disabled={paginaAbas >= totalPaginasAbas - 1}
+            className={`absolute right-2 top-1/2 -translate-y-1/2 z-40 w-9 h-9 rounded-full bg-white text-blue-700 shadow-xl border border-white/30 flex items-center justify-center text-xl font-black active:scale-95 transition-all ${paginaAbas >= totalPaginasAbas - 1 ? 'opacity-35' : 'opacity-100'}`}
           >
             ›
           </button>
@@ -287,29 +312,43 @@ export default function PainelJogo({ jogo, setJogoSelecionado, bancaInicial = 10
           <div className="pointer-events-none absolute left-0 top-0 bottom-0 w-14 bg-gradient-to-r from-[#050816] via-[#050816] to-transparent z-30"></div>
           <div className="pointer-events-none absolute right-0 top-0 bottom-0 w-14 bg-gradient-to-l from-[#050816] via-[#050816] to-transparent z-30"></div>
 
-          <div className="px-14">
-            <div className="grid grid-cols-4 gap-2 transition-all duration-300">
-              {abasVisiveis.map(a => (
-                <button
-                  ref={(el) => { if (el) tabRefs.current[a.id] = el; }}
-                  key={a.id}
-                  type="button"
-                  onClick={() => escolherAba(a.id)}
-                  className={`h-[42px] rounded-full px-2 text-[10px] leading-tight font-black whitespace-nowrap border transition-all active:scale-95 overflow-hidden text-ellipsis ${aba === a.id ? 'bg-white text-[#050816] border-white shadow-[0_0_20px_rgba(255,255,255,0.18)]' : 'bg-[#0b1224] text-slate-300 border-slate-700'}`}
+          <div className="px-14 overflow-hidden">
+            <div
+              className="flex transition-transform duration-300 ease-out"
+              style={{
+                width: `${totalPaginasAbas * 100}%`,
+                transform: `translateX(-${paginaAbas * (100 / totalPaginasAbas)}%)`
+              }}
+            >
+              {paginasAbas.map((grupo, indexGrupo) => (
+                <div
+                  key={indexGrupo}
+                  className="grid grid-cols-4 gap-2"
+                  style={{ width: `${100 / totalPaginasAbas}%` }}
                 >
-                  {a.label}
-                </button>
+                  {grupo.map(a => (
+                    <button
+                      ref={(el) => { if (el) tabRefs.current[a.id] = el; }}
+                      key={a.id}
+                      type="button"
+                      onClick={() => escolherAba(a.id)}
+                      className={`h-[42px] rounded-full px-2 text-[10px] leading-tight font-black whitespace-nowrap border transition-all active:scale-95 overflow-hidden text-ellipsis ${aba === a.id ? 'bg-white text-[#050816] border-white shadow-[0_0_20px_rgba(255,255,255,0.18)]' : 'bg-[#0b1224] text-slate-300 border-slate-700'}`}
+                    >
+                      {a.label}
+                    </button>
+                  ))}
+                </div>
               ))}
             </div>
 
             <div className="flex justify-center gap-1.5 mt-2">
-              {Array.from({ length: maxTabStart + 1 }).map((_, i) => (
+              {Array.from({ length: totalPaginasAbas }).map((_, i) => (
                 <button
                   key={i}
                   type="button"
-                  onClick={() => setTabStart(i)}
-                  className={`h-1.5 rounded-full transition-all ${tabStart === i ? 'w-5 bg-white' : 'w-1.5 bg-white/30'}`}
-                  aria-label={`Página de abas ${i + 1}`}
+                  onClick={() => irParaPaginaAbas(i)}
+                  className={`h-1.5 rounded-full transition-all ${paginaAbas === i ? 'w-5 bg-white' : 'w-1.5 bg-white/30'}`}
+                  aria-label={`Página ${i + 1} das abas`}
                 />
               ))}
             </div>
