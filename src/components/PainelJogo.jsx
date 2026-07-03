@@ -54,7 +54,12 @@ export default function PainelJogo({ jogo, setJogoSelecionado, bancaInicial = 10
   const tabsRef = useRef(null);
   const tabRefs = useRef({});
 
-  // Centraliza a aba ativa de forma suave ao clicar
+  // Estados para permitir arrastar com o MOUSE no PC (emulador de celular)
+  const [isMouseDown, setIsMouseDown] = useState(false);
+  const startX = useRef(0);
+  const scrollLeftPos = useRef(0);
+
+  // Rola suavemente até a aba selecionada ao clicar
   const scrollParaAba = (id) => {
     requestAnimationFrame(() => {
       const el = tabRefs.current[id];
@@ -76,6 +81,25 @@ export default function PainelJogo({ jogo, setJogoSelecionado, bancaInicial = 10
   };
 
   useEffect(() => { scrollParaAba(aba); }, [aba]);
+
+  // Funções de arrasto manual para funcionar no Mouse/Emulador de PC
+  const handleMouseDown = (e) => {
+    setIsMouseDown(true);
+    startX.current = e.pageX - (tabsRef.current?.offsetLeft || 0);
+    scrollLeftPos.current = tabsRef.current?.scrollLeft || 0;
+  };
+
+  const handleMouseMove = (e) => {
+    if (!isMouseDown || !tabsRef.current) return;
+    e.preventDefault();
+    const x = e.pageX - (tabsRef.current.offsetLeft || 0);
+    const walk = (x - startX.current) * 1.5;
+    tabsRef.current.scrollLeft = scrollLeftPos.current - walk;
+  };
+
+  const handleMouseUpOrLeave = () => {
+    setIsMouseDown(false);
+  };
 
   const home = partida.home_team || 'Time Casa';
   const away = partida.away_team || 'Time Fora';
@@ -211,8 +235,8 @@ export default function PainelJogo({ jogo, setJogoSelecionado, bancaInicial = 10
           </div>
         </div>
 
-        {/* --- ABAS HORIZONTAIS OTIMIZADAS PARA TOUCH --- */}
-        <div className="relative -mx-4 bg-white/95 backdrop-blur-xl border-t border-white/20 h-[56px] overflow-hidden select-none">
+        {/* --- ABAS HORIZONTAIS COM ROLAGEM DE TOQUE DE DEDO DESTRAVADA --- */}
+        <div className="relative -mx-4 bg-white border-t border-white/20 h-[56px] select-none">
           {/* Botão de seta para a Esquerda */}
           <button 
             type="button" 
@@ -235,16 +259,21 @@ export default function PainelJogo({ jogo, setJogoSelecionado, bancaInicial = 10
             ›
           </button>
 
-          {/* Sombras em gradiente laterais */}
+          {/* Sombras em gradiente laterais transparentes (pointer-events-none garante que o dedo toque através delas) */}
           <div className="pointer-events-none absolute left-0 top-0 bottom-0 w-10 bg-gradient-to-r from-white via-white/80 to-transparent z-30"></div>
           <div className="pointer-events-none absolute right-0 top-0 bottom-0 w-10 bg-gradient-to-l from-white via-white/80 to-transparent z-30"></div>
 
-          {/* Container das Abas (Rolagem 100% nativa sem interferência de scripts de touch) */}
+          {/* Container das Abas OTIMIZADO PARA CELULAR E PC */}
           <div
             ref={tabsRef}
-            className="h-full flex items-center gap-1 overflow-x-auto overflow-y-hidden whitespace-nowrap px-10 [&::-webkit-scrollbar]:hidden"
+            onMouseDown={handleMouseDown}
+            onMouseMove={handleMouseMove}
+            onMouseUp={handleMouseUpOrLeave}
+            onMouseLeave={handleMouseUpOrLeave}
+            className={`h-full w-full flex items-center gap-1 overflow-x-auto overflow-y-hidden whitespace-nowrap px-11 overscroll-x-contain [&::-webkit-scrollbar]:hidden ${isMouseDown ? 'cursor-grabbing' : 'cursor-grab'}`}
             style={{ 
               WebkitOverflowScrolling: 'touch', 
+              touchAction: 'pan-x',
               scrollbarWidth: 'none', 
               msOverflowStyle: 'none' 
             }}
