@@ -1,4 +1,4 @@
-import React,{useMemo,useState} from 'react';
+import React,{useMemo,useState,useRef} from 'react';
 import {ArrowLeft,Star,BarChart3,MessageCircle,PlayCircle,Image,Shield,Activity,Target,TrendingUp,Trophy,Percent,ChevronRight,Camera,Info,Flame,Zap,Users,Clock,Radio,BarChart2,Sparkles} from 'lucide-react';
 
 const abas=[
@@ -45,6 +45,8 @@ function pct(v){return `${Math.round(v)}%`;}
 function escudo(url,nome){return url||`https://api.dicebear.com/7.x/initials/svg?seed=${encodeURIComponent(nome||'Time')}`;}
 
 export default function PainelJogo({jogo,setJogoSelecionado,bancaInicial=1000,gerarExplicacaoIA,calcularStake,calcularKelly}) {
+  const tabsRef=useRef(null);
+  const moverAbas=(dir)=>tabsRef.current?.scrollBy({left:dir*170,behavior:'smooth'});
   const partida=jogo||JOGO_DEMO_INTERNO;
   const [aba,setAba]=useState('detalhes');
   const home=partida.home_team||'Time Casa';
@@ -182,10 +184,16 @@ export default function PainelJogo({jogo,setJogoSelecionado,bancaInicial=1000,ge
         </div>
 
         <div className="relative -mx-4 bg-white/95 backdrop-blur-xl border-t border-white/20">
-          <div className="pointer-events-none absolute left-0 top-0 bottom-0 w-7 bg-gradient-to-r from-white to-transparent z-10"></div>
-          <div className="pointer-events-none absolute right-0 top-0 bottom-0 w-7 bg-gradient-to-l from-white to-transparent z-10"></div>
-          <div className="flex gap-1 overflow-x-auto overscroll-x-contain scroll-smooth no-scrollbar px-4 whitespace-nowrap" style={{WebkitOverflowScrolling:'touch',touchAction:'pan-x'}}>
-            {abas.map(a=><button key={a.id} onClick={()=>setAba(a.id)} className={`shrink-0 px-4 py-3 text-[11px] font-black whitespace-nowrap border-b-[3px] transition-all ${aba===a.id?'text-blue-600 border-blue-600 bg-blue-50':'text-blue-400/75 border-transparent'}`}>{a.label}</button>)}
+          <button type="button" onClick={()=>moverAbas(-1)} className="absolute left-1 top-1/2 -translate-y-1/2 z-30 w-8 h-8 rounded-full bg-white shadow-lg border border-slate-200 text-blue-600 font-black active:scale-95">‹</button>
+          <button type="button" onClick={()=>moverAbas(1)} className="absolute right-1 top-1/2 -translate-y-1/2 z-30 w-8 h-8 rounded-full bg-white shadow-lg border border-slate-200 text-blue-600 font-black active:scale-95">›</button>
+          <div className="pointer-events-none absolute left-0 top-0 bottom-0 w-10 bg-gradient-to-r from-white via-white to-transparent z-20"></div>
+          <div className="pointer-events-none absolute right-0 top-0 bottom-0 w-10 bg-gradient-to-l from-white via-white to-transparent z-20"></div>
+          <div
+            ref={tabsRef}
+            className="flex gap-1 overflow-x-scroll overscroll-x-contain scroll-smooth pl-11 pr-11 whitespace-nowrap cursor-grab active:cursor-grabbing"
+            style={{WebkitOverflowScrolling:'touch',touchAction:'pan-x',scrollbarWidth:'none',msOverflowStyle:'none'}}
+          >
+            {abas.map(a=><button key={a.id} onClick={()=>setAba(a.id)} className={`shrink-0 min-w-max px-5 py-3 text-[11px] font-black whitespace-nowrap border-b-[3px] transition-all ${aba===a.id?'text-blue-600 border-blue-600 bg-blue-50':'text-blue-400/75 border-transparent'}`}>{a.label}</button>)}
           </div>
         </div>
       </div>
