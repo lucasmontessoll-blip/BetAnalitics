@@ -54,22 +54,36 @@ export default function PainelJogo({ jogo, setJogoSelecionado, bancaInicial = 10
   const tabsRef = useRef(null);
   const tabRefs = useRef({});
 
-  // Estados para permitir arrastar com o MOUSE no PC (emulador de celular)
-  const [isMouseDown, setIsMouseDown] = useState(false);
-  const startX = useRef(0);
-  const scrollLeftPos = useRef(0);
+  // Controle real das abas horizontais: dedo no celular, mouse no PC e setas
+  const [isDraggingTabs, setIsDraggingTabs] = useState(false);
+  const [tabsCanLeft, setTabsCanLeft] = useState(false);
+  const [tabsCanRight, setTabsCanRight] = useState(true);
+  const dragStartX = useRef(0);
+  const dragStartScroll = useRef(0);
+  const dragMoved = useRef(false);
 
-  // Rola suavemente até a aba selecionada ao clicar
+  const atualizarSetasAbas = () => {
+    const el = tabsRef.current;
+    if (!el) return;
+    setTabsCanLeft(el.scrollLeft > 4);
+    setTabsCanRight(el.scrollLeft + el.clientWidth < el.scrollWidth - 4);
+  };
+
   const scrollParaAba = (id) => {
     requestAnimationFrame(() => {
       const el = tabRefs.current[id];
       if (el && typeof el.scrollIntoView === 'function') {
         el.scrollIntoView({ behavior: 'smooth', inline: 'center', block: 'nearest' });
       }
+      setTimeout(atualizarSetasAbas, 250);
     });
   };
 
   const escolherAba = (id) => {
+    if (dragMoved.current) {
+      dragMoved.current = false;
+      return;
+    }
     setAba(id);
     scrollParaAba(id);
   };
@@ -77,29 +91,47 @@ export default function PainelJogo({ jogo, setJogoSelecionado, bancaInicial = 10
   const moverAba = (dir) => {
     const idx = abas.findIndex(a => a.id === aba);
     const prox = abas[clamp(idx + dir, 0, abas.length - 1)] || abas[0];
-    escolherAba(prox.id);
+    setAba(prox.id);
+    scrollParaAba(prox.id);
+    tabsRef.current?.scrollBy({ left: dir * 170, behavior: 'smooth' });
   };
 
-  useEffect(() => { scrollParaAba(aba); }, [aba]);
-
-  // Funções de arrasto manual para funcionar no Mouse/Emulador de PC
-  const handleMouseDown = (e) => {
-    setIsMouseDown(true);
-    startX.current = e.pageX - (tabsRef.current?.offsetLeft || 0);
-    scrollLeftPos.current = tabsRef.current?.scrollLeft || 0;
+  const iniciarArrastoAbas = (clientX) => {
+    const el = tabsRef.current;
+    if (!el) return;
+    setIsDraggingTabs(true);
+    dragMoved.current = false;
+    dragStartX.current = clientX;
+    dragStartScroll.current = el.scrollLeft;
   };
 
-  const handleMouseMove = (e) => {
-    if (!isMouseDown || !tabsRef.current) return;
-    e.preventDefault();
-    const x = e.pageX - (tabsRef.current.offsetLeft || 0);
-    const walk = (x - startX.current) * 1.5;
-    tabsRef.current.scrollLeft = scrollLeftPos.current - walk;
+  const moverArrastoAbas = (clientX) => {
+    const el = tabsRef.current;
+    if (!isDraggingTabs || !el) return;
+    const dx = dragStartX.current - clientX;
+    if (Math.abs(dx) > 4) dragMoved.current = true;
+    el.scrollLeft = dragStartScroll.current + dx;
+    atualizarSetasAbas();
   };
 
-  const handleMouseUpOrLeave = () => {
-    setIsMouseDown(false);
+  const pararArrastoAbas = () => {
+    setIsDraggingTabs(false);
+    setTimeout(() => { dragMoved.current = false; }, 80);
   };
+
+  useEffect(() => {
+    scrollParaAba(aba);
+    atualizarSetasAbas();
+    const el = tabsRef.current;
+    if (!el) return;
+    const onScroll = () => atualizarSetasAbas();
+    el.addEventListener('scroll', onScroll, { passive: true });
+    window.addEventListener('resize', onScroll);
+    return () => {
+      el.removeEventListener('scroll', onScroll);
+      window.removeEventListener('resize', onScroll);
+    };
+  }, [aba]);
 
   const home = partida.home_team || 'Time Casa';
   const away = partida.away_team || 'Time Fora';
@@ -235,56 +267,56 @@ export default function PainelJogo({ jogo, setJogoSelecionado, bancaInicial = 10
           </div>
         </div>
 
-        {/* --- ABAS HORIZONTAIS COM ROLAGEM DE TOQUE DE DEDO DESTRAVADA --- */}
-        <div className="relative -mx-4 bg-white border-t border-white/20 h-[56px] select-none">
-          {/* Botão de seta para a Esquerda */}
-          <button 
-            type="button" 
-            aria-label="Voltar abas" 
-            onClick={() => moverAba(-1)} 
-            disabled={abas.findIndex(a => a.id === aba) === 0} 
-            className={`absolute left-2 top-1/2 -translate-y-1/2 z-40 w-8 h-8 rounded-full bg-white/90 shadow-md border border-slate-200 flex items-center justify-center text-blue-600 font-black active:scale-95 transition-opacity ${abas.findIndex(a => a.id === aba) === 0 ? 'opacity-30 pointer-events-none' : 'opacity-100'}`}
+        {/* --- ABAS MODERNAS EM PILLS COM ROLAGEM HORIZONTAL REAL --- */}
+        <div className="relative -mx-4 bg-[#050816] border-t border-white/10 py-3 select-none">
+          <button
+            type="button"
+            aria-label="Voltar abas"
+            onClick={() => moverAba(-1)}
+            disabled={!tabsCanLeft && abas.findIndex(a => a.id === aba) === 0}
+            className={`absolute left-2 top-1/2 -translate-y-1/2 z-40 w-9 h-9 rounded-full bg-white text-blue-700 shadow-xl border border-white/30 flex items-center justify-center text-xl font-black active:scale-95 transition-all ${(!tabsCanLeft && abas.findIndex(a => a.id === aba) === 0) ? 'opacity-40' : 'opacity-100'}`}
           >
             ‹
           </button>
 
-          {/* Botão de seta para a Direita */}
-          <button 
-            type="button" 
-            aria-label="Avançar abas" 
-            onClick={() => moverAba(1)} 
-            disabled={abas.findIndex(a => a.id === aba) === abas.length - 1} 
-            className={`absolute right-2 top-1/2 -translate-y-1/2 z-40 w-8 h-8 rounded-full bg-white/90 shadow-md border border-slate-200 flex items-center justify-center text-blue-600 font-black active:scale-95 transition-opacity ${abas.findIndex(a => a.id === aba) === abas.length - 1 ? 'opacity-30 pointer-events-none' : 'opacity-100'}`}
+          <button
+            type="button"
+            aria-label="Avançar abas"
+            onClick={() => moverAba(1)}
+            disabled={!tabsCanRight && abas.findIndex(a => a.id === aba) === abas.length - 1}
+            className={`absolute right-2 top-1/2 -translate-y-1/2 z-40 w-9 h-9 rounded-full bg-white text-blue-700 shadow-xl border border-white/30 flex items-center justify-center text-xl font-black active:scale-95 transition-all ${(!tabsCanRight && abas.findIndex(a => a.id === aba) === abas.length - 1) ? 'opacity-40' : 'opacity-100'}`}
           >
             ›
           </button>
 
-          {/* Sombras em gradiente laterais transparentes (pointer-events-none garante que o dedo toque através delas) */}
-          <div className="pointer-events-none absolute left-0 top-0 bottom-0 w-10 bg-gradient-to-r from-white via-white/80 to-transparent z-30"></div>
-          <div className="pointer-events-none absolute right-0 top-0 bottom-0 w-10 bg-gradient-to-l from-white via-white/80 to-transparent z-30"></div>
+          <div className="pointer-events-none absolute left-0 top-0 bottom-0 w-14 bg-gradient-to-r from-[#050816] via-[#050816] to-transparent z-30"></div>
+          <div className="pointer-events-none absolute right-0 top-0 bottom-0 w-14 bg-gradient-to-l from-[#050816] via-[#050816] to-transparent z-30"></div>
 
-          {/* Container das Abas OTIMIZADO PARA CELULAR E PC */}
           <div
             ref={tabsRef}
-            onMouseDown={handleMouseDown}
-            onMouseMove={handleMouseMove}
-            onMouseUp={handleMouseUpOrLeave}
-            onMouseLeave={handleMouseUpOrLeave}
-            className={`h-full w-full flex items-center gap-1 overflow-x-auto overflow-y-hidden whitespace-nowrap px-11 overscroll-x-contain [&::-webkit-scrollbar]:hidden ${isMouseDown ? 'cursor-grabbing' : 'cursor-grab'}`}
-            style={{ 
-              WebkitOverflowScrolling: 'touch', 
+            onPointerDown={(e) => { tabsRef.current?.setPointerCapture?.(e.pointerId); iniciarArrastoAbas(e.clientX); }}
+            onPointerMove={(e) => moverArrastoAbas(e.clientX)}
+            onPointerUp={pararArrastoAbas}
+            onPointerCancel={pararArrastoAbas}
+            onPointerLeave={pararArrastoAbas}
+            onTouchStart={(e) => iniciarArrastoAbas(e.touches[0].clientX)}
+            onTouchMove={(e) => moverArrastoAbas(e.touches[0].clientX)}
+            onTouchEnd={pararArrastoAbas}
+            className={`flex items-center gap-2 overflow-x-auto overflow-y-hidden whitespace-nowrap px-14 scroll-smooth overscroll-x-contain ${isDraggingTabs ? 'cursor-grabbing' : 'cursor-grab'} [&::-webkit-scrollbar]:hidden`}
+            style={{
+              WebkitOverflowScrolling: 'touch',
               touchAction: 'pan-x',
-              scrollbarWidth: 'none', 
-              msOverflowStyle: 'none' 
+              scrollbarWidth: 'none',
+              msOverflowStyle: 'none'
             }}
           >
             {abas.map(a => (
-              <button 
-                ref={(el) => { if (el) tabRefs.current[a.id] = el; }} 
-                key={a.id} 
-                type="button" 
-                onClick={() => escolherAba(a.id)} 
-                className={`shrink-0 h-full px-4 text-[12px] font-black whitespace-nowrap border-b-[3px] transition-colors ${aba === a.id ? 'text-blue-600 border-blue-600 bg-blue-50/80' : 'text-slate-500 border-transparent hover:text-slate-800 active:bg-blue-50/40'}`}
+              <button
+                ref={(el) => { if (el) tabRefs.current[a.id] = el; }}
+                key={a.id}
+                type="button"
+                onClick={() => escolherAba(a.id)}
+                className={`shrink-0 rounded-full px-5 py-3 text-[11px] font-black whitespace-nowrap border transition-all active:scale-95 ${aba === a.id ? 'bg-white text-[#050816] border-white shadow-[0_0_20px_rgba(255,255,255,0.18)]' : 'bg-[#0b1224] text-slate-300 border-slate-700 hover:border-blue-500/70'}`}
               >
                 {a.label}
               </button>
