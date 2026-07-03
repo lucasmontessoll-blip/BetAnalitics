@@ -1,5 +1,5 @@
 import React,{useMemo,useState} from 'react';
-import {ArrowLeft,Star,BarChart3,MessageCircle,PlayCircle,Image,Shield,Activity,Target,TrendingUp,Trophy,Percent,ChevronRight,Camera,Info,Flame,Zap,Users} from 'lucide-react';
+import {ArrowLeft,Star,BarChart3,MessageCircle,PlayCircle,Image,Shield,Activity,Target,TrendingUp,Trophy,Percent,ChevronRight,Camera,Info,Flame,Zap,Users,Clock,Radio,BarChart2,Sparkles} from 'lucide-react';
 
 const abas=[
   {id:'detalhes',label:'Detalhes'},
@@ -102,19 +102,92 @@ export default function PainelJogo({jogo,setJogoSelecionado,bancaInicial=1000,ge
   const Jogador=({p,i,cor})=><div className="bg-white/10 border border-white/10 rounded-xl p-2"><div className={`w-7 h-7 ${cor} rounded-full mx-auto mb-1 flex items-center justify-center text-[10px] font-black text-white`}>{p.n||i+1}</div><div className="text-[9px] font-black text-white leading-tight">{p.nome}</div><div className="text-[8px] font-bold text-white/60">{p.pos}</div></div>;
 
   const ResultadoTopo=()=>(
-    <div className="bg-white text-slate-900 rounded-b-[28px] shadow-xl px-4 pt-4 pb-0 mb-5">
-      <div className="flex items-center justify-between mb-3">
-        <button onClick={()=>setJogoSelecionado?.(null)} className="w-10 h-10 rounded-full bg-slate-100 flex items-center justify-center"><ArrowLeft className="w-5 h-5"/></button>
-        <div className="text-center"><div className="text-[11px] font-black text-slate-500">{liga}</div><div className="text-[10px] font-bold text-slate-400">{partida.starting_at?new Date(partida.starting_at).toLocaleString('pt-BR',{day:'2-digit',month:'2-digit',hour:'2-digit',minute:'2-digit'}):'Hoje • 16:00'}</div></div>
-        <button className="w-10 h-10 rounded-full bg-slate-100 flex items-center justify-center"><Star className="w-5 h-5 text-slate-400"/></button>
-      </div>
-      <div className="grid grid-cols-[1fr_90px_1fr] items-center gap-2 pb-4">
-        <div className="text-center"><img src={escudo(partida.home_image,home)} className="w-14 h-14 mx-auto rounded-full object-contain mb-2" alt={home}/><div className="text-[11px] font-black line-clamp-2">{home}</div></div>
-        <div className="text-center"><div className="text-3xl font-black tracking-tight">{scoreHome} - {scoreAway}</div><div className={`text-[10px] font-black mt-1 ${aoVivo?'text-red-500':finalizado?'text-slate-500':'text-blue-600'}`}>{aoVivo?`${minuto||'Ao vivo'}`:finalizado?'Finalizado':'Não iniciado'}</div>{aoVivo&&<div className="mt-2 inline-flex items-center gap-1 bg-red-50 text-red-600 px-2 py-1 rounded-full text-[9px] font-black uppercase"><span className="w-2 h-2 bg-red-500 rounded-full animate-pulse"></span>Live</div>}</div>
-        <div className="text-center"><img src={escudo(partida.away_image,away)} className="w-14 h-14 mx-auto rounded-full object-contain mb-2" alt={away}/><div className="text-[11px] font-black line-clamp-2">{away}</div></div>
-      </div>
-      <div className="flex overflow-x-auto no-scrollbar border-t border-slate-100">
-        {abas.map(a=><button key={a.id} onClick={()=>setAba(a.id)} className={`px-4 py-3 text-[11px] font-black whitespace-nowrap border-b-2 ${aba===a.id?'text-blue-600 border-blue-600':'text-blue-400/70 border-transparent'}`}>{a.label}</button>)}
+    <div className="relative overflow-hidden rounded-b-[34px] shadow-[0_25px_60px_rgba(0,0,0,0.45)] mb-5">
+      <div className="absolute inset-0 bg-gradient-to-br from-[#0b1224] via-[#111c3a] to-[#050816]"></div>
+      <div className="absolute -top-20 -left-20 w-56 h-56 bg-blue-500/25 rounded-full blur-3xl"></div>
+      <div className="absolute -bottom-24 -right-20 w-64 h-64 bg-red-500/20 rounded-full blur-3xl"></div>
+      <div className="absolute inset-0 opacity-20" style={{backgroundImage:'radial-gradient(circle at 1px 1px, rgba(255,255,255,.25) 1px, transparent 0)',backgroundSize:'22px 22px'}}></div>
+
+      <div className="relative z-10 px-4 pt-4 pb-0">
+        <div className="flex items-center justify-between mb-4">
+          <button onClick={()=>setJogoSelecionado?.(null)} className="w-11 h-11 rounded-2xl bg-white/10 backdrop-blur-xl border border-white/15 flex items-center justify-center active:scale-95 shadow-lg">
+            <ArrowLeft className="w-5 h-5 text-white"/>
+          </button>
+
+          <div className="text-center min-w-0 px-2">
+            <div className="inline-flex items-center gap-1.5 bg-white/10 border border-white/15 rounded-full px-3 py-1 mb-2">
+              <Trophy className="w-3.5 h-3.5 text-yellow-300"/>
+              <span className="text-[10px] font-black text-white uppercase tracking-wide truncate max-w-[180px]">{liga}</span>
+            </div>
+            <div className="flex items-center justify-center gap-1 text-[10px] font-bold text-blue-100/80">
+              <Clock className="w-3 h-3"/>
+              {partida.starting_at?new Date(partida.starting_at).toLocaleString('pt-BR',{day:'2-digit',month:'2-digit',hour:'2-digit',minute:'2-digit'}):'Hoje • 16:00'}
+            </div>
+          </div>
+
+          <button className="w-11 h-11 rounded-2xl bg-white/10 backdrop-blur-xl border border-white/15 flex items-center justify-center active:scale-95 shadow-lg">
+            <Star className="w-5 h-5 text-yellow-300"/>
+          </button>
+        </div>
+
+        <div className="bg-white/10 backdrop-blur-2xl border border-white/15 rounded-[30px] p-4 shadow-2xl mb-4">
+          <div className="grid grid-cols-[1fr_96px_1fr] items-center gap-2">
+            <div className="text-center min-w-0">
+              <div className="relative mx-auto w-[76px] h-[76px] mb-2">
+                <div className="absolute inset-0 bg-blue-500/30 rounded-full blur-xl"></div>
+                <img src={escudo(partida.home_image,home)} className="relative w-[76px] h-[76px] mx-auto rounded-full object-contain border-4 border-blue-400/50 bg-white shadow-xl" alt={home}/>
+              </div>
+              <div className="text-[12px] font-black text-white leading-tight line-clamp-2">{home}</div>
+              <div className="mt-1 text-[9px] font-black text-blue-200 uppercase">Casa</div>
+            </div>
+
+            <div className="text-center">
+              <div className="bg-[#050816]/80 border border-white/10 rounded-[24px] px-2 py-4 shadow-inner">
+                <div className="text-[10px] font-black uppercase text-slate-400 mb-1">Placar</div>
+                <div className="text-4xl font-black tracking-tight text-white drop-shadow-lg">{scoreHome}<span className="text-slate-500 mx-1">-</span>{scoreAway}</div>
+                <div className={`mt-2 inline-flex items-center gap-1 px-2.5 py-1.5 rounded-full text-[9px] font-black uppercase ${aoVivo?'bg-red-500/15 text-red-300 border border-red-400/20':finalizado?'bg-slate-500/15 text-slate-300 border border-white/10':'bg-blue-500/15 text-blue-300 border border-blue-400/20'}`}>
+                  {aoVivo&&<span className="w-2 h-2 bg-red-400 rounded-full animate-pulse"></span>}
+                  {aoVivo?`${minuto||'Ao vivo'}`:finalizado?'Finalizado':'Não iniciado'}
+                </div>
+              </div>
+            </div>
+
+            <div className="text-center min-w-0">
+              <div className="relative mx-auto w-[76px] h-[76px] mb-2">
+                <div className="absolute inset-0 bg-red-500/30 rounded-full blur-xl"></div>
+                <img src={escudo(partida.away_image,away)} className="relative w-[76px] h-[76px] mx-auto rounded-full object-contain border-4 border-red-400/50 bg-white shadow-xl" alt={away}/>
+              </div>
+              <div className="text-[12px] font-black text-white leading-tight line-clamp-2">{away}</div>
+              <div className="mt-1 text-[9px] font-black text-red-200 uppercase">Fora</div>
+            </div>
+          </div>
+
+          <div className="grid grid-cols-3 gap-2 mt-4">
+            <div className="bg-[#050816]/60 border border-white/10 rounded-2xl p-3 text-center">
+              <Sparkles className="w-4 h-4 text-yellow-300 mx-auto mb-1"/>
+              <div className="text-[9px] text-slate-400 font-black uppercase">Confiança</div>
+              <div className="text-sm text-white font-black">{pct(confianca)}</div>
+            </div>
+            <div className="bg-[#050816]/60 border border-white/10 rounded-2xl p-3 text-center">
+              <BarChart2 className="w-4 h-4 text-emerald-300 mx-auto mb-1"/>
+              <div className="text-[9px] text-slate-400 font-black uppercase">Odd</div>
+              <div className="text-sm text-white font-black">{odd.toFixed(2)}</div>
+            </div>
+            <div className="bg-[#050816]/60 border border-white/10 rounded-2xl p-3 text-center">
+              <Radio className="w-4 h-4 text-red-300 mx-auto mb-1"/>
+              <div className="text-[9px] text-slate-400 font-black uppercase">Status</div>
+              <div className="text-sm text-white font-black">{aoVivo?'Live':'Pré'}</div>
+            </div>
+          </div>
+        </div>
+
+        <div className="relative -mx-4 bg-white/95 backdrop-blur-xl border-t border-white/20">
+          <div className="pointer-events-none absolute left-0 top-0 bottom-0 w-7 bg-gradient-to-r from-white to-transparent z-10"></div>
+          <div className="pointer-events-none absolute right-0 top-0 bottom-0 w-7 bg-gradient-to-l from-white to-transparent z-10"></div>
+          <div className="flex gap-1 overflow-x-auto overscroll-x-contain scroll-smooth no-scrollbar px-4 whitespace-nowrap" style={{WebkitOverflowScrolling:'touch',touchAction:'pan-x'}}>
+            {abas.map(a=><button key={a.id} onClick={()=>setAba(a.id)} className={`shrink-0 px-4 py-3 text-[11px] font-black whitespace-nowrap border-b-[3px] transition-all ${aba===a.id?'text-blue-600 border-blue-600 bg-blue-50':'text-blue-400/75 border-transparent'}`}>{a.label}</button>)}
+          </div>
+        </div>
       </div>
     </div>
   );
@@ -235,5 +308,5 @@ export default function PainelJogo({jogo,setJogoSelecionado,bancaInicial=1000,ge
 
   const telas={detalhes:<Detalhes/>,formacoes:<Formacoes/>,estatisticas:<Estatisticas/>,comentario:<Comentario/>,partidas:<Partidas/>,fase:<Fase/>,midia:<Midia/>,probabilidades:<Probabilidades/>};
 
-  return <div className="min-h-screen bg-[#050816] text-white animate-fade-in"><ResultadoTopo/>{telas[aba]||<Detalhes/>}</div>;
+  return <div className="min-h-screen bg-[#050816] text-white animate-fade-in overflow-x-hidden"><ResultadoTopo/>{telas[aba]||<Detalhes/>}</div>;
 }
