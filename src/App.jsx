@@ -59,10 +59,10 @@ const normalizarTexto = (v = '') => String(v).normalize('NFD').replace(/[\u0300-
 
 // Sub-Abas leves da Central de Pesquisa
 const abasPesquisa = [
-  { id: 'equipes', label: '⚽ Melhores Equipes' },
-  { id: 'jogadores', label: '👤 Melhores Jogadores' },
+  { id: 'equipes', label: '⚽ Equipes' },
+  { id: 'jogadores', label: '👤 Jogadores' },
   { id: 'ranking', label: '🌐 Ranking' },
-  { id: 'principais', label: '🏆 Principais Competições' },
+  { id: 'principais', label: '🏆 Ligas Principais' },
   { id: 'todas', label: '🌍 Todas Competições' },
 ];
 
@@ -240,18 +240,25 @@ export default function App() {
   
   const todosItensPesquisa = useMemo(() => [...BUSCA_EQUIPES, ...BUSCA_JOGADORES, ...BUSCA_RANKING, ...BUSCA_COMPETICOES, ...TODAS_COMPETICOES.flatMap(c => c.ligas.map(l => ({ tipo: 'competicao', nome: l, sub: c.pais, emoji: c.emoji })))], []);
 
-  const textoTipoPesquisa = (tipo) => tipo === 'time' ? 'Time' : tipo === 'atleta' ? 'Jogador' : tipo === 'competicao' ? 'Competição' : tipo === 'ranking' ? 'Ranking' : 'Item';
+  const textoTipoPesquisa = (tipo) => tipo === 'time' ? 'Time' : tipo === 'atleta' ? 'Jogador' : tipo === 'competicao' ? 'Liga' : tipo === 'ranking' ? 'Rank' : 'Item';
   const salvarOuRemoverPesquisa = (item) => { const id = item.id || `${item.tipo}-${item.nome}`; if (favoritoCatalogoExiste(item)) { removerFavCatalogo(id); return; } salvarFavCatalogo(item); };
   
+  // --- CARD COMPACTO E MODERNO PARA TELA DE CELULAR ---
   const PesquisaCard = ({ item }) => {
     const salvo = favoritoCatalogoExiste(item);
     return (
-      <button onClick={() => salvarOuRemoverPesquisa(item)} className="min-h-[104px] bg-gradient-to-br from-white to-slate-100 text-slate-950 rounded-2xl shadow-lg border border-white/80 flex flex-col items-center justify-center p-3 active:scale-95 transition relative overflow-hidden w-full" style={{ touchAction: 'manipulation' }}>
+      <button 
+        onClick={() => salvarOuRemoverPesquisa(item)} 
+        className="min-h-[74px] bg-gradient-to-br from-white to-slate-100 text-slate-950 rounded-xl shadow-md border border-white/80 flex flex-col items-center justify-center p-2 active:scale-95 transition relative overflow-hidden w-full" 
+        style={{ touchAction: 'manipulation' }}
+      >
         <div className="absolute inset-x-0 top-0 h-1 bg-gradient-to-r from-blue-500 via-purple-500 to-cyan-400"></div>
-        <div className="absolute top-2 right-2 text-yellow-500">{salvo ? <Star className="w-4 h-4 fill-yellow-400" /> : <Plus className="w-4 h-4 text-slate-300" />}</div>
-        <div className="text-3xl mb-2">{item.emoji}</div>
-        <div className="text-xs font-black leading-tight line-clamp-2 text-center">{item.nome}</div>
-        <div className="text-[9px] font-black uppercase text-slate-400 mt-1">{textoTipoPesquisa(item.tipo)}</div>
+        <div className="absolute top-1.5 right-1.5 text-yellow-500">
+          {salvo ? <Star className="w-3.5 h-3.5 fill-yellow-400" /> : <Plus className="w-3.5 h-3.5 text-slate-300" />}
+        </div>
+        <div className="text-2xl mb-1 mt-0.5 leading-none">{item.emoji}</div>
+        <div className="text-[11px] font-black leading-tight line-clamp-1 text-center w-full px-1">{item.nome}</div>
+        <div className="text-[8px] font-bold uppercase text-slate-400 mt-0.5 tracking-wider">{textoTipoPesquisa(item.tipo)}</div>
       </button>
     );
   };
@@ -359,22 +366,22 @@ export default function App() {
             </div>
           </div>
 
-          <div className="sticky top-2 z-30 mb-5 bg-[#050816]/95 backdrop-blur-xl border border-blue-500/20 rounded-3xl p-3 shadow-2xl">
-            <div className="flex items-center gap-2 bg-white rounded-2xl px-4 py-3 text-slate-900 shadow-inner mb-3">
-              <Search className="w-5 h-5 text-blue-600 flex-shrink-0" />
-              <input value={buscaPesquisa} onChange={(e) => setBuscaPesquisa(e.target.value)} placeholder="Pesquisar qualquer time ou jogador..." className="flex-1 outline-none text-sm font-black placeholder:text-slate-400" />
-              {buscaPesquisa && <button onClick={() => setBuscaPesquisa('')} className="w-7 h-7 rounded-full bg-slate-100 text-slate-500 font-black flex items-center justify-center"><X className="w-4 h-4" /></button>}
+          <div className="sticky top-2 z-30 mb-4 bg-[#050816]/95 backdrop-blur-xl border border-blue-500/20 rounded-2xl p-2.5 shadow-2xl">
+            <div className="flex items-center gap-2 bg-white rounded-xl px-3 py-2 text-slate-900 shadow-inner mb-2.5">
+              <Search className="w-4 h-4 text-blue-600 flex-shrink-0" />
+              <input value={buscaPesquisa} onChange={(e) => setBuscaPesquisa(e.target.value)} placeholder="Pesquisar time, jogador ou liga..." className="flex-1 outline-none text-xs font-black placeholder:text-slate-400" />
+              {buscaPesquisa && <button onClick={() => setBuscaPesquisa('')} className="w-6 h-6 rounded-full bg-slate-100 text-slate-500 font-black flex items-center justify-center"><X className="w-3.5 h-3.5" /></button>}
             </div>
 
-            {/* --- NOVA BARRA DE SUB-ABAS COM ROLAGEM DE DEDO NATIVA --- */}
-            <div className="flex gap-2 overflow-x-auto no-scrollbar pb-1 pt-1 px-1 -mx-1 select-none" style={{ WebkitOverflowScrolling: 'touch', touchAction: 'pan-x' }}>
+            {/* --- PÍLULAS DAS SUB-ABAS OTMIZADAS PARA MOBILE (MAIS FINAS E NATIVAS) --- */}
+            <div className="flex gap-1.5 overflow-x-auto no-scrollbar pb-0.5 pt-0.5 select-none" style={{ WebkitOverflowScrolling: 'touch', touchAction: 'pan-x' }}>
               {abasPesquisa.map(a => (
                 <button
                   key={a.id}
                   onClick={() => setAbaPesquisaAtiva(a.id)}
-                  className={`px-4 py-2.5 rounded-full text-xs font-black whitespace-nowrap border transition-all shrink-0 active:scale-95 ${
+                  className={`px-3.5 py-1.5 rounded-full text-[11px] font-black whitespace-nowrap border transition-all shrink-0 active:scale-95 ${
                     abaPesquisaAtiva === a.id
-                      ? 'bg-blue-600 text-white border-blue-500 shadow-[0_0_15px_rgba(37,99,235,0.4)]'
+                      ? 'bg-blue-600 text-white border-blue-500 shadow-[0_0_12px_rgba(37,99,235,0.35)]'
                       : 'bg-[#0f172a] text-slate-400 border-white/10 hover:border-white/20'
                   }`}
                 >
@@ -385,20 +392,22 @@ export default function App() {
             {/* --- FIM DAS ABAS --- */}
           </div>
 
-          {favCatalogo.length > 0 && (<div className="mb-6 bg-[#0f172a] border border-yellow-500/20 rounded-3xl p-4">
-            <div className="flex items-center justify-between mb-3">
-              <div><h3 className="text-sm font-black text-white uppercase">Favoritos salvos</h3><p className="text-[10px] text-slate-500 font-bold mt-1">Toque no card novamente para remover.</p></div>
-              <button onClick={() => setViewMode('favoritos')} className="text-[10px] text-yellow-400 font-black uppercase">Abrir</button>
+          {favCatalogo.length > 0 && (<div className="mb-5 bg-[#0f172a] border border-yellow-500/20 rounded-2xl p-3.5">
+            <div className="flex items-center justify-between mb-2.5">
+              <div><h3 className="text-xs font-black text-white uppercase">Favoritos salvos</h3><p className="text-[9px] text-slate-500 font-bold mt-0.5">Toque no card novamente para remover.</p></div>
+              <button onClick={() => setViewMode('favoritos')} className="text-[9px] text-yellow-400 font-black uppercase">Abrir</button>
             </div>
-            <div className="flex gap-2 overflow-x-auto no-scrollbar pb-1" style={{ WebkitOverflowScrolling: 'touch', touchAction: 'pan-x' }}>{favCatalogo.slice(0, 10).map(item => <div key={`fav-${item.id}`} className="min-w-[100px] w-[100px] shrink-0"><PesquisaCard item={item} /></div>)}</div>
+            <div className="flex gap-2 overflow-x-auto no-scrollbar pb-1" style={{ WebkitOverflowScrolling: 'touch', touchAction: 'pan-x' }}>
+              {favCatalogo.slice(0, 10).map(item => <div key={`fav-${item.id}`} className="min-w-[90px] w-[90px] shrink-0"><PesquisaCard item={item} /></div>)}
+            </div>
           </div>)}
 
-          {/* --- SISTEMA INTELIGENTE DE RENDERIZAÇÃO POR ABA ATIVA (ZERO LAGS) --- */}
+          {/* --- SISTEMA MÓVEL DE CARDS COMPACTOS EM 3 COLUNAS --- */}
           <div className="mb-6">
             {abaPesquisaAtiva === 'equipes' && (
               <div>
-                <div className="mb-3"><h3 className="text-sm font-black text-white uppercase">⚽ Melhores Equipes e Seleções</h3><p className="text-[10px] text-slate-500 font-bold mt-0.5">Clique para favoritar no seu radar</p></div>
-                <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
+                <div className="mb-2.5"><h3 className="text-xs font-black text-white uppercase">⚽ Melhores Equipes e Seleções</h3><p className="text-[9px] text-slate-500 font-bold mt-0.5">Clique para favoritar no seu radar</p></div>
+                <div className="grid grid-cols-3 sm:grid-cols-4 gap-2">
                   {BUSCA_EQUIPES.filter(i => !buscaPesquisa.trim() || normalizarTexto(`${i.nome} ${i.sub}`).includes(normalizarTexto(buscaPesquisa))).map(item => <PesquisaCard key={`eq-${item.nome}`} item={item} />)}
                 </div>
               </div>
@@ -406,8 +415,8 @@ export default function App() {
 
             {abaPesquisaAtiva === 'jogadores' && (
               <div>
-                <div className="mb-3"><h3 className="text-sm font-black text-white uppercase">👤 Atletas em Destaque</h3><p className="text-[10px] text-slate-500 font-bold mt-0.5">Monitore assistências, gols e cartões</p></div>
-                <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
+                <div className="mb-2.5"><h3 className="text-xs font-black text-white uppercase">👤 Atletas em Destaque</h3><p className="text-[9px] text-slate-500 font-bold mt-0.5">Monitore assistências, gols e cartões</p></div>
+                <div className="grid grid-cols-3 sm:grid-cols-4 gap-2">
                   {BUSCA_JOGADORES.filter(i => !buscaPesquisa.trim() || normalizarTexto(`${i.nome} ${i.sub}`).includes(normalizarTexto(buscaPesquisa))).map(item => <PesquisaCard key={`jog-${item.nome}`} item={item} />)}
                 </div>
               </div>
@@ -415,8 +424,8 @@ export default function App() {
 
             {abaPesquisaAtiva === 'ranking' && (
               <div>
-                <div className="mb-3"><h3 className="text-sm font-black text-white uppercase">🌐 Classificações e Rankings</h3><p className="text-[10px] text-slate-500 font-bold mt-0.5">Acompanhe pontuação mundial</p></div>
-                <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
+                <div className="mb-2.5"><h3 className="text-xs font-black text-white uppercase">🌐 Classificações e Rankings</h3><p className="text-[9px] text-slate-500 font-bold mt-0.5">Acompanhe pontuação mundial</p></div>
+                <div className="grid grid-cols-3 sm:grid-cols-4 gap-2">
                   {BUSCA_RANKING.filter(i => !buscaPesquisa.trim() || normalizarTexto(`${i.nome} ${i.sub}`).includes(normalizarTexto(buscaPesquisa))).map(item => <PesquisaCard key={`rank-${item.nome}`} item={item} />)}
                 </div>
               </div>
@@ -424,8 +433,8 @@ export default function App() {
 
             {abaPesquisaAtiva === 'principais' && (
               <div>
-                <div className="mb-3"><h3 className="text-sm font-black text-white uppercase">🏆 Principais Competições</h3><p className="text-[10px] text-slate-500 font-bold mt-0.5">Os campeonatos mais disputados do mundo</p></div>
-                <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
+                <div className="mb-2.5"><h3 className="text-xs font-black text-white uppercase">🏆 Ligas Principais</h3><p className="text-[9px] text-slate-500 font-bold mt-0.5">Os campeonatos mais disputados do mundo</p></div>
+                <div className="grid grid-cols-3 sm:grid-cols-4 gap-2">
                   {BUSCA_COMPETICOES.filter(i => !buscaPesquisa.trim() || normalizarTexto(`${i.nome} ${i.sub}`).includes(normalizarTexto(buscaPesquisa))).map(item => <PesquisaCard key={`comp-${item.nome}`} item={item} />)}
                 </div>
               </div>
@@ -433,24 +442,24 @@ export default function App() {
 
             {abaPesquisaAtiva === 'todas' && (
               <div>
-                <div className="mb-3"><h3 className="text-sm font-black text-white uppercase">🌍 Catálogo Completo de Ligas</h3><p className="text-[10px] text-slate-500 font-bold mt-0.5">Abra o país e favorite as divisões desejadas</p></div>
-                <div className="flex flex-col gap-3">
+                <div className="mb-2.5"><h3 className="text-xs font-black text-white uppercase">🌍 Catálogo Completo de Ligas</h3><p className="text-[9px] text-slate-500 font-bold mt-0.5">Abra o país e favorite as divisões desejadas</p></div>
+                <div className="flex flex-col gap-2.5">
                   {TODAS_COMPETICOES.filter(c => !buscaPesquisa.trim() || normalizarTexto(`${c.pais} ${c.ligas.join(' ')}`).includes(normalizarTexto(buscaPesquisa))).map(c => (
-                    <div key={c.pais} className="bg-[#0f172a] text-white rounded-3xl shadow-xl overflow-hidden border border-white/10">
-                      <button onClick={() => setCategoriaAberta(categoriaAberta === c.pais ? '' : c.pais)} className="w-full flex items-center gap-3 p-4 text-left active:scale-[0.99]">
-                        <span className="w-11 h-11 rounded-2xl bg-[#050816] border border-white/10 flex items-center justify-center text-xl">{c.emoji}</span>
-                        <span className="flex-1"><span className="block text-sm font-black">{c.pais}</span><span className="block text-[10px] text-slate-500 font-bold mt-1">{c.qtd} competições disponíveis</span></span>
-                        <ChevronRight className={`w-5 h-5 text-slate-500 transition ${categoriaAberta === c.pais ? 'rotate-90 text-blue-400' : ''}`} />
+                    <div key={c.pais} className="bg-[#0f172a] text-white rounded-2xl shadow-lg overflow-hidden border border-white/10">
+                      <button onClick={() => setCategoriaAberta(categoriaAberta === c.pais ? '' : c.pais)} className="w-full flex items-center gap-3 py-3 px-3.5 text-left active:scale-[0.99]">
+                        <span className="w-9 h-9 rounded-xl bg-[#050816] border border-white/10 flex items-center justify-center text-lg">{c.emoji}</span>
+                        <span className="flex-1"><span className="block text-xs font-black">{c.pais}</span><span className="block text-[9px] text-slate-500 font-bold mt-0.5">{c.qtd} competições disponíveis</span></span>
+                        <ChevronRight className={`w-4 h-4 text-slate-500 transition ${categoriaAberta === c.pais ? 'rotate-90 text-blue-400' : ''}`} />
                       </button>
                       {categoriaAberta === c.pais && (
-                        <div className="px-4 pb-4 grid grid-cols-1 sm:grid-cols-2 gap-2">
+                        <div className="px-3 pb-3 grid grid-cols-2 sm:grid-cols-3 gap-1.5">
                           {c.ligas.map(l => {
                             const item = { tipo: 'competicao', nome: l, sub: c.pais, emoji: c.emoji };
                             const salvo = favoritoCatalogoExiste(item);
                             return (
-                              <button key={l} onClick={() => salvarOuRemoverPesquisa(item)} className={`rounded-2xl p-3 text-left text-xs font-black flex justify-between items-center border active:scale-95 ${salvo ? 'bg-yellow-500/10 border-yellow-500/30 text-yellow-300' : 'bg-[#050816] border-white/10 text-slate-300'}`}>
-                                <span>{l}</span>
-                                {salvo ? <Star className="w-4 h-4 fill-yellow-400 text-yellow-400" /> : <Plus className="w-4 h-4 text-blue-400" />}
+                              <button key={l} onClick={() => salvarOuRemoverPesquisa(item)} className={`rounded-xl py-2.5 px-3 text-left text-[11px] font-black flex justify-between items-center border active:scale-95 ${salvo ? 'bg-yellow-500/10 border-yellow-500/30 text-yellow-300' : 'bg-[#050816] border-white/10 text-slate-300'}`}>
+                                <span className="truncate pr-1">{l}</span>
+                                {salvo ? <Star className="w-3.5 h-3.5 fill-yellow-400 text-yellow-400 shrink-0" /> : <Plus className="w-3.5 h-3.5 text-blue-400 shrink-0" />}
                               </button>
                             );
                           })}
