@@ -1,246 +1,114 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
 /* =========================================================
-   BETANALYTICS PRO - TEMA PREMIUM DARK
-   Cole este bloco no FINAL do src/App.css
-   Mantém seu App.jsx e melhora o visual geral do aplicativo.
+   BETANALYTICS PRO - RESTAURAÇÃO DO APP.CSS
+   Use este arquivo para substituir src/App.css quando o visual
+   ficar quebrado e as classes Tailwind não carregarem.
    ========================================================= */
 
-:root {
-  --ba-brand-950: #02052d;
-  --ba-brand-900: #040a56;
-  --ba-brand-800: #060f7d;
-  --ba-brand-700: #0813a4;
-  --ba-brand-600: #0b18cb;
-  --ba-brand-500: #2f3ad9;
-  --ba-brand-400: #5662e9;
-  --ba-brand-300: #8890f3;
-
-  --ba-secondary-500: #ffac00;
-  --ba-positive: #22c55e;
-  --ba-negative: #ef4444;
-
-  --ba-bg-950: #050816;
-  --ba-bg-900: #070707;
-  --ba-bg-850: #0b1020;
-  --ba-bg-800: #121212;
-  --ba-card: rgba(18, 24, 38, 0.92);
-  --ba-card-strong: rgba(7, 12, 24, 0.96);
-
-  --ba-border: rgba(255,255,255,.12);
-  --ba-border-soft: rgba(255,255,255,.08);
-  --ba-text: rgba(255,255,255,.96);
-  --ba-text-soft: rgba(255,255,255,.68);
-  --ba-text-muted: rgba(255,255,255,.44);
-
-  --ba-radius-xl: 18px;
-  --ba-radius-2xl: 24px;
-  --ba-shadow-card: 0 18px 45px rgba(0,0,0,.36);
-  --ba-shadow-blue: 0 0 28px rgba(47,58,217,.22);
+* {
+  box-sizing: border-box;
 }
 
 html,
 body,
 #root {
   min-height: 100%;
-  background:
-    radial-gradient(circle at 20% 0%, rgba(47,58,217,.18), transparent 34%),
-    radial-gradient(circle at 100% 15%, rgba(86,98,233,.13), transparent 30%),
-    #000 !important;
-  color-scheme: dark;
+  width: 100%;
+  margin: 0;
+  background: #050816;
+  color: #ffffff;
+  font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Arial, sans-serif;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  -webkit-tap-highlight-color: transparent;
 }
 
 body {
-  margin: 0;
-  color: var(--ba-text);
-  font-family: BeVietnamPro, Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Arial, sans-serif;
-  -webkit-font-smoothing: antialiased;
-  -moz-osx-font-smoothing: grayscale;
-  text-rendering: optimizeLegibility;
-  -webkit-tap-highlight-color: transparent;
-}
-
-/* Scroll mobile limpo */
-.no-scrollbar,
-[class*="no-scrollbar"] {
-  scrollbar-width: none !important;
-  -ms-overflow-style: none !important;
-}
-
-.no-scrollbar::-webkit-scrollbar,
-[class*="no-scrollbar"]::-webkit-scrollbar {
-  display: none !important;
-}
-
-/* Toque de aplicativo */
-button,
-a,
-input,
-select,
-textarea {
-  -webkit-tap-highlight-color: transparent;
+  overflow-x: hidden;
 }
 
 button,
 a {
-  touch-action: manipulation;
+  -webkit-tap-highlight-color: transparent;
 }
 
-button:active,
-a:active {
-  transform: scale(.98);
+button {
+  cursor: pointer;
 }
 
-/* Cabeçalho e navegação inferior com visual mais app */
-header[class*="bg-[#050816]"],
-nav[class*="bg-[#050816]"],
-[class*="sticky"][class*="bg-[#050816]"] {
-  background:
-    linear-gradient(180deg, rgba(7,12,24,.98), rgba(5,8,22,.94)) !important;
-  border-color: var(--ba-border-soft) !important;
-  backdrop-filter: blur(18px);
-}
-
-/* Cards escuros principais */
-[class*="bg-[#0f172a]"] {
-  background:
-    linear-gradient(180deg, rgba(18,24,38,.96), rgba(7,12,24,.94)) !important;
-  border-color: var(--ba-border-soft) !important;
-  box-shadow: var(--ba-shadow-card);
-}
-
-[class*="bg-[#050816]"] {
-  background:
-    linear-gradient(180deg, rgba(5,8,22,.98), rgba(0,0,0,.96)) !important;
-}
-
-/* Bordas e cards arredondados com acabamento premium */
-[class*="rounded-3xl"],
-[class*="rounded-[30px]"],
-[class*="rounded-2xl"] {
-  border-color: var(--ba-border-soft);
-}
-
-[class*="shadow-lg"],
-[class*="shadow-xl"],
-[class*="shadow-2xl"] {
-  box-shadow: var(--ba-shadow-card) !important;
-}
-
-/* Botões azuis mais premium */
-[class*="bg-blue-600"],
-[class*="from-blue-600"],
-[class*="via-blue-600"] {
-  box-shadow: 0 12px 30px rgba(47,58,217,.22);
-}
-
-/* Inputs estilo app profissional */
 input,
 textarea,
-select {
-  background: rgba(255,255,255,.96);
-  color: #0b1020;
+select,
+button {
+  font-family: inherit;
 }
 
-input::placeholder,
-textarea::placeholder {
-  color: rgba(15,23,42,.46) !important;
+.no-scrollbar {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
 }
 
-/* Pílulas/abas estilo app esportivo */
-[class*="rounded-full"][class*="border"] {
-  backdrop-filter: blur(12px);
+.no-scrollbar::-webkit-scrollbar {
+  display: none;
 }
 
-[class*="rounded-full"][class*="bg-transparent"],
-[class*="rounded-full"][class*="bg-[#0b1224]"],
-[class*="rounded-full"][class*="bg-[#0f172a]"] {
-  background: rgba(11,18,36,.78) !important;
-  border-color: rgba(255,255,255,.13) !important;
-  color: rgba(255,255,255,.72) !important;
+.animate-fade-in {
+  animation: betFadeIn .25s ease-out both;
 }
 
-[class*="rounded-full"][class*="bg-white"] {
-  background: #fff !important;
-  color: #050816 !important;
-  border-color: #fff !important;
-  box-shadow: 0 10px 24px rgba(255,255,255,.12) !important;
+@keyframes betFadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }
 
-/* Cards brancos da pesquisa com acabamento melhor */
-[class*="from-white"][class*="to-slate-100"],
-[class*="bg-white"][class*="text-slate"] {
-  background: linear-gradient(180deg, #ffffff, #eef2ff) !important;
-  border: 1px solid rgba(255,255,255,.92) !important;
-  box-shadow: 0 14px 28px rgba(0,0,0,.25) !important;
-}
-
-/* Gradientes hero */
-[class*="from-blue-700"][class*="to-purple-700"],
-[class*="from-blue-600"][class*="to-purple-600"] {
-  background:
-    radial-gradient(circle at 0% 0%, rgba(255,255,255,.20), transparent 28%),
-    linear-gradient(135deg, #0813a4 0%, #2f3ad9 52%, #7c3aed 100%) !important;
-  border: 1px solid rgba(255,255,255,.16) !important;
-  box-shadow: 0 24px 60px rgba(47,58,217,.28) !important;
-}
-
-/* Texto auxiliar mais suave */
-[class*="text-slate-500"] {
-  color: rgba(255,255,255,.42) !important;
-}
-
-[class*="text-slate-400"] {
-  color: rgba(255,255,255,.58) !important;
-}
-
-/* Destaques positivos e negativos */
-[class*="text-emerald"],
-[class*="text-green"] {
-  color: var(--ba-positive) !important;
-}
-
-[class*="text-red"] {
-  color: #ff6b6b !important;
-}
-
-[class*="text-yellow"] {
-  color: var(--ba-secondary-500) !important;
-}
-
-/* Melhora área de gráficos */
-.recharts-wrapper text {
-  fill: rgba(255,255,255,.58);
-}
-
-.recharts-tooltip-wrapper {
-  border-radius: 16px;
+.line-clamp-1 {
+  display: -webkit-box;
+  -webkit-line-clamp: 1;
+  -webkit-box-orient: vertical;
   overflow: hidden;
 }
 
-/* Safe area para APK/celular */
-@supports (padding: max(0px)) {
-  nav {
-    padding-bottom: max(env(safe-area-inset-bottom), 0px);
-  }
+.line-clamp-2 {
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
 }
 
-/* Aparência mobile */
-@media (max-width: 520px) {
-  body {
-    overscroll-behavior-y: none;
-  }
+.safe-bottom {
+  padding-bottom: env(safe-area-inset-bottom);
+}
 
-  header {
-    min-height: 56px;
+/* Correções para gráficos no fundo escuro */
+.recharts-wrapper {
+  outline: none;
+}
+
+.recharts-tooltip-wrapper {
+  z-index: 50;
+}
+
+/* Correções mobile */
+@media (max-width: 520px) {
+  html,
+  body,
+  #root {
+    width: 100%;
+    max-width: 100%;
   }
 
   input,
   textarea,
-  select,
-  button {
+  select {
     font-size: 16px;
-  }
-
-  [class*="rounded-3xl"] {
-    border-radius: 24px;
   }
 }
