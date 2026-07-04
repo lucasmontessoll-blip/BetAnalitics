@@ -1,10 +1,4 @@
-/* ============================================================================
-   🚀 DIRETIVAS DO TAILWIND CSS
-   (Substitui o @import "tailwindcss" para evitar bugs de compilação no Vite)
-   ============================================================================ */
-@tailwind base;
-@tailwind components;
-@tailwind utilities;
+@import "tailwindcss";
 
 /* ============================================================================
    🎨 RESET GLOBAL DE INTERFACE (BetAnalytics Pro)
@@ -23,7 +17,7 @@ body,
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
   
-  /* Evita o efeito "elástico" (pull-to-refresh) do navegador para parecer um app nativo */
+  /* Evita o efeito "elástico" (pull-to-refresh) do navegador para parecer app nativo */
   overscroll-behavior-y: none; 
 }
 
