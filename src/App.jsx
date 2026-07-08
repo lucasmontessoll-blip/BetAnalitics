@@ -22,6 +22,7 @@ const Perfil = lazy(() => import('./components/Perfil.jsx'));
 const PainelJogo = lazy(() => import('./components/PainelJogo.jsx'));
 const MODO_DEMONSTRACAO = true;
 const API_URL = '';
+const PLANO_PRO = { nome: 'BetAnalytics PRO Mensal', valor: 29.90, dias: 30 };
 let supabase = { from: () => ({ select: () => ({ eq: () => ({ single: () => ({ data: null, error: null }) }) }) }) };
 try {
 const url = import.meta.env.VITE_SUPABASE_URL;
@@ -67,8 +68,11 @@ const [userData, setUserData] = useState(null);
 const [viewMode, setViewMode] = useState('jogos');
 const [filterCentro, setFilterCentro] = useState('Todos');
 const [jogoSelecionado, setJogoSelecionado] = useState(null);
-const [form, setForm] = useState({ nome: '', email: '', cpf: '' });
+const [form, setForm] = useState({ nome: '', email: '', cpf: '', senha: '', nascimento: '' });
 const [metodoPagamento, setMetodoPagamento] = useState('pix');
+const [pagamentoStatus, setPagamentoStatus] = useState({ loading: false, erro: '', sucesso: '', pix: null, id: null });
+const cardFormMercadoPagoRef = useRef(null);
+const pollingPagamentoRef = useRef(null);
 const [bancaInicial] = useState(1000);
 const [xp] = useState(350);
 const [jogosTempoReal, setJogosTempoReal] = useState([]);
@@ -146,6 +150,12 @@ const { aiOpen, setAiOpen, aiQuery, setAiQuery, aiLoading, aiMessages, handleAsk
 useEffect(() => {
 const timer = setTimeout(() => setShowSplash(false), 2000);
 return () => clearTimeout(timer);
+}, []);
+useEffect(() => {
+return () => {
+if (pollingPagamentoRef.current) clearInterval(pollingPagamentoRef.current);
+try { cardFormMercadoPagoRef.current?.unmount?.(); } catch (e) {}
+};
 }, []);
 useEffect(() => {
 const em = localStorage.getItem('bet_sessao_ativa');
@@ -241,25 +251,243 @@ style={{ touchAction: 'manipulation' }}
 const FavVazio = ({ tipo }) => (<div className="min-h-[360px] flex flex-col items-center justify-center text-center px-6"><h3 className="text-base font-black text-white mb-2">É hora de adicionar alguns Favoritos</h3><p className="text-xs text-slate-400 font-semibold mb-6">Os {tipo} favoritos serão exibidos aqui para acesso rápido.</p><button onClick={() => setViewMode('pesquisa')} className="w-28 h-24 rounded-2xl bg-blue-600/20 border border-blue-500/30 flex flex-col items-center justify-center text-blue-400 font-black gap-2 active:scale-95"><div className="w-9 h-9 rounded-full border-2 border-blue-400 flex items-center justify-center"><Plus className="w-5 h-5" /></div><span className="text-xs">Adicionar</span></button></div>);
 const FavCard = ({ item }) => (<div className="bg-[#0f172a] border border-white/10 rounded-2xl p-4 mb-3 flex items-center gap-3"><div className="w-11 h-11 rounded-2xl bg-[#050816] flex items-center justify-center text-xl border border-white/10">{item.emoji || '⭐'}</div><div className="flex-1 min-w-0"><div className="text-sm font-black text-white truncate">{item.nome || item.titulo}</div><div className="text-[10px] text-slate-500 font-bold uppercase">{item.sub || item.tipo}</div></div><button onClick={() => removerFavCatalogo(item.id)} className="text-[10px] font-black text-red-400 bg-red-500/10 border border-red-500/20 px-3 py-2 rounded-xl">Remover</button></div>);
 const solicitarPermissaoNotificacaoApp = async () => { try { if (!('Notification' in window)) { alert('Este dispositivo não suporta notificações.'); return; } const permissao = await Notification.requestPermission(); if (permissao === 'granted') { alert('Alertas ativados com sucesso!'); } else { alert('Permissão de notificações não liberada.'); } } catch (e) { console.error(e); alert('Não foi possível ativar as notificações agora.'); } };
-const ativarProLocal = () => {
-const nome = (form?.nome || userData?.nome || 'Lucas Montesso').trim();
-const email = (form?.email || userData?.email || 'lucas@vip.com').trim();
-const cpf = (form?.cpf || '').trim();
+const limparCpf = (valor = '') => String(valor).replace(/\D/g, '');
+const emailValido = (valor = '') => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(String(valor).trim());
+
+const validarContaObrigatoria = () => {
+const nome = String(form?.nome || '').trim();
+const email = String(form?.email || '').trim().toLowerCase();
+const cpf = limparCpf(form?.cpf || '');
+const senha = String(form?.senha || '').trim();
+const nascimento = String(form?.nascimento || '').trim();
+
+if (!nome || nome.length < 3) {
+setPagamentoStatus(s => ({ ...s, erro: 'Informe seu nome completo antes de assinar.', sucesso: '' }));
+return null;
+}
+if (!emailValido(email)) {
+setPagamentoStatus(s => ({ ...s, erro: 'Informe um e-mail válido para criar sua conta.', sucesso: '' }));
+return null;
+}
+if (cpf.length !== 11) {
+setPagamentoStatus(s => ({ ...s, erro: 'Informe um CPF válido com 11 números.', sucesso: '' }));
+return null;
+}
+if (!senha || senha.length < 6) {
+setPagamentoStatus(s => ({ ...s, erro: 'Crie uma senha com pelo menos 6 caracteres.', sucesso: '' }));
+return null;
+}
+if (!nascimento) {
+setPagamentoStatus(s => ({ ...s, erro: 'Informe sua data de nascimento.', sucesso: '' }));
+return null;
+}
+
+return { nome, email, cpf, senha, nascimento };
+};
+
+const ativarVipAposPagamento = (conta, pagamento = {}) => {
 const expira = new Date();
-expira.setDate(expira.getDate() + 30);
-const usuario = { nome, email, cpf, is_vip: true, is_admin: email.includes('admin'), vip_expira: expira.toISOString() };
-localStorage.setItem('bet_sessao_ativa', email);
-localStorage.setItem('bet_user_nome', nome);
-localStorage.setItem('bet_user_email', email);
+expira.setDate(expira.getDate() + PLANO_PRO.dias);
+const usuario = {
+nome: conta.nome,
+email: conta.email,
+cpf: conta.cpf,
+is_vip: true,
+is_admin: conta.email.includes('admin'),
+vip_expira: expira.toISOString(),
+pagamento_id: pagamento.id || pagamento.payment_id || null,
+pagamento_status: pagamento.status || 'approved',
+metodo_pagamento: pagamento.metodo || metodoPagamento,
+};
+localStorage.setItem('bet_sessao_ativa', usuario.email);
+localStorage.setItem('bet_user_nome', usuario.nome);
+localStorage.setItem('bet_user_email', usuario.email);
 localStorage.setItem('bet_vip_expira', usuario.vip_expira);
-const usuarios = JSON.parse(localStorage.getItem('bet_users') || '[]').filter(u => u.email !== email);
+const usuarios = JSON.parse(localStorage.getItem('bet_users') || '[]').filter(u => u.email !== usuario.email);
 usuarios.push(usuario);
 localStorage.setItem('bet_users', JSON.stringify(usuarios));
 setUserData(usuario);
 setMenuAtivo('Todos os Jogos');
 setViewMode('perfil');
-alert('✅ VIP PRO ativado com sucesso neste dispositivo.');
+setPagamentoStatus({ loading: false, erro: '', sucesso: '✅ Pagamento aprovado. VIP PRO liberado.', pix: null, id: pagamento.id || null });
+alert('✅ Pagamento aprovado. VIP PRO ativado com sucesso.');
 };
+
+const consultarStatusPagamento = async (paymentId, conta) => {
+try {
+const resp = await fetch(`/api/pagamento/status/${paymentId}`);
+const data = await resp.json();
+if (!resp.ok) throw new Error(data?.erro || 'Não foi possível consultar o pagamento.');
+if (data.aprovado || data.status === 'approved' || data.status === 'processed') {
+if (pollingPagamentoRef.current) clearInterval(pollingPagamentoRef.current);
+pollingPagamentoRef.current = null;
+ativarVipAposPagamento(conta, { id: paymentId, status: data.status, metodo: metodoPagamento });
+return;
+}
+setPagamentoStatus(s => ({ ...s, sucesso: `Aguardando pagamento... status: ${data.status || 'pendente'}` }));
+} catch (err) {
+setPagamentoStatus(s => ({ ...s, erro: err.message || 'Erro ao consultar pagamento.' }));
+}
+};
+
+const iniciarPagamentoPix = async () => {
+const conta = validarContaObrigatoria();
+if (!conta) return;
+
+try {
+if (pollingPagamentoRef.current) clearInterval(pollingPagamentoRef.current);
+setPagamentoStatus({ loading: true, erro: '', sucesso: 'Gerando QR Code PIX...', pix: null, id: null });
+
+const resp = await fetch('/api/pagamento/pix', {
+method: 'POST',
+headers: { 'Content-Type': 'application/json' },
+body: JSON.stringify({
+nome: conta.nome,
+email: conta.email,
+cpf: conta.cpf,
+valor: PLANO_PRO.valor,
+descricao: PLANO_PRO.nome,
+})
+});
+
+const data = await resp.json();
+if (!resp.ok) throw new Error(data?.erro || 'Erro ao gerar PIX.');
+
+setPagamentoStatus({
+loading: false,
+erro: '',
+sucesso: 'PIX gerado. Pague pelo QR Code ou copie o código abaixo.',
+pix: data,
+id: data.id || data.payment_id || null,
+});
+
+if (data.id || data.payment_id) {
+const paymentId = data.id || data.payment_id;
+pollingPagamentoRef.current = setInterval(() => consultarStatusPagamento(paymentId, conta), 5000);
+}
+} catch (err) {
+setPagamentoStatus({ loading: false, erro: err.message || 'Erro ao gerar PIX.', sucesso: '', pix: null, id: null });
+}
+};
+
+const enviarPagamentoCartaoSeguro = async (dadosCartao, conta) => {
+try {
+setPagamentoStatus({ loading: true, erro: '', sucesso: 'Processando cartão com segurança...', pix: null, id: null });
+
+const token = dadosCartao?.token;
+const paymentMethodId = dadosCartao?.paymentMethodId || dadosCartao?.payment_method_id;
+if (!token || !paymentMethodId) throw new Error('Preencha todos os dados do cartão antes de concluir.');
+
+const resp = await fetch('/api/pagamento/cartao', {
+method: 'POST',
+headers: { 'Content-Type': 'application/json' },
+body: JSON.stringify({
+nome: conta.nome,
+email: conta.email,
+cpf: conta.cpf,
+valor: PLANO_PRO.valor,
+descricao: PLANO_PRO.nome,
+tipo: metodoPagamento === 'debito' ? 'debit_card' : 'credit_card',
+token,
+paymentMethodId,
+issuerId: dadosCartao?.issuerId || dadosCartao?.issuer_id,
+installments: Number(dadosCartao?.installments || 1),
+identificationType: dadosCartao?.identificationType || 'CPF',
+identificationNumber: limparCpf(dadosCartao?.identificationNumber || conta.cpf),
+})
+});
+
+const data = await resp.json();
+if (!resp.ok) throw new Error(data?.erro || 'Pagamento recusado.');
+
+if (data.aprovado || data.status === 'approved' || data.status === 'processed') {
+ativarVipAposPagamento(conta, { id: data.id || data.payment_id, status: data.status, metodo: metodoPagamento });
+return;
+}
+
+setPagamentoStatus({ loading: false, erro: data.mensagem || `Pagamento não aprovado. Status: ${data.status || 'recusado'}`, sucesso: '', pix: null, id: data.id || null });
+} catch (err) {
+setPagamentoStatus({ loading: false, erro: err.message || 'Erro ao processar cartão.', sucesso: '', pix: null, id: null });
+}
+};
+
+const carregarMercadoPagoJs = () => new Promise((resolve, reject) => {
+if (window.MercadoPago) return resolve();
+const scriptExistente = document.getElementById('mercadopago-js-v2');
+if (scriptExistente) {
+scriptExistente.addEventListener('load', resolve, { once: true });
+scriptExistente.addEventListener('error', reject, { once: true });
+return;
+}
+const script = document.createElement('script');
+script.id = 'mercadopago-js-v2';
+script.src = 'https://sdk.mercadopago.com/js/v2';
+script.onload = resolve;
+script.onerror = () => reject(new Error('Não foi possível carregar o Mercado Pago.js.'));
+document.body.appendChild(script);
+});
+
+useEffect(() => {
+if (menuAtivo !== 'assinar pro') return;
+if (metodoPagamento !== 'credito' && metodoPagamento !== 'debito') return;
+
+let cancelado = false;
+const iniciarCardForm = async () => {
+try {
+setPagamentoStatus(s => ({ ...s, erro: '', sucesso: 'Carregando formulário seguro do cartão...' }));
+await carregarMercadoPagoJs();
+await new Promise(resolve => setTimeout(resolve, 120));
+if (cancelado || !window.MercadoPago) return;
+
+try { cardFormMercadoPagoRef.current?.unmount?.(); } catch (e) {}
+
+const publicKey = import.meta.env.VITE_MP_PUBLIC_KEY || 'APP_USR-5947285218976034';
+const mp = new window.MercadoPago(publicKey, { locale: 'pt-BR' });
+
+cardFormMercadoPagoRef.current = mp.cardForm({
+amount: String(PLANO_PRO.valor.toFixed(2)),
+iframe: true,
+form: {
+id: 'form-checkout',
+cardholderName: { id: 'form-checkout__cardholderName', placeholder: 'Nome impresso no cartão' },
+cardholderEmail: { id: 'form-checkout__cardholderEmail', placeholder: 'E-mail da conta' },
+cardNumber: { id: 'form-checkout__cardNumber', placeholder: 'Número do cartão' },
+expirationDate: { id: 'form-checkout__expirationDate', placeholder: 'MM/AA' },
+securityCode: { id: 'form-checkout__securityCode', placeholder: 'CVV' },
+installments: { id: 'form-checkout__installments', placeholder: 'Parcelas' },
+identificationType: { id: 'form-checkout__identificationType', placeholder: 'Documento' },
+identificationNumber: { id: 'form-checkout__identificationNumber', placeholder: 'CPF' },
+issuer: { id: 'form-checkout__issuer', placeholder: 'Banco emissor' },
+},
+callbacks: {
+onReady: () => setPagamentoStatus(s => ({ ...s, erro: '', sucesso: 'Formulário seguro do cartão pronto.' })),
+onSubmit: async (event) => {
+event.preventDefault();
+const conta = validarContaObrigatoria();
+if (!conta) return Promise.reject();
+const dadosCartao = cardFormMercadoPagoRef.current.getCardFormData();
+await enviarPagamentoCartaoSeguro(dadosCartao, conta);
+return Promise.resolve();
+},
+onError: (error) => {
+console.error(error);
+setPagamentoStatus(s => ({ ...s, erro: 'Erro no formulário seguro do cartão. Confira os dados informados.', sucesso: '' }));
+},
+},
+});
+} catch (err) {
+setPagamentoStatus(s => ({ ...s, erro: err.message || 'Erro ao carregar cartão.', sucesso: '' }));
+}
+};
+
+iniciarCardForm();
+
+return () => {
+cancelado = true;
+try { cardFormMercadoPagoRef.current?.unmount?.(); } catch (e) {}
+};
+}, [menuAtivo, metodoPagamento]);
+
 if (showSplash) {
 return (<div className="flex flex-col justify-center items-center min-h-screen bg-[#050816] text-white"><motion.div initial={{ scale: 0.5, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} className="text-6xl mb-4">⚽</motion.div><motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="text-2xl font-black tracking-tight flex items-center"><span className="italic">BET</span><span className="text-blue-500">ANALYTICS</span><span className="ml-2 bg-blue-600 text-[10px] px-2 py-0.5 rounded-md">PRO</span></motion.div></div>);
 }
@@ -284,19 +512,86 @@ return (
 <div className="space-y-3">
 <input type="text" value={form.nome || ''} onChange={(e) => setForm({ ...form, nome: e.target.value })} placeholder="Nome Completo" className="w-full bg-[#050816] border border-white/10 rounded-xl px-4 py-3 text-white placeholder:text-slate-500 text-sm outline-none focus:border-yellow-500 transition-colors" />
 <input type="email" value={form.email || ''} onChange={(e) => setForm({ ...form, email: e.target.value })} placeholder="Email (Login)" className="w-full bg-[#050816] border border-white/10 rounded-xl px-4 py-3 text-white placeholder:text-slate-500 text-sm outline-none focus:border-yellow-500 transition-colors" />
-<div className="relative"><Lock className="w-4 h-4 absolute left-4 top-3.5 text-slate-500" /><input type="password" placeholder="Senha" className="w-full bg-[#050816] border border-white/10 rounded-xl px-4 py-3 pl-10 text-white placeholder:text-slate-500 text-sm outline-none focus:border-yellow-500 transition-colors" /></div>
-<div className="flex gap-3"><div className="w-1/2 relative"><User className="w-4 h-4 absolute left-3 top-3.5 text-slate-500" /><input type="text" value={form.cpf || ''} onChange={(e) => setForm({ ...form, cpf: e.target.value })} placeholder="CPF" className="w-full bg-[#050816] border border-white/10 rounded-xl px-3 py-3 pl-9 text-white placeholder:text-slate-500 text-xs outline-none focus:border-yellow-500 transition-colors" /></div><div className="w-1/2 relative"><Calendar className="w-4 h-4 absolute left-3 top-3.5 text-slate-500" /><input type="text" placeholder="Nascimento" className="w-full bg-[#050816] border border-white/10 rounded-xl px-3 py-3 pl-9 text-white placeholder:text-slate-500 text-xs outline-none focus:border-yellow-500 transition-colors" onFocus={(e) => e.target.type = 'date'} onBlur={(e) => !e.target.value && (e.target.type = 'text')} /></div></div>
+<div className="relative"><Lock className="w-4 h-4 absolute left-4 top-3.5 text-slate-500" /><input type="password" value={form.senha || ''} onChange={(e) => setForm({ ...form, senha: e.target.value })} placeholder="Senha (mínimo 6 caracteres)" className="w-full bg-[#050816] border border-white/10 rounded-xl px-4 py-3 pl-10 text-white placeholder:text-slate-500 text-sm outline-none focus:border-yellow-500 transition-colors" /></div>
+<div className="flex gap-3"><div className="w-1/2 relative"><User className="w-4 h-4 absolute left-3 top-3.5 text-slate-500" /><input type="text" value={form.cpf || ''} onChange={(e) => setForm({ ...form, cpf: e.target.value })} placeholder="CPF" className="w-full bg-[#050816] border border-white/10 rounded-xl px-3 py-3 pl-9 text-white placeholder:text-slate-500 text-xs outline-none focus:border-yellow-500 transition-colors" /></div><div className="w-1/2 relative"><Calendar className="w-4 h-4 absolute left-3 top-3.5 text-slate-500" /><input type="date" value={form.nascimento || ''} onChange={(e) => setForm({ ...form, nascimento: e.target.value })} className="w-full bg-[#050816] border border-white/10 rounded-xl px-3 py-3 pl-9 text-white placeholder:text-slate-500 text-xs outline-none focus:border-yellow-500 transition-colors" /></div></div>
 </div>
 </div>
 <div className="bg-[#050816]/60 rounded-2xl p-5 mb-6 border border-white/5 relative z-10">
 <h3 className="text-xs font-black uppercase mb-4 flex items-center gap-2 text-slate-300"><DollarSign className="w-4 h-4 text-yellow-500" /> Forma de Pagamento</h3>
 <div className="grid grid-cols-3 gap-3">
-<button onClick={() => setMetodoPagamento('pix')} className={`font-bold py-3 rounded-xl text-xs flex flex-col items-center gap-1.5 border transition-all ${metodoPagamento === 'pix' ? 'bg-yellow-500/10 text-yellow-400 border-yellow-500 shadow-[0_0_15px_rgba(234,179,8,0.2)]' : 'bg-[#050816] text-slate-500 border-white/5 hover:border-white/20'}`}><Zap className="w-5 h-5" /> PIX</button>
-<button onClick={() => setMetodoPagamento('credito')} className={`font-bold py-3 rounded-xl text-xs flex flex-col items-center gap-1.5 border transition-all ${metodoPagamento === 'credito' ? 'bg-yellow-500/10 text-yellow-400 border-yellow-500 shadow-[0_0_15px_rgba(234,179,8,0.2)]' : 'bg-[#050816] text-slate-500 border-white/5 hover:border-white/20'}`}><CreditCard className="w-5 h-5" /> Crédito</button>
-<button onClick={() => setMetodoPagamento('debito')} className={`font-bold py-3 rounded-xl text-xs flex flex-col items-center gap-1.5 border transition-all ${metodoPagamento === 'debito' ? 'bg-yellow-500/10 text-yellow-400 border-yellow-500 shadow-[0_0_15px_rgba(234,179,8,0.2)]' : 'bg-[#050816] text-slate-500 border-white/5 hover:border-white/20'}`}><CreditCard className="w-5 h-5" /> Débito</button>
+<button onClick={() => { setMetodoPagamento('pix'); setPagamentoStatus(s => ({ ...s, erro: '', sucesso: '', pix: null })); }} className={`font-bold py-3 rounded-xl text-xs flex flex-col items-center gap-1.5 border transition-all ${metodoPagamento === 'pix' ? 'bg-yellow-500/10 text-yellow-400 border-yellow-500 shadow-[0_0_15px_rgba(234,179,8,0.2)]' : 'bg-[#050816] text-slate-500 border-white/5 hover:border-white/20'}`}><Zap className="w-5 h-5" /> PIX</button>
+<button onClick={() => { setMetodoPagamento('credito'); setPagamentoStatus(s => ({ ...s, erro: '', sucesso: '', pix: null })); }} className={`font-bold py-3 rounded-xl text-xs flex flex-col items-center gap-1.5 border transition-all ${metodoPagamento === 'credito' ? 'bg-yellow-500/10 text-yellow-400 border-yellow-500 shadow-[0_0_15px_rgba(234,179,8,0.2)]' : 'bg-[#050816] text-slate-500 border-white/5 hover:border-white/20'}`}><CreditCard className="w-5 h-5" /> Crédito</button>
+<button onClick={() => { setMetodoPagamento('debito'); setPagamentoStatus(s => ({ ...s, erro: '', sucesso: '', pix: null })); }} className={`font-bold py-3 rounded-xl text-xs flex flex-col items-center gap-1.5 border transition-all ${metodoPagamento === 'debito' ? 'bg-yellow-500/10 text-yellow-400 border-yellow-500 shadow-[0_0_15px_rgba(234,179,8,0.2)]' : 'bg-[#050816] text-slate-500 border-white/5 hover:border-white/20'}`}><CreditCard className="w-5 h-5" /> Débito</button>
+</div>
+
+<div className="mt-4 rounded-2xl border border-white/10 bg-[#050816] p-4">
+<div className="flex items-center justify-between gap-3 mb-3">
+<div>
+<div className="text-xs font-black text-white uppercase">Plano PRO Mensal</div>
+<div className="text-[10px] text-slate-400 font-bold">Liberação somente após pagamento aprovado</div>
+</div>
+<div className="text-lg font-black text-yellow-400">R$ {PLANO_PRO.valor.toFixed(2).replace('.', ',')}</div>
+</div>
+
+{pagamentoStatus.erro && (<div className="mb-3 rounded-xl border border-red-500/30 bg-red-500/10 p-3 text-[11px] font-bold text-red-400">{pagamentoStatus.erro}</div>)}
+{pagamentoStatus.sucesso && (<div className="mb-3 rounded-xl border border-emerald-500/30 bg-emerald-500/10 p-3 text-[11px] font-bold text-emerald-400">{pagamentoStatus.sucesso}</div>)}
+
+{metodoPagamento === 'pix' && (
+<div className="space-y-3">
+<p className="text-[11px] font-bold text-slate-400">O QR Code será gerado pelo Mercado Pago. O VIP só libera quando o pagamento constar como aprovado.</p>
+{pagamentoStatus.pix?.qr_code_base64 && (
+<div className="bg-white rounded-2xl p-3 flex justify-center">
+<img src={`data:image/jpeg;base64,${pagamentoStatus.pix.qr_code_base64}`} alt="QR Code PIX" className="w-48 h-48 object-contain" />
+</div>
+)}
+{pagamentoStatus.pix?.qr_code && (
+<div>
+<label className="text-[10px] font-black text-slate-400 uppercase">Pix Copia e Cola</label>
+<textarea readOnly value={pagamentoStatus.pix.qr_code} className="mt-2 w-full min-h-[90px] rounded-xl bg-[#020617] border border-white/10 p-3 text-[10px] text-slate-200 outline-none" />
+<button onClick={() => navigator.clipboard?.writeText(pagamentoStatus.pix.qr_code)} className="mt-2 w-full rounded-xl bg-white/10 border border-white/10 py-2 text-xs font-black text-white">COPIAR CÓDIGO PIX</button>
+</div>
+)}
+{pagamentoStatus.pix?.ticket_url && (
+<a href={pagamentoStatus.pix.ticket_url} target="_blank" rel="noopener noreferrer" className="block text-center rounded-xl bg-blue-600 py-3 text-xs font-black text-white">ABRIR PIX NO MERCADO PAGO</a>
+)}
+<button onClick={iniciarPagamentoPix} disabled={pagamentoStatus.loading} className="w-full bg-gradient-to-r from-yellow-500 to-yellow-600 text-black font-black py-4 rounded-2xl text-sm transition-all active:scale-95 shadow-[0_0_20px_rgba(234,179,8,0.3)] flex justify-center items-center gap-2 disabled:opacity-60 relative z-10">
+{pagamentoStatus.loading ? 'GERANDO PAGAMENTO...' : 'GERAR QR CODE PIX'} <ChevronRight className="w-5 h-5" />
+</button>
+</div>
+)}
+
+{(metodoPagamento === 'credito' || metodoPagamento === 'debito') && (
+<form id="form-checkout" className="space-y-3">
+<p className="text-[11px] font-bold text-slate-400">Os dados do cartão são tokenizados pelo Mercado Pago. O VIP só libera se o pagamento for aprovado.</p>
+<div>
+<label className="text-[9px] font-black text-slate-500 uppercase">Número do cartão</label>
+<div id="form-checkout__cardNumber" className="mt-1 min-h-[44px] w-full rounded-xl bg-[#020617] border border-white/10 px-4 py-3 text-white"></div>
+</div>
+<div className="grid grid-cols-2 gap-3">
+<div>
+<label className="text-[9px] font-black text-slate-500 uppercase">Validade</label>
+<div id="form-checkout__expirationDate" className="mt-1 min-h-[44px] rounded-xl bg-[#020617] border border-white/10 px-4 py-3 text-white"></div>
+</div>
+<div>
+<label className="text-[9px] font-black text-slate-500 uppercase">CVV</label>
+<div id="form-checkout__securityCode" className="mt-1 min-h-[44px] rounded-xl bg-[#020617] border border-white/10 px-4 py-3 text-white"></div>
 </div>
 </div>
-<button onClick={ativarProLocal} className="w-full bg-gradient-to-r from-yellow-500 to-yellow-600 text-black font-black py-4 rounded-2xl text-sm transition-all hover:scale-[1.02] active:scale-95 shadow-[0_0_20px_rgba(234,179,8,0.3)] flex justify-center items-center gap-2 relative z-10">CONCLUIR ASSINATURA <ChevronRight className="w-5 h-5" /></button>
+<input id="form-checkout__cardholderName" defaultValue={form.nome || ''} placeholder="Nome impresso no cartão" className="w-full bg-[#020617] border border-white/10 rounded-xl px-4 py-3 text-white placeholder:text-slate-500 text-sm outline-none focus:border-yellow-500 transition-colors" />
+<input id="form-checkout__cardholderEmail" defaultValue={form.email || ''} placeholder="E-mail" className="w-full bg-[#020617] border border-white/10 rounded-xl px-4 py-3 text-white placeholder:text-slate-500 text-sm outline-none focus:border-yellow-500 transition-colors" />
+<div className="grid grid-cols-2 gap-3">
+<select id="form-checkout__identificationType" className="w-full bg-[#020617] border border-white/10 rounded-xl px-3 py-3 text-white text-xs outline-none focus:border-yellow-500 transition-colors"></select>
+<input id="form-checkout__identificationNumber" defaultValue={limparCpf(form.cpf || '')} placeholder="CPF" className="w-full bg-[#020617] border border-white/10 rounded-xl px-3 py-3 text-white placeholder:text-slate-500 text-xs outline-none focus:border-yellow-500 transition-colors" />
+</div>
+<select id="form-checkout__issuer" className="w-full bg-[#020617] border border-white/10 rounded-xl px-4 py-3 text-white text-sm outline-none focus:border-yellow-500 transition-colors"></select>
+<select id="form-checkout__installments" className="w-full bg-[#020617] border border-white/10 rounded-xl px-4 py-3 text-white text-sm outline-none focus:border-yellow-500 transition-colors"></select>
+<button id="form-checkout__submit" type="submit" disabled={pagamentoStatus.loading} className="w-full bg-gradient-to-r from-yellow-500 to-yellow-600 text-black font-black py-4 rounded-2xl text-sm transition-all active:scale-95 shadow-[0_0_20px_rgba(234,179,8,0.3)] flex justify-center items-center gap-2 disabled:opacity-60 relative z-10">
+{pagamentoStatus.loading ? 'PROCESSANDO...' : `PAGAR NO ${metodoPagamento === 'credito' ? 'CRÉDITO' : 'DÉBITO'}`} <ChevronRight className="w-5 h-5" />
+</button>
+</form>
+)}
+</div>
+</div>
 </div>
 </div>
 )}
