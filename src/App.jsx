@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef, lazy, Suspense, useMemo, useCallback } from 'react';
+import React, { useState, useEffect, useRef, Suspense, useMemo, useCallback } from 'react';
 import './App.css';
 import { AreaChart, Area, BarChart, Bar, ResponsiveContainer, XAxis, YAxis, CartesianGrid, Tooltip } from 'recharts';
 import PlayStoreModeBadge from './components/PlayStoreModeBadge.jsx';
@@ -18,8 +18,8 @@ import { useJogos } from './hooks/useJogos.js';
 import { useIA } from './hooks/useIA.js';
 import HeroPremium from './components/HeroPremium.jsx';
 import LegalCompliance from './components/LegalCompliance.jsx';
-const Perfil = lazy(() => import('./components/Perfil.jsx'));
-const PainelJogo = lazy(() => import('./components/PainelJogo.jsx'));
+import Perfil from './components/Perfil.jsx';
+import PainelJogo from './components/PainelJogo.jsx';
 const MODO_DEMONSTRACAO = true;
 const API_URL = '';
 const PLANO_PRO = { nome: 'BetAnalytics PRO Mensal', valor: 29.90, dias: 30 };
