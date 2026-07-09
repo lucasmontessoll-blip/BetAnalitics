@@ -22,6 +22,105 @@ import Perfil from './components/Perfil.jsx';
 import PainelJogo from './components/PainelJogo.jsx';
 const MODO_DEMONSTRACAO = true;
 const API_URL = '';
+function gerarEscudoAutomatico(nomeTime = 'TIME') {
+  const nome = String(nomeTime || 'TIME').trim();
+
+  const iniciais = nome
+    .split(/\s+/)
+    .filter(Boolean)
+    .slice(0, 2)
+    .map(p => String(p[0] || '').toUpperCase())
+    .join('')
+    .replace(/[^A-Z0-9]/g, '') || 'FC';
+
+  let hash = 0;
+  for (let i = 0; i < nome.length; i++) {
+    hash = nome.charCodeAt(i) + ((hash << 5) - hash);
+  }
+
+  const hue = Math.abs(hash) % 360;
+  const cor1 = `hsl(${hue}, 82%, 45%)`;
+  const cor2 = `hsl(${(hue + 45) % 360}, 88%, 28%)`;
+
+  const svg = `
+    <svg xmlns="http://www.w3.org/2000/svg" width="120" height="120" viewBox="0 0 120 120">
+      <defs>
+        <linearGradient id="g" x1="0" y1="0" x2="1" y2="1">
+          <stop offset="0%" stop-color="${cor1}"/>
+          <stop offset="100%" stop-color="${cor2}"/>
+        </linearGradient>
+        <filter id="shadow" x="-20%" y="-20%" width="140%" height="140%">
+          <feDropShadow dx="0" dy="8" stdDeviation="6" flood-color="#000000" flood-opacity="0.35"/>
+        </filter>
+      </defs>
+
+      <path
+        d="M60 7 L101 22 V54 C101 82 82 104 60 114 C38 104 19 82 19 54 V22 Z"
+        fill="url(#g)"
+        stroke="rgba(255,255,255,0.78)"
+        stroke-width="5"
+        filter="url(#shadow)"
+      />
+
+      <path
+        d="M60 18 L88 29 V53 C88 73 76 89 60 97 C44 89 32 73 32 53 V29 Z"
+        fill="rgba(5,8,22,0.25)"
+        stroke="rgba(255,255,255,0.22)"
+        stroke-width="2"
+      />
+
+      <circle
+        cx="60"
+        cy="57"
+        r="28"
+        fill="rgba(5,8,22,0.38)"
+        stroke="rgba(255,255,255,0.38)"
+        stroke-width="2"
+      />
+
+      <text
+        x="60"
+        y="67"
+        text-anchor="middle"
+        font-family="Arial, Helvetica, sans-serif"
+        font-size="28"
+        font-weight="900"
+        fill="#ffffff"
+      >${iniciais}</text>
+
+      <text
+        x="60"
+        y="92"
+        text-anchor="middle"
+        font-family="Arial, Helvetica, sans-serif"
+        font-size="8"
+        font-weight="800"
+        letter-spacing="1"
+        fill="rgba(255,255,255,0.78)"
+      >BET IA</text>
+    </svg>
+  `;
+
+  return `data:image/svg+xml;charset=UTF-8,${encodeURIComponent(svg)}`;
+}
+
+function urlLogoValida(url = '') {
+  const v = String(url || '').trim();
+
+  if (!v) return false;
+  if (v === 'null') return false;
+  if (v === 'undefined') return false;
+  if (v.includes('time-generico')) return false;
+  if (v.includes('5323814')) return false;
+
+  return true;
+}
+
+function escudoTime(urlLogo, nomeTime) {
+  return urlLogoValida(urlLogo)
+    ? urlLogo
+    : gerarEscudoAutomatico(nomeTime);
+}
 const PLANO_PRO = { nome: 'BetAnalytics PRO Mensal', valor: 29.90, dias: 30 };
 let supabase = { from: () => ({ select: () => ({ eq: () => ({ single: () => ({ data: null, error: null }) }) }) }) };
 try {
@@ -123,8 +222,8 @@ status: (tempoJogo === 'INTERVALO' || tempoJogo.includes("'")) ? 'Live' : (tempo
 time_elapsed: tempoJogo,
 home_team: j.time_casa,
 away_team: j.time_fora,
-home_image: j.logo_casa || 'https://cdn-icons-png.flaticon.com/512/5323/5323814.png',
-away_image: j.logo_fora || 'https://cdn-icons-png.flaticon.com/512/5323/5323814.png',
+home_image: escudoTime(j.logo_casa, j.time_casa),
+away_image: escudoTime(j.logo_fora, j.time_fora),
 scoreHome: j.placar_casa ?? 0,
 scoreAway: j.placar_fora ?? 0,
 confianca_ia: ia,
@@ -216,9 +315,25 @@ return Object.entries(jGrp).map(([leagueName, matches]) => (
 <button onClick={(e) => { e.stopPropagation(); toggleFavorito(e, j.id); }} className="p-1"><Star className={`w-5 h-5 ${favoritos.includes(j.id) ? 'fill-yellow-400 text-yellow-400' : 'text-slate-600'}`} /></button>
 </div>
 <div className="grid grid-cols-3 items-center text-center mb-4">
-<div className="flex flex-col items-center gap-2"><img src={j.home_image} className="w-10 h-10 object-contain" alt="" /><span className="text-[10px] font-bold text-slate-200 truncate w-full">{j.home_team}</span></div>
+<div className="flex flex-col items-center gap-2"><img
+  src={escudoTime(j.home_image, j.home_team)}
+  onError={(e) => {
+    e.currentTarget.onerror = null;
+    e.currentTarget.src = gerarEscudoAutomatico(j.home_team);
+  }}
+  className="w-10 h-10 object-contain"
+  alt={j.home_team || 'Time casa'}
+/><span className="text-[10px] font-bold text-slate-200 truncate w-full">{j.home_team}</span></div>
 <div className="text-2xl font-black">{j.status === 'Live' || j.status === 'Finished' ? `${j.scoreHome} - ${j.scoreAway}` : <span className="text-slate-600">-</span>}</div>
-<div className="flex flex-col items-center gap-2"><img src={j.away_image} className="w-10 h-10 object-contain" alt="" /><span className="text-[10px] font-bold text-slate-200 truncate w-full">{j.away_team}</span></div>
+<div className="flex flex-col items-center gap-2"><img
+  src={escudoTime(j.away_image, j.away_team)}
+  onError={(e) => {
+    e.currentTarget.onerror = null;
+    e.currentTarget.src = gerarEscudoAutomatico(j.away_team);
+  }}
+  className="w-10 h-10 object-contain"
+  alt={j.away_team || 'Time fora'}
+/><span className="text-[10px] font-bold text-slate-200 truncate w-full">{j.away_team}</span></div>
 </div>
 </div>
 ))}
