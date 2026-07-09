@@ -124,8 +124,8 @@ function escudoTime(urlLogo, nomeTime) {
 
 
 // =========================================================
-// BETANALYTICS PRO - ANÁLISE RIGOROSA DE PROBABILIDADE
-// Motor visual com 100 critérios ponderados.
+// BETANALYTICS PRO - MOTOR MATEMÁTICO AVANÇADO DE PROBABILIDADE
+// Versão melhorada: modelo logístico ponderado + empate + qualidade dos dados.
 // Importante: probabilidade estimada não é garantia de resultado.
 // =========================================================
 
@@ -134,7 +134,7 @@ const CATEGORIAS_CRITERIOS_100 = [
   ['Ataque', ['gols marcados', 'média de gols', 'finalizações', 'chutes no gol', 'xG ofensivo', 'ataques', 'ataques perigosos', 'grandes chances', 'conversão', 'pressão ofensiva']],
   ['Defesa', ['gols sofridos', 'xG contra', 'clean sheets', 'desarmes', 'interceptações', 'bloqueios', 'erros defensivos', 'cartões', 'pênaltis contra', 'solidez defensiva']],
   ['Momento recente', ['forma atual', 'últimos 5 jogos', 'últimos 10 jogos', 'sequência de vitórias', 'invencibilidade', 'gols recentes', 'defesa recente', '1º tempo', '2º tempo', 'consistência recente']],
-  ['Contexto', ['mando de campo', 'descanso', 'viagem', 'torcida', 'estádio', 'motivação', 'necessidade', 'importância', 'clima', 'gramado']],
+  ['Contexto do jogo', ['mando de campo', 'descanso', 'viagem', 'torcida', 'estádio', 'motivação', 'necessidade', 'importância', 'clima', 'gramado']],
   ['Confronto direto', ['vitórias H2H', 'gols H2H', 'último confronto', 'dominância histórica', 'H2H casa/fora', 'gols sofridos H2H', 'sequência H2H', 'controle H2H', 'eficiência H2H', 'psicológico H2H']],
   ['Elenco', ['valor do elenco', 'titulares disponíveis', 'lesões', 'suspensões', 'banco', 'artilheiro disponível', 'goleiro', 'meio-campo', 'defesa titular', 'ataque titular']],
   ['Mercado', ['odd vitória', 'probabilidade mercado', 'queda de odd', 'volume', 'movimento sharp', 'EV positivo', 'Kelly', 'valor esperado', 'distorção', 'consenso mercado']],
@@ -143,11 +143,7 @@ const CATEGORIAS_CRITERIOS_100 = [
 ];
 
 const CRITERIOS_ANALISE_RIGOROSA_100 = CATEGORIAS_CRITERIOS_100.flatMap(([categoria, itens]) =>
-  itens.map((nome, index) => ({
-    categoria,
-    nome,
-    id: `${categoria}-${nome}-${index}`
-  }))
+  itens.map((nome, index) => ({ categoria, nome, id: `${categoria}-${nome}-${index}` }))
 );
 
 function numeroSeguroAnalise(valor, padrao = null) {
@@ -168,7 +164,16 @@ function limitarAnalise(valor, min, max) {
   return Math.max(min, Math.min(max, valor));
 }
 
-function valorPorCaminhoAnalise(obj, caminhos = []) {
+function sigmoidAnalise(x) {
+  return 1 / (1 + Math.exp(-x));
+}
+
+function logitAnalise(p) {
+  const v = limitarAnalise(Number(p), 0.02, 0.98);
+  return Math.log(v / (1 - v));
+}
+
+function pegarValorAnalise(obj, caminhos = []) {
   for (const caminho of caminhos) {
     try {
       const valor = String(caminho).split('.').reduce((acc, key) => acc?.[key], obj);
@@ -181,245 +186,399 @@ function valorPorCaminhoAnalise(obj, caminhos = []) {
   return null;
 }
 
-function normalizarParAnalise(casa, fora, direcao = 'maior') {
+function normalizarParAnalise(casa, fora, direcao = 'maior', sensibilidade = 2.15) {
   const c = numeroSeguroAnalise(casa, null);
   const f = numeroSeguroAnalise(fora, null);
 
   if (c === null || f === null) return null;
-
   if (c === f) return { casa: 0.5, fora: 0.5 };
 
-  const ac = Math.abs(c);
-  const af = Math.abs(f);
-  const total = ac + af;
-
-  if (!total) return null;
-
-  let casaScore = ac / total;
-  let foraScore = af / total;
-
-  if (direcao === 'menor') {
-    casaScore = af / total;
-    foraScore = ac / total;
-  }
+  const escala = Math.max(Math.abs(c), Math.abs(f), 1);
+  const diferenca = direcao === 'menor' ? (f - c) / escala : (c - f) / escala;
+  const probCasa = sigmoidAnalise(diferenca * sensibilidade);
 
   return {
-    casa: limitarAnalise(casaScore, 0.08, 0.92),
-    fora: limitarAnalise(foraScore, 0.08, 0.92)
+    casa: limitarAnalise(probCasa, 0.08, 0.92),
+    fora: limitarAnalise(1 - probCasa, 0.08, 0.92)
   };
 }
 
 function pontuarFormaAnalise(lista = []) {
   if (!Array.isArray(lista) || !lista.length) return null;
 
-  const pontos = lista.slice(-5).reduce((acc, r) => {
+  return lista.slice(-6).reduce((acc, r, index) => {
     const v = String(r || '').toUpperCase();
-    if (v === 'W' || v === 'V') return acc + 3;
-    if (v === 'D' || v === 'E') return acc + 1;
+    const pesoRecencia = 1 + index * 0.08;
+    if (v === 'W' || v === 'V') return acc + 3 * pesoRecencia;
+    if (v === 'D' || v === 'E') return acc + 1 * pesoRecencia;
     return acc;
   }, 0);
-
-  return pontos;
 }
 
-function calcularIndicadoresAnalise(jogo = {}) {
+function minutoDoJogoAnalise(jogo = {}) {
+  const status = String(jogo.status || '').toLowerCase();
+  if (status.includes('finished') || status.includes('final')) return 90;
+  const t = String(jogo.time_elapsed || jogo.tempo_jogo || '').match(/\d+/);
+  return limitarAnalise(t ? Number(t[0]) : 0, 0, 90);
+}
+
+function adicionarFatorAnalise(fatores, fator) {
+  if (!fator || typeof fator.casa !== 'number') return;
+
+  fatores.push({
+    nome: fator.nome || 'Critério',
+    categoria: fator.categoria || 'Modelo',
+    peso: limitarAnalise(Number(fator.peso || 1), 0.15, 4),
+    confiabilidade: limitarAnalise(Number(fator.confiabilidade ?? 0.75), 0.2, 1),
+    criterios: limitarAnalise(Number(fator.criterios || 1), 1, 15),
+    dadoReal: Boolean(fator.dadoReal),
+    casa: limitarAnalise(Number(fator.casa), 0.03, 0.97),
+    fora: limitarAnalise(Number(fator.fora ?? (1 - fator.casa)), 0.03, 0.97),
+    detalhe: fator.detalhe || ''
+  });
+}
+
+function calcularH2HAnalise(jogo = {}) {
+  if (!Array.isArray(jogo.confrontosDiretos) || !jogo.confrontosDiretos.length) return null;
+
+  const casaNome = String(jogo.home_team || jogo.time_casa || '').toLowerCase();
+  const foraNome = String(jogo.away_team || jogo.time_fora || '').toLowerCase();
+
+  let pontosCasa = 0;
+  let pontosFora = 0;
+
+  jogo.confrontosDiretos.slice(0, 8).forEach((h, index) => {
+    const placar = String(h.placar || '').match(/(\d+)\s*-\s*(\d+)/);
+    if (!placar) return;
+
+    const golsA = Number(placar[1]);
+    const golsB = Number(placar[2]);
+    const nomeA = String(h.casa || '').toLowerCase();
+    const nomeB = String(h.fora || '').toLowerCase();
+    const recencia = 1 + (8 - index) * 0.04;
+
+    if (golsA === golsB) {
+      pontosCasa += 1 * recencia;
+      pontosFora += 1 * recencia;
+      return;
+    }
+
+    const vencedorA = golsA > golsB;
+    const venceuCasaAtual = (vencedorA && nomeA.includes(casaNome)) || (!vencedorA && nomeB.includes(casaNome));
+    const venceuForaAtual = (vencedorA && nomeA.includes(foraNome)) || (!vencedorA && nomeB.includes(foraNome));
+
+    if (venceuCasaAtual) pontosCasa += 3 * recencia;
+    if (venceuForaAtual) pontosFora += 3 * recencia;
+  });
+
+  return normalizarParAnalise(pontosCasa, pontosFora, 'maior', 1.65);
+}
+
+function calcularFatoresMatematicosAnalise(jogo = {}) {
   const est = jogo.estatisticas || {};
   const stats = jogo.stats || {};
   const probs = jogo.probabilidades || {};
   const forma = jogo.ultimosJogos || {};
-
-  const scoreHome = numeroSeguroAnalise(jogo.scoreHome ?? jogo.placar_casa, 0);
-  const scoreAway = numeroSeguroAnalise(jogo.scoreAway ?? jogo.placar_fora, 0);
-  const status = String(jogo.status || '').toLowerCase();
-  const aoVivoOuFinalizado = status.includes('live') || status.includes('finished') || status.includes('final');
-
   const fatores = [];
 
-  // 1) Probabilidades já existentes no jogo, quando vierem da API/IA.
-  const probCasa = numeroSeguroAnalise(probs.casa, null);
-  const probFora = numeroSeguroAnalise(probs.fora, null);
-  if (probCasa !== null && probFora !== null) {
-    const par = normalizarParAnalise(probCasa, probFora, 'maior');
-    if (par) fatores.push({ nome: 'Probabilidade IA/API', peso: 2.2, ...par, dadoReal: true });
-  }
+  const status = String(jogo.status || '').toLowerCase();
+  const minuto = minutoDoJogoAnalise(jogo);
+  const aoVivo = status.includes('live');
+  const finalizado = status.includes('finished') || status.includes('final');
+  const scoreHome = numeroSeguroAnalise(jogo.scoreHome ?? jogo.placar_casa, 0);
+  const scoreAway = numeroSeguroAnalise(jogo.scoreAway ?? jogo.placar_fora, 0);
 
-  // 2) Placar ao vivo.
-  if (aoVivoOuFinalizado) {
-    if (scoreHome > scoreAway) {
-      const vantagem = limitarAnalise(0.58 + Math.abs(scoreHome - scoreAway) * 0.09, 0.58, 0.9);
-      fatores.push({ nome: 'Placar atual', peso: 2.4, casa: vantagem, fora: 1 - vantagem, dadoReal: true });
-    } else if (scoreAway > scoreHome) {
-      const vantagem = limitarAnalise(0.58 + Math.abs(scoreHome - scoreAway) * 0.09, 0.58, 0.9);
-      fatores.push({ nome: 'Placar atual', peso: 2.4, casa: 1 - vantagem, fora: vantagem, dadoReal: true });
-    } else {
-      fatores.push({ nome: 'Placar empatado', peso: 1.3, casa: 0.5, fora: 0.5, dadoReal: true });
-    }
-  }
+  const probCasaApi = numeroSeguroAnalise(probs.casa, null);
+  const probForaApi = numeroSeguroAnalise(probs.fora, null);
+  const probEmpateApi = numeroSeguroAnalise(probs.empate, null);
 
-  // 3) Estatísticas reais/live.
-  const paresNumericos = [
-    ['Posse de bola', est.posseCasa ?? stats.posseCasa, est.posseFora ?? stats.posseFora, 'maior', 1.05],
-    ['Ataques', est.ataquesCasa, est.ataquesFora, 'maior', 1.05],
-    ['Finalizações', est.chutesCasa ?? stats.chutesCasa ?? stats.chutes, est.chutesFora ?? stats.chutesFora, 'maior', 1.1],
-    ['Escanteios', est.escanteiosCasa ?? stats.cantos, est.escanteiosFora, 'maior', 0.9],
-    ['Cartões', est.cartoesCasa, est.cartoesFora, 'menor', 0.75],
-    ['Faltas', est.faltasCasa, est.faltasFora, 'menor', 0.7],
-    ['Passes', est.passesCasa, est.passesFora, 'maior', 0.75],
-    ['Pressão IA', stats.pressao, 100 - numeroSeguroAnalise(stats.pressao, 50), 'maior', 1.15]
-  ];
-
-  for (const [nome, casa, fora, direcao, peso] of paresNumericos) {
-    const par = normalizarParAnalise(casa, fora, direcao);
-    if (par) fatores.push({ nome, peso, ...par, dadoReal: true });
-  }
-
-  // 4) Forma recente.
-  const formaCasa = pontuarFormaAnalise(forma.casa);
-  const formaFora = pontuarFormaAnalise(forma.fora);
-  const parForma = normalizarParAnalise(formaCasa, formaFora, 'maior');
-  if (parForma) fatores.push({ nome: 'Forma últimos jogos', peso: 1.25, ...parForma, dadoReal: true });
-
-  // 5) Confrontos diretos do objeto demo/API.
-  if (Array.isArray(jogo.confrontosDiretos) && jogo.confrontosDiretos.length) {
-    const casaNome = String(jogo.home_team || '').toLowerCase();
-    const foraNome = String(jogo.away_team || '').toLowerCase();
-
-    let pontosCasa = 0;
-    let pontosFora = 0;
-
-    jogo.confrontosDiretos.slice(0, 6).forEach(h => {
-      const placar = String(h.placar || '').match(/(\d+)\s*-\s*(\d+)/);
-      if (!placar) return;
-      const a = Number(placar[1]);
-      const b = Number(placar[2]);
-      const hCasa = String(h.casa || '').toLowerCase();
-      const hFora = String(h.fora || '').toLowerCase();
-
-      if (a === b) {
-        pontosCasa += 1;
-        pontosFora += 1;
-      } else if ((a > b && hCasa.includes(casaNome)) || (b > a && hFora.includes(casaNome))) {
-        pontosCasa += 3;
-      } else if ((a > b && hCasa.includes(foraNome)) || (b > a && hFora.includes(foraNome))) {
-        pontosFora += 3;
-      }
-    });
-
-    const parH2H = normalizarParAnalise(pontosCasa, pontosFora, 'maior');
-    if (parH2H) fatores.push({ nome: 'Confronto direto', peso: 1.0, ...parH2H, dadoReal: true });
-  }
-
-  // 6) Mando de campo: sempre usado, mas com peso menor.
-  fatores.push({ nome: 'Mando de campo', peso: 0.85, casa: 0.56, fora: 0.44, dadoReal: false });
-
-  // 7) Confiança IA geral: aumenta a força do lado que já está melhor nos dados.
-  const confianca = numeroSeguroAnalise(jogo.confianca_ia, 88);
-  const parcialCasa = fatores.reduce((acc, f) => acc + f.casa * f.peso, 0);
-  const parcialFora = fatores.reduce((acc, f) => acc + f.fora * f.peso, 0);
-  const ladoCasa = parcialCasa >= parcialFora;
-  const forcaIa = limitarAnalise(confianca / 100, 0.5, 0.96);
-
-  fatores.push({
-    nome: 'Confiança IA geral',
-    peso: 1.45,
-    casa: ladoCasa ? forcaIa : 1 - forcaIa,
-    fora: ladoCasa ? 1 - forcaIa : forcaIa,
-    dadoReal: Boolean(jogo.confianca_ia)
-  });
-
-  // 8) Odd principal: serve como intensidade de mercado quando existir.
-  const odd = numeroSeguroAnalise(jogo.odd_principal, null);
-  if (odd && odd > 1) {
-    const probMercado = limitarAnalise((1 / odd), 0.22, 0.78);
-    const ladoCasaOdd = parcialCasa >= parcialFora;
-    fatores.push({
-      nome: 'Mercado / odd principal',
-      peso: 0.85,
-      casa: ladoCasaOdd ? probMercado : 1 - probMercado,
-      fora: ladoCasaOdd ? 1 - probMercado : probMercado,
+  if (probCasaApi !== null && probForaApi !== null) {
+    const somaBinaria = Math.max(probCasaApi + probForaApi, 1);
+    adicionarFatorAnalise(fatores, {
+      nome: 'Probabilidade IA/API',
+      categoria: 'Inteligência IA',
+      peso: 3.2,
+      confiabilidade: 0.92,
+      criterios: 12,
+      casa: probCasaApi / somaBinaria,
+      fora: probForaApi / somaBinaria,
       dadoReal: true
     });
   }
 
-  return fatores;
+  const oddCasa = pegarValorAnalise(jogo, ['odd_casa', 'home_odd', 'odds.home', 'odds.casa']);
+  const oddEmpate = pegarValorAnalise(jogo, ['odd_empate', 'draw_odd', 'odds.draw', 'odds.empate']);
+  const oddFora = pegarValorAnalise(jogo, ['odd_fora', 'away_odd', 'odds.away', 'odds.fora']);
+
+  if (oddCasa && oddFora && oddCasa > 1 && oddFora > 1) {
+    const impCasa = 1 / oddCasa;
+    const impFora = 1 / oddFora;
+    const margem = impCasa + impFora + (oddEmpate && oddEmpate > 1 ? 1 / oddEmpate : 0);
+    const casaLimpa = impCasa / Math.max(margem - (oddEmpate && oddEmpate > 1 ? 1 / oddEmpate : 0), 0.01);
+    const foraLimpa = impFora / Math.max(margem - (oddEmpate && oddEmpate > 1 ? 1 / oddEmpate : 0), 0.01);
+    const soma = casaLimpa + foraLimpa;
+
+    adicionarFatorAnalise(fatores, {
+      nome: 'Mercado sem margem',
+      categoria: 'Mercado',
+      peso: 2.4,
+      confiabilidade: 0.88,
+      criterios: 10,
+      casa: casaLimpa / soma,
+      fora: foraLimpa / soma,
+      dadoReal: true
+    });
+  }
+
+  if (aoVivo || finalizado) {
+    const diff = scoreHome - scoreAway;
+    if (finalizado) {
+      adicionarFatorAnalise(fatores, {
+        nome: 'Resultado final',
+        categoria: 'Ao vivo',
+        peso: 4,
+        confiabilidade: 1,
+        criterios: 15,
+        casa: diff > 0 ? 0.98 : diff < 0 ? 0.02 : 0.5,
+        fora: diff < 0 ? 0.98 : diff > 0 ? 0.02 : 0.5,
+        dadoReal: true
+      });
+    } else if (diff !== 0) {
+      const forcaTempo = 1 + minuto / 90;
+      const pCasa = sigmoidAnalise(diff * forcaTempo * 1.18);
+      adicionarFatorAnalise(fatores, {
+        nome: 'Placar ao vivo ajustado por minuto',
+        categoria: 'Ao vivo',
+        peso: 3.5,
+        confiabilidade: 0.95,
+        criterios: 12,
+        casa: pCasa,
+        fora: 1 - pCasa,
+        dadoReal: true
+      });
+    } else {
+      adicionarFatorAnalise(fatores, {
+        nome: 'Placar empatado ao vivo',
+        categoria: 'Ao vivo',
+        peso: 1.2,
+        confiabilidade: 0.72,
+        criterios: 5,
+        casa: 0.5,
+        fora: 0.5,
+        dadoReal: true
+      });
+    }
+  }
+
+  const paresNumericos = [
+    ['Posse de bola', est.posseCasa ?? stats.posseCasa, est.posseFora ?? stats.posseFora, 'maior', 1.1, 0.72, 4],
+    ['Ataques', est.ataquesCasa, est.ataquesFora, 'maior', 1.05, 0.74, 4],
+    ['Ataques perigosos', est.ataquesPerigososCasa ?? est.ataques_perigosos_casa ?? stats.ataquesPerigososCasa, est.ataquesPerigososFora ?? est.ataques_perigosos_fora ?? stats.ataquesPerigososFora, 'maior', 1.35, 0.82, 6],
+    ['Finalizações', est.chutesCasa ?? stats.chutesCasa ?? stats.chutes, est.chutesFora ?? stats.chutesFora, 'maior', 1.25, 0.78, 5],
+    ['Chutes no gol', est.chutesGolCasa ?? est.chutes_gol_casa ?? stats.chutesGolCasa, est.chutesGolFora ?? est.chutes_gol_fora ?? stats.chutesGolFora, 'maior', 1.45, 0.84, 6],
+    ['xG ao vivo', est.xgCasa ?? stats.xgCasa ?? stats.xg, est.xgFora ?? stats.xgFora, 'maior', 1.7, 0.9, 8],
+    ['Escanteios', est.escanteiosCasa ?? stats.cantos, est.escanteiosFora, 'maior', 0.82, 0.66, 3],
+    ['Cartões', est.cartoesCasa, est.cartoesFora, 'menor', 0.72, 0.62, 3],
+    ['Faltas', est.faltasCasa, est.faltasFora, 'menor', 0.62, 0.56, 2],
+    ['Passes', est.passesCasa, est.passesFora, 'maior', 0.62, 0.58, 2]
+  ];
+
+  for (const [nome, casa, fora, direcao, peso, confiabilidade, criterios] of paresNumericos) {
+    const par = normalizarParAnalise(casa, fora, direcao, nome.includes('xG') ? 2.6 : 2.05);
+    if (par) adicionarFatorAnalise(fatores, { nome, categoria: aoVivo ? 'Ao vivo' : 'Estatísticas', peso, confiabilidade, criterios, ...par, dadoReal: true });
+  }
+
+  const formaCasa = pontuarFormaAnalise(forma.casa);
+  const formaFora = pontuarFormaAnalise(forma.fora);
+  const parForma = normalizarParAnalise(formaCasa, formaFora, 'maior', 1.75);
+  if (parForma) adicionarFatorAnalise(fatores, { nome: 'Forma ponderada recente', categoria: 'Momento recente', peso: 1.5, confiabilidade: 0.76, criterios: 8, ...parForma, dadoReal: true });
+
+  const parH2H = calcularH2HAnalise(jogo);
+  if (parH2H) adicionarFatorAnalise(fatores, { nome: 'Confronto direto ponderado', categoria: 'Confronto direto', peso: 0.95, confiabilidade: 0.62, criterios: 5, ...parH2H, dadoReal: true });
+
+  adicionarFatorAnalise(fatores, {
+    nome: 'Mando de campo calibrado',
+    categoria: 'Contexto do jogo',
+    peso: aoVivo ? 0.55 : 0.95,
+    confiabilidade: 0.68,
+    criterios: 4,
+    casa: 0.565,
+    fora: 0.435,
+    dadoReal: false
+  });
+
+  const confiancaIa = numeroSeguroAnalise(jogo.confianca_ia, null);
+  if (confiancaIa !== null) {
+    const somaParcialPeso = fatores.reduce((acc, f) => acc + f.peso * f.confiabilidade, 0) || 1;
+    const parcial = fatores.reduce((acc, f) => acc + logitAnalise(f.casa) * f.peso * f.confiabilidade, 0) / somaParcialPeso;
+    const ladoCasa = parcial >= 0;
+    const intensidade = limitarAnalise((confiancaIa - 50) / 50, 0, 0.92);
+    const pIa = 0.5 + intensidade * 0.42;
+
+    adicionarFatorAnalise(fatores, {
+      nome: 'Confiança IA calibrada',
+      categoria: 'Inteligência IA',
+      peso: 1.8,
+      confiabilidade: 0.72,
+      criterios: 8,
+      casa: ladoCasa ? pIa : 1 - pIa,
+      fora: ladoCasa ? 1 - pIa : pIa,
+      dadoReal: true
+    });
+  }
+
+  const oddPrincipal = numeroSeguroAnalise(jogo.odd_principal, null);
+  if (oddPrincipal && oddPrincipal > 1 && !oddCasa && !oddFora) {
+    const somaParcialPeso = fatores.reduce((acc, f) => acc + f.peso * f.confiabilidade, 0) || 1;
+    const parcial = fatores.reduce((acc, f) => acc + logitAnalise(f.casa) * f.peso * f.confiabilidade, 0) / somaParcialPeso;
+    const ladoCasa = parcial >= 0;
+    const probMercado = limitarAnalise(1 / oddPrincipal, 0.18, 0.82);
+
+    adicionarFatorAnalise(fatores, {
+      nome: 'Odd principal ajustada',
+      categoria: 'Mercado',
+      peso: 0.85,
+      confiabilidade: 0.55,
+      criterios: 4,
+      casa: ladoCasa ? probMercado : 1 - probMercado,
+      fora: ladoCasa ? 1 - probMercado : probMercado,
+      dadoReal: true
+    });
+  }
+
+  return { fatores, probEmpateApi, oddEmpate };
+}
+
+function calcularEmpateAnalise({ jogo, pCasaCondicional, fatores, probEmpateApi, oddEmpate }) {
+  const status = String(jogo.status || '').toLowerCase();
+  const finalizado = status.includes('finished') || status.includes('final');
+  const aoVivo = status.includes('live');
+  const minuto = minutoDoJogoAnalise(jogo);
+  const scoreHome = numeroSeguroAnalise(jogo.scoreHome ?? jogo.placar_casa, 0);
+  const scoreAway = numeroSeguroAnalise(jogo.scoreAway ?? jogo.placar_fora, 0);
+  const diff = Math.abs(scoreHome - scoreAway);
+  const margemCondicional = Math.abs(pCasaCondicional - 0.5) * 2;
+
+  if (finalizado) return scoreHome === scoreAway ? 0.985 : 0.01;
+
+  let empateBase;
+  if (aoVivo) {
+    if (diff === 0) empateBase = 0.22 + (minuto / 90) * 0.28;
+    else empateBase = 0.16 - diff * 0.035 - (minuto / 90) * 0.06;
+  } else {
+    empateBase = 0.27 - margemCondicional * 0.15;
+  }
+
+  let empate = limitarAnalise(empateBase, aoVivo ? 0.04 : 0.08, aoVivo ? 0.54 : 0.34);
+
+  if (probEmpateApi !== null) {
+    const p = probEmpateApi > 1 ? probEmpateApi / 100 : probEmpateApi;
+    if (p > 0 && p < 1) empate = empate * 0.35 + p * 0.65;
+  }
+
+  if (oddEmpate && oddEmpate > 1) {
+    const p = limitarAnalise(1 / oddEmpate, 0.06, 0.42);
+    empate = empate * 0.55 + p * 0.45;
+  }
+
+  if (fatores.length < 3) empate = empate * 0.75 + 0.25 * 0.25;
+
+  return limitarAnalise(empate, 0.01, 0.6);
 }
 
 function analisarProbabilidadeVitoria(jogo = {}) {
   const casaNome = jogo.home_team || jogo.time_casa || 'Mandante';
   const foraNome = jogo.away_team || jogo.time_fora || 'Visitante';
+  const { fatores, probEmpateApi, oddEmpate } = calcularFatoresMatematicosAnalise(jogo);
 
-  const fatores = calcularIndicadoresAnalise(jogo);
-
-  let scoreCasa = 0;
-  let scoreFora = 0;
-  let pesoTotal = 0;
-
-  fatores.forEach(f => {
-    scoreCasa += f.casa * f.peso;
-    scoreFora += f.fora * f.peso;
-    pesoTotal += f.peso;
-  });
-
-  if (!pesoTotal) {
+  if (!fatores.length) {
     return {
       favorito: 'Sem favorito claro',
       probabilidade: 50,
-      probCasa: 50,
-      probFora: 50,
-      confianca: 35,
+      probCasa: 38,
+      probEmpate: 24,
+      probFora: 38,
+      confianca: 32,
       nivel: 'Dados insuficientes',
+      criteriosUsados: 0,
       criteriosTotal: CRITERIOS_ANALISE_RIGOROSA_100.length,
       baseDados: 0,
-      pontosFortes: []
+      pontosFortes: ['Aguardando dados reais'],
+      metodo: 'Modelo aguardando estatísticas'
     };
   }
 
-  let probCasa = (scoreCasa / pesoTotal) * 100;
-  let probFora = (scoreFora / pesoTotal) * 100;
+  const pesoTotal = fatores.reduce((acc, f) => acc + f.peso * f.confiabilidade, 0) || 1;
+  const mediaLogit = fatores.reduce((acc, f) => acc + logitAnalise(f.casa) * f.peso * f.confiabilidade, 0) / pesoTotal;
+  const pCasaBruto = sigmoidAnalise(mediaLogit);
 
-  const soma = probCasa + probFora;
+  const criteriosUsados = limitarAnalise(Math.round(fatores.reduce((acc, f) => acc + f.criterios, 0)), 1, CRITERIOS_ANALISE_RIGOROSA_100.length);
+  const fatoresReais = fatores.filter(f => f.dadoReal).length;
+  const cobertura = limitarAnalise((criteriosUsados / CRITERIOS_ANALISE_RIGOROSA_100.length) * 0.78 + (fatoresReais / 12) * 0.22, 0.12, 1);
+
+  const shrink = limitarAnalise(0.38 + cobertura * 0.62, 0.38, 1);
+  const pCasaCondicional = 0.5 + (pCasaBruto - 0.5) * shrink;
+  const probEmpate = calcularEmpateAnalise({ jogo, pCasaCondicional, fatores, probEmpateApi, oddEmpate });
+  const probNaoEmpate = 1 - probEmpate;
+
+  let probCasa = pCasaCondicional * probNaoEmpate;
+  let probFora = (1 - pCasaCondicional) * probNaoEmpate;
+
+  const soma = probCasa + probEmpate + probFora;
   probCasa = (probCasa / soma) * 100;
+  const probEmpatePct = (probEmpate / soma) * 100;
   probFora = (probFora / soma) * 100;
 
-  const favoritoCasa = probCasa >= probFora;
-  const margem = Math.abs(probCasa - probFora);
+  const candidatos = [
+    { nome: casaNome, tipo: 'casa', prob: probCasa },
+    { nome: 'Empate provável', tipo: 'empate', prob: probEmpatePct },
+    { nome: foraNome, tipo: 'fora', prob: probFora }
+  ].sort((a, b) => b.prob - a.prob);
 
-  const dadosReais = fatores.filter(f => f.dadoReal).length;
-  const baseDados = limitarAnalise(Math.round((dadosReais / Math.max(fatores.length, 1)) * 100), 20, 100);
+  const lider = candidatos[0];
+  const segundo = candidatos[1];
+  const margem = lider.prob - segundo.prob;
 
-  let confianca = 42 + margem * 0.6 + baseDados * 0.28;
-  confianca = limitarAnalise(confianca, 35, 96);
+  const alinhados = fatores.filter(f => {
+    if (lider.tipo === 'empate') return Math.abs(f.casa - 0.5) < 0.08;
+    return lider.tipo === 'casa' ? f.casa > 0.52 : f.fora > 0.52;
+  });
+  const acordo = alinhados.reduce((acc, f) => acc + f.peso * f.confiabilidade, 0) / pesoTotal;
 
-  let favorito = favoritoCasa ? casaNome : foraNome;
-  let probabilidade = favoritoCasa ? probCasa : probFora;
+  let confianca = 30 + cobertura * 34 + acordo * 18 + margem * 0.45;
+  if (criteriosUsados < 12) confianca -= 8;
+  confianca = limitarAnalise(confianca, 30, 96);
 
   let nivel = 'Equilibrado';
-  if (margem >= 18 && confianca >= 75 && baseDados >= 55) nivel = 'Favorito forte';
-  else if (margem >= 10 && confianca >= 64) nivel = 'Favorito moderado';
-  else if (margem >= 5) nivel = 'Leve vantagem';
+  if (criteriosUsados < 8) nivel = 'Poucos dados';
+  else if (margem >= 20 && confianca >= 76 && cobertura >= 0.45) nivel = 'Favorito muito forte';
+  else if (margem >= 14 && confianca >= 68) nivel = 'Favorito forte';
+  else if (margem >= 8 && confianca >= 58) nivel = 'Favorito moderado';
+  else if (margem >= 4) nivel = 'Leve vantagem';
 
-  if (margem < 4) {
-    favorito = 'Sem favorito claro';
-    probabilidade = 50;
-    nivel = 'Equilibrado';
-  }
-
+  const favorito = margem < 3.5 ? 'Sem favorito claro' : lider.nome;
   const pontosFortes = fatores
-    .filter(f => favoritoCasa ? f.casa > f.fora : f.fora > f.casa)
-    .sort((a, b) => b.peso - a.peso)
-    .slice(0, 3)
+    .filter(f => {
+      if (lider.tipo === 'empate') return Math.abs(f.casa - 0.5) <= 0.08;
+      return lider.tipo === 'casa' ? f.casa > f.fora : f.fora > f.casa;
+    })
+    .sort((a, b) => (b.peso * b.confiabilidade) - (a.peso * a.confiabilidade))
+    .slice(0, 4)
     .map(f => f.nome);
 
   return {
     favorito,
-    probabilidade: Math.round(limitarAnalise(probabilidade, 50, 96)),
-    probCasa: Math.round(probCasa),
-    probFora: Math.round(probFora),
+    probabilidade: Math.round(limitarAnalise(margem < 3.5 ? lider.prob : lider.prob, 1, 96)),
+    probCasa: Math.round(limitarAnalise(probCasa, 1, 98)),
+    probEmpate: Math.round(limitarAnalise(probEmpatePct, 1, 98)),
+    probFora: Math.round(limitarAnalise(probFora, 1, 98)),
     confianca: Math.round(confianca),
     nivel,
+    criteriosUsados,
     criteriosTotal: CRITERIOS_ANALISE_RIGOROSA_100.length,
-    baseDados,
-    pontosFortes
+    baseDados: Math.round(limitarAnalise(cobertura * 100, 10, 100)),
+    pontosFortes,
+    metodo: 'Logit ponderado + empate + shrinkage bayesiano'
   };
 }
 
@@ -427,13 +586,15 @@ function AnaliseRigorosaCard({ jogo }) {
   const analise = analisarProbabilidadeVitoria(jogo);
 
   const corNivel =
-    analise.nivel === 'Favorito forte'
-      ? 'text-emerald-400 border-emerald-500/30 bg-emerald-500/10'
-      : analise.nivel === 'Favorito moderado'
-        ? 'text-blue-400 border-blue-500/30 bg-blue-500/10'
-        : analise.nivel === 'Leve vantagem'
-          ? 'text-yellow-400 border-yellow-500/30 bg-yellow-500/10'
-          : 'text-slate-300 border-white/10 bg-white/5';
+    analise.nivel === 'Favorito muito forte'
+      ? 'text-emerald-300 border-emerald-400/40 bg-emerald-500/15'
+      : analise.nivel === 'Favorito forte'
+        ? 'text-emerald-400 border-emerald-500/30 bg-emerald-500/10'
+        : analise.nivel === 'Favorito moderado'
+          ? 'text-blue-400 border-blue-500/30 bg-blue-500/10'
+          : analise.nivel === 'Leve vantagem'
+            ? 'text-yellow-400 border-yellow-500/30 bg-yellow-500/10'
+            : 'text-slate-300 border-white/10 bg-white/5';
 
   return (
     <div className="mt-4 bg-[#050816]/70 border border-white/10 rounded-2xl p-4">
@@ -442,7 +603,7 @@ function AnaliseRigorosaCard({ jogo }) {
           <Target className="w-4 h-4 text-blue-400 flex-shrink-0" />
           <div className="min-w-0">
             <div className="text-[10px] font-black uppercase tracking-widest text-slate-500">
-              Análise rigorosa IA
+              Análise matemática IA
             </div>
             <div className="text-sm font-black text-white truncate">
               {analise.favorito}
@@ -455,45 +616,39 @@ function AnaliseRigorosaCard({ jogo }) {
         </div>
       </div>
 
-      <div className="grid grid-cols-3 gap-2 mb-3">
-        <div className="bg-[#0f172a] rounded-xl p-3 border border-white/5 text-center">
-          <div className="text-[9px] text-slate-500 font-black uppercase">Prob.</div>
-          <div className="text-lg font-black text-emerald-400">{analise.probabilidade}%</div>
+      <div className="grid grid-cols-4 gap-2 mb-3">
+        <div className="bg-[#0f172a] rounded-xl p-2.5 border border-white/5 text-center">
+          <div className="text-[8px] text-slate-500 font-black uppercase">Prob.</div>
+          <div className="text-base font-black text-emerald-400">{analise.probabilidade}%</div>
         </div>
 
-        <div className="bg-[#0f172a] rounded-xl p-3 border border-white/5 text-center">
-          <div className="text-[9px] text-slate-500 font-black uppercase">Conf.</div>
-          <div className="text-lg font-black text-blue-400">{analise.confianca}%</div>
+        <div className="bg-[#0f172a] rounded-xl p-2.5 border border-white/5 text-center">
+          <div className="text-[8px] text-slate-500 font-black uppercase">Conf.</div>
+          <div className="text-base font-black text-blue-400">{analise.confianca}%</div>
         </div>
 
-        <div className="bg-[#0f172a] rounded-xl p-3 border border-white/5 text-center">
-          <div className="text-[9px] text-slate-500 font-black uppercase">Crit.</div>
-          <div className="text-lg font-black text-yellow-400">{analise.criteriosTotal}</div>
+        <div className="bg-[#0f172a] rounded-xl p-2.5 border border-white/5 text-center">
+          <div className="text-[8px] text-slate-500 font-black uppercase">Base</div>
+          <div className="text-base font-black text-purple-400">{analise.baseDados}%</div>
+        </div>
+
+        <div className="bg-[#0f172a] rounded-xl p-2.5 border border-white/5 text-center">
+          <div className="text-[8px] text-slate-500 font-black uppercase">Crit.</div>
+          <div className="text-base font-black text-yellow-400">{analise.criteriosUsados}/{analise.criteriosTotal}</div>
         </div>
       </div>
 
       <div className="mb-2">
-        <div className="flex justify-between gap-2 text-[9px] font-black uppercase text-slate-500 mb-1">
+        <div className="grid grid-cols-3 gap-2 text-[9px] font-black uppercase text-slate-500 mb-1">
           <span className="truncate">{jogo.home_team || 'Casa'} {analise.probCasa}%</span>
+          <span className="truncate text-center">Empate {analise.probEmpate}%</span>
           <span className="truncate text-right">{jogo.away_team || 'Fora'} {analise.probFora}%</span>
         </div>
 
-        <div className="w-full h-2 bg-slate-800 rounded-full overflow-hidden">
-          <div
-            className="h-full bg-gradient-to-r from-blue-500 to-emerald-400 rounded-full"
-            style={{ width: `${analise.probCasa}%` }}
-          />
-        </div>
-      </div>
-
-      <div className="flex justify-between items-center gap-3 mt-3">
-        <div className="text-[9px] text-slate-500 font-black uppercase">
-          Base de dados: {analise.baseDados}%
-        </div>
-
-        <div className="flex items-center gap-1.5 text-[9px] text-slate-500 font-bold uppercase">
-          <TrendingUp className="w-3 h-3" />
-          Estimativa
+        <div className="w-full h-2 bg-slate-800 rounded-full overflow-hidden flex">
+          <div className="h-full bg-blue-500" style={{ width: `${analise.probCasa}%` }} />
+          <div className="h-full bg-slate-500" style={{ width: `${analise.probEmpate}%` }} />
+          <div className="h-full bg-emerald-400" style={{ width: `${analise.probFora}%` }} />
         </div>
       </div>
 
@@ -504,8 +659,9 @@ function AnaliseRigorosaCard({ jogo }) {
         </div>
       )}
 
-      <div className="mt-3 text-[9px] text-slate-500 font-semibold leading-relaxed">
-        Probabilidade calculada por 100 critérios ponderados. Não representa garantia de resultado.
+      <div className="mt-3 flex items-start gap-1.5 text-[9px] text-slate-500 font-semibold leading-relaxed">
+        <TrendingUp className="w-3 h-3 mt-0.5 flex-shrink-0" />
+        {analise.metodo}. Estimativa probabilística, não garantia de resultado.
       </div>
     </div>
   );
