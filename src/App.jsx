@@ -121,6 +121,396 @@ function escudoTime(urlLogo, nomeTime) {
     ? urlLogo
     : gerarEscudoAutomatico(nomeTime);
 }
+
+
+// =========================================================
+// BETANALYTICS PRO - ANÁLISE RIGOROSA DE PROBABILIDADE
+// Motor visual com 100 critérios ponderados.
+// Importante: probabilidade estimada não é garantia de resultado.
+// =========================================================
+
+const CATEGORIAS_CRITERIOS_100 = [
+  ['Força geral', ['ranking', 'rating', 'elo', 'power score', 'pontos', 'vitórias', 'saldo de gols', 'aproveitamento', 'regularidade', 'qualidade técnica']],
+  ['Ataque', ['gols marcados', 'média de gols', 'finalizações', 'chutes no gol', 'xG ofensivo', 'ataques', 'ataques perigosos', 'grandes chances', 'conversão', 'pressão ofensiva']],
+  ['Defesa', ['gols sofridos', 'xG contra', 'clean sheets', 'desarmes', 'interceptações', 'bloqueios', 'erros defensivos', 'cartões', 'pênaltis contra', 'solidez defensiva']],
+  ['Momento recente', ['forma atual', 'últimos 5 jogos', 'últimos 10 jogos', 'sequência de vitórias', 'invencibilidade', 'gols recentes', 'defesa recente', '1º tempo', '2º tempo', 'consistência recente']],
+  ['Contexto', ['mando de campo', 'descanso', 'viagem', 'torcida', 'estádio', 'motivação', 'necessidade', 'importância', 'clima', 'gramado']],
+  ['Confronto direto', ['vitórias H2H', 'gols H2H', 'último confronto', 'dominância histórica', 'H2H casa/fora', 'gols sofridos H2H', 'sequência H2H', 'controle H2H', 'eficiência H2H', 'psicológico H2H']],
+  ['Elenco', ['valor do elenco', 'titulares disponíveis', 'lesões', 'suspensões', 'banco', 'artilheiro disponível', 'goleiro', 'meio-campo', 'defesa titular', 'ataque titular']],
+  ['Mercado', ['odd vitória', 'probabilidade mercado', 'queda de odd', 'volume', 'movimento sharp', 'EV positivo', 'Kelly', 'valor esperado', 'distorção', 'consenso mercado']],
+  ['Ao vivo', ['placar atual', 'posse', 'finalizações live', 'chutes no gol live', 'xG live', 'escanteios', 'ataques perigosos live', 'cartões live', 'pressão recente', 'controle emocional']],
+  ['Inteligência IA', ['confiança IA', 'consenso IA', 'modelo estatístico', 'probabilidade IA', 'heat score', 'risco calculado', 'estabilidade', 'oportunidade detectada', 'alertas positivos', 'score final IA']]
+];
+
+const CRITERIOS_ANALISE_RIGOROSA_100 = CATEGORIAS_CRITERIOS_100.flatMap(([categoria, itens]) =>
+  itens.map((nome, index) => ({
+    categoria,
+    nome,
+    id: `${categoria}-${nome}-${index}`
+  }))
+);
+
+function numeroSeguroAnalise(valor, padrao = null) {
+  if (valor === undefined || valor === null || valor === '') return padrao;
+  if (typeof valor === 'number') return Number.isFinite(valor) ? valor : padrao;
+
+  const convertido = Number(
+    String(valor)
+      .replace('%', '')
+      .replace(',', '.')
+      .replace(/[^\d.-]/g, '')
+  );
+
+  return Number.isFinite(convertido) ? convertido : padrao;
+}
+
+function limitarAnalise(valor, min, max) {
+  return Math.max(min, Math.min(max, valor));
+}
+
+function valorPorCaminhoAnalise(obj, caminhos = []) {
+  for (const caminho of caminhos) {
+    try {
+      const valor = String(caminho).split('.').reduce((acc, key) => acc?.[key], obj);
+      const n = numeroSeguroAnalise(valor, null);
+      if (n !== null) return n;
+    } catch (e) {
+      continue;
+    }
+  }
+  return null;
+}
+
+function normalizarParAnalise(casa, fora, direcao = 'maior') {
+  const c = numeroSeguroAnalise(casa, null);
+  const f = numeroSeguroAnalise(fora, null);
+
+  if (c === null || f === null) return null;
+
+  if (c === f) return { casa: 0.5, fora: 0.5 };
+
+  const ac = Math.abs(c);
+  const af = Math.abs(f);
+  const total = ac + af;
+
+  if (!total) return null;
+
+  let casaScore = ac / total;
+  let foraScore = af / total;
+
+  if (direcao === 'menor') {
+    casaScore = af / total;
+    foraScore = ac / total;
+  }
+
+  return {
+    casa: limitarAnalise(casaScore, 0.08, 0.92),
+    fora: limitarAnalise(foraScore, 0.08, 0.92)
+  };
+}
+
+function pontuarFormaAnalise(lista = []) {
+  if (!Array.isArray(lista) || !lista.length) return null;
+
+  const pontos = lista.slice(-5).reduce((acc, r) => {
+    const v = String(r || '').toUpperCase();
+    if (v === 'W' || v === 'V') return acc + 3;
+    if (v === 'D' || v === 'E') return acc + 1;
+    return acc;
+  }, 0);
+
+  return pontos;
+}
+
+function calcularIndicadoresAnalise(jogo = {}) {
+  const est = jogo.estatisticas || {};
+  const stats = jogo.stats || {};
+  const probs = jogo.probabilidades || {};
+  const forma = jogo.ultimosJogos || {};
+
+  const scoreHome = numeroSeguroAnalise(jogo.scoreHome ?? jogo.placar_casa, 0);
+  const scoreAway = numeroSeguroAnalise(jogo.scoreAway ?? jogo.placar_fora, 0);
+  const status = String(jogo.status || '').toLowerCase();
+  const aoVivoOuFinalizado = status.includes('live') || status.includes('finished') || status.includes('final');
+
+  const fatores = [];
+
+  // 1) Probabilidades já existentes no jogo, quando vierem da API/IA.
+  const probCasa = numeroSeguroAnalise(probs.casa, null);
+  const probFora = numeroSeguroAnalise(probs.fora, null);
+  if (probCasa !== null && probFora !== null) {
+    const par = normalizarParAnalise(probCasa, probFora, 'maior');
+    if (par) fatores.push({ nome: 'Probabilidade IA/API', peso: 2.2, ...par, dadoReal: true });
+  }
+
+  // 2) Placar ao vivo.
+  if (aoVivoOuFinalizado) {
+    if (scoreHome > scoreAway) {
+      const vantagem = limitarAnalise(0.58 + Math.abs(scoreHome - scoreAway) * 0.09, 0.58, 0.9);
+      fatores.push({ nome: 'Placar atual', peso: 2.4, casa: vantagem, fora: 1 - vantagem, dadoReal: true });
+    } else if (scoreAway > scoreHome) {
+      const vantagem = limitarAnalise(0.58 + Math.abs(scoreHome - scoreAway) * 0.09, 0.58, 0.9);
+      fatores.push({ nome: 'Placar atual', peso: 2.4, casa: 1 - vantagem, fora: vantagem, dadoReal: true });
+    } else {
+      fatores.push({ nome: 'Placar empatado', peso: 1.3, casa: 0.5, fora: 0.5, dadoReal: true });
+    }
+  }
+
+  // 3) Estatísticas reais/live.
+  const paresNumericos = [
+    ['Posse de bola', est.posseCasa ?? stats.posseCasa, est.posseFora ?? stats.posseFora, 'maior', 1.05],
+    ['Ataques', est.ataquesCasa, est.ataquesFora, 'maior', 1.05],
+    ['Finalizações', est.chutesCasa ?? stats.chutesCasa ?? stats.chutes, est.chutesFora ?? stats.chutesFora, 'maior', 1.1],
+    ['Escanteios', est.escanteiosCasa ?? stats.cantos, est.escanteiosFora, 'maior', 0.9],
+    ['Cartões', est.cartoesCasa, est.cartoesFora, 'menor', 0.75],
+    ['Faltas', est.faltasCasa, est.faltasFora, 'menor', 0.7],
+    ['Passes', est.passesCasa, est.passesFora, 'maior', 0.75],
+    ['Pressão IA', stats.pressao, 100 - numeroSeguroAnalise(stats.pressao, 50), 'maior', 1.15]
+  ];
+
+  for (const [nome, casa, fora, direcao, peso] of paresNumericos) {
+    const par = normalizarParAnalise(casa, fora, direcao);
+    if (par) fatores.push({ nome, peso, ...par, dadoReal: true });
+  }
+
+  // 4) Forma recente.
+  const formaCasa = pontuarFormaAnalise(forma.casa);
+  const formaFora = pontuarFormaAnalise(forma.fora);
+  const parForma = normalizarParAnalise(formaCasa, formaFora, 'maior');
+  if (parForma) fatores.push({ nome: 'Forma últimos jogos', peso: 1.25, ...parForma, dadoReal: true });
+
+  // 5) Confrontos diretos do objeto demo/API.
+  if (Array.isArray(jogo.confrontosDiretos) && jogo.confrontosDiretos.length) {
+    const casaNome = String(jogo.home_team || '').toLowerCase();
+    const foraNome = String(jogo.away_team || '').toLowerCase();
+
+    let pontosCasa = 0;
+    let pontosFora = 0;
+
+    jogo.confrontosDiretos.slice(0, 6).forEach(h => {
+      const placar = String(h.placar || '').match(/(\d+)\s*-\s*(\d+)/);
+      if (!placar) return;
+      const a = Number(placar[1]);
+      const b = Number(placar[2]);
+      const hCasa = String(h.casa || '').toLowerCase();
+      const hFora = String(h.fora || '').toLowerCase();
+
+      if (a === b) {
+        pontosCasa += 1;
+        pontosFora += 1;
+      } else if ((a > b && hCasa.includes(casaNome)) || (b > a && hFora.includes(casaNome))) {
+        pontosCasa += 3;
+      } else if ((a > b && hCasa.includes(foraNome)) || (b > a && hFora.includes(foraNome))) {
+        pontosFora += 3;
+      }
+    });
+
+    const parH2H = normalizarParAnalise(pontosCasa, pontosFora, 'maior');
+    if (parH2H) fatores.push({ nome: 'Confronto direto', peso: 1.0, ...parH2H, dadoReal: true });
+  }
+
+  // 6) Mando de campo: sempre usado, mas com peso menor.
+  fatores.push({ nome: 'Mando de campo', peso: 0.85, casa: 0.56, fora: 0.44, dadoReal: false });
+
+  // 7) Confiança IA geral: aumenta a força do lado que já está melhor nos dados.
+  const confianca = numeroSeguroAnalise(jogo.confianca_ia, 88);
+  const parcialCasa = fatores.reduce((acc, f) => acc + f.casa * f.peso, 0);
+  const parcialFora = fatores.reduce((acc, f) => acc + f.fora * f.peso, 0);
+  const ladoCasa = parcialCasa >= parcialFora;
+  const forcaIa = limitarAnalise(confianca / 100, 0.5, 0.96);
+
+  fatores.push({
+    nome: 'Confiança IA geral',
+    peso: 1.45,
+    casa: ladoCasa ? forcaIa : 1 - forcaIa,
+    fora: ladoCasa ? 1 - forcaIa : forcaIa,
+    dadoReal: Boolean(jogo.confianca_ia)
+  });
+
+  // 8) Odd principal: serve como intensidade de mercado quando existir.
+  const odd = numeroSeguroAnalise(jogo.odd_principal, null);
+  if (odd && odd > 1) {
+    const probMercado = limitarAnalise((1 / odd), 0.22, 0.78);
+    const ladoCasaOdd = parcialCasa >= parcialFora;
+    fatores.push({
+      nome: 'Mercado / odd principal',
+      peso: 0.85,
+      casa: ladoCasaOdd ? probMercado : 1 - probMercado,
+      fora: ladoCasaOdd ? 1 - probMercado : probMercado,
+      dadoReal: true
+    });
+  }
+
+  return fatores;
+}
+
+function analisarProbabilidadeVitoria(jogo = {}) {
+  const casaNome = jogo.home_team || jogo.time_casa || 'Mandante';
+  const foraNome = jogo.away_team || jogo.time_fora || 'Visitante';
+
+  const fatores = calcularIndicadoresAnalise(jogo);
+
+  let scoreCasa = 0;
+  let scoreFora = 0;
+  let pesoTotal = 0;
+
+  fatores.forEach(f => {
+    scoreCasa += f.casa * f.peso;
+    scoreFora += f.fora * f.peso;
+    pesoTotal += f.peso;
+  });
+
+  if (!pesoTotal) {
+    return {
+      favorito: 'Sem favorito claro',
+      probabilidade: 50,
+      probCasa: 50,
+      probFora: 50,
+      confianca: 35,
+      nivel: 'Dados insuficientes',
+      criteriosTotal: CRITERIOS_ANALISE_RIGOROSA_100.length,
+      baseDados: 0,
+      pontosFortes: []
+    };
+  }
+
+  let probCasa = (scoreCasa / pesoTotal) * 100;
+  let probFora = (scoreFora / pesoTotal) * 100;
+
+  const soma = probCasa + probFora;
+  probCasa = (probCasa / soma) * 100;
+  probFora = (probFora / soma) * 100;
+
+  const favoritoCasa = probCasa >= probFora;
+  const margem = Math.abs(probCasa - probFora);
+
+  const dadosReais = fatores.filter(f => f.dadoReal).length;
+  const baseDados = limitarAnalise(Math.round((dadosReais / Math.max(fatores.length, 1)) * 100), 20, 100);
+
+  let confianca = 42 + margem * 0.6 + baseDados * 0.28;
+  confianca = limitarAnalise(confianca, 35, 96);
+
+  let favorito = favoritoCasa ? casaNome : foraNome;
+  let probabilidade = favoritoCasa ? probCasa : probFora;
+
+  let nivel = 'Equilibrado';
+  if (margem >= 18 && confianca >= 75 && baseDados >= 55) nivel = 'Favorito forte';
+  else if (margem >= 10 && confianca >= 64) nivel = 'Favorito moderado';
+  else if (margem >= 5) nivel = 'Leve vantagem';
+
+  if (margem < 4) {
+    favorito = 'Sem favorito claro';
+    probabilidade = 50;
+    nivel = 'Equilibrado';
+  }
+
+  const pontosFortes = fatores
+    .filter(f => favoritoCasa ? f.casa > f.fora : f.fora > f.casa)
+    .sort((a, b) => b.peso - a.peso)
+    .slice(0, 3)
+    .map(f => f.nome);
+
+  return {
+    favorito,
+    probabilidade: Math.round(limitarAnalise(probabilidade, 50, 96)),
+    probCasa: Math.round(probCasa),
+    probFora: Math.round(probFora),
+    confianca: Math.round(confianca),
+    nivel,
+    criteriosTotal: CRITERIOS_ANALISE_RIGOROSA_100.length,
+    baseDados,
+    pontosFortes
+  };
+}
+
+function AnaliseRigorosaCard({ jogo }) {
+  const analise = analisarProbabilidadeVitoria(jogo);
+
+  const corNivel =
+    analise.nivel === 'Favorito forte'
+      ? 'text-emerald-400 border-emerald-500/30 bg-emerald-500/10'
+      : analise.nivel === 'Favorito moderado'
+        ? 'text-blue-400 border-blue-500/30 bg-blue-500/10'
+        : analise.nivel === 'Leve vantagem'
+          ? 'text-yellow-400 border-yellow-500/30 bg-yellow-500/10'
+          : 'text-slate-300 border-white/10 bg-white/5';
+
+  return (
+    <div className="mt-4 bg-[#050816]/70 border border-white/10 rounded-2xl p-4">
+      <div className="flex items-center justify-between gap-3 mb-3">
+        <div className="flex items-center gap-2 min-w-0">
+          <Target className="w-4 h-4 text-blue-400 flex-shrink-0" />
+          <div className="min-w-0">
+            <div className="text-[10px] font-black uppercase tracking-widest text-slate-500">
+              Análise rigorosa IA
+            </div>
+            <div className="text-sm font-black text-white truncate">
+              {analise.favorito}
+            </div>
+          </div>
+        </div>
+
+        <div className={`text-[9px] font-black uppercase px-2.5 py-1 rounded-full border whitespace-nowrap ${corNivel}`}>
+          {analise.nivel}
+        </div>
+      </div>
+
+      <div className="grid grid-cols-3 gap-2 mb-3">
+        <div className="bg-[#0f172a] rounded-xl p-3 border border-white/5 text-center">
+          <div className="text-[9px] text-slate-500 font-black uppercase">Prob.</div>
+          <div className="text-lg font-black text-emerald-400">{analise.probabilidade}%</div>
+        </div>
+
+        <div className="bg-[#0f172a] rounded-xl p-3 border border-white/5 text-center">
+          <div className="text-[9px] text-slate-500 font-black uppercase">Conf.</div>
+          <div className="text-lg font-black text-blue-400">{analise.confianca}%</div>
+        </div>
+
+        <div className="bg-[#0f172a] rounded-xl p-3 border border-white/5 text-center">
+          <div className="text-[9px] text-slate-500 font-black uppercase">Crit.</div>
+          <div className="text-lg font-black text-yellow-400">{analise.criteriosTotal}</div>
+        </div>
+      </div>
+
+      <div className="mb-2">
+        <div className="flex justify-between gap-2 text-[9px] font-black uppercase text-slate-500 mb-1">
+          <span className="truncate">{jogo.home_team || 'Casa'} {analise.probCasa}%</span>
+          <span className="truncate text-right">{jogo.away_team || 'Fora'} {analise.probFora}%</span>
+        </div>
+
+        <div className="w-full h-2 bg-slate-800 rounded-full overflow-hidden">
+          <div
+            className="h-full bg-gradient-to-r from-blue-500 to-emerald-400 rounded-full"
+            style={{ width: `${analise.probCasa}%` }}
+          />
+        </div>
+      </div>
+
+      <div className="flex justify-between items-center gap-3 mt-3">
+        <div className="text-[9px] text-slate-500 font-black uppercase">
+          Base de dados: {analise.baseDados}%
+        </div>
+
+        <div className="flex items-center gap-1.5 text-[9px] text-slate-500 font-bold uppercase">
+          <TrendingUp className="w-3 h-3" />
+          Estimativa
+        </div>
+      </div>
+
+      {analise.pontosFortes.length > 0 && (
+        <div className="mt-3 text-[10px] text-slate-400 font-bold leading-relaxed">
+          <span className="text-slate-300 font-black">Pontos fortes:</span>{' '}
+          {analise.pontosFortes.join(', ')}
+        </div>
+      )}
+
+      <div className="mt-3 text-[9px] text-slate-500 font-semibold leading-relaxed">
+        Probabilidade calculada por 100 critérios ponderados. Não representa garantia de resultado.
+      </div>
+    </div>
+  );
+}
+
 const PLANO_PRO = { nome: 'BetAnalytics PRO Mensal', valor: 29.90, dias: 30 };
 let supabase = { from: () => ({ select: () => ({ eq: () => ({ single: () => ({ data: null, error: null }) }) }) }) };
 try {
@@ -335,6 +725,7 @@ return Object.entries(jGrp).map(([leagueName, matches]) => (
   alt={j.away_team || 'Time fora'}
 /><span className="text-[10px] font-bold text-slate-200 truncate w-full">{j.away_team}</span></div>
 </div>
+<AnaliseRigorosaCard jogo={j} />
 </div>
 ))}
 </div>
