@@ -392,8 +392,6 @@ return Object.entries(jGrp).map(([leagueName, matches]) => (
   alt={j.away_team || 'Time fora'}
 /><span className="text-[10px] font-bold text-slate-200 truncate w-full">{j.away_team}</span></div>
 </div>
-<AnaliseRigorosaCard jogo={j} />
-<MercadosIACard jogo={j} />
 </div>
 ))}
 </div>
@@ -796,9 +794,15 @@ return (
 {viewMode === 'admin' && (<div className="px-4 animate-fade-in pb-20 w-full"><HeaderNav title="⚙️ Painel de Controle Admin" onBack={() => setViewMode('perfil')} /><div className="bg-[#0f172a] p-5 rounded-3xl border border-white/5 shadow-lg mb-3"><div className="text-[10px] text-slate-400 uppercase font-bold mb-1 tracking-widest">Total Usuários</div><div className="text-3xl font-black text-white">1,248</div></div><div className="bg-[#0f172a] p-5 rounded-3xl border border-yellow-500/20 shadow-lg mb-3"><div className="text-[10px] text-slate-400 uppercase font-bold mb-1 tracking-widest">Assinantes PRO</div><div className="text-3xl font-black text-yellow-400">312</div></div><div className="bg-[#0f172a] p-5 rounded-3xl border border-green-500/20 shadow-lg flex justify-between items-center"><div><div className="text-[10px] text-slate-400 uppercase font-bold mb-1 tracking-widest">Receita Mensal Estimada</div><div className="text-3xl font-black text-green-400">R$ 9.328,80</div></div><DollarSign className="w-10 h-10 text-green-500 opacity-50" /></div></div>)}
 </div>)}
 {jogoSelecionado && menuAtivo !== 'assinar pro' && (
+<div className="fixed inset-0 z-[999] bg-[#050816] text-white overflow-y-auto pb-28 animate-fade-in">
 <Suspense fallback={<div className="text-center p-10 font-black text-blue-500 animate-pulse text-xs">A carregar painel do jogo...</div>}>
 <PainelJogo jogo={jogoSelecionado} setJogoSelecionado={setJogoSelecionado} bancaInicial={bancaInicial} gerarExplicacaoIA={gerarExplicacaoIA} calcularStake={calcularStake} calcularKelly={calcularKelly} />
 </Suspense>
+<div className="px-4 pb-8 space-y-4">
+<AnaliseRigorosaCard jogo={jogoSelecionado} />
+<MercadosIACard jogo={jogoSelecionado} />
+</div>
+</div>
 )}
 <button onClick={() => setAiOpen(true)} className="fixed right-5 bottom-32 w-14 h-14 rounded-full bg-gradient-to-br from-blue-600 to-blue-400 flex items-center justify-center shadow-lg z-40 text-2xl">🤖</button>
 <AnimatePresence>
