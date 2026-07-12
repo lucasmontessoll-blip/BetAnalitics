@@ -13,7 +13,7 @@ import { Home, Radio, Trophy, Crown, Star, ChevronRight, X, User, Zap, TrendingU
 import { calcularKelly } from './utils/math.js';
 import { calcularStake } from './utils/risk.js';
 import { useFavoritos } from './hooks/useFavoritos.js';
-import { useJogos } from './hooks/useJogos.js';
+import { useApiFootball } from './hooks/useApiFootball.js';
 import { useIA } from './hooks/useIA.js';
 import HeroPremium from './components/HeroPremium.jsx';
 import LegalCompliance from './components/LegalCompliance.jsx';
@@ -141,7 +141,6 @@ const BUSCA_JOGADORES = [{ tipo: 'atleta', nome: 'Lionel Messi', sub: 'Atacante'
 const BUSCA_RANKING = [{ tipo: 'ranking', nome: 'Ranking da FIFA', sub: 'Seleções', emoji: '🌐' }, { tipo: 'ranking', nome: 'Ranking da UEFA', sub: 'Europa', emoji: '🔴' }];
 const BUSCA_COMPETICOES = [{ tipo: 'competicao', nome: 'Brasileirão Betano', sub: 'Brasil', emoji: '🇧🇷' }, { tipo: 'competicao', nome: 'FIFA Club World Cup', sub: 'Mundo', emoji: '🏆' }, { tipo: 'competicao', nome: 'Liga dos Campeões', sub: 'Europa', emoji: '⚽' }, { tipo: 'competicao', nome: 'UEFA Liga Europa', sub: 'Europa', emoji: '🟠' }, { tipo: 'competicao', nome: 'Premier League', sub: 'Inglaterra', emoji: '🦁' }, { tipo: 'competicao', nome: 'LaLiga', sub: 'Espanha', emoji: '🔴' }];
 const TODAS_COMPETICOES = [{ pais: 'Brasil', emoji: '🇧🇷', qtd: 6, ligas: ['Brasileirão Série A', 'Brasileirão Série B', 'Copa do Brasil', 'Paulistão', 'Carioca', 'Série C'] }, { pais: 'Brasil (Amador)', emoji: '🇧🇷', qtd: 22, ligas: ['Sub-20', 'Sub-23', 'Feminino', 'Estaduais', 'Copa Paulista', 'Aspirantes'] }, { pais: 'Mundo', emoji: '🌍', qtd: 33, ligas: ['Copa do Mundo', 'Mundial de Clubes', 'Amistosos Internacionais', 'Nations League', 'Eliminatórias', 'Olímpico'] }, { pais: 'Europa', emoji: '🇪🇺', qtd: 6, ligas: ['Champions League', 'Europa League', 'Conference League', 'Eurocopa', 'Supercopa UEFA', 'Nations League'] }, { pais: 'América do Sul', emoji: '🌎', qtd: 8, ligas: ['Libertadores', 'Sul-Americana', 'Recopa', 'Copa América', 'Argentina Primera', 'Uruguai Primera'] }];
-const JOGO_DEMO_ABAS = { id: 'demo-aurora-solaris', demo: true, league_id: 999, league_name: 'Liga Futurista PRO', home_team: 'Atlético Aurora', away_team: 'Real Solaris', home_image: 'https://api.dicebear.com/7.x/initials/svg?seed=Atl%C3%A9tico%20Aurora&backgroundColor=2563eb&fontWeight=900', away_image: 'https://api.dicebear.com/7.x/initials/svg?seed=Real%20Solaris&backgroundColor=dc2626&fontWeight=900', scoreHome: 3, scoreAway: 2, status: 'Live', time_elapsed: "72'", starting_at: new Date(Date.now() + 3600000).toISOString(), confianca_ia: 93, odd_principal: 1.88, stats: { pressao: 88, posse: 59, chutes: 17, cantos: 7 }, estatisticas: { posseCasa: 59, posseFora: 41, ataquesCasa: 76, ataquesFora: 48, chutesCasa: 17, chutesFora: 9, escanteiosCasa: 7, escanteiosFora: 3, passesCasa: 421, passesFora: 306, faltasCasa: 8, faltasFora: 11, cartoesCasa: 1, cartoesFora: 2 }, probabilidades: { casa: 64, empate: 21, fora: 15 }, formacoes: { casa: { esquema: '4-3-3', jogadores: [{ n: 1, nome: 'Luan Nebula', pos: 'GOL' }, { n: 2, nome: 'Caio Orbit', pos: 'LD' }, { n: 4, nome: 'Renan Atlas', pos: 'ZAG' }, { n: 5, nome: 'Davi Rocha', pos: 'ZAG' }, { n: 6, nome: 'Igor Lunar', pos: 'LE' }, { n: 8, nome: 'Theo Prime', pos: 'VOL' }, { n: 10, nome: 'Nicolas Vega', pos: 'MEI' }, { n: 18, nome: 'Rafa Orion', pos: 'MEI' }, { n: 7, nome: 'Bruno Flash', pos: 'PD' }, { n: 9, nome: 'Matheus Storm', pos: 'ATA' }, { n: 11, nome: 'Leo Eclipse', pos: 'PE' }] }, fora: { esquema: '4-2-3-1', jogadores: [{ n: 1, nome: 'Marco Solar', pos: 'GOL' }, { n: 22, nome: 'Enzo Ray', pos: 'LD' }, { n: 3, nome: 'Hugo Titan', pos: 'ZAG' }, { n: 14, nome: 'Breno Vox', pos: 'ZAG' }, { n: 16, nome: 'Kai Zenith', pos: 'LE' }, { n: 5, nome: 'Otto Max', pos: 'VOL' }, { n: 8, nome: 'Vitor Flux', pos: 'VOL' }, { n: 20, nome: 'Iuri Neon', pos: 'MEI' }, { n: 10, nome: 'Gael Sun', pos: 'MEI' }, { n: 77, nome: 'Noah Fire', pos: 'MEI' }, { n: 9, nome: 'Ryan Blaze', pos: 'ATA' }] } }, comentarios: [{ min: "08'", txt: 'Atlético Aurora inicia com pressão alta e recupera a bola no campo ofensivo.' }, { min: "19'", txt: 'Real Solaris responde em contra-ataque rápido pelo lado esquerdo.' }, { min: "31'", txt: 'Gol do Atlético Aurora. Matheus Storm finaliza após passe de Nicolas Vega.' }, { min: "45+2'", txt: 'Real Solaris empata em bola parada com Ryan Blaze.' }, { min: "58'", txt: 'Atlético Aurora volta a dominar a posse e cria duas chances claras.' }, { min: "72'", txt: 'IA detecta queda de odd e aumenta a confiança para 93% no mercado principal.' }], ultimosJogos: { casa: ['W', 'W', 'D', 'W', 'W'], fora: ['D', 'L', 'W', 'D', 'L'] }, confrontosDiretos: [{ data: '12/05/2026', casa: 'Atlético Aurora', fora: 'Real Solaris', placar: '2 - 1' }, { data: '04/03/2026', casa: 'Real Solaris', fora: 'Atlético Aurora', placar: '1 - 1' }, { data: '18/01/2026', casa: 'Atlético Aurora', fora: 'Real Solaris', placar: '3 - 0' }], fase: { nome: 'Quartas de Final', proxima: 'Semifinal da Liga Futurista PRO', chanceAvancar: 73 }, midia: [{ tipo: 'Foto', titulo: 'Aquecimento das equipes', sub: 'Galeria pré-jogo' }, { tipo: 'Vídeo', titulo: 'Melhores momentos', sub: 'Lances principais' }, { tipo: 'Notícia', titulo: 'Aurora pressiona no segundo tempo', sub: 'Resumo IA' }] };
 const normalizarTexto = (v = '') => String(v).normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase();
 const abasPesquisa = [
 { id: 'equipes', label: '⚽ Equipes' },
@@ -165,8 +164,7 @@ const cardFormMercadoPagoRef = useRef(null);
 const pollingPagamentoRef = useRef(null);
 const [bancaInicial] = useState(1000);
 const [xp] = useState(350);
-const [jogosTempoReal, setJogosTempoReal] = useState([]);
-const [loadingReal, setLoadingReal] = useState(true);
+const dataApiFootball = getLocalYYYYMMDD();
 const nivelUsuario = () => xp > 3000 ? "Mestre" : xp > 1000 ? "Especialista" : "Profissional";
 const [apostas] = useState([]);
 const [favAba, setFavAba] = useState('Eventos');
@@ -211,7 +209,11 @@ const abrirCasaAfiliada = useCallback(async (casa, jogo = null, origem = 'compar
   }
   window.open(urlDestino, '_blank', 'noopener,noreferrer');
 }, [registrarCliqueAfiliado]);
-const { jogos: jogosDoHook, loading: loadingHook } = useJogos(API_URL, ligaAtivaId, []);
+const { jogos: jogosApiFootball, loading: loadingApiFootball, erro: erroApiFootball, atualizar: atualizarApiFootball } = useApiFootball({
+  data: dataApiFootball,
+  ligaId: ligaAtivaId,
+  aoVivo: filterCentro === 'Ao Vivo',
+});
 const salvarFavCatalogo = (item) => {
 const itemFinal = { ...item, id: item.id || `${item.tipo}-${item.nome}` };
 setFavCatalogo(prev => {
@@ -230,78 +232,8 @@ return novo;
 });
 };
 const favoritoCatalogoExiste = (item) => favCatalogo.some(f => f.id === (item.id || `${item.tipo}-${item.nome}`));
-useEffect(() => {
-const puxarJogosDoServidor = async () => {
-try {
-const { data, error } = await supabase.from('jogos_ao_vivo').select('*');
-if (error || !data) return;
-const formatados = data.map(j => {
-const tempoJogo = String(j.tempo_jogo || '');
-const odd = j.odd_principal || 1.85;
-const ia = (j.confianca_ia && j.confianca_ia !== 89) ? j.confianca_ia : 88;
-return {
-...j,
-id: j.id_jogo || `live-${Math.random()}`,
-league_id: j.league_id || j.id_liga || 999,
-league_name: j.liga || j.league_name || 'Monitoramento Ao Vivo',
-starting_at: j.starting_at || `${getLocalYYYYMMDD()}T00:00:00`,
-status: (tempoJogo === 'INTERVALO' || tempoJogo.includes("'")) ? 'Live' : (tempoJogo.includes('ENCERRADO') ? 'Finished' : (j.status || 'Not Started')),
-time_elapsed: tempoJogo,
-home_team: j.time_casa || j.home_team || j.mandante,
-away_team: j.time_fora || j.away_team || j.visitante,
-home_image: escudoTime(j.logo_casa || j.home_image || j.logo_home, j.time_casa || j.home_team),
-away_image: escudoTime(j.logo_fora || j.away_image || j.logo_away, j.time_fora || j.away_team),
-scoreHome: j.placar_casa ?? j.scoreHome ?? j.home_score ?? 0,
-scoreAway: j.placar_fora ?? j.scoreAway ?? j.away_score ?? 0,
-confianca_ia: ia,
-odd_principal: odd,
-odd_casa: j.odd_casa ?? j.home_odd ?? j.odd_home ?? null,
-odd_empate: j.odd_empate ?? j.draw_odd ?? j.odd_draw ?? null,
-odd_fora: j.odd_fora ?? j.away_odd ?? j.odd_away ?? null,
-probabilidades: j.probabilidades || {
-  casa: j.prob_casa ?? j.probabilidade_casa ?? j.prob_home ?? null,
-  empate: j.prob_empate ?? j.probabilidade_empate ?? j.prob_draw ?? null,
-  fora: j.prob_fora ?? j.probabilidade_fora ?? j.prob_away ?? null,
-},
-estatisticas: j.estatisticas || {
-  posseCasa: j.posse_casa ?? j.posseCasa ?? null,
-  posseFora: j.posse_fora ?? j.posseFora ?? null,
-  ataquesCasa: j.ataques_casa ?? j.ataquesCasa ?? null,
-  ataquesFora: j.ataques_fora ?? j.ataquesFora ?? null,
-  ataquesPerigososCasa: j.ataques_perigosos_casa ?? j.ataquesPerigososCasa ?? null,
-  ataquesPerigososFora: j.ataques_perigosos_fora ?? j.ataquesPerigososFora ?? null,
-  chutesCasa: j.chutes_casa ?? j.chutesCasa ?? null,
-  chutesFora: j.chutes_fora ?? j.chutesFora ?? null,
-  chutesGolCasa: j.chutes_gol_casa ?? j.chutesGolCasa ?? null,
-  chutesGolFora: j.chutes_gol_fora ?? j.chutesGolFora ?? null,
-  xgCasa: j.xg_casa ?? j.xgCasa ?? null,
-  xgFora: j.xg_fora ?? j.xgFora ?? null,
-  escanteiosCasa: j.escanteios_casa ?? j.escanteiosCasa ?? null,
-  escanteiosFora: j.escanteios_fora ?? j.escanteiosFora ?? null,
-  cartoesCasa: j.cartoes_casa ?? j.cartoesCasa ?? null,
-  cartoesFora: j.cartoes_fora ?? j.cartoesFora ?? null,
-},
-ultimosJogos: j.ultimosJogos || {
-  casa: Array.isArray(j.forma_casa) ? j.forma_casa : null,
-  fora: Array.isArray(j.forma_fora) ? j.forma_fora : null,
-},
-};
-});
-setJogosTempoReal(formatados);
-} catch (err) {
-console.error(err);
-} finally {
-setLoadingReal(false);
-}
-};
-puxarJogosDoServidor();
-const timer = setInterval(puxarJogosDoServidor, 30000);
-return () => clearInterval(timer);
-}, []);
-const jogos = useMemo(() => {
-return [JOGO_DEMO_ABAS, ...jogosTempoReal, ...jogosDoHook];
-}, [jogosTempoReal, jogosDoHook]);
-const loading = false;
+const jogos = useMemo(() => jogosApiFootball, [jogosApiFootball]);
+const loading = loadingApiFootball;
 const { aiOpen, setAiOpen, aiQuery, setAiQuery, aiLoading, aiMessages, handleAskAI, gerarExplicacaoIA } = useIA(API_URL, jogos, setJogoSelecionado);
 useEffect(() => {
 const timer = setTimeout(() => setShowSplash(false), 2000);
@@ -352,12 +284,13 @@ return a;
 }, {});
 }, [jFilt]);
 const RenderizarListaJogos = () => {
-if (loading) return (<div className="text-center text-slate-500 py-10">Buscando radar de jogos...</div>);
+if (loading) return (<div className="text-center text-slate-500 py-10">Buscando jogos na API-Football...</div>);
 if (Object.keys(jGrp).length === 0) {
 return (
 <div className="text-center text-slate-500 py-10 font-bold">
-<div>Nenhuma oportunidade encontrada com estes filtros.</div>
-<button onClick={() => setJogoSelecionado(JOGO_DEMO_ABAS)} className="mt-4 bg-blue-600 text-white rounded-2xl px-5 py-3 text-xs font-black uppercase">Abrir jogo demo com abas</button>
+<div>Nenhum jogo retornado pela API-Football com estes filtros.</div>
+{erroApiFootball && (<div className="mt-2 text-[11px] text-red-400 font-bold">{erroApiFootball}</div>)}
+<button onClick={atualizarApiFootball} className="mt-4 bg-blue-600 text-white rounded-2xl px-5 py-3 text-xs font-black uppercase">Atualizar API-Football</button>
 </div>
 );
 }
@@ -365,9 +298,8 @@ return Object.entries(jGrp).map(([leagueName, matches]) => (
 <div key={leagueName} className="mb-6 w-full">
 <div className="text-xs font-black text-slate-500 uppercase tracking-widest mb-3 pl-2">{leagueName}</div>
 {matches.map(j => (
-<div key={j.id} onClick={() => { if (j.demo) return setJogoSelecionado(j); if (!userData?.is_vip) return setMenuAtivo('assinar pro'); setJogoSelecionado(j); }} className="bg-[#0f172a] border border-white/10 rounded-3xl p-5 shadow-lg mb-4 cursor-pointer hover:border-blue-500/50 transform-gpu transition-colors">
+<div key={j.id} onClick={() => { if (!userData?.is_vip) return setMenuAtivo('assinar pro'); setJogoSelecionado(j); }} className="bg-[#0f172a] border border-white/10 rounded-3xl p-5 shadow-lg mb-4 cursor-pointer hover:border-blue-500/50 transform-gpu transition-colors">
 <div className="flex justify-between items-center mb-5">
-{j.demo && <span className="bg-blue-600 px-3 py-1 rounded-full text-[10px] font-black uppercase mr-2">JOGO DEMO</span>}
 {j.status === 'Live' ? (<span className="bg-red-500 px-3 py-1 rounded-full text-[10px] font-black uppercase">🔴 Ao Vivo {String(j.time_elapsed).replace("'", "")}'</span>) : (<span className="text-slate-400 text-[10px] font-bold uppercase">{j.status === 'Finished' ? 'Finalizado' : 'Agendado'}</span>)}
 <button onClick={(e) => { e.stopPropagation(); toggleFavorito(e, j.id); }} className="p-1"><Star className={`w-5 h-5 ${favoritos.includes(j.id) ? 'fill-yellow-400 text-yellow-400' : 'text-slate-600'}`} /></button>
 </div>
