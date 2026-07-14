@@ -136,16 +136,16 @@ return d.toISOString().split('T')[0];
 const listaLigas = [{ name: 'Todos', id: null }, { name: 'BrasileirÃ£o', id: 71 }, { name: 'Champions', id: 2 }, { name: 'Premier League', id: 39 }];
 const crescimentoBancaGlobal = [{ dia: "Seg", banca: 1000 }, { dia: "Ter", banca: 1120 }, { dia: "Qua", banca: 1210 }, { dia: "Qui", banca: 1380 }, { dia: "Sex", banca: 1470 }, { dia: "SÃ¡b", banca: 1650 }, { dia: "Dom", banca: 1840 }];
 const desempenhoDiario = [{ dia: "Seg", acertos: 14, erros: 3 }, { dia: "Ter", acertos: 18, erros: 2 }, { dia: "Qua", acertos: 12, erros: 5 }, { dia: "Qui", acertos: 20, erros: 4 }, { dia: "Sex", acertos: 25, erros: 6 }, { dia: "SÃ¡b", acertos: 32, erros: 5 }, { dia: "Dom", acertos: 29, erros: 3 }];
-const BUSCA_EQUIPES = [{ tipo: 'time', nome: 'Brasil', sub: 'SeleÃ§Ã£o Brasileira', emoji: 'ðŸ‡§ðŸ‡·' }, { tipo: 'time', nome: 'FranÃ§a', sub: 'SeleÃ§Ã£o Francesa', emoji: 'ðŸ‡«ðŸ‡·' }, { tipo: 'time', nome: 'Noruega', sub: 'SeleÃ§Ã£o Norueguesa', emoji: 'ðŸ‡³ðŸ‡´' }, { tipo: 'time', nome: 'Real Madrid', sub: 'Espanha', emoji: 'âšª' }, { tipo: 'time', nome: 'FC Barcelona', sub: 'Espanha', emoji: 'ðŸ”µ' }, { tipo: 'time', nome: 'Manchester City', sub: 'Inglaterra', emoji: 'ðŸ”µ' }];
-const BUSCA_JOGADORES = [{ tipo: 'atleta', nome: 'Lionel Messi', sub: 'Atacante', emoji: 'ðŸ‘¤' }, { tipo: 'atleta', nome: 'Kylian MbappÃ©', sub: 'Atacante', emoji: 'ðŸ‘¤' }, { tipo: 'atleta', nome: 'Erling Haaland', sub: 'Atacante', emoji: 'ðŸ‘¤' }, { tipo: 'atleta', nome: 'Cristiano Ronaldo', sub: 'Atacante', emoji: 'ðŸ‘¤' }, { tipo: 'atleta', nome: 'Lamine Yamal', sub: 'Atacante', emoji: 'ðŸ‘¤' }, { tipo: 'atleta', nome: 'VinÃ­cius JÃºnior', sub: 'Atacante', emoji: 'ðŸ‘¤' }];
-const BUSCA_RANKING = [{ tipo: 'ranking', nome: 'Ranking da FIFA', sub: 'SeleÃ§Ãµes', emoji: 'ðŸŒ' }, { tipo: 'ranking', nome: 'Ranking da UEFA', sub: 'Europa', emoji: 'ðŸ”´' }];
+const BUSCA_Equipes = [{ tipo: 'time', nome: 'Brasil', sub: 'SeleÃ§Ã£o Brasileira', emoji: 'ðŸ‡§ðŸ‡·' }, { tipo: 'time', nome: 'FranÃ§a', sub: 'SeleÃ§Ã£o Francesa', emoji: 'ðŸ‡«ðŸ‡·' }, { tipo: 'time', nome: 'Noruega', sub: 'SeleÃ§Ã£o Norueguesa', emoji: 'ðŸ‡³ðŸ‡´' }, { tipo: 'time', nome: 'Real Madrid', sub: 'Espanha', emoji: 'âšª' }, { tipo: 'time', nome: 'FC Barcelona', sub: 'Espanha', emoji: 'ðŸ”µ' }, { tipo: 'time', nome: 'Manchester City', sub: 'Inglaterra', emoji: 'ðŸ”µ' }];
+const BUSCA_Jogadores = [{ tipo: 'atleta', nome: 'Lionel Messi', sub: 'Atacante', emoji: 'ðŸ‘¤' }, { tipo: 'atleta', nome: 'Kylian MbappÃ©', sub: 'Atacante', emoji: 'ðŸ‘¤' }, { tipo: 'atleta', nome: 'Erling Haaland', sub: 'Atacante', emoji: 'ðŸ‘¤' }, { tipo: 'atleta', nome: 'Cristiano Ronaldo', sub: 'Atacante', emoji: 'ðŸ‘¤' }, { tipo: 'atleta', nome: 'Lamine Yamal', sub: 'Atacante', emoji: 'ðŸ‘¤' }, { tipo: 'atleta', nome: 'VinÃ­cius JÃºnior', sub: 'Atacante', emoji: 'ðŸ‘¤' }];
+const BUSCA_Ranking = [{ tipo: 'Ranking', nome: 'Ranking da FIFA', sub: 'SeleÃ§Ãµes', emoji: 'ðŸŒ' }, { tipo: 'Ranking', nome: 'Ranking da UEFA', sub: 'Europa', emoji: 'ðŸ”´' }];
 const BUSCA_COMPETICOES = [{ tipo: 'competicao', nome: 'BrasileirÃ£o Betano', sub: 'Brasil', emoji: 'ðŸ‡§ðŸ‡·' }, { tipo: 'competicao', nome: 'FIFA Club World Cup', sub: 'Mundo', emoji: 'ðŸ†' }, { tipo: 'competicao', nome: 'Liga dos CampeÃµes', sub: 'Europa', emoji: 'âš½' }, { tipo: 'competicao', nome: 'UEFA Liga Europa', sub: 'Europa', emoji: 'ðŸŸ ' }, { tipo: 'competicao', nome: 'Premier League', sub: 'Inglaterra', emoji: 'ðŸ¦' }, { tipo: 'competicao', nome: 'LaLiga', sub: 'Espanha', emoji: 'ðŸ”´' }];
 const TODAS_COMPETICOES = [{ pais: 'Brasil', emoji: 'ðŸ‡§ðŸ‡·', qtd: 6, ligas: ['BrasileirÃ£o SÃ©rie A', 'BrasileirÃ£o SÃ©rie B', 'Copa do Brasil', 'PaulistÃ£o', 'Carioca', 'SÃ©rie C'] }, { pais: 'Brasil (Amador)', emoji: 'ðŸ‡§ðŸ‡·', qtd: 22, ligas: ['Sub-20', 'Sub-23', 'Feminino', 'Estaduais', 'Copa Paulista', 'Aspirantes'] }, { pais: 'Mundo', emoji: 'ðŸŒ', qtd: 33, ligas: ['Copa do Mundo', 'Mundial de Clubes', 'Amistosos Internacionais', 'Nations League', 'EliminatÃ³rias', 'OlÃ­mpico'] }, { pais: 'Europa', emoji: 'ðŸ‡ªðŸ‡º', qtd: 6, ligas: ['Champions League', 'Europa League', 'Conference League', 'Eurocopa', 'Supercopa UEFA', 'Nations League'] }, { pais: 'AmÃ©rica do Sul', emoji: 'ðŸŒŽ', qtd: 8, ligas: ['Libertadores', 'Sul-Americana', 'Recopa', 'Copa AmÃ©rica', 'Argentina Primera', 'Uruguai Primera'] }];
 const normalizarTexto = (v = '') => String(v).normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase();
 const abasPesquisa = [
-{ id: 'equipes', label: 'âš½ Equipes' },
-{ id: 'jogadores', label: 'ðŸ‘¤ Jogadores' },
-{ id: 'ranking', label: 'ðŸŒ Ranking' },
+{ id: 'Equipes', label: 'âš½ Equipes' },
+{ id: 'Jogadores', label: 'ðŸ‘¤ Jogadores' },
+{ id: 'Ranking', label: 'ðŸŒ Ranking' },
 { id: 'principais', label: 'ðŸ† Ligas Principais' },
 { id: 'todas', label: 'ðŸŒ Todas CompetiÃ§Ãµes' },
 ];
@@ -169,7 +169,7 @@ const nivelUsuario = () => xp > 3000 ? "Mestre" : xp > 1000 ? "Especialista" : "
 const [apostas] = useState([]);
 const [favAba, setFavAba] = useState('Eventos');
 const [buscaPesquisa, setBuscaPesquisa] = useState('');
-const [abaPesquisaAtiva, setAbaPesquisaAtiva] = useState('equipes');
+const [abaPesquisaAtiva, setAbaPesquisaAtiva] = useState('Equipes');
 const [categoriaAberta, setCategoriaAberta] = useState('Brasil');
 const [favCatalogo, setFavCatalogo] = useState(() => { try { return JSON.parse(localStorage.getItem('bet_favoritos_catalogo') || '[]') } catch (e) { return [] } });
 const metaMensal = 2000;
@@ -330,8 +330,8 @@ return Object.entries(jGrp).map(([leagueName, matches]) => (
 ));
 };
 const HeaderNav = ({ title, onBack }) => (<div className="flex items-center gap-3 mb-6"><button onClick={onBack} className="p-2 bg-[#050816] rounded-full border border-white/10"><ArrowLeft className="w-5 h-5" /></button><h2 className="text-xl font-black">{title}</h2></div>);
-const todosItensPesquisa = useMemo(() => [...BUSCA_EQUIPES, ...BUSCA_JOGADORES, ...BUSCA_RANKING, ...BUSCA_COMPETICOES, ...TODAS_COMPETICOES.flatMap(c => c.ligas.map(l => ({ tipo: 'competicao', nome: l, sub: c.pais, emoji: c.emoji })))], []);
-const textoTipoPesquisa = (tipo) => tipo === 'time' ? 'Time' : tipo === 'atleta' ? 'Jogador' : tipo === 'competicao' ? 'Liga' : tipo === 'ranking' ? 'Rank' : 'Item';
+const todosItensPesquisa = useMemo(() => [...BUSCA_Equipes, ...BUSCA_Jogadores, ...BUSCA_Ranking, ...BUSCA_COMPETICOES, ...TODAS_COMPETICOES.flatMap(c => c.ligas.map(l => ({ tipo: 'competicao', nome: l, sub: c.pais, emoji: c.emoji })))], []);
+const textoTipoPesquisa = (tipo) => tipo === 'time' ? 'Time' : tipo === 'atleta' ? 'Jogador' : tipo === 'competicao' ? 'Liga' : tipo === 'Ranking' ? 'Rank' : 'Item';
 const salvarOuRemoverPesquisa = (item) => { const id = item.id || `${item.tipo}-${item.nome}`; if (favoritoCatalogoExiste(item)) { removerFavCatalogo(id); return; } salvarFavCatalogo(item); };
 const PesquisaCard = ({ item }) => {
 const salvo = favoritoCatalogoExiste(item);
@@ -351,7 +351,7 @@ style={{ touchAction: 'manipulation' }}
 </button>
 );
 };
-const FavVazio = ({ tipo }) => (<div className="min-h-[360px] flex flex-col items-center justify-center text-center px-6"><h3 className="text-base font-black text-white mb-2">Ã‰ hora de adicionar alguns Favoritos</h3><p className="text-xs text-slate-400 font-semibold mb-6">Os {tipo} favoritos serÃ£o exibidos aqui para acesso rÃ¡pido.</p><button onClick={() => setViewMode('pesquisa')} className="w-28 h-24 rounded-2xl bg-blue-600/20 border border-blue-500/30 flex flex-col items-center justify-center text-blue-400 font-black gap-2 active:scale-95"><div className="w-9 h-9 rounded-full border-2 border-blue-400 flex items-center justify-center"><Plus className="w-5 h-5" /></div><span className="text-xs">Adicionar</span></button></div>);
+const FavVazio = ({ tipo }) => (<div className="min-h-[360px] flex flex-col items-center justify-center text-center px-6"><h3 className="text-base font-black text-white mb-2">Ã‰ hora de adicionar alguns Favoritos</h3><p className="text-xs text-slate-400 font-semibold mb-6">Os {tipo} favoritos serÃ£o exibidos aqui para acesso rÃ¡pido.</p><button onClick={() => setViewMode('Pesquisa')} className="w-28 h-24 rounded-2xl bg-blue-600/20 border border-blue-500/30 flex flex-col items-center justify-center text-blue-400 font-black gap-2 active:scale-95"><div className="w-9 h-9 rounded-full border-2 border-blue-400 flex items-center justify-center"><Plus className="w-5 h-5" /></div><span className="text-xs">Adicionar</span></button></div>);
 const FavCard = ({ item }) => (<div className="bg-[#0f172a] border border-white/10 rounded-2xl p-4 mb-3 flex items-center gap-3"><div className="w-11 h-11 rounded-2xl bg-[#050816] flex items-center justify-center text-xl border border-white/10">{item.emoji || 'â­'}</div><div className="flex-1 min-w-0"><div className="text-sm font-black text-white truncate">{item.nome || item.titulo}</div><div className="text-[10px] text-slate-500 font-bold uppercase">{item.sub || item.tipo}</div></div><button onClick={() => removerFavCatalogo(item.id)} className="text-[10px] font-black text-red-400 bg-red-500/10 border border-red-500/20 px-3 py-2 rounded-xl">Remover</button></div>);
 const solicitarPermissaoNotificacaoApp = async () => { try { if (!('Notification' in window)) { alert('Este dispositivo nÃ£o suporta notificaÃ§Ãµes.'); return; } const permissao = await Notification.requestPermission(); if (permissao === 'granted') { alert('Alertas ativados com sucesso!'); } else { alert('PermissÃ£o de notificaÃ§Ãµes nÃ£o liberada.'); } } catch (e) { console.error(e); alert('NÃ£o foi possÃ­vel ativar as notificaÃ§Ãµes agora.'); } };
 const limparCpf = (valor = '') => String(valor).replace(/\D/g, '');
@@ -613,8 +613,8 @@ return (
 {viewMode === 'educacao' && (<div className="px-4 animate-fade-in pb-20 w-full"><HeaderNav title="ðŸŽ“ EducaÃ§Ã£o" onBack={() => setViewMode('perfil')} /><EducacaoBetAnalytics /></div>)}
 {viewMode === 'historico' && (<div className="px-4 animate-fade-in pb-20 w-full"><HeaderNav title="ðŸ“ˆ HistÃ³rico de Assertividade" onBack={() => setViewMode('perfil')} /><HistoricoAssertividade /></div>)}
 {viewMode === 'como-ia' && (<div className="px-4 animate-fade-in pb-20 w-full"><HeaderNav title="ðŸ§  Como a IA calcula" onBack={() => setViewMode('radar')} /><ComoIACalcula /></div>)}
-{viewMode === 'ranking' && (<div className="px-4 animate-fade-in pb-20 w-full"><HeaderNav title="ðŸ† Ranking de Oportunidades" onBack={() => setViewMode('radar')} /><RankingOportunidades jogos={jogos} onSelecionarJogo={(j) => setJogoSelecionado(j)} /></div>)}
-{viewMode === 'pesquisa' && (<div className="px-4 animate-fade-in pb-28 w-full">
+{viewMode === 'Ranking' && (<div className="px-4 animate-fade-in pb-20 w-full"><HeaderNav title="ðŸ† Ranking de Oportunidades" onBack={() => setViewMode('radar')} /><RankingOportunidades jogos={jogos} onSelecionarJogo={(j) => setJogoSelecionado(j)} /></div>)}
+{viewMode === 'Pesquisa' && (<div className="px-4 animate-fade-in pb-28 w-full">
 <HeaderNav title="ðŸ”Ž Pesquisa" onBack={() => setViewMode('jogos')} />
 <div className="relative bg-gradient-to-br from-blue-700 via-blue-600 to-purple-700 border border-blue-300/20 rounded-[30px] p-5 mb-5 shadow-2xl overflow-hidden">
 <div className="absolute -right-16 -top-16 w-48 h-48 bg-white/10 rounded-full blur-3xl"></div>
@@ -622,8 +622,8 @@ return (
 <div className="relative z-10">
 <div className="flex items-center justify-between mb-4">
 <div>
-<h2 className="text-xl font-black text-white uppercase">Central de Pesquisa</h2>
-<p className="text-[11px] text-blue-100 font-bold mt-1">Times, jogadores, rankings e competiÃ§Ãµes em um sÃ³ lugar.</p>
+<h2 className="text-xl font-black text-white uppercase">CENTRAL DE PESQUISA</h2>
+<p className="text-[11px] text-blue-100 font-bold mt-1">Times, Jogadores, Rankings e competiÃ§Ãµes em um sÃ³ lugar.</p>
 </div>
 <div className="w-12 h-12 rounded-2xl bg-white/15 border border-white/20 flex items-center justify-center"><Search className="w-6 h-6 text-white" /></div>
 </div>
@@ -668,27 +668,27 @@ abaPesquisaAtiva === a.id
 </div>)}
 {/* --- SISTEMA MÃ“VEL DE CARDS COMPACTOS EM 3 COLUNAS --- */}
 <div className="mb-6">
-{abaPesquisaAtiva === 'equipes' && (
+{abaPesquisaAtiva === 'Equipes' && (
 <div>
 <div className="mb-2.5"><h3 className="text-xs font-black text-white uppercase">âš½ Melhores Equipes e SeleÃ§Ãµes</h3><p className="text-[9px] text-slate-500 font-bold mt-0.5">Clique para favoritar no seu radar</p></div>
 <div className="grid grid-cols-3 sm:grid-cols-4 gap-2">
-{BUSCA_EQUIPES.filter(i => !buscaPesquisa.trim() || normalizarTexto(`${i.nome} ${i.sub}`).includes(normalizarTexto(buscaPesquisa))).map(item => <PesquisaCard key={`eq-${item.nome}`} item={item} />)}
+{BUSCA_Equipes.filter(i => !buscaPesquisa.trim() || normalizarTexto(`${i.nome} ${i.sub}`).includes(normalizarTexto(buscaPesquisa))).map(item => <PesquisaCard key={`eq-${item.nome}`} item={item} />)}
 </div>
 </div>
 )}
-{abaPesquisaAtiva === 'jogadores' && (
+{abaPesquisaAtiva === 'Jogadores' && (
 <div>
 <div className="mb-2.5"><h3 className="text-xs font-black text-white uppercase">ðŸ‘¤ Atletas em Destaque</h3><p className="text-[9px] text-slate-500 font-bold mt-0.5">Monitore assistÃªncias, gols e cartÃµes</p></div>
 <div className="grid grid-cols-3 sm:grid-cols-4 gap-2">
-{BUSCA_JOGADORES.filter(i => !buscaPesquisa.trim() || normalizarTexto(`${i.nome} ${i.sub}`).includes(normalizarTexto(buscaPesquisa))).map(item => <PesquisaCard key={`jog-${item.nome}`} item={item} />)}
+{BUSCA_Jogadores.filter(i => !buscaPesquisa.trim() || normalizarTexto(`${i.nome} ${i.sub}`).includes(normalizarTexto(buscaPesquisa))).map(item => <PesquisaCard key={`jog-${item.nome}`} item={item} />)}
 </div>
 </div>
 )}
-{abaPesquisaAtiva === 'ranking' && (
+{abaPesquisaAtiva === 'Ranking' && (
 <div>
 <div className="mb-2.5"><h3 className="text-xs font-black text-white uppercase">ðŸŒ ClassificaÃ§Ãµes e Rankings</h3><p className="text-[9px] text-slate-500 font-bold mt-0.5">Acompanhe pontuaÃ§Ã£o mundial</p></div>
 <div className="grid grid-cols-3 sm:grid-cols-4 gap-2">
-{BUSCA_RANKING.filter(i => !buscaPesquisa.trim() || normalizarTexto(`${i.nome} ${i.sub}`).includes(normalizarTexto(buscaPesquisa))).map(item => <PesquisaCard key={`rank-${item.nome}`} item={item} />)}
+{BUSCA_Ranking.filter(i => !buscaPesquisa.trim() || normalizarTexto(`${i.nome} ${i.sub}`).includes(normalizarTexto(buscaPesquisa))).map(item => <PesquisaCard key={`rank-${item.nome}`} item={item} />)}
 </div>
 </div>
 )}
@@ -733,7 +733,7 @@ return (
 </div>
 {/* --- FIM DA RENDERIZAÃ‡ÃƒO POR ABAS --- */}
 </div>)}
-{viewMode === 'favoritos' && (<div className="animate-fade-in pb-28 w-full"><div className="bg-blue-700 border-b border-blue-400/30 sticky top-0 z-20"><div className="flex overflow-x-auto no-scrollbar px-2">{['Eventos', 'Times', 'CompetiÃ§Ãµes', 'Atletas'].map(aba => <button key={aba} onClick={() => setFavAba(aba)} className={`px-4 py-4 text-xs font-black whitespace-nowrap border-b-2 ${favAba === aba ? 'text-white border-white' : 'text-blue-200 border-transparent'}`} style={{ touchAction: 'manipulation' }}>{aba}</button>)}</div></div><div className="px-4 pt-5">{favAba === 'Eventos' && (<>{jogos.filter(j => favoritos.includes(j.id)).length ? jogos.filter(j => favoritos.includes(j.id)).map(j => (<div key={j.id} onClick={() => setJogoSelecionado(j)} className="bg-[#0f172a] border border-yellow-500/20 rounded-3xl p-5 mb-3"><div className="flex justify-between items-center mb-2"><span className="text-[10px] text-yellow-400 font-black uppercase">{j.league_name}</span><Star className="w-4 h-4 fill-yellow-400 text-yellow-400" /></div><div className="text-sm font-black text-white">{j.home_team} x {j.away_team}</div><div className="text-[11px] text-slate-500 mt-1">ConfianÃ§a IA: {j.confianca_ia || 0}% â€¢ Odd {j.odd_principal || '-'}</div></div>)) : <FavVazio tipo="eventos da sua equipe e competiÃ§Ãµes" />}</>)}{favAba === 'Times' && (<>{favCatalogo.filter(f => f.tipo === 'time').length ? favCatalogo.filter(f => f.tipo === 'time').map(item => <FavCard key={item.id} item={item} />) : <FavVazio tipo="times" />}</>)}{favAba === 'CompetiÃ§Ãµes' && (<>{favCatalogo.filter(f => f.tipo === 'competicao' || f.tipo === 'ranking').length ? favCatalogo.filter(f => f.tipo === 'competicao' || f.tipo === 'ranking').map(item => <FavCard key={item.id} item={item} />) : <FavVazio tipo="competiÃ§Ãµes" />}</>)}{favAba === 'Atletas' && (<>{favCatalogo.filter(f => f.tipo === 'atleta').length ? favCatalogo.filter(f => f.tipo === 'atleta').map(item => <FavCard key={item.id} item={item} />) : <FavVazio tipo="atletas" />}</>)}</div></div>)}
+{viewMode === 'favoritos' && (<div className="animate-fade-in pb-28 w-full"><div className="bg-blue-700 border-b border-blue-400/30 sticky top-0 z-20"><div className="flex overflow-x-auto no-scrollbar px-2">{['Eventos', 'Times', 'CompetiÃ§Ãµes', 'Atletas'].map(aba => <button key={aba} onClick={() => setFavAba(aba)} className={`px-4 py-4 text-xs font-black whitespace-nowrap border-b-2 ${favAba === aba ? 'text-white border-white' : 'text-blue-200 border-transparent'}`} style={{ touchAction: 'manipulation' }}>{aba}</button>)}</div></div><div className="px-4 pt-5">{favAba === 'Eventos' && (<>{jogos.filter(j => favoritos.includes(j.id)).length ? jogos.filter(j => favoritos.includes(j.id)).map(j => (<div key={j.id} onClick={() => setJogoSelecionado(j)} className="bg-[#0f172a] border border-yellow-500/20 rounded-3xl p-5 mb-3"><div className="flex justify-between items-center mb-2"><span className="text-[10px] text-yellow-400 font-black uppercase">{j.league_name}</span><Star className="w-4 h-4 fill-yellow-400 text-yellow-400" /></div><div className="text-sm font-black text-white">{j.home_team} x {j.away_team}</div><div className="text-[11px] text-slate-500 mt-1">ConfianÃ§a IA: {j.confianca_ia || 0}% â€¢ Odd {j.odd_principal || '-'}</div></div>)) : <FavVazio tipo="eventos da sua equipe e competiÃ§Ãµes" />}</>)}{favAba === 'Times' && (<>{favCatalogo.filter(f => f.tipo === 'time').length ? favCatalogo.filter(f => f.tipo === 'time').map(item => <FavCard key={item.id} item={item} />) : <FavVazio tipo="times" />}</>)}{favAba === 'CompetiÃ§Ãµes' && (<>{favCatalogo.filter(f => f.tipo === 'competicao' || f.tipo === 'Ranking').length ? favCatalogo.filter(f => f.tipo === 'competicao' || f.tipo === 'Ranking').map(item => <FavCard key={item.id} item={item} />) : <FavVazio tipo="competiÃ§Ãµes" />}</>)}{favAba === 'Atletas' && (<>{favCatalogo.filter(f => f.tipo === 'atleta').length ? favCatalogo.filter(f => f.tipo === 'atleta').map(item => <FavCard key={item.id} item={item} />) : <FavVazio tipo="atletas" />}</>)}</div></div>)}
 {viewMode === 'config' && (<div className="px-4 animate-fade-in pb-20 w-full"><HeaderNav title="âš™ï¸ ConfiguraÃ§Ãµes" onBack={() => setViewMode('perfil')} /><div className="bg-[#0f172a] border border-white/5 rounded-3xl p-5 mb-4"><h3 className="text-sm font-black text-white mb-4">PreferÃªncias do aplicativo</h3><button onClick={solicitarPermissaoNotificacaoApp} className="w-full bg-[#050816] border border-blue-500/20 rounded-2xl p-4 text-left mb-3"><div className="text-xs font-black text-blue-400 uppercase">Ativar notificaÃ§Ãµes</div><div className="text-[10px] text-slate-500 font-bold mt-1">Receba alertas de jogos, oportunidades e favoritos.</div></button><button onClick={() => setViewMode('termos')} className="w-full bg-[#050816] border border-white/10 rounded-2xl p-4 text-left mb-3"><div className="text-xs font-black text-white uppercase">Privacidade e termos</div><div className="text-[10px] text-slate-500 font-bold mt-1">Abrir polÃ­ticas, +18 e responsabilidade.</div></button><button onClick={() => window.location.href = 'mailto:betanlyticspro@gmail.com'} className="w-full bg-[#050816] border border-cyan-500/20 rounded-2xl p-4 text-left"><div className="text-xs font-black text-cyan-400 uppercase">Suporte</div><div className="text-[10px] text-slate-500 font-bold mt-1">betanlyticspro@gmail.com</div></button></div><PlayStoreModeBadge /></div>)}
 {viewMode === 'termos' && (<div className="px-4 animate-fade-in pb-20 w-full"><HeaderNav title="ðŸ“„ Termos e PolÃ­ticas" onBack={() => setViewMode('jogos')} /><LegalCompliance /></div>)}
 {viewMode === 'admin' && (<div className="px-4 animate-fade-in pb-20 w-full"><HeaderNav title="âš™ï¸ Painel de Controle Admin" onBack={() => setViewMode('perfil')} /><div className="bg-[#0f172a] p-5 rounded-3xl border border-white/5 shadow-lg mb-3"><div className="text-[10px] text-slate-400 uppercase font-bold mb-1 tracking-widest">Total UsuÃ¡rios</div><div className="text-3xl font-black text-white">1,248</div></div><div className="bg-[#0f172a] p-5 rounded-3xl border border-yellow-500/20 shadow-lg mb-3"><div className="text-[10px] text-slate-400 uppercase font-bold mb-1 tracking-widest">Assinantes PRO</div><div className="text-3xl font-black text-yellow-400">312</div></div><div className="bg-[#0f172a] p-5 rounded-3xl border border-green-500/20 shadow-lg flex justify-between items-center"><div><div className="text-[10px] text-slate-400 uppercase font-bold mb-1 tracking-widest">Receita Mensal Estimada</div><div className="text-3xl font-black text-green-400">R$ 9.328,80</div></div><DollarSign className="w-10 h-10 text-green-500 opacity-50" /></div></div>)}
@@ -756,7 +756,7 @@ return (
 <div className="flex justify-around items-center h-16 pt-2 w-full">
 <button onClick={() => { setMenuAtivo('Todos os Jogos'); setViewMode('jogos'); setFilterCentro('Todos'); setJogoSelecionado(null); }} className={`flex flex-col items-center gap-1.5 ${viewMode === 'jogos' && filterCentro !== 'Ao Vivo' ? 'text-blue-500' : 'text-slate-500'}`} style={{ touchAction: 'manipulation' }}><Home className="w-5 h-5" /><span className="text-[8px] font-black uppercase mt-0.5">InÃ­cio</span></button>
 <button onClick={() => { setMenuAtivo('Todos os Jogos'); setViewMode('jogos'); setFilterCentro('Ao Vivo'); setJogoSelecionado(null); }} className={`flex flex-col items-center gap-1.5 ${filterCentro === 'Ao Vivo' ? 'text-red-500' : 'text-slate-500'}`} style={{ touchAction: 'manipulation' }}><Radio className="w-5 h-5" /><span className="text-[8px] font-black uppercase mt-0.5">Ao Vivo</span></button>
-<button onClick={() => { setMenuAtivo('Todos os Jogos'); setViewMode('pesquisa'); setJogoSelecionado(null); }} className={`flex flex-col items-center gap-1.5 ${viewMode === 'pesquisa' ? 'text-blue-500' : 'text-slate-500'}`} style={{ touchAction: 'manipulation' }}><Search className="w-5 h-5" /><span className="text-[8px] font-black uppercase mt-0.5">Pesquisa</span></button>
+<button onClick={() => { setMenuAtivo('Todos os Jogos'); setViewMode('Pesquisa'); setJogoSelecionado(null); }} className={`flex flex-col items-center gap-1.5 ${viewMode === 'Pesquisa' ? 'text-blue-500' : 'text-slate-500'}`} style={{ touchAction: 'manipulation' }}><Search className="w-5 h-5" /><span className="text-[8px] font-black uppercase mt-0.5">Pesquisa</span></button>
 <button onClick={() => { setMenuAtivo('Todos os Jogos'); setViewMode('copa'); setJogoSelecionado(null); }} className={`flex flex-col items-center gap-1.5 ${viewMode === 'copa' ? 'text-yellow-500' : 'text-slate-500'}`} style={{ touchAction: 'manipulation' }}><Trophy className="w-5 h-5" /><span className="text-[8px] font-black uppercase mt-0.5">Copa</span></button>
 <button onClick={() => { setMenuAtivo('Todos os Jogos'); setViewMode('radar'); setJogoSelecionado(null); }} className={`flex flex-col items-center gap-1.5 ${viewMode === 'radar' ? 'text-purple-500' : 'text-slate-500'}`} style={{ touchAction: 'manipulation' }}><Zap className="w-5 h-5" /><span className="text-[8px] font-black uppercase mt-0.5">Radar IA</span></button>
 {userData?.is_admin && (<button onClick={() => { setMenuAtivo('Todos os Jogos'); setViewMode('admin'); setJogoSelecionado(null); }} className={`flex flex-col items-center gap-1.5 ${viewMode === 'admin' ? 'text-yellow-500' : 'text-slate-500'}`} style={{ touchAction: 'manipulation' }}><Zap className="w-5 h-5" /><span className="text-[8px] font-black uppercase mt-0.5">Admin</span></button>)}
@@ -765,6 +765,7 @@ return (
 </div>
 );
 }
+
 
 
 
