@@ -1,6 +1,90 @@
 ﻿import { ChevronDown, Star } from 'lucide-react';
 import { useMemo, useState } from 'react';
 
+const JOGOS_DEMO_INICIO = [
+  {
+    id: 'demo-home-1',
+    league_name: 'Brasileirão Série B',
+    league_country: 'Brazil',
+    status: 'Finished',
+    home_team: 'America MG',
+    away_team: 'Londrina',
+    scoreHome: 1,
+    scoreAway: 1,
+  },
+  {
+    id: 'demo-home-2',
+    league_name: 'Brasileirão Série B',
+    league_country: 'Brazil',
+    status: 'Finished',
+    home_team: 'Ceará',
+    away_team: 'Athletic MG',
+    scoreHome: 0,
+    scoreAway: 0,
+  },
+  {
+    id: 'demo-home-3',
+    league_name: 'Primeira División',
+    league_country: 'Uruguay',
+    status: 'Finished',
+    home_team: 'Cerro Largo',
+    away_team: 'Defensor Sport.',
+    scoreHome: 1,
+    scoreAway: 1,
+  },
+  {
+    id: 'demo-home-4',
+    league_name: 'Allsvenskan',
+    league_country: 'Sweden',
+    status: 'Finished',
+    home_team: 'Djurgården',
+    away_team: 'Halmstads',
+    scoreHome: 3,
+    scoreAway: 0,
+  },
+  {
+    id: 'demo-home-5',
+    league_name: 'Division 2',
+    league_country: 'Argentina',
+    status: 'Live',
+    time_elapsed: "65'",
+    home_team: 'Atlanta',
+    away_team: 'Colegiales',
+    scoreHome: 1,
+    scoreAway: 0,
+  },
+  {
+    id: 'demo-home-6',
+    league_name: 'NFL',
+    league_country: 'Russia',
+    status: 'Finished',
+    home_team: 'Ural',
+    away_team: 'Torpedo Moscow',
+    scoreHome: 0,
+    scoreAway: 1,
+  },
+  {
+    id: 'demo-home-7',
+    league_name: 'Super Liga',
+    league_country: 'India',
+    status: 'Not Started',
+    home_team: 'Mumbai City',
+    away_team: 'Kerala Blasters',
+    scoreHome: 0,
+    scoreAway: 0,
+  },
+  {
+    id: 'demo-home-8',
+    league_name: 'Liga 1',
+    league_country: 'China',
+    status: 'Not Started',
+    home_team: 'Shanghai Port',
+    away_team: 'Beijing Guoan',
+    scoreHome: 0,
+    scoreAway: 0,
+  },
+];
+
 const PAIS_PT = {
   Brazil: 'Brasil',
   World: 'Internacional',
@@ -27,6 +111,7 @@ const PAIS_PT = {
   Bhutan: 'Butão',
   Lebanon: 'Líbano',
   Gambia: 'Gâmbia',
+  Russia: 'Rússia',
   'South Korea': 'Coreia do Sul',
 };
 
@@ -55,6 +140,7 @@ const BANDEIRAS = {
   Butão: '🇧🇹',
   Líbano: '🇱🇧',
   Gâmbia: '🇬🇲',
+  Rússia: '🇷🇺',
   'Coreia do Sul': '🇰🇷',
   Ásia: '🌏',
   Oceania: '🌊',
@@ -65,7 +151,7 @@ const BANDEIRAS = {
 };
 
 const AMERICA_SUL = ['Brasil', 'Argentina', 'Uruguai', 'Colômbia', 'Equador', 'Paraguai', 'Peru', 'Bolívia', 'Chile'];
-const EUROPA = ['Suécia', 'Islândia', 'Finlândia', 'Estônia'];
+const EUROPA = ['Suécia', 'Islândia', 'Finlândia', 'Estônia', 'Rússia'];
 const ASIA = ['Índia', 'Mianmar', 'Vietnã', 'China', 'Cazaquistão', 'Líbano', 'Coreia do Sul', 'Butão'];
 const OCEANIA = ['Austrália'];
 const AMERICA_NORTE = ['Canadá'];
@@ -73,9 +159,7 @@ const AFRICA = ['Gâmbia'];
 
 function traduzirPais(pais = '') {
   const limpo = String(pais || '').trim();
-
   if (!limpo) return 'Internacional';
-
   return PAIS_PT[limpo] || limpo;
 }
 
@@ -127,10 +211,8 @@ function getScore(jogo, lado) {
 function agruparPorLiga(jogos = []) {
   return jogos.reduce((acc, jogo) => {
     const liga = jogo?.league_name || 'Outras competições';
-
     if (!acc[liga]) acc[liga] = [];
     acc[liga].push(jogo);
-
     return acc;
   }, {});
 }
@@ -201,6 +283,7 @@ function JogoMiniCard({ jogo, onAbrirJogo, favoritos = [], onToggleFavorito }) {
           {jogo?.home_image && (
             <img src={jogo.home_image} className="w-5 h-5 object-contain flex-shrink-0" alt="" />
           )}
+
           <span className="text-xs font-black text-white truncate">
             {jogo?.home_team || 'Mandante'}
           </span>
@@ -210,6 +293,7 @@ function JogoMiniCard({ jogo, onAbrirJogo, favoritos = [], onToggleFavorito }) {
           {jogo?.away_image && (
             <img src={jogo.away_image} className="w-5 h-5 object-contain flex-shrink-0" alt="" />
           )}
+
           <span className="text-xs font-bold text-slate-200 truncate">
             {jogo?.away_team || 'Visitante'}
           </span>
@@ -217,11 +301,11 @@ function JogoMiniCard({ jogo, onAbrirJogo, favoritos = [], onToggleFavorito }) {
       </div>
 
       <div className="flex flex-col gap-1">
-        <div className={`w-8 h-7 rounded-lg grid place-items-center text-sm font-black ${getScore(jogo, 'home') > getScore(jogo, 'away') ? 'bg-yellow-500/20 text-yellow-300 border border-yellow-500/30' : 'bg-black text-white'}`}>
+        <div className={`w-8 h-7 rounded-lg grid place-items-center text-sm font-black ${Number(getScore(jogo, 'home')) > Number(getScore(jogo, 'away')) ? 'bg-yellow-500/20 text-yellow-300 border border-yellow-500/30' : 'bg-black text-white'}`}>
           {getScore(jogo, 'home')}
         </div>
 
-        <div className={`w-8 h-7 rounded-lg grid place-items-center text-sm font-black ${getScore(jogo, 'away') > getScore(jogo, 'home') ? 'bg-yellow-500/20 text-yellow-300 border border-yellow-500/30' : 'bg-black text-white'}`}>
+        <div className={`w-8 h-7 rounded-lg grid place-items-center text-sm font-black ${Number(getScore(jogo, 'away')) > Number(getScore(jogo, 'home')) ? 'bg-yellow-500/20 text-yellow-300 border border-yellow-500/30' : 'bg-black text-white'}`}>
           {getScore(jogo, 'away')}
         </div>
       </div>
@@ -245,13 +329,17 @@ export default function JogosPorPaisContinente({
   favoritos = [],
   onAbrirJogo,
   onToggleFavorito,
+  usarDemoQuandoVazio = true,
 }) {
   const [grupoAberto, setGrupoAberto] = useState(null);
 
-  const grupos = useMemo(() => {
+  const jogosBase = useMemo(() => {
     const lista = Array.isArray(jogos) ? jogos : [];
-    return criarGrupos(lista);
-  }, [jogos]);
+    if (lista.length > 0) return lista;
+    return usarDemoQuandoVazio ? JOGOS_DEMO_INICIO : [];
+  }, [jogos, usarDemoQuandoVazio]);
+
+  const grupos = useMemo(() => criarGrupos(jogosBase), [jogosBase]);
 
   if (!grupos.length) return null;
 
@@ -261,6 +349,7 @@ export default function JogosPorPaisContinente({
         <h3 className="text-xs font-black text-white uppercase tracking-widest">
           Outras partidas
         </h3>
+
         <p className="text-[10px] text-slate-500 font-bold mt-1">
           Toque em um país ou continente para ver os jogos disponíveis.
         </p>
@@ -286,6 +375,7 @@ export default function JogosPorPaisContinente({
                   <div className="text-sm font-black text-white truncate">
                     {grupo.nome}
                   </div>
+
                   <div className="text-[9px] font-bold text-slate-500 uppercase">
                     {grupo.tipo === 'continente' ? 'Continente' : 'País'}
                   </div>
