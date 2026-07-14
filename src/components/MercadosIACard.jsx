@@ -1,15 +1,16 @@
-import { useEffect, useMemo, useRef, useState } from 'react';
+﻿import { useEffect, useMemo, useRef, useState } from 'react';
 import { AlertTriangle, ChevronDown, ShieldCheck, Target, Zap } from 'lucide-react';
 import { analisarMercadosDoJogo } from '../utils/mercados.js';
 
 function MercadoLinha({ mercado, compacto = false }) {
-  const cor = mercado.qualidade === 'EV+ Forte' || mercado.qualidade === 'Forte'
-    ? 'text-emerald-400 border-emerald-500/20 bg-emerald-500/10'
-    : mercado.qualidade === 'Boa'
-      ? 'text-blue-400 border-blue-500/20 bg-blue-500/10'
-      : mercado.risco === 'Alto'
-        ? 'text-red-400 border-red-500/20 bg-red-500/10'
-        : 'text-yellow-400 border-yellow-500/20 bg-yellow-500/10';
+  const cor =
+    mercado.qualidade === 'EV+ Forte' || mercado.qualidade === 'Forte'
+      ? 'text-emerald-400 border-emerald-500/20 bg-emerald-500/10'
+      : mercado.qualidade === 'Boa'
+        ? 'text-blue-400 border-blue-500/20 bg-blue-500/10'
+        : mercado.risco === 'Alto'
+          ? 'text-red-400 border-red-500/20 bg-red-500/10'
+          : 'text-yellow-400 border-yellow-500/20 bg-yellow-500/10';
 
   return (
     <div className="bg-[#0f172a] border border-white/5 rounded-2xl p-3">
@@ -18,6 +19,7 @@ function MercadoLinha({ mercado, compacto = false }) {
           <div className="text-[9px] font-black uppercase tracking-widest text-slate-500">
             {mercado.categoria} • {mercado.mercado}
           </div>
+
           <div className="text-xs font-black text-white leading-snug mt-1">
             {mercado.selecao}
           </div>
@@ -46,19 +48,21 @@ function MercadoLinha({ mercado, compacto = false }) {
 
         <div>
           <div className="text-[8px] font-black uppercase text-slate-500">Risco</div>
-          <div className={`text-sm font-black ${
-            mercado.risco === 'Alto'
-              ? 'text-red-400'
-              : mercado.risco === 'Baixo'
-                ? 'text-emerald-400'
-                : 'text-blue-400'
-          }`}>
+          <div
+            className={`text-sm font-black ${
+              mercado.risco === 'Alto'
+                ? 'text-red-400'
+                : mercado.risco === 'Baixo'
+                  ? 'text-emerald-400'
+                  : 'text-blue-400'
+            }`}
+          >
             {mercado.risco}
           </div>
         </div>
       </div>
 
-      {!compacto && (
+      {!compacto && mercado.motivo && (
         <div className="mt-2 text-[10px] font-semibold text-slate-400 leading-relaxed">
           {mercado.motivo}
         </div>
@@ -73,9 +77,28 @@ export default function MercadosIACard({ jogo }) {
 
   const dados = useMemo(() => analisarMercadosDoJogo(jogo), [jogo]);
 
-  const mercadosPrincipais = dados.valueBets.slice(0, 3);
-  const mercadosExtras = dados.valueBets.slice(3, 12);
-  const evitar = dados.evitar.slice(0, aberto ? 3 : 1);
+  const melhorEntrada = dados?.melhorEntrada || null;
+
+  const mercadosSemDuplicarMelhor = useMemo(() => {
+    const lista = Array.isArray(dados?.valueBets) ? dados.valueBets : [];
+
+    if (!melhorEntrada) return lista;
+
+    return lista.filter((mercado) => {
+      if (mercado.id && melhorEntrada.id) {
+        return mercado.id !== melhorEntrada.id;
+      }
+
+      const chaveMercado = `${mercado.categoria}-${mercado.mercado}-${mercado.selecao}`;
+      const chaveMelhor = `${melhorEntrada.categoria}-${melhorEntrada.mercado}-${melhorEntrada.selecao}`;
+
+      return chaveMercado !== chaveMelhor;
+    });
+  }, [dados, melhorEntrada]);
+
+  const mercadosPrincipais = mercadosSemDuplicarMelhor.slice(0, 3);
+  const mercadosExtras = mercadosSemDuplicarMelhor.slice(3, 20);
+  const evitar = Array.isArray(dados?.evitar) ? dados.evitar.slice(0, aberto ? 3 : 1) : [];
 
   useEffect(() => {
     if (!aberto) return;
@@ -93,11 +116,17 @@ export default function MercadosIACard({ jogo }) {
   const alternarMaisMercados = (e) => {
     e.preventDefault();
     e.stopPropagation();
-    setAberto(v => !v);
+    setAberto((v) => !v);
   };
 
   return (
-    <div className="mt-4 bg-[#050816]/70 border border-white/10 rounded-2xl p-4">
+    <div
+      className="mt-4 bg-[#050816]/70 border border-white/10 rounded-2xl p-4"
+      onClick={(e) => e.stopPropagation()}
+      onMouseDown={(e) => e.stopPropagation()}
+      onPointerDown={(e) => e.stopPropagation()}
+      onTouchStart={(e) => e.stopPropagation()}
+    >
       <div className="flex items-start justify-between gap-3 mb-3">
         <div className="min-w-0">
           <div className="text-[10px] font-black uppercase tracking-widest text-slate-500 flex items-center gap-1.5">
@@ -115,19 +144,23 @@ export default function MercadosIACard({ jogo }) {
         </div>
 
         <div className="text-right flex-shrink-0">
-          <div className="text-lg font-black text-emerald-400">{dados.resumo.fortes}</div>
-          <div className="text-[8px] font-black text-slate-500 uppercase">fortes</div>
+          <div className="text-lg font-black text-emerald-400">
+            {dados?.resumo?.fortes || 0}
+          </div>
+          <div className="text-[8px] font-black text-slate-500 uppercase">
+            fortes
+          </div>
         </div>
       </div>
 
-      {dados.melhorEntrada && (
+      {melhorEntrada && (
         <div className="mb-3 rounded-2xl p-3 bg-gradient-to-br from-emerald-500/15 to-blue-500/10 border border-emerald-500/20">
           <div className="flex items-center gap-1.5 text-[9px] font-black uppercase text-emerald-400 mb-1">
             <Zap className="w-3 h-3" />
             Melhor leitura do jogo
           </div>
 
-          <MercadoLinha mercado={dados.melhorEntrada} compacto />
+          <MercadoLinha mercado={melhorEntrada} compacto />
         </div>
       )}
 
@@ -136,22 +169,31 @@ export default function MercadosIACard({ jogo }) {
           <div className="text-[8px] font-black uppercase text-slate-500">
             Mercados analisados
           </div>
-          <div className="text-lg font-black text-white">{dados.resumo.totalMercados}</div>
+          <div className="text-lg font-black text-white">
+            {dados?.resumo?.totalMercados || 0}
+          </div>
         </div>
 
         <div className="bg-[#0f172a] rounded-xl p-3 border border-white/5">
           <div className="text-[8px] font-black uppercase text-slate-500">
             Alertas ao vivo
           </div>
-          <div className="text-lg font-black text-red-400">{dados.resumo.vivos}</div>
+          <div className="text-lg font-black text-red-400">
+            {dados?.resumo?.vivos || 0}
+          </div>
         </div>
       </div>
 
-      <div className="space-y-2">
-        {mercadosPrincipais.map(mercado => (
-          <MercadoLinha key={mercado.id} mercado={mercado} />
-        ))}
-      </div>
+      {mercadosPrincipais.length > 0 && (
+        <div className="space-y-2">
+          {mercadosPrincipais.map((mercado, index) => (
+            <MercadoLinha
+              key={mercado.id || `principal-${mercado.categoria}-${mercado.mercado}-${mercado.selecao}-${index}`}
+              mercado={mercado}
+            />
+          ))}
+        </div>
+      )}
 
       {evitar.length > 0 && (
         <div className="mt-3 rounded-2xl border border-red-500/20 bg-red-500/10 p-3">
@@ -161,30 +203,39 @@ export default function MercadosIACard({ jogo }) {
           </div>
 
           <div className="space-y-2">
-            {evitar.map(m => (
-              <div key={`evitar-${m.id}`} className="text-[10px] font-bold text-slate-300 leading-relaxed">
-                <span className="text-red-300 font-black">Evitar:</span> {m.mercado} / {m.selecao} — {m.alerta}
+            {evitar.map((m, index) => (
+              <div
+                key={`evitar-${m.id || index}`}
+                className="text-[10px] font-bold text-slate-300 leading-relaxed"
+              >
+                <span className="text-red-300 font-black">Evitar:</span>{' '}
+                {m.mercado} / {m.selecao} — {m.alerta}
               </div>
             ))}
           </div>
         </div>
       )}
 
-      <button
-        type="button"
-        onClick={alternarMaisMercados}
-        onMouseDown={(e) => e.preventDefault()}
-        onTouchStart={(e) => e.stopPropagation()}
-        className="mt-3 w-full rounded-xl bg-white/5 border border-white/10 py-2.5 text-[10px] font-black uppercase text-slate-300 flex items-center justify-center gap-2 active:scale-95"
-      >
-        {aberto ? 'Ver menos mercados' : 'Ver mais mercados'}
-        <ChevronDown className={`w-3 h-3 transition-transform ${aberto ? 'rotate-180' : ''}`} />
-      </button>
+      {mercadosExtras.length > 0 && (
+        <button
+          type="button"
+          onClick={alternarMaisMercados}
+          onMouseDown={(e) => e.preventDefault()}
+          onTouchStart={(e) => e.stopPropagation()}
+          className="mt-3 w-full rounded-xl bg-white/5 border border-white/10 py-2.5 text-[10px] font-black uppercase text-slate-300 flex items-center justify-center gap-2 active:scale-95"
+        >
+          {aberto ? 'Ver menos mercados' : 'Ver mais mercados'}
+          <ChevronDown className={`w-3 h-3 transition-transform ${aberto ? 'rotate-180' : ''}`} />
+        </button>
+      )}
 
       {aberto && mercadosExtras.length > 0 && (
         <div ref={maisRef} className="mt-3 space-y-2">
-          {mercadosExtras.map(mercado => (
-            <MercadoLinha key={`extra-${mercado.id}`} mercado={mercado} />
+          {mercadosExtras.map((mercado, index) => (
+            <MercadoLinha
+              key={mercado.id || `extra-${mercado.categoria}-${mercado.mercado}-${mercado.selecao}-${index}`}
+              mercado={mercado}
+            />
           ))}
         </div>
       )}
