@@ -1,6 +1,42 @@
-﻿import { useEffect, useMemo, useRef, useState } from 'react';
+﻿import { useMemo, useState } from 'react';
 import { AlertTriangle, ChevronDown, ShieldCheck, Target, Zap } from 'lucide-react';
 import { analisarMercadosDoJogo } from '../utils/mercados.js';
+
+function chaveMercadoUnica(mercado = {}) {
+  return [
+    mercado.categoria,
+    mercado.mercado,
+    mercado.selecao,
+    mercado.prob,
+    mercado.oddJusta,
+    mercado.oddMinima,
+    mercado.risco,
+  ]
+    .map((v) =>
+      String(v ?? '')
+        .toLowerCase()
+        .normalize('NFD')
+        .replace(/[\u0300-\u036f]/g, '')
+        .replace(/\s+/g, ' ')
+        .trim()
+    )
+    .join('|');
+}
+
+function removerMercadosDuplicados(lista = []) {
+  const vistos = new Set();
+
+  return (Array.isArray(lista) ? lista : []).filter((mercado) => {
+    const chave = chaveMercadoUnica(mercado);
+
+    if (!chave || vistos.has(chave)) {
+      return false;
+    }
+
+    vistos.add(chave);
+    return true;
+  });
+}
 
 function MercadoLinha({ mercado, compacto = false }) {
   const cor =
@@ -32,22 +68,36 @@ function MercadoLinha({ mercado, compacto = false }) {
 
       <div className="grid grid-cols-4 gap-2 mt-3">
         <div>
-          <div className="text-[8px] font-black uppercase text-slate-500">Chance</div>
-          <div className="text-sm font-black text-emerald-400">{mercado.prob}%</div>
+          <div className="text-[8px] font-black uppercase text-slate-500">
+            Chance
+          </div>
+          <div className="text-sm font-black text-emerald-400">
+            {mercado.prob}%
+          </div>
         </div>
 
         <div>
-          <div className="text-[8px] font-black uppercase text-slate-500">Odd justa</div>
-          <div className="text-sm font-black text-white">{mercado.oddJusta}</div>
+          <div className="text-[8px] font-black uppercase text-slate-500">
+            Odd justa
+          </div>
+          <div className="text-sm font-black text-white">
+            {mercado.oddJusta}
+          </div>
         </div>
 
         <div>
-          <div className="text-[8px] font-black uppercase text-slate-500">Entrar ≥</div>
-          <div className="text-sm font-black text-yellow-400">{mercado.oddMinima}</div>
+          <div className="text-[8px] font-black uppercase text-slate-500">
+            Entrar ≥
+          </div>
+          <div className="text-sm font-black text-yellow-400">
+            {mercado.oddMinima}
+          </div>
         </div>
 
         <div>
-          <div className="text-[8px] font-black uppercase text-slate-500">Risco</div>
+          <div className="text-[8px] font-black uppercase text-slate-500">
+            Risco
+          </div>
           <div
             className={`text-sm font-black ${
               mercado.risco === 'Alto'
@@ -73,45 +123,25 @@ function MercadoLinha({ mercado, compacto = false }) {
 
 export default function MercadosIACard({ jogo }) {
   const [aberto, setAberto] = useState(false);
-  const maisRef = useRef(null);
 
   const dados = useMemo(() => analisarMercadosDoJogo(jogo), [jogo]);
 
-  const melhorEntrada = dados?.melhorEntrada || null;
+  const mercadosUnicos = useMemo(() => {
+    return removerMercadosDuplicados(dados?.valueBets || []);
+  }, [dados]);
 
-  const mercadosSemDuplicarMelhor = useMemo(() => {
-    const lista = Array.isArray(dados?.valueBets) ? dados.valueBets : [];
+  const melhorEntrada = mercadosUnicos[0] || null;
 
-    if (!melhorEntrada) return lista;
+  // Aqui está a correção principal:
+  // A lista começa no índice 1, então o melhor mercado nunca aparece duas vezes.
+  const mercadosDaLista = mercadosUnicos.slice(1);
 
-    return lista.filter((mercado) => {
-      if (mercado.id && melhorEntrada.id) {
-        return mercado.id !== melhorEntrada.id;
-      }
+  const mercadosPrincipais = mercadosDaLista.slice(0, 3);
+  const mercadosExtras = mercadosDaLista.slice(3, 20);
 
-      const chaveMercado = `${mercado.categoria}-${mercado.mercado}-${mercado.selecao}`;
-      const chaveMelhor = `${melhorEntrada.categoria}-${melhorEntrada.mercado}-${melhorEntrada.selecao}`;
-
-      return chaveMercado !== chaveMelhor;
-    });
-  }, [dados, melhorEntrada]);
-
-  const mercadosPrincipais = mercadosSemDuplicarMelhor.slice(0, 3);
-  const mercadosExtras = mercadosSemDuplicarMelhor.slice(3, 20);
-  const evitar = Array.isArray(dados?.evitar) ? dados.evitar.slice(0, aberto ? 3 : 1) : [];
-
-  useEffect(() => {
-    if (!aberto) return;
-
-    const timer = setTimeout(() => {
-      maisRef.current?.scrollIntoView({
-        behavior: 'smooth',
-        block: 'nearest',
-      });
-    }, 120);
-
-    return () => clearTimeout(timer);
-  }, [aberto]);
+  const evitar = Array.isArray(dados?.evitar)
+    ? removerMercadosDuplicados(dados.evitar).slice(0, aberto ? 3 : 1)
+    : [];
 
   const alternarMaisMercados = (e) => {
     e.preventDefault();
@@ -147,6 +177,7 @@ export default function MercadosIACard({ jogo }) {
           <div className="text-lg font-black text-emerald-400">
             {dados?.resumo?.fortes || 0}
           </div>
+
           <div className="text-[8px] font-black text-slate-500 uppercase">
             fortes
           </div>
@@ -169,8 +200,9 @@ export default function MercadosIACard({ jogo }) {
           <div className="text-[8px] font-black uppercase text-slate-500">
             Mercados analisados
           </div>
+
           <div className="text-lg font-black text-white">
-            {dados?.resumo?.totalMercados || 0}
+            {dados?.resumo?.totalMercados || mercadosUnicos.length || 0}
           </div>
         </div>
 
@@ -178,6 +210,7 @@ export default function MercadosIACard({ jogo }) {
           <div className="text-[8px] font-black uppercase text-slate-500">
             Alertas ao vivo
           </div>
+
           <div className="text-lg font-black text-red-400">
             {dados?.resumo?.vivos || 0}
           </div>
@@ -188,7 +221,7 @@ export default function MercadosIACard({ jogo }) {
         <div className="space-y-2">
           {mercadosPrincipais.map((mercado, index) => (
             <MercadoLinha
-              key={mercado.id || `principal-${mercado.categoria}-${mercado.mercado}-${mercado.selecao}-${index}`}
+              key={`mercado-principal-${chaveMercadoUnica(mercado)}-${index}`}
               mercado={mercado}
             />
           ))}
@@ -205,7 +238,7 @@ export default function MercadosIACard({ jogo }) {
           <div className="space-y-2">
             {evitar.map((m, index) => (
               <div
-                key={`evitar-${m.id || index}`}
+                key={`evitar-${chaveMercadoUnica(m)}-${index}`}
                 className="text-[10px] font-bold text-slate-300 leading-relaxed"
               >
                 <span className="text-red-300 font-black">Evitar:</span>{' '}
@@ -230,10 +263,10 @@ export default function MercadosIACard({ jogo }) {
       )}
 
       {aberto && mercadosExtras.length > 0 && (
-        <div ref={maisRef} className="mt-3 space-y-2">
+        <div className="mt-3 space-y-2">
           {mercadosExtras.map((mercado, index) => (
             <MercadoLinha
-              key={mercado.id || `extra-${mercado.categoria}-${mercado.mercado}-${mercado.selecao}-${index}`}
+              key={`mercado-extra-${chaveMercadoUnica(mercado)}-${index}`}
               mercado={mercado}
             />
           ))}
