@@ -26,8 +26,19 @@ export function useApiFootball({ data, ligaId = null, aoVivo = false, autoRefres
     } catch (e) {
       if (e?.name === 'AbortError') return;
       console.error('Erro API-Football:', e);
-      setErro(e?.message || 'Não foi possível carregar jogos da API-Football.');
-      setJogos(DEMO_API_FOOTBALL_ATIVO ? JOGOS_DEMO_API_FOOTBALL : []);
+      let mensagemAmigavel = 'Não foi possível carregar os jogos agora. Toque em atualizar para tentar novamente.';
+
+if (String(e?.message || '').includes('404')) {
+  mensagemAmigavel = 'A rota da API-Football ainda não foi encontrada no servidor. Verifique se as rotas foram colocadas no server.js.';
+}
+
+if (String(e?.message || '').toLowerCase().includes('api_football_key')) {
+  mensagemAmigavel = 'A chave da API-Football ainda não está configurada no servidor.';
+}
+
+setErro(mensagemAmigavel);
+      
+setJogos(DEMO_API_FOOTBALL_ATIVO ? JOGOS_DEMO_API_FOOTBALL : []);
     } finally {
       setLoading(false);
     }
