@@ -14,6 +14,262 @@ const app = express();
 app.use(cors());
 app.use(express.json());
 
+// ===== INICIO API-FOOTBALL BETANALYTICS =====
+const API_FOOTBALL_BASE_URL = process.env.API_FOOTBALL_BASE_URL || 'https://v3.football.api-sports.io';
+const API_FOOTBALL_KEY = process.env.API_FOOTBALL_KEY || process.env.API_FOOTBALL_TOKEN || process.env.APIFOOTBALL_KEY;
+
+const apiFootballCache = new Map();
+
+function apiFootballCacheKey(pathname, params = {}) {
+  const clean = Object.entries(params)
+    .filter(([, v]) => v !== undefined && v !== null && v !== '')
+    .sort(([a], [b]) => a.localeCompare(b));
+
+  return `${pathname}?${new URLSearchParams(clean.map(([k, v]) => [k, String(v)])).toString()}`;
+}
+
+function apiFootballTTL(pathname, params = {}) {
+  if (params.live === 'all') return 15000;
+  if (pathname.includes('/fixtures/events')) return 15000;
+  if (pathname.includes('/fixtures/statistics')) return 15000;
+  if (pathname.includes('/odds/live')) return 15000;
+  if (pathname.includes('/odds')) return 60000;
+  if (pathname.includes('/standings')) return 600000;
+  if (pathname.includes('/teams')) return 600000;
+  return 45000;
+}
+
+async function apiFootballRequest(pathname, params = {}) {
+  if (!API_FOOTBALL_KEY) {
+    const err = new Error('API_FOOTBALL_KEY não configurada no servidor.');
+    err.status = 500;
+    throw err;
+  }
+
+  const key = apiFootballCacheKey(pathname, params);
+  const cached = apiFootballCache.get(key);
+  const ttl = apiFootballTTL(pathname, params);
+
+  if (cached && Date.now() - cached.createdAt < ttl) {
+    return cached.data;
+  }
+
+  const url = new URL(`${API_FOOTBALL_BASE_URL}${pathname}`);
+
+  Object.entries(params).forEach(([k, v]) => {
+    if (v !== undefined && v !== null && v !== '') {
+      url.searchParams.set(k, String(v));
+    }
+  });
+
+  const resp = await fetch(url.toString(), {
+    method: 'GET',
+    headers: {
+      'x-apisports-key': API_FOOTBALL_KEY,
+      Accept: 'application/json',
+    },
+  });
+
+  const data = await resp.json().catch(() => null);
+
+  if (!resp.ok) {
+    const err = new Error(data?.message || data?.errors?.token || data?.errors?.requests || `Erro API-Football ${resp.status}`);
+    err.status = resp.status;
+    err.payload = data;
+    throw err;
+  }
+
+  apiFootballCache.set(key, { createdAt: Date.now(), data });
+  return data;
+}
+
+app.get('/api/football/health', (req, res) => {
+  res.json({
+    ok: true,
+    fonte: 'api-football',
+    configurado: Boolean(API_FOOTBALL_KEY),
+    baseUrl: API_FOOTBALL_BASE_URL,
+  });
+});
+
+app.get('/api/football/jogos', async (req, res) => {
+  try {
+    const date = req.query.date || new Date().toISOString().slice(0, 10);
+    const league = req.query.league || undefined;
+    const season = req.query.season || new Date(date).getFullYear();
+    const live = req.query.live === 'all' || req.query.live === 'true';
+
+    const params = live
+      ? { live: 'all', league }
+      : { date, league, season };
+
+    const payload = await apiFootballRequest('/fixtures', params);
+
+    res.json({
+      ok: true,
+      fonte: 'api-football',
+      count: payload?.response?.length || 0,
+      jogos: payload?.response || [],
+    });
+  } catch (e) {
+    console.error('[API-Football jogos]', e);
+    res.status(e.status || 500).json({
+      ok: false,
+      fonte: 'api-football',
+      erro: e.message || 'Erro ao consultar jogos.',
+    });
+  }
+});
+
+app.get('/api/football/jogo/:fixtureId', async (req, res) => {
+  try {
+    const fixtureId = req.params.fixtureId;
+
+    const [fixture, statistics, events, lineups, players] = await Promise.allSettled([
+      apiFootballRequest('/fixtures', { id: fixtureId }),
+      apiFootballRequest('/fixtures/statistics', { fixture: fixtureId }),
+      apiFootballRequest('/fixtures/events', { fixture: fixtureId }),
+      apiFootballRequest('/fixtures/lineups', { fixture: fixtureId }),
+      apiFootballRequest('/fixtures/players', { fixture: fixtureId }),
+    ]);
+
+    res.json({
+      ok: true,
+      fonte: 'api-football',
+      fixture: fixture.status === 'fulfilled' ? fixture.value?.response?.[0] || null : null,
+      statistics: statistics.status === 'fulfilled' ? statistics.value?.response || [] : [],
+      events: events.status === 'fulfilled' ? events.value?.response || [] : [],
+      lineups: lineups.status === 'fulfilled' ? lineups.value?.response || [] : [],
+      players: players.status === 'fulfilled' ? players.value?.response || [] : [],
+      odds: [],
+      oddsLive: [],
+      injuries: [],
+      h2h: [],
+      predictions: null,
+    });
+  } catch (e) {
+    console.error('[API-Football jogo]', e);
+    res.status(e.status || 500).json({
+      ok: false,
+      erro: e.message || 'Erro ao consultar detalhes do jogo.',
+    });
+  }
+});
+
+app.get('/api/football/classificacao', async (req, res) => {
+  try {
+    const league = req.query.league;
+    const season = req.query.season || new Date().getFullYear();
+
+    if (!league) {
+      return res.status(400).json({ ok: false, erro: 'Informe league.' });
+    }
+
+    const payload = await apiFootballRequest('/standings', { league, season });
+
+    res.json({
+      ok: true,
+      fonte: 'api-football',
+      standings: payload?.response || [],
+    });
+  } catch (e) {
+    res.status(e.status || 500).json({ ok: false, erro: e.message || 'Erro ao consultar classificação.' });
+  }
+});
+
+app.get('/api/football/time/:teamId', async (req, res) => {
+  try {
+    const team = req.params.teamId;
+    const league = req.query.league;
+    const season = req.query.season || new Date().getFullYear();
+
+    const [teamPayload, squadPayload, statsPayload] = await Promise.allSettled([
+      apiFootballRequest('/teams', { id: team }),
+      apiFootballRequest('/players/squads', { team }),
+      league ? apiFootballRequest('/teams/statistics', { team, league, season }) : Promise.resolve(null),
+    ]);
+
+    res.json({
+      ok: true,
+      fonte: 'api-football',
+      team: teamPayload.status === 'fulfilled' ? teamPayload.value?.response?.[0] || null : null,
+      squad: squadPayload.status === 'fulfilled' ? squadPayload.value?.response?.[0] || null : null,
+      statistics: statsPayload.status === 'fulfilled' ? statsPayload.value?.response || null : null,
+    });
+  } catch (e) {
+    res.status(e.status || 500).json({ ok: false, erro: e.message || 'Erro ao consultar equipe.' });
+  }
+});
+
+app.get('/api/football/jogador/:playerId', async (req, res) => {
+  try {
+    const id = req.params.playerId;
+    const season = req.query.season || new Date().getFullYear();
+
+    const payload = await apiFootballRequest('/players', {
+      id,
+      season,
+      team: req.query.team || undefined,
+      league: req.query.league || undefined,
+    });
+
+    res.json({
+      ok: true,
+      fonte: 'api-football',
+      player: payload?.response?.[0] || null,
+    });
+  } catch (e) {
+    res.status(e.status || 500).json({ ok: false, erro: e.message || 'Erro ao consultar jogador.' });
+  }
+});
+
+app.get('/api/football/pacote-completo/:fixtureId', async (req, res) => {
+  try {
+    const fixtureId = req.params.fixtureId;
+    const league = req.query.league || undefined;
+    const season = req.query.season || new Date().getFullYear();
+    const home = req.query.home || undefined;
+    const away = req.query.away || undefined;
+
+    const calls = [
+      apiFootballRequest('/fixtures', { id: fixtureId }),
+      apiFootballRequest('/fixtures/statistics', { fixture: fixtureId }),
+      apiFootballRequest('/fixtures/events', { fixture: fixtureId }),
+      apiFootballRequest('/fixtures/lineups', { fixture: fixtureId }),
+      apiFootballRequest('/fixtures/players', { fixture: fixtureId }),
+      apiFootballRequest('/injuries', { fixture: fixtureId }),
+      apiFootballRequest('/predictions', { fixture: fixtureId }),
+      apiFootballRequest('/odds', { fixture: fixtureId, league, season }),
+      apiFootballRequest('/odds/live', { fixture: fixtureId, league }),
+      home && away ? apiFootballRequest('/fixtures/headtohead', { h2h: `${home}-${away}`, last: 10 }) : Promise.resolve({ response: [] }),
+    ];
+
+    const [
+      fixture, statistics, events, lineups, players,
+      injuries, predictions, odds, oddsLive, h2h,
+    ] = await Promise.allSettled(calls);
+
+    res.json({
+      ok: true,
+      fonte: 'api-football',
+      fixture: fixture.status === 'fulfilled' ? fixture.value?.response?.[0] || null : null,
+      statistics: statistics.status === 'fulfilled' ? statistics.value?.response || [] : [],
+      events: events.status === 'fulfilled' ? events.value?.response || [] : [],
+      lineups: lineups.status === 'fulfilled' ? lineups.value?.response || [] : [],
+      players: players.status === 'fulfilled' ? players.value?.response || [] : [],
+      injuries: injuries.status === 'fulfilled' ? injuries.value?.response || [] : [],
+      predictions: predictions.status === 'fulfilled' ? predictions.value?.response?.[0] || null : null,
+      odds: odds.status === 'fulfilled' ? odds.value?.response || [] : [],
+      oddsLive: oddsLive.status === 'fulfilled' ? oddsLive.value?.response || [] : [],
+      h2h: h2h.status === 'fulfilled' ? h2h.value?.response || [] : [],
+    });
+  } catch (e) {
+    res.status(e.status || 500).json({ ok: false, erro: e.message || 'Erro ao consultar pacote completo.' });
+  }
+});
+// ===== FIM API-FOOTBALL BETANALYTICS =====
+
+
 // ============================================================================
 // ðŸ”‘ CHAVES DE ACESSO ESSENCIAIS (Supabase, Gemini, Mercado Pago, Sportradar)
 // ============================================================================
@@ -360,4 +616,5 @@ const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => {
     console.log(`ðŸš€ Motor BetAnalytics PRO operacional na porta ${PORT}`);
 });
+
 
