@@ -7,11 +7,7 @@ export function useApiFootball({ data, ligaId = null, aoVivo = false, autoRefres
   const [erro, setErro] = useState('');
   const abortRef = useRef(null);
 
-  const parametros = useMemo(() => ({
-    data,
-    ligaId,
-    aoVivo,
-  }), [data, ligaId, aoVivo]);
+  const parametros = useMemo(() => ({ data, ligaId, aoVivo }), [data, ligaId, aoVivo]);
 
   const carregar = useCallback(async () => {
     try {
@@ -49,10 +45,5 @@ export function useApiFootball({ data, ligaId = null, aoVivo = false, autoRefres
     return () => clearInterval(timer);
   }, [autoRefreshMs, carregar]);
 
-  return {
-    jogos,
-    loading,
-    erro,
-    atualizar: carregar,
-  };
+  return { jogos, loading, erro, atualizar: carregar };
 }
