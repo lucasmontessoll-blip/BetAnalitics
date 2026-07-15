@@ -15,7 +15,7 @@ export default function RankingOportunidades({jogos=[],onSelecionarJogo}){
       <div className="bg-gradient-to-br from-yellow-500 to-orange-700 rounded-3xl p-6 mb-5 relative overflow-hidden">
         <Trophy className="absolute -right-5 -top-5 w-32 h-32 text-white/10"/>
         <h2 className="text-2xl font-black text-white relative z-10">Ranking de Oportunidades</h2>
-        <p className="text-sm text-yellow-100 font-bold mt-2 relative z-10">Jogos ordenados por confiança, odd e risco.</p>
+        <p className="text-sm text-yellow-100 font-bold mt-2 relative z-10">Jogos ordenados por confianca, odd e risco.</p>
       </div>
 
       {ranking.length===0?(
@@ -28,7 +28,7 @@ export default function RankingOportunidades({jogos=[],onSelecionarJogo}){
                 <div className="flex items-center gap-2">
                   <div className="w-8 h-8 rounded-full bg-[#050816] border border-white/10 flex items-center justify-center text-xs font-black text-yellow-400">{index+1}</div>
                   <div>
-                    <div className="text-xs font-black text-white uppercase">{jogo.league_name||'Competição'}</div>
+                    <div className="text-xs font-black text-white uppercase">{jogo.league_name||'Competicao'}</div>
                     <RiskBadge jogo={jogo} compacto/>
                   </div>
                 </div>
@@ -46,7 +46,7 @@ export default function RankingOportunidades({jogos=[],onSelecionarJogo}){
 
               <div className="grid grid-cols-2 gap-2 mt-4">
                 <div className="bg-blue-500/10 rounded-2xl p-3 text-center">
-                  <div className="text-[9px] text-blue-300 uppercase font-black">Confiança</div>
+                  <div className="text-[9px] text-blue-300 uppercase font-black">Confianca</div>
                   <div className="text-lg font-black text-blue-400">{jogo.confianca_ia||0}%</div>
                 </div>
                 <div className="bg-emerald-500/10 rounded-2xl p-3 text-center">
@@ -60,7 +60,7 @@ export default function RankingOportunidades({jogos=[],onSelecionarJogo}){
       )}
 
       <p className="text-[10px] text-slate-600 leading-relaxed mt-5 text-center">
-        Ranking estatístico. Não representa garantia de acerto ou lucro.
+        Ranking estatistico. Nao representa garantia de acerto ou lucro.
       </p>
     </div>
   );

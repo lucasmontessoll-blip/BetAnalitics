@@ -11,7 +11,7 @@ export default function H2HCard({ h2h = [] }) {
   if (!Array.isArray(h2h) || !h2h.length) {
     return (
       <div className="bg-[#0f172a] rounded-2xl border border-white/10 p-5 text-center text-xs font-bold text-slate-500">
-        Confronto direto ainda não disponível.
+        Confronto direto ainda nao disponivel.
       </div>
     );
   }

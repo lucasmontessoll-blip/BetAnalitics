@@ -25,14 +25,14 @@ export default function CopaDoMundo({ onBack }) {
                     <h1 className="text-2xl sm:text-3xl font-black text-transparent bg-clip-text bg-gradient-to-r from-yellow-300 to-yellow-600 mb-2 uppercase tracking-tighter flex items-center gap-3">
                         <Trophy className="w-8 h-8 text-yellow-500"/> Copa do Mundo 2026
                     </h1>
-                    <p className="text-slate-400 text-xs sm:text-sm">Central de Análise e Inteligência Artificial Exclusiva para o Mundial.</p>
+                    <p className="text-slate-400 text-xs sm:text-sm">Central de Analise e Inteligencia Artificial Exclusiva para o Mundial.</p>
                 </div>
             </div>
 
             {jogosCopa.length === 0 ? (
                 <div className="bg-[#0f172a] border border-yellow-500/20 rounded-2xl p-6 text-center">
                     <AlertTriangle className="w-8 h-8 text-yellow-500 mx-auto mb-3" />
-                    <p className="text-white font-bold text-sm">Os jogos oficiais de 2026 ainda não foram completamente mapeados pela FIFA na API.</p>
+                    <p className="text-white font-bold text-sm">Os jogos oficiais de 2026 ainda nao foram completamente mapeados pela FIFA na API.</p>
                 </div>
             ) : (
                 <div className="grid gap-4">

@@ -16,7 +16,7 @@ export default function HeroPremium({ onViewOportunidades }) {
       <div className="grid grid-cols-3 gap-3 mb-5 relative z-10">
         <div className="bg-white/10 p-3 rounded-2xl border border-white/10">
           <div className="text-2xl font-black text-white">89%</div>
-          <div className="text-[10px] text-blue-200 uppercase tracking-widest font-bold mt-1">Precisão IA</div>
+          <div className="text-[10px] text-blue-200 uppercase tracking-widest font-bold mt-1">Precisao IA</div>
         </div>
 
         <div className="bg-white/10 p-3 rounded-2xl border border-white/10">

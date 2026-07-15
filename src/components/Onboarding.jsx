@@ -13,14 +13,14 @@ export default function Onboarding({ onComplete }) {
         </h1>
 
         <p className="text-center text-slate-400 mb-10 font-bold text-sm leading-relaxed max-w-xs">
-          A IA mais avançada do mercado para apostas esportivas. Detecte falhas nas odds em tempo real.
+          A IA mais avancada do mercado para apostas esportivas. Detecte falhas nas odds em tempo real.
         </p>
 
         <button 
           onClick={onComplete}
           className="w-full bg-blue-600 hover:bg-blue-500 text-white font-black py-4 rounded-2xl shadow-[0_0_20px_rgba(37,99,235,0.4)] transition-all uppercase tracking-widest text-sm"
         >
-          Começar a Lucrar
+          Comecar a Lucrar
         </button>
 
       </div>

@@ -2,7 +2,7 @@
 
 export async function solicitarPermissaoNotificacao() {
   if (!("Notification" in window)) {
-    alert("O seu navegador ou telemóvel não suporta notificações nativas.");
+    alert("O seu navegador ou telemovel nao suporta notificacoes nativas.");
     return;
   }
 
@@ -10,8 +10,8 @@ export async function solicitarPermissaoNotificacao() {
   
   if (permission === 'granted') {
     new Notification('BetAnalytics Pro', {
-      body: 'Radar de Value Bets ativado com sucesso! 💰',
-      icon: '/icon-192.png' // Ícone correto da PWA
+      body: 'Radar de Value Bets ativado com sucesso! ',
+      icon: '/icon-192.png' // Icone correto da PWA
     });
   }
 }

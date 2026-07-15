@@ -5,7 +5,7 @@ export const buscarCompeticoes = async () => {
     const { data } = await axios.get("/api/sportradar/competicoes");
     return data;
   } catch (error) {
-    console.error("Erro ao buscar competições da Sportradar:", error);
+    console.error("Erro ao buscar competicoes da Sportradar:", error);
     return null;
   }
 };

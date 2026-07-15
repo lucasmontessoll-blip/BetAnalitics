@@ -43,7 +43,7 @@ export default function MatchHeader({ jogo, detalhe }) {
           )}
 
           <span className="truncate">
-            {jogo?.league_country || league?.country || 'World'} • {jogo?.league_name || league?.name || 'Competição'}
+            {jogo?.league_country || league?.country || 'World'} • {jogo?.league_name || league?.name || 'Competicao'}
           </span>
         </div>
 
@@ -109,13 +109,13 @@ export default function MatchHeader({ jogo, detalhe }) {
           <div className="mt-4 text-[10px] font-semibold text-slate-400 text-center leading-relaxed">
             {referee && (
               <div>
-                Árbitro: <span className="text-slate-200">{referee}</span>
+                Arbitro: <span className="text-slate-200">{referee}</span>
               </div>
             )}
 
             {venue && (
               <div>
-                Estádio: <span className="text-slate-200">{venue}</span>
+                Estadio: <span className="text-slate-200">{venue}</span>
               </div>
             )}
           </div>

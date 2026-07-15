@@ -4,7 +4,7 @@ export default function LesoesCard({ injuries = [] }) {
   if (!Array.isArray(injuries) || !injuries.length) {
     return (
       <div className="bg-[#0f172a] rounded-2xl border border-white/10 p-5 text-center text-xs font-bold text-slate-500">
-        Nenhuma lesão informada pela API-Football para esta partida.
+        Nenhuma lesao informada pela API-Football para esta partida.
       </div>
     );
   }
@@ -13,7 +13,7 @@ export default function LesoesCard({ injuries = [] }) {
     <div className="bg-[#0f172a] rounded-2xl border border-white/10 p-4">
       <div className="text-[10px] font-black uppercase tracking-widest text-red-400 flex items-center gap-1.5 mb-4">
         <AlertTriangle className="w-3 h-3" />
-        Lesões e desfalques
+        Lesoes e desfalques
       </div>
 
       <div className="space-y-2">
@@ -25,7 +25,7 @@ export default function LesoesCard({ injuries = [] }) {
               <div className="text-[10px] font-bold text-slate-500 truncate">{item?.team?.name || '-'} • {item?.league?.name || '-'}</div>
             </div>
             <div className="text-right">
-              <div className="text-[9px] font-black uppercase text-red-300">{item?.type || 'Lesão'}</div>
+              <div className="text-[9px] font-black uppercase text-red-300">{item?.type || 'Lesao'}</div>
               <div className="text-[9px] font-bold text-slate-500 max-w-[110px] truncate">{item?.reason || '-'}</div>
             </div>
           </div>

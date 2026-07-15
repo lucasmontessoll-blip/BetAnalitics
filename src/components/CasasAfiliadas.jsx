@@ -9,7 +9,7 @@ export default function CasasAfiliadas() {
       return;
     }
 
-    // Abre em nova aba para não fechar o seu aplicativo
+    // Abre em nova aba para nao fechar o seu aplicativo
     window.open(casa.link, '_blank');
   };
 
@@ -21,7 +21,7 @@ export default function CasasAfiliadas() {
             Casas Parceiras
           </h2>
           <p className="text-[10px] text-slate-500 font-bold">
-            Acesse pelas indicações oficiais do BetAnalytics
+            Acesse pelas indicacoes oficiais do BetAnalytics
           </p>
         </div>
 
@@ -64,7 +64,7 @@ export default function CasasAfiliadas() {
       </div>
 
       <p className="text-[9px] text-slate-600 mt-3 leading-relaxed">
-        Jogue com responsabilidade. Conteúdo indicado apenas para maiores de 18 anos.
+        Jogue com responsabilidade. Conteudo indicado apenas para maiores de 18 anos.
       </p>
     </section>
   );

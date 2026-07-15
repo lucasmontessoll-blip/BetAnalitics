@@ -31,13 +31,13 @@ export default function ConsensoIA({ jogo }) {
           <div className="w-full bg-slate-800 h-1.5 rounded-full"><div className="bg-slate-400 h-1.5 rounded-full" style={{width: `${defesa}%`}}></div></div>
         </div>
         <div>
-          <div className="flex justify-between text-xs text-slate-300 font-bold mb-1"><span>Força das Odds</span><span>{odds}%</span></div>
+          <div className="flex justify-between text-xs text-slate-300 font-bold mb-1"><span>Forca das Odds</span><span>{odds}%</span></div>
           <div className="w-full bg-slate-800 h-1.5 rounded-full"><div className="bg-yellow-500 h-1.5 rounded-full" style={{width: `${odds}%`}}></div></div>
         </div>
       </div>
 
       <div className="mt-5 pt-4 border-t border-white/10 text-green-400 font-black text-xl flex justify-between items-center">
-        <span className="text-xs text-slate-400 uppercase tracking-widest">Confiança Final</span>
+        <span className="text-xs text-slate-400 uppercase tracking-widest">Confianca Final</span>
         <span>{final}%</span>
       </div>
     </div>

@@ -55,7 +55,7 @@ export default function CampoLineup({ home, away }) {
   if (!homeXI.length && !awayXI.length) {
     return (
       <div className="bg-[#0f172a] rounded-2xl border border-white/10 p-5 text-center text-xs font-bold text-slate-500">
-        Escalações ainda não liberadas pela API-Football.
+        Escalacoes ainda nao liberadas pela API-Football.
       </div>
     );
   }
@@ -80,22 +80,22 @@ export default function CampoLineup({ home, away }) {
       <div className="mt-3 bg-[#111827] rounded-2xl border border-white/10 overflow-hidden">
         <div className="grid grid-cols-2 text-center">
           <div className="p-3 border-r border-white/10">
-            <div className="text-[9px] font-black text-slate-500 uppercase">Técnico</div>
+            <div className="text-[9px] font-black text-slate-500 uppercase">Tecnico</div>
             <div className="text-xs font-black text-white">{home?.coach?.name || '-'}</div>
           </div>
           <div className="p-3">
-            <div className="text-[9px] font-black text-slate-500 uppercase">Técnico</div>
+            <div className="text-[9px] font-black text-slate-500 uppercase">Tecnico</div>
             <div className="text-xs font-black text-white">{away?.coach?.name || '-'}</div>
           </div>
         </div>
 
         <div className="grid grid-cols-2 text-center border-t border-white/10">
           <div className="p-3 border-r border-white/10">
-            <div className="text-[9px] font-black text-slate-500 uppercase">Formação</div>
+            <div className="text-[9px] font-black text-slate-500 uppercase">Formacao</div>
             <div className="text-xs font-black text-white">{home?.formation || '-'}</div>
           </div>
           <div className="p-3">
-            <div className="text-[9px] font-black text-slate-500 uppercase">Formação</div>
+            <div className="text-[9px] font-black text-slate-500 uppercase">Formacao</div>
             <div className="text-xs font-black text-white">{away?.formation || '-'}</div>
           </div>
         </div>

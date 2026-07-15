@@ -66,7 +66,7 @@ export default function MercadosIAResumo({ jogos = [], onSelecionarJogo }) {
 
         <div className="mt-3 flex items-start gap-1.5 text-[9px] text-slate-500 font-semibold leading-relaxed">
           <AlertTriangle className="w-3 h-3 mt-0.5 text-yellow-500 flex-shrink-0" />
-          Use como análise de valor e risco. Apostas envolvem risco e não existe garantia de acerto.
+          Use como analise de valor e risco. Apostas envolvem risco e nao existe garantia de acerto.
         </div>
       </div>
     </div>

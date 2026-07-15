@@ -2,7 +2,7 @@ import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { buscarJogosApiFootball } from '../services/apiFootballClient.js';
 import { JOGOS_DEMO_API_FOOTBALL } from '../data/demoApiFootballJogos.js';
 
-// TEMPORÁRIO: deixe true para ver 2 jogos de demonstração.
+// TEMPORARIO: deixe true para ver 2 jogos de demonstracao.
 // Quando sua API-Football real estiver funcionando, troque para false.
 const DEMO_API_FOOTBALL_ATIVO = true;
 
@@ -26,14 +26,14 @@ export function useApiFootball({ data, ligaId = null, aoVivo = false, autoRefres
     } catch (e) {
       if (e?.name === 'AbortError') return;
       console.error('Erro API-Football:', e);
-      let mensagemAmigavel = 'Não foi possível carregar os jogos agora. Toque em atualizar para tentar novamente.';
+      let mensagemAmigavel = 'Nao foi possivel carregar os jogos agora. Toque em atualizar para tentar novamente.';
 
 if (String(e?.message || '').includes('404')) {
-  mensagemAmigavel = 'A rota da API-Football ainda não foi encontrada no servidor. Verifique se as rotas foram colocadas no server.js.';
+  mensagemAmigavel = 'A rota da API-Football ainda nao foi encontrada no servidor. Verifique se as rotas foram colocadas no server.js.';
 }
 
 if (String(e?.message || '').toLowerCase().includes('api_football_key')) {
-  mensagemAmigavel = 'A chave da API-Football ainda não está configurada no servidor.';
+  mensagemAmigavel = 'A chave da API-Football ainda nao esta configurada no servidor.';
 }
 
 setErro(mensagemAmigavel);

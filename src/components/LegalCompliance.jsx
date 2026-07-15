@@ -7,41 +7,41 @@ const EMAIL_SUPORTE = 'seuemail@exemplo.com';
 const secoesLegais = [
   {
     id: 'privacidade',
-    titulo: 'Política de Privacidade',
+    titulo: 'Politica de Privacidade',
     texto: `
-O BetAnalytics PRO respeita a privacidade dos usuários.
+O BetAnalytics PRO respeita a privacidade dos usuarios.
 
-Podemos coletar dados como nome, e-mail, status VIP, dados técnicos do dispositivo, dados de uso, identificadores de publicidade e informações necessárias para funcionamento do app.
+Podemos coletar dados como nome, e-mail, status VIP, dados tecnicos do dispositivo, dados de uso, identificadores de publicidade e informacoes necessarias para funcionamento do app.
 
-Esses dados podem ser usados para criar conta, liberar acesso, melhorar o app, exibir anúncios, medir desempenho, prevenir fraudes e cumprir obrigações legais.
+Esses dados podem ser usados para criar conta, liberar acesso, melhorar o app, exibir anuncios, medir desempenho, prevenir fraudes e cumprir obrigacoes legais.
 
-O BetAnalytics PRO não vende dados pessoais sensíveis do usuário. Dados podem ser compartilhados apenas com provedores necessários, como banco de dados, hospedagem, pagamentos, anúncios e ferramentas de análise.
+O BetAnalytics PRO nao vende dados pessoais sensiveis do usuario. Dados podem ser compartilhados apenas com provedores necessarios, como banco de dados, hospedagem, pagamentos, anuncios e ferramentas de analise.
 
-O usuário pode solicitar acesso, correção ou exclusão de dados pelo e-mail: ${EMAIL_SUPORTE}.
+O usuario pode solicitar acesso, correcao ou exclusao de dados pelo e-mail: ${EMAIL_SUPORTE}.
 `
   },
   {
     id: 'termos',
     titulo: 'Termos de Uso',
     texto: `
-O BetAnalytics PRO é uma plataforma de análise esportiva, estatística e informação.
+O BetAnalytics PRO e uma plataforma de analise esportiva, estatistica e informacao.
 
-O aplicativo não é casa de aposta, não aceita apostas, não recebe depósitos, não processa saques, não vende bilhetes e não garante lucro.
+O aplicativo nao e casa de aposta, nao aceita apostas, nao recebe depositos, nao processa saques, nao vende bilhetes e nao garante lucro.
 
-Ao usar o app, o usuário declara que entende que todas as análises são apenas informativas e que qualquer decisão tomada com base nelas é de responsabilidade exclusiva do próprio usuário.
+Ao usar o app, o usuario declara que entende que todas as analises sao apenas informativas e que qualquer decisao tomada com base nelas e de responsabilidade exclusiva do proprio usuario.
 
-É proibido usar o app para fins ilegais, por menores de 18 anos ou de forma que viole leis, regulamentos ou direitos de terceiros.
+E proibido usar o app para fins ilegais, por menores de 18 anos ou de forma que viole leis, regulamentos ou direitos de terceiros.
 `
   },
   {
     id: 'responsabilidade',
-    titulo: '+18 e Jogo Responsável',
+    titulo: '+18 e Jogo Responsavel',
     texto: `
-O BetAnalytics PRO é destinado exclusivamente a maiores de 18 anos.
+O BetAnalytics PRO e destinado exclusivamente a maiores de 18 anos.
 
-As análises, probabilidades, odds, alertas, estatísticas e informações exibidas não garantem resultados, acertos ou ganhos financeiros.
+As analises, probabilidades, odds, alertas, estatisticas e informacoes exibidas nao garantem resultados, acertos ou ganhos financeiros.
 
-Use as informações com responsabilidade. Nunca use dinheiro destinado a despesas essenciais, nunca tente recuperar perdas e nunca tome decisões sob pressão emocional.
+Use as informacoes com responsabilidade. Nunca use dinheiro destinado a despesas essenciais, nunca tente recuperar perdas e nunca tome decisoes sob pressao emocional.
 
 Caso perceba perda de controle, comportamento compulsivo ou dificuldade de parar, procure ajuda especializada.
 `
@@ -50,24 +50,24 @@ Caso perceba perda de controle, comportamento compulsivo ou dificuldade de parar
     id: 'parceiros',
     titulo: 'Casas Parceiras e Links Externos',
     texto: `
-O BetAnalytics PRO pode exibir nomes, marcas, anúncios ou links de terceiros.
+O BetAnalytics PRO pode exibir nomes, marcas, anuncios ou links de terceiros.
 
-Quando o usuário acessa um site externo, ele sai do ambiente do BetAnalytics PRO e passa a estar sujeito aos termos, políticas, regras, bônus, verificações e condições da empresa terceira.
+Quando o usuario acessa um site externo, ele sai do ambiente do BetAnalytics PRO e passa a estar sujeito aos termos, politicas, regras, bonus, verificacoes e condicoes da empresa terceira.
 
-O BetAnalytics PRO não controla casas parceiras, não opera apostas, não define odds, não aprova pagamentos, não realiza saques e não se responsabiliza por decisões, perdas, bloqueios, promoções ou regras de terceiros.
+O BetAnalytics PRO nao controla casas parceiras, nao opera apostas, nao define odds, nao aprova pagamentos, nao realiza saques e nao se responsabiliza por decisoes, perdas, bloqueios, promocoes ou regras de terceiros.
 
-Antes de utilizar qualquer serviço externo, leia os Termos de Uso e a Política de Privacidade da respectiva empresa.
+Antes de utilizar qualquer servico externo, leia os Termos de Uso e a Politica de Privacidade da respectiva empresa.
 `
   },
   {
     id: 'anuncios',
-    titulo: 'Publicidade e Anúncios',
+    titulo: 'Publicidade e Anuncios',
     texto: `
-O BetAnalytics PRO pode exibir anúncios de terceiros por meio de redes como Google AdMob, Google AdSense ou plataformas semelhantes.
+O BetAnalytics PRO pode exibir anuncios de terceiros por meio de redes como Google AdMob, Google AdSense ou plataformas semelhantes.
 
-Essas redes podem usar identificadores de publicidade, dados técnicos e informações permitidas para exibir e medir anúncios.
+Essas redes podem usar identificadores de publicidade, dados tecnicos e informacoes permitidas para exibir e medir anuncios.
 
-O usuário pode controlar anúncios personalizados nas configurações do dispositivo ou nas opções fornecidas pelas plataformas de publicidade.
+O usuario pode controlar anuncios personalizados nas configuracoes do dispositivo ou nas opcoes fornecidas pelas plataformas de publicidade.
 `
   }
 ];
@@ -96,24 +96,24 @@ export default function LegalCompliance({ modo = 'painel' }) {
             <div>
               <h1 className="text-xl font-black">Aviso +18</h1>
               <p className="text-xs text-slate-400 font-bold">
-                Conteúdo destinado a maiores de idade
+                Conteudo destinado a maiores de idade
               </p>
             </div>
           </div>
 
           <div className="space-y-3 text-sm text-slate-300 leading-relaxed">
             <p>
-              O BetAnalytics PRO é uma plataforma de análise esportiva e estatística.
+              O BetAnalytics PRO e uma plataforma de analise esportiva e estatistica.
             </p>
 
             <p>
-              O app não é casa de aposta, não aceita apostas, não processa pagamentos
-              de apostas e não garante lucro.
+              O app nao e casa de aposta, nao aceita apostas, nao processa pagamentos
+              de apostas e nao garante lucro.
             </p>
 
             <p>
-              Ao continuar, você declara ter 18 anos ou mais e concorda em usar as
-              informações com responsabilidade.
+              Ao continuar, voce declara ter 18 anos ou mais e concorda em usar as
+              informacoes com responsabilidade.
             </p>
           </div>
 
@@ -132,7 +132,7 @@ export default function LegalCompliance({ modo = 'painel' }) {
           </button>
 
           <p className="text-[10px] text-slate-600 mt-4 leading-relaxed">
-            Use com responsabilidade. Informações meramente estatísticas e educativas.
+            Use com responsabilidade. Informacoes meramente estatisticas e educativas.
           </p>
         </div>
       </div>
@@ -168,17 +168,17 @@ export default function LegalCompliance({ modo = 'painel' }) {
             <ShieldCheck className="w-5 h-5 text-emerald-400" />
             <div>
               <h2 className="text-sm font-black text-white uppercase">
-                Segurança, +18 e Jogo Responsável
+                Seguranca, +18 e Jogo Responsavel
               </h2>
               <p className="text-[10px] text-slate-500 font-bold">
-                BetAnalytics é análise esportiva. Não somos casa de aposta.
+                BetAnalytics e analise esportiva. Nao somos casa de aposta.
               </p>
             </div>
           </div>
 
           <p className="text-[11px] text-slate-400 leading-relaxed">
-            Conteúdo destinado a maiores de 18 anos. As análises são informativas,
-            não garantem resultados e não representam recomendação financeira.
+            Conteudo destinado a maiores de 18 anos. As analises sao informativas,
+            nao garantem resultados e nao representam recomendacao financeira.
           </p>
 
           <button
@@ -186,7 +186,7 @@ export default function LegalCompliance({ modo = 'painel' }) {
             className="mt-4 w-full bg-white/5 border border-white/10 rounded-2xl py-3 text-xs font-black text-blue-400 flex items-center justify-center gap-2"
           >
             <FileText className="w-4 h-4" />
-            Ver Política, Termos e Avisos
+            Ver Politica, Termos e Avisos
           </button>
         </div>
       </section>
@@ -256,9 +256,9 @@ function ModalLegal({ secaoAtiva, setSecaoAtiva, setAberto }) {
             </div>
 
             <p className="text-[11px] text-yellow-100/80 leading-relaxed">
-              O BetAnalytics PRO não garante resultados, não opera apostas e não
-              se responsabiliza por decisões tomadas pelo usuário. Use as informações
-              apenas como apoio estatístico.
+              O BetAnalytics PRO nao garante resultados, nao opera apostas e nao
+              se responsabiliza por decisoes tomadas pelo usuario. Use as informacoes
+              apenas como apoio estatistico.
             </p>
           </div>
 

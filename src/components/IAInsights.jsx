@@ -4,8 +4,8 @@ import { Brain, Flame, Target, ShieldAlert } from "lucide-react";
 export default function IAInsights({ jogos = [] }) {
   if (!jogos || jogos.length === 0) return null;
 
-  // Algoritmo de filtragem rápida (protegido contra dados nulos)
-  // Se não houver 'ev', ele usa a 'confianca_ia' para classificar a melhor aposta
+  // Algoritmo de filtragem rapida (protegido contra dados nulos)
+  // Se nao houver 'ev', ele usa a 'confianca_ia' para classificar a melhor aposta
   const melhorAposta = [...jogos].sort((a, b) => (b.ev || b.confianca_ia || 0) - (a.ev || a.confianca_ia || 0))[0];
   
   const melhorOver = [...jogos]
@@ -16,13 +16,13 @@ export default function IAInsights({ jogos = [] }) {
     .filter(j => (j.odd_principal || j.oddPrincipal || 0) > 3)
     .sort((a, b) => (b.confianca_ia || 0) - (a.confianca_ia || 0))[0];
 
-  // Se a IA não encontrar nenhum dos 3 cenários, oculta o painel para não ficar um espaço vazio
+  // Se a IA nao encontrar nenhum dos 3 cenarios, oculta o painel para nao ficar um espaco vazio
   if (!melhorAposta && !melhorOver && !zebra) return null;
 
   return (
     <div className="bg-[#111827] border border-blue-500/30 rounded-2xl p-4 mt-4 shadow-lg transform-gpu">
       <h3 className="text-[10px] font-black text-blue-400 uppercase tracking-widest mb-3 flex items-center gap-2">
-        <Brain className="w-4 h-4" /> Conclusões da IA
+        <Brain className="w-4 h-4" /> Conclusoes da IA
       </h3>
       
       <div className="grid gap-2">

@@ -1,6 +1,6 @@
 import axios from 'axios';
 
-// Proteção total: puxando da variável de ambiente com o nome atualizado
+// Protecao total: puxando da variavel de ambiente com o nome atualizado
 const API_KEY = import.meta.env.VITE_APISPORTS_KEY;
 
 const api = axios.create({
@@ -42,7 +42,7 @@ export const buscarEscalacoes = async (jogoId) => {
         }
         return null;
     } catch (error) {
-        console.error("Erro nas Escalações:", error.message);
+        console.error("Erro nas Escalacoes:", error.message);
         return null;
     }
 };
@@ -66,7 +66,7 @@ export const buscarEventos = async (jogoId) => {
     }
 };
 
-// 🔥 NOVO: Motor de Estatísticas Avançadas (xG, Escanteios, Posse)
+//  NOVO: Motor de Estatisticas Avancadas (xG, Escanteios, Posse)
 export const buscarEstatisticasAvancadas = async (jogoId) => {
   if (!jogoId || isNaN(jogoId)) return null;
 
@@ -88,12 +88,12 @@ export const buscarEstatisticasAvancadas = async (jogoId) => {
       posseFora: getStat(fora, "Ball Possession"),
     };
   } catch (error) {
-    console.error("Erro em estatísticas avançadas:", error.message);
+    console.error("Erro em estatisticas avancadas:", error.message);
     return null;
   }
 };
 
-// 🔥 Restauração da função da Copa do Mundo para o useCopa.js
+//  Restauracao da funcao da Copa do Mundo para o useCopa.js
 export const buscarJogosCopa = async (leagueId = 1, season = 2026) => {
     try {
         const response = await api.get(`/fixtures?league=${leagueId}&season=${season}`);

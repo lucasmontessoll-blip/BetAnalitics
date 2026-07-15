@@ -31,7 +31,7 @@ export default function PredicoesCard({ prediction }) {
   if (!prediction) {
     return (
       <div className="bg-[#0f172a] rounded-2xl border border-white/10 p-5 text-center text-xs font-bold text-slate-500">
-        Previsões ainda não disponíveis para esta partida.
+        Previsoes ainda nao disponiveis para esta partida.
       </div>
     );
   }
@@ -47,7 +47,7 @@ export default function PredicoesCard({ prediction }) {
         <div>
           <div className="text-[10px] font-black uppercase tracking-widest text-purple-400 flex items-center gap-1.5">
             <Target className="w-3 h-3" />
-            Previsão API-Football
+            Previsao API-Football
           </div>
           <div className="text-sm font-black text-white mt-1">
             {winner?.name ? `Favorito: ${winner.name}` : 'Leitura preditiva'}
@@ -59,7 +59,7 @@ export default function PredicoesCard({ prediction }) {
             ? 'text-yellow-300 border-yellow-500/30 bg-yellow-500/10'
             : 'text-emerald-300 border-emerald-500/30 bg-emerald-500/10'
         }`}>
-          {winner?.comment || 'Predição'}
+          {winner?.comment || 'Predicao'}
         </div>
       </div>
 
@@ -93,7 +93,7 @@ export default function PredicoesCard({ prediction }) {
 
       <div className="mt-3 flex items-start gap-1.5 text-[9px] text-slate-500 font-semibold leading-relaxed">
         <ShieldCheck className="w-3 h-3 mt-0.5 flex-shrink-0" />
-        Previsão oficial da API-Football combinada com o motor próprio do BetAnalytics. Não é garantia de resultado.
+        Previsao oficial da API-Football combinada com o motor proprio do BetAnalytics. Nao e garantia de resultado.
       </div>
     </div>
   );

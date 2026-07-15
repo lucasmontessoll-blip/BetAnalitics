@@ -22,7 +22,7 @@ export default function AnaliseRigorosaCard({ jogo }) {
           <Target className="w-4 h-4 text-blue-400 flex-shrink-0" />
           <div className="min-w-0">
             <div className="text-[10px] font-black uppercase tracking-widest text-slate-500">
-              Análise real de probabilidade
+              Analise real de probabilidade
             </div>
             <div className="text-sm font-black text-white truncate">
               {analise.favorito}
@@ -53,7 +53,7 @@ export default function AnaliseRigorosaCard({ jogo }) {
       </div>
       <div className="grid grid-cols-2 gap-2 mb-3">
         <div className="bg-[#0f172a] rounded-xl p-3 border border-white/5">
-          <div className="text-[8px] text-slate-500 font-black uppercase">Placar provável</div>
+          <div className="text-[8px] text-slate-500 font-black uppercase">Placar provavel</div>
           <div className="text-lg font-black text-white">{analise.placarProvavel}</div>
         </div>
         <div className="bg-[#0f172a] rounded-xl p-3 border border-white/5">
@@ -81,7 +81,7 @@ export default function AnaliseRigorosaCard({ jogo }) {
       )}
       <div className="mt-3 flex items-start gap-1.5 text-[9px] text-slate-500 font-semibold leading-relaxed">
         <TrendingUp className="w-3 h-3 mt-0.5 flex-shrink-0" />
-        {analise.metodo}. Usa 100% dos critérios disponíveis; não existe garantia honesta de 100% no futebol.
+        {analise.metodo}. Usa 100% dos criterios disponiveis; nao existe garantia honesta de 100% no futebol.
       </div>
     </div>
   );

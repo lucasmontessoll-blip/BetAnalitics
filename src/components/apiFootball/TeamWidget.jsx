@@ -59,7 +59,7 @@ export default function TeamWidget({ teamId, league, season, titulo = 'Equipe' }
   if (!team?.id) {
     return (
       <div className="bg-[#0f172a] rounded-2xl border border-white/10 p-5 text-center text-xs font-bold text-slate-500">
-        Dados da equipe indisponíveis.
+        Dados da equipe indisponiveis.
       </div>
     );
   }
@@ -82,7 +82,7 @@ export default function TeamWidget({ teamId, league, season, titulo = 'Equipe' }
       </div>
 
       <div className="px-4 py-3 bg-slate-50 text-[10px] font-bold text-slate-600">
-        🏆 {stats?.league?.name || titulo} ({season})
+         {stats?.league?.name || titulo} ({season})
       </div>
 
       <div className="p-4 grid grid-cols-3 gap-2">

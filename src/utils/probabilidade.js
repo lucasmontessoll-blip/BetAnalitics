@@ -1,14 +1,14 @@
 const CATEGORIAS_CRITERIOS_100 = [
-  ['Força geral', ['ranking', 'rating', 'elo', 'power score', 'pontos', 'vitórias', 'saldo de gols', 'aproveitamento', 'regularidade', 'qualidade técnica']],
-  ['Ataque', ['gols marcados', 'média de gols', 'finalizações', 'chutes no gol', 'xG ofensivo', 'ataques', 'ataques perigosos', 'grandes chances', 'conversão', 'pressão ofensiva']],
-  ['Defesa', ['gols sofridos', 'xG contra', 'clean sheets', 'desarmes', 'interceptações', 'bloqueios', 'erros defensivos', 'cartões', 'pênaltis contra', 'solidez defensiva']],
-  ['Momento recente', ['forma atual', 'últimos 5 jogos', 'últimos 10 jogos', 'sequência de vitórias', 'invencibilidade', 'gols recentes', 'defesa recente', '1º tempo', '2º tempo', 'consistência recente']],
-  ['Contexto do jogo', ['mando de campo', 'descanso', 'viagem', 'torcida', 'estádio', 'motivação', 'necessidade', 'importância', 'clima', 'gramado']],
-  ['Confronto direto', ['vitórias H2H', 'gols H2H', 'último confronto', 'dominância histórica', 'H2H casa/fora', 'gols sofridos H2H', 'sequência H2H', 'controle H2H', 'eficiência H2H', 'psicológico H2H']],
-  ['Elenco', ['valor do elenco', 'titulares disponíveis', 'lesões', 'suspensões', 'banco', 'artilheiro disponível', 'goleiro', 'meio-campo', 'defesa titular', 'ataque titular']],
-  ['Mercado', ['odd vitória', 'probabilidade mercado', 'queda de odd', 'volume', 'movimento sharp', 'EV positivo', 'Kelly', 'valor esperado', 'distorção', 'consenso mercado']],
-  ['Ao vivo', ['placar atual', 'posse', 'finalizações live', 'chutes no gol live', 'xG live', 'escanteios', 'ataques perigosos live', 'cartões live', 'pressão recente', 'controle emocional']],
-  ['Inteligência IA', ['confiança IA', 'consenso IA', 'modelo estatístico', 'probabilidade IA', 'heat score', 'risco calculado', 'estabilidade', 'oportunidade detectada', 'alertas positivos', 'score final IA']]
+  ['Forca geral', ['ranking', 'rating', 'elo', 'power score', 'pontos', 'vitorias', 'saldo de gols', 'aproveitamento', 'regularidade', 'qualidade tecnica']],
+  ['Ataque', ['gols marcados', 'media de gols', 'finalizacoes', 'chutes no gol', 'xG ofensivo', 'ataques', 'ataques perigosos', 'grandes chances', 'conversao', 'pressao ofensiva']],
+  ['Defesa', ['gols sofridos', 'xG contra', 'clean sheets', 'desarmes', 'interceptacoes', 'bloqueios', 'erros defensivos', 'cartoes', 'penaltis contra', 'solidez defensiva']],
+  ['Momento recente', ['forma atual', 'ultimos 5 jogos', 'ultimos 10 jogos', 'sequencia de vitorias', 'invencibilidade', 'gols recentes', 'defesa recente', '1º tempo', '2º tempo', 'consistencia recente']],
+  ['Contexto do jogo', ['mando de campo', 'descanso', 'viagem', 'torcida', 'estadio', 'motivacao', 'necessidade', 'importancia', 'clima', 'gramado']],
+  ['Confronto direto', ['vitorias H2H', 'gols H2H', 'ultimo confronto', 'dominancia historica', 'H2H casa/fora', 'gols sofridos H2H', 'sequencia H2H', 'controle H2H', 'eficiencia H2H', 'psicologico H2H']],
+  ['Elenco', ['valor do elenco', 'titulares disponiveis', 'lesoes', 'suspensoes', 'banco', 'artilheiro disponivel', 'goleiro', 'meio-campo', 'defesa titular', 'ataque titular']],
+  ['Mercado', ['odd vitoria', 'probabilidade mercado', 'queda de odd', 'volume', 'movimento sharp', 'EV positivo', 'Kelly', 'valor esperado', 'distorcao', 'consenso mercado']],
+  ['Ao vivo', ['placar atual', 'posse', 'finalizacoes live', 'chutes no gol live', 'xG live', 'escanteios', 'ataques perigosos live', 'cartoes live', 'pressao recente', 'controle emocional']],
+  ['Inteligencia IA', ['confianca IA', 'consenso IA', 'modelo estatistico', 'probabilidade IA', 'heat score', 'risco calculado', 'estabilidade', 'oportunidade detectada', 'alertas positivos', 'score final IA']]
 ];
 const CRITERIOS_ANALISE_RIGOROSA_100 = CATEGORIAS_CRITERIOS_100.flatMap(([categoria, itens]) =>
   itens.map((nome, index) => ({ categoria, nome, id: `${categoria}-${nome}-${index}` }))
@@ -24,8 +24,8 @@ const FORCA_TIMES_REFERENCIA = {
   'manchester united': 82, 'bayern munich': 90, 'bayern de munique': 90, 'borussia dortmund': 84,
   'psg': 88, 'paris saint-germain': 88, 'inter milan': 88, 'internazionale': 88, 'milan': 84,
   'juventus': 84, 'napoli': 84, 'benfica': 82, 'porto': 81, 'sporting': 82,
-  'brasil': 90, 'argentina': 91, 'franca': 90, 'frança': 90, 'inglaterra': 88,
-  'espanha': 88, 'alemanha': 86, 'portugal': 87, 'italia': 84, 'itália': 84
+  'brasil': 90, 'argentina': 91, 'franca': 90, 'franca': 90, 'inglaterra': 88,
+  'espanha': 88, 'alemanha': 86, 'portugal': 87, 'italia': 84, 'italia': 84
 };
 function numeroSeguroAnalise(valor, padrao = null) {
   if (valor === undefined || valor === null || valor === '') return padrao;
@@ -130,7 +130,7 @@ function minutoDoJogoAnalise(jogo = {}) {
 function adicionarFatorAnalise(fatores, fator) {
   if (!fator || typeof fator.casa !== 'number') return;
   fatores.push({
-    nome: fator.nome || 'Critério',
+    nome: fator.nome || 'Criterio',
     categoria: fator.categoria || 'Modelo',
     peso: limitarAnalise(Number(fator.peso || 1), 0.1, 5),
     confiabilidade: limitarAnalise(Number(fator.confiabilidade ?? 0.75), 0.18, 1),
@@ -237,8 +237,8 @@ function calcularFatoresMatematicosAnalise(jogo = {}) {
   const forcaFora = inferirForcaTime(foraNome, liga);
   const parForca = normalizarParAnalise(forcaCasa, forcaFora, 'maior', 2.8);
   if (parForca) adicionarFatorAnalise(fatores, {
-    nome: 'Força real estimada dos times',
-    categoria: 'Força geral',
+    nome: 'Forca real estimada dos times',
+    categoria: 'Forca geral',
     peso: 2.65,
     confiabilidade: FORCA_TIMES_REFERENCIA[normalizarTimeAnalise(casaNome)] || FORCA_TIMES_REFERENCIA[normalizarTimeAnalise(foraNome)] ? 0.82 : 0.52,
     criterios: 10,
@@ -255,7 +255,7 @@ function calcularFatoresMatematicosAnalise(jogo = {}) {
     const somaBinaria = Math.max(pc + pf, 0.01);
     adicionarFatorAnalise(fatores, {
       nome: 'Probabilidade recebida da API',
-      categoria: 'Inteligência IA',
+      categoria: 'Inteligencia IA',
       peso: 3.4,
       confiabilidade: 0.92,
       criterios: 12,
@@ -331,17 +331,17 @@ function calcularFatoresMatematicosAnalise(jogo = {}) {
     ['Posse de bola', est.posseCasa ?? est.posse_casa ?? stats.posseCasa ?? stats.posse_casa, est.posseFora ?? est.posse_fora ?? stats.posseFora ?? stats.posse_fora, 'maior', 0.95, 0.72, 4],
     ['Ataques', est.ataquesCasa ?? est.ataques_casa, est.ataquesFora ?? est.ataques_fora, 'maior', 1.05, 0.74, 4],
     ['Ataques perigosos', est.ataquesPerigososCasa ?? est.ataques_perigosos_casa ?? stats.ataquesPerigososCasa, est.ataquesPerigososFora ?? est.ataques_perigosos_fora ?? stats.ataquesPerigososFora, 'maior', 1.45, 0.84, 6],
-    ['Finalizações', est.chutesCasa ?? est.chutes_casa ?? stats.chutesCasa ?? stats.chutes, est.chutesFora ?? est.chutes_fora ?? stats.chutesFora, 'maior', 1.25, 0.78, 5],
+    ['Finalizacoes', est.chutesCasa ?? est.chutes_casa ?? stats.chutesCasa ?? stats.chutes, est.chutesFora ?? est.chutes_fora ?? stats.chutesFora, 'maior', 1.25, 0.78, 5],
     ['Chutes no gol', est.chutesGolCasa ?? est.chutes_gol_casa ?? stats.chutesGolCasa, est.chutesGolFora ?? est.chutes_gol_fora ?? stats.chutesGolFora, 'maior', 1.55, 0.86, 7],
     ['xG ao vivo', est.xgCasa ?? est.xg_casa ?? stats.xgCasa ?? stats.xg, est.xgFora ?? est.xg_fora ?? stats.xgFora, 'maior', 1.85, 0.92, 9],
     ['Escanteios', est.escanteiosCasa ?? est.escanteios_casa ?? stats.cantos, est.escanteiosFora ?? est.escanteios_fora, 'maior', 0.82, 0.66, 3],
-    ['Cartões', est.cartoesCasa ?? est.cartoes_casa, est.cartoesFora ?? est.cartoes_fora, 'menor', 0.72, 0.62, 3],
+    ['Cartoes', est.cartoesCasa ?? est.cartoes_casa, est.cartoesFora ?? est.cartoes_fora, 'menor', 0.72, 0.62, 3],
     ['Faltas', est.faltasCasa ?? est.faltas_casa, est.faltasFora ?? est.faltas_fora, 'menor', 0.62, 0.56, 2],
     ['Passes certos', est.passesCasa ?? est.passes_casa, est.passesFora ?? est.passes_fora, 'maior', 0.62, 0.58, 2]
   ];
   for (const [nome, casa, fora, direcao, peso, confiabilidade, criterios] of paresNumericos) {
     const par = normalizarParAnalise(casa, fora, direcao, nome.includes('xG') ? 3.0 : 2.15);
-    if (par) adicionarFatorAnalise(fatores, { nome, categoria: aoVivo ? 'Ao vivo' : 'Estatísticas', peso, confiabilidade, criterios, ...par, dadoReal: true });
+    if (par) adicionarFatorAnalise(fatores, { nome, categoria: aoVivo ? 'Ao vivo' : 'Estatisticas', peso, confiabilidade, criterios, ...par, dadoReal: true });
   }
   const formaCasa = pontuarFormaAnalise(forma.casa ?? jogo.forma_casa);
   const formaFora = pontuarFormaAnalise(forma.fora ?? jogo.forma_fora);
@@ -367,8 +367,8 @@ function calcularFatoresMatematicosAnalise(jogo = {}) {
     const intensidade = limitarAnalise((confiancaIa - 50) / 50, 0, 0.92);
     const pIa = 0.5 + intensidade * 0.39;
     adicionarFatorAnalise(fatores, {
-      nome: 'Confiança IA calibrada no favorito',
-      categoria: 'Inteligência IA',
+      nome: 'Confianca IA calibrada no favorito',
+      categoria: 'Inteligencia IA',
       peso: 1.6,
       confiabilidade: 0.68,
       criterios: 8,
@@ -556,7 +556,7 @@ export function analisarProbabilidadeVitoria(jogo = {}) {
   const arred = arredondarProbabilidades(probCasa, probEmpateFinal, probFora);
   const candidatos = [
     { nome: casaNome, tipo: 'casa', prob: arred.casa },
-    { nome: 'Empate provável', tipo: 'empate', prob: arred.empate },
+    { nome: 'Empate provavel', tipo: 'empate', prob: arred.empate },
     { nome: foraNome, tipo: 'fora', prob: arred.fora }
   ].sort((a, b) => b.prob - a.prob);
   const lider = candidatos[0];
@@ -597,7 +597,7 @@ export function analisarProbabilidadeVitoria(jogo = {}) {
     criteriosTotal: CRITERIOS_ANALISE_RIGOROSA_100.length,
     baseDados: Math.round(limitarAnalise(cobertura * 100, 10, 100)),
     pontosFortes,
-    metodo: 'Modelo Poisson + força dos times + odds + placar/minuto',
+    metodo: 'Modelo Poisson + forca dos times + odds + placar/minuto',
     golsEsperados: Number(expectativa.golsEsperados.toFixed(2)),
     placarProjetado: expectativa.placarProjetado,
     placarProvavel: status.includes('live') ? expectativa.placarProjetado : poisson.placar,

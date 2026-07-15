@@ -43,7 +43,7 @@ export async function buscarJogosApiFootball({ data, ligaId = null, aoVivo = fal
 
 export async function buscarDetalhesJogoApiFootball(fixtureId, { signal } = {}) {
   if (!fixtureId) {
-    throw new Error('FixtureId não informado.');
+    throw new Error('FixtureId nao informado.');
   }
 
   return requestJson(`${API_BASE}/api/football/jogo/${fixtureId}`, { signal });

@@ -10,5 +10,5 @@ export function kelly(odd, probabilidade, banca) {
 }
 
 export function kellyFracionado(odd, probabilidade, banca) {
-  return kelly(odd, probabilidade, banca) / 2; // Maior segurança contra variância
+  return kelly(odd, probabilidade, banca) / 2; // Maior seguranca contra variancia
 }

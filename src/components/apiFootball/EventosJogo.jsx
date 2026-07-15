@@ -6,7 +6,7 @@ export default function EventosJogo({ events = [] }) {
   if (!lista.length) {
     return (
       <div className="bg-[#0f172a] rounded-2xl border border-white/10 p-5 text-center text-xs font-bold text-slate-500">
-        Nenhum evento disponível para este jogo.
+        Nenhum evento disponivel para este jogo.
       </div>
     );
   }
@@ -28,7 +28,7 @@ export default function EventosJogo({ events = [] }) {
               <div className="text-[10px] font-bold text-slate-400 mt-1">
                 {ev.time} • {ev.tipo}{ev.detalhe ? ` / ${ev.detalhe}` : ''}
               </div>
-              {ev.assist && <div className="text-[10px] font-semibold text-slate-500 mt-1">Assistência: {ev.assist}</div>}
+              {ev.assist && <div className="text-[10px] font-semibold text-slate-500 mt-1">Assistencia: {ev.assist}</div>}
               {ev.comentarios && <div className="text-[10px] font-semibold text-slate-500 mt-1">{ev.comentarios}</div>}
             </div>
           </div>

@@ -4,7 +4,7 @@ import { useMemo, useState } from 'react';
 const JOGOS_DEMO_INICIO = [
   {
     id: 'demo-home-1',
-    league_name: 'Brasileirão Série B',
+    league_name: 'Brasileirao Serie B',
     league_country: 'Brazil',
     status: 'Finished',
     home_team: 'America MG',
@@ -14,17 +14,17 @@ const JOGOS_DEMO_INICIO = [
   },
   {
     id: 'demo-home-2',
-    league_name: 'Brasileirão Série B',
+    league_name: 'Brasileirao Serie B',
     league_country: 'Brazil',
     status: 'Finished',
-    home_team: 'Ceará',
+    home_team: 'Ceara',
     away_team: 'Athletic MG',
     scoreHome: 0,
     scoreAway: 0,
   },
   {
     id: 'demo-home-3',
-    league_name: 'Primeira División',
+    league_name: 'Primeira Division',
     league_country: 'Uruguay',
     status: 'Finished',
     home_team: 'Cerro Largo',
@@ -37,7 +37,7 @@ const JOGOS_DEMO_INICIO = [
     league_name: 'Allsvenskan',
     league_country: 'Sweden',
     status: 'Finished',
-    home_team: 'Djurgården',
+    home_team: 'Djurgarden',
     away_team: 'Halmstads',
     scoreHome: 3,
     scoreAway: 0,
@@ -91,71 +91,71 @@ const PAIS_PT = {
   International: 'Internacional',
   Argentina: 'Argentina',
   Uruguay: 'Uruguai',
-  Colombia: 'Colômbia',
+  Colombia: 'Colombia',
   Ecuador: 'Equador',
   Paraguay: 'Paraguai',
   Peru: 'Peru',
-  Bolivia: 'Bolívia',
+  Bolivia: 'Bolivia',
   Chile: 'Chile',
-  Sweden: 'Suécia',
-  Iceland: 'Islândia',
-  India: 'Índia',
+  Sweden: 'Suecia',
+  Iceland: 'Islandia',
+  India: 'India',
   Myanmar: 'Mianmar',
-  Vietnam: 'Vietnã',
-  Australia: 'Austrália',
+  Vietnam: 'Vietna',
+  Australia: 'Australia',
   China: 'China',
-  Canada: 'Canadá',
-  Finland: 'Finlândia',
-  Estonia: 'Estônia',
-  Kazakhstan: 'Cazaquistão',
-  Bhutan: 'Butão',
-  Lebanon: 'Líbano',
-  Gambia: 'Gâmbia',
-  Russia: 'Rússia',
+  Canada: 'Canada',
+  Finland: 'Finlandia',
+  Estonia: 'Estonia',
+  Kazakhstan: 'Cazaquistao',
+  Bhutan: 'Butao',
+  Lebanon: 'Libano',
+  Gambia: 'Gambia',
+  Russia: 'Russia',
   'South Korea': 'Coreia do Sul',
 };
 
 const BANDEIRAS = {
-  Brasil: '🇧🇷',
-  Internacional: '🌍',
-  Argentina: '🇦🇷',
-  Uruguai: '🇺🇾',
-  Colômbia: '🇨🇴',
-  Equador: '🇪🇨',
-  Paraguai: '🇵🇾',
-  Peru: '🇵🇪',
-  Bolívia: '🇧🇴',
-  Chile: '🇨🇱',
-  Suécia: '🇸🇪',
-  Islândia: '🇮🇸',
-  Índia: '🇮🇳',
-  Mianmar: '🇲🇲',
-  Vietnã: '🇻🇳',
-  Austrália: '🇦🇺',
-  China: '🇨🇳',
-  Canadá: '🇨🇦',
-  Finlândia: '🇫🇮',
-  Estônia: '🇪🇪',
-  Cazaquistão: '🇰🇿',
-  Butão: '🇧🇹',
-  Líbano: '🇱🇧',
-  Gâmbia: '🇬🇲',
-  Rússia: '🇷🇺',
-  'Coreia do Sul': '🇰🇷',
-  Ásia: '🌏',
-  Oceania: '🌊',
-  Europa: '🌍',
-  África: '🌍',
-  'América do Sul': '🌎',
-  'América do Norte': '🌎',
+  Brasil: '',
+  Internacional: '',
+  Argentina: '',
+  Uruguai: '',
+  Colombia: '',
+  Equador: '',
+  Paraguai: '',
+  Peru: '',
+  Bolivia: '',
+  Chile: '',
+  Suecia: '',
+  Islandia: '',
+  India: '',
+  Mianmar: '',
+  Vietna: '',
+  Australia: '',
+  China: '',
+  Canada: '',
+  Finlandia: '',
+  Estonia: '',
+  Cazaquistao: '',
+  Butao: '',
+  Libano: '',
+  Gambia: '',
+  Russia: '',
+  'Coreia do Sul': '',
+  Asia: '',
+  Oceania: '',
+  Europa: '',
+  Africa: '',
+  'America do Sul': '',
+  'America do Norte': '',
 };
 
-const AMERICA_SUL = ['Brasil', 'Argentina', 'Uruguai', 'Colômbia', 'Equador', 'Paraguai', 'Peru', 'Bolívia', 'Chile'];
-const EUROPA = ['Suécia', 'Islândia', 'Finlândia', 'Estônia', 'Rússia'];
-const ASIA = ['Índia', 'Mianmar', 'Vietnã', 'China', 'Cazaquistão', 'Líbano', 'Coreia do Sul', 'Butão'];
-const OCEANIA = ['Austrália'];
-const AMERICA_NORTE = ['Canadá'];
-const AFRICA = ['Gâmbia'];
+const AMERICA_SUL = ['Brasil', 'Argentina', 'Uruguai', 'Colombia', 'Equador', 'Paraguai', 'Peru', 'Bolivia', 'Chile'];
+const EUROPA = ['Suecia', 'Islandia', 'Finlandia', 'Estonia', 'Russia'];
+const ASIA = ['India', 'Mianmar', 'Vietna', 'China', 'Cazaquistao', 'Libano', 'Coreia do Sul', 'Butao'];
+const OCEANIA = ['Australia'];
+const AMERICA_NORTE = ['Canada'];
+const AFRICA = ['Gambia'];
 
 function traduzirPais(pais = '') {
   const limpo = String(pais || '').trim();
@@ -168,12 +168,12 @@ function continenteDoPais(pais = '', liga = '') {
   const texto = `${pais} ${liga}`.toLowerCase();
 
   if (texto.includes('world') || texto.includes('international')) return 'Internacional';
-  if (AMERICA_SUL.includes(p)) return 'América do Sul';
+  if (AMERICA_SUL.includes(p)) return 'America do Sul';
   if (EUROPA.includes(p)) return 'Europa';
-  if (ASIA.includes(p)) return 'Ásia';
+  if (ASIA.includes(p)) return 'Asia';
   if (OCEANIA.includes(p)) return 'Oceania';
-  if (AMERICA_NORTE.includes(p)) return 'América do Norte';
-  if (AFRICA.includes(p)) return 'África';
+  if (AMERICA_NORTE.includes(p)) return 'America do Norte';
+  if (AFRICA.includes(p)) return 'Africa';
 
   return 'Internacional';
 }
@@ -210,7 +210,7 @@ function getScore(jogo, lado) {
 
 function agruparPorLiga(jogos = []) {
   return jogos.reduce((acc, jogo) => {
-    const liga = jogo?.league_name || 'Outras competições';
+    const liga = jogo?.league_name || 'Outras competicoes';
     if (!acc[liga]) acc[liga] = [];
     acc[liga].push(jogo);
     return acc;
@@ -248,7 +248,7 @@ function criarGrupos(jogos = []) {
     jogos,
   }));
 
-  const prioridade = ['Brasil', 'Internacional', 'América do Sul', 'Europa', 'Ásia', 'Oceania'];
+  const prioridade = ['Brasil', 'Internacional', 'America do Sul', 'Europa', 'Asia', 'Oceania'];
 
   return [...gruposPais, ...gruposContinente]
     .filter((g) => g.jogos.length > 0)
@@ -351,7 +351,7 @@ export default function JogosPorPaisContinente({
         </h3>
 
         <p className="text-[10px] text-slate-500 font-bold mt-1">
-          Toque em um país ou continente para ver os jogos disponíveis.
+          Toque em um pais ou continente para ver os jogos disponiveis.
         </p>
       </div>
 
@@ -368,7 +368,7 @@ export default function JogosPorPaisContinente({
                 className="w-full bg-[#191919] border border-white/5 rounded-xl px-3 py-3 flex items-center gap-3 active:scale-[0.99]"
               >
                 <div className="w-7 h-7 rounded-full bg-black grid place-items-center text-lg">
-                  {BANDEIRAS[grupo.nome] || '🌐'}
+                  {BANDEIRAS[grupo.nome] || ''}
                 </div>
 
                 <div className="flex-1 text-left min-w-0">
@@ -377,7 +377,7 @@ export default function JogosPorPaisContinente({
                   </div>
 
                   <div className="text-[9px] font-bold text-slate-500 uppercase">
-                    {grupo.tipo === 'continente' ? 'Continente' : 'País'}
+                    {grupo.tipo === 'continente' ? 'Continente' : 'Pais'}
                   </div>
                 </div>
 

@@ -58,7 +58,7 @@ export default function PainelJogo({
         <div className="flex items-center gap-2 mb-3 relative z-10">
           <Crosshair className="w-5 h-5 text-blue-500 flex-shrink-0" />
           <h4 className="font-black text-xs text-blue-400 uppercase tracking-widest truncate">
-            Relatório IA
+            Relatorio IA
           </h4>
         </div>
 
@@ -77,7 +77,7 @@ export default function PainelJogo({
             ) : (
               <>
                 <Zap className="w-4 h-4 flex-shrink-0" />
-                <span className="truncate">Gerar Relatório Profissional</span>
+                <span className="truncate">Gerar Relatorio Profissional</span>
               </>
             )}
           </button>

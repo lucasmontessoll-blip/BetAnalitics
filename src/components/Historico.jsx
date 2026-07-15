@@ -4,7 +4,7 @@ import { List, Filter } from 'lucide-react';
 export default function Historico({ filtroResultado, setFiltroResultado, filtroLiga, setFiltroLiga, apostasFiltradas }) {
   return (
     <div className="bg-[#0f172a] rounded-3xl p-4 sm:p-5 mb-6 shadow-lg border border-white/5 transform-gpu w-full">
-        <h2 className="text-sm font-black text-white mb-4 uppercase tracking-wider flex items-center gap-2"><List className="w-4 h-4 text-slate-400"/> Histórico de Apostas</h2>
+        <h2 className="text-sm font-black text-white mb-4 uppercase tracking-wider flex items-center gap-2"><List className="w-4 h-4 text-slate-400"/> Historico de Apostas</h2>
         <div className="flex gap-2 mb-5">
             <div className="relative w-1/2">
                 <Filter className="w-3 h-3 absolute left-3 top-1/2 transform -translate-y-1/2 text-slate-500"/>
@@ -16,7 +16,7 @@ export default function Historico({ filtroResultado, setFiltroResultado, filtroL
             </div>
             <select value={filtroLiga} onChange={(e)=>setFiltroLiga(e.target.value)} className="w-1/2 bg-[#050816] border border-slate-800 text-xs text-white font-bold p-3 rounded-xl outline-none focus:border-blue-500 appearance-none min-w-0">
                 <option value="todas">Liga: Todas</option>
-                <option value="Brasileirão">Brasileirão</option>
+                <option value="Brasileirao">Brasileirao</option>
                 <option value="Premier League">Premier League</option>
                 <option value="La Liga">La Liga</option>
             </select>

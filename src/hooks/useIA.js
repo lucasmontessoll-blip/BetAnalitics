@@ -5,7 +5,7 @@ export function useIA(API_URL, jogos, setJogoSelecionado) {
   const [aiOpen, setAiOpen] = useState(false);
   const [aiQuery, setAiQuery] = useState('');
   const [aiLoading, setAiLoading] = useState(false);
-  const [aiMessages, setAiMessages] = useState([{ role: 'assistant', text: "Olá! Sou o motor IA do BetAnalytics. Qual é a sua dúvida?" }]);
+  const [aiMessages, setAiMessages] = useState([{ role: 'assistant', text: "Ola! Sou o motor IA do BetAnalytics. Qual e a sua duvida?" }]);
 
   const handleAskAI = async (e) => {
     e?.preventDefault();
@@ -19,7 +19,7 @@ export function useIA(API_URL, jogos, setJogoSelecionado) {
         const resposta = await axios.post(`${API_URL}/api/chat-ia`, { pergunta: perguntaAtual, dadosDaRodada: resumoJogos || "Sem jogos no momento" });
         setAiMessages(prev => [...prev, { role: 'assistant', text: resposta.data.resposta }]);
     } catch (error) { 
-        setAiMessages(prev => [...prev, { role: 'assistant', text: "Falha de comunicação." }]); 
+        setAiMessages(prev => [...prev, { role: 'assistant', text: "Falha de comunicacao." }]); 
     } finally { 
         setAiLoading(false); 
     }
@@ -27,12 +27,12 @@ export function useIA(API_URL, jogos, setJogoSelecionado) {
 
   const gerarExplicacaoIA = async (jogo) => {
     setJogoSelecionado(prev => ({...prev, is_loading_explanation: true}));
-    const promptGemini = `Você é um analista profissional.\nJogo: ${jogo.home_team} x ${jogo.away_team}\nConfiança: ${jogo.confianca_ia}%\nOdd: ${jogo.odd_principal}\nExplique:\n1 Motivos da entrada\n2 Riscos\n3 Melhor mercado\n4 Gestão recomendada\n5 Conclusão final\nResposta curta e estruturada em tópicos.`;
+    const promptGemini = `Voce e um analista profissional.\nJogo: ${jogo.home_team} x ${jogo.away_team}\nConfianca: ${jogo.confianca_ia}%\nOdd: ${jogo.odd_principal}\nExplique:\n1 Motivos da entrada\n2 Riscos\n3 Melhor mercado\n4 Gestao recomendada\n5 Conclusao final\nResposta curta e estruturada em topicos.`;
     try {
         const resposta = await axios.post(`${API_URL}/api/chat-ia`, { pergunta: promptGemini, dadosDaRodada: jogo });
         setJogoSelecionado(prev => ({...prev, explanation: resposta.data.resposta, is_loading_explanation: false}));
     } catch (e) { 
-        setJogoSelecionado(prev => ({...prev, explanation: "Análise forte indica superioridade e EV+ no mercado.", is_loading_explanation: false})); 
+        setJogoSelecionado(prev => ({...prev, explanation: "Analise forte indica superioridade e EV+ no mercado.", is_loading_explanation: false})); 
     }
   };
 

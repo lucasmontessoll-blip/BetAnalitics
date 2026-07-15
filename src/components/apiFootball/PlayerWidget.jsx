@@ -76,7 +76,7 @@ export default function PlayerWidget({ playerId, team, league, season }) {
         </div>
 
         <div className="px-4 py-3 bg-slate-50 text-[10px] font-bold text-slate-600">
-          ⚽ {stat.team?.name || ''} ({season})
+           {stat.team?.name || ''} ({season})
         </div>
 
         <div className="px-4 py-3 bg-slate-100 text-center text-[10px] font-black uppercase">

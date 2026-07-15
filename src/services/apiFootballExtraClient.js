@@ -41,7 +41,7 @@ export async function buscarSidelinedApiFootball({ player, coach, signal } = {})
 }
 
 export async function buscarPacoteCompletoApiFootball({ fixture, league, season, home, away, signal } = {}) {
-  if (!fixture) throw new Error('Fixture não informado.');
+  if (!fixture) throw new Error('Fixture nao informado.');
 
   const p = new URLSearchParams();
   if (league) p.set('league', league);
