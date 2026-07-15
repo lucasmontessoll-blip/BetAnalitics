@@ -303,6 +303,9 @@ if (Object.keys(jGrp).length === 0) {
 return (
 <div className="text-center text-slate-500 py-10 font-bold">
 <div>Nenhum jogo retornado pela API-Football com estes filtros.</div>
+
+        
+
 {erroApiFootball && (<div className="mt-2 text-[11px] text-red-400 font-bold">{erroApiFootball}</div>)}
 <button onClick={atualizarApiFootball} className="mt-4 bg-blue-600 text-white rounded-2xl px-5 py-3 text-xs font-black uppercase">Atualizar API-Football</button>
 </div>
@@ -764,6 +767,22 @@ return (
 <AnimatePresence>
 {aiOpen && (<motion.div initial={{ opacity: 0, y: 20, scale: 0.9 }} animate={{ opacity: 1, y: 0, scale: 1 }} exit={{ opacity: 0, scale: 0.9, y: 20 }} className="fixed right-4 left-4 bottom-24 bg-[#0f172a] border border-slate-700 p-4 rounded-3xl shadow-[0_0_50px_rgba(0,0,0,0.8)] z-50 flex flex-col max-h-[70vh]"><div className="flex justify-between items-center mb-4 pb-3 border-b border-white/5"><h3 className="font-black flex items-center gap-2 text-white"><Zap className="w-5 h-5 text-yellow-400" /> Assistente IA</h3><button onClick={() => setAiOpen(false)} className="bg-slate-800 rounded-full p-1.5"><X className="w-4 h-4" /></button></div><div className="flex-1 overflow-y-auto flex flex-col gap-3 mb-4 pr-1 custom-scrollbar">{aiMessages.map((msg, idx) => (<div key={idx} className={`flex ${msg.role === 'user' ? 'justify-end' : 'justify-start'}`}><div className={`p-3.5 rounded-2xl max-w-[85%] text-xs font-semibold ${msg.role === 'user' ? 'bg-blue-600 text-white' : 'bg-[#050816] text-slate-300 border border-slate-800'}`}>{msg.text}</div></div>))}{aiLoading && (<div className="flex justify-start"><div className="p-3.5 rounded-2xl bg-[#050816] border border-slate-800 text-slate-300 text-xs font-bold animate-pulse">A processar...</div></div>)}</div><form onSubmit={handleAskAI} className="flex gap-2"><input type="text" placeholder="Qual a melhor aposta?" value={aiQuery} onChange={(e) => setAiQuery(e.target.value)} disabled={aiLoading} className="flex-1 bg-[#050816] border border-slate-700 rounded-2xl px-4 py-3 text-xs text-white outline-none" /><button type="submit" disabled={aiLoading || !aiQuery.trim()} className="bg-blue-600 text-white p-3 rounded-2xl"><Send className="w-5 h-5" /></button></form></motion.div>)}
 </AnimatePresence>
+
+<div className="px-4 mt-6">
+  {String(viewMode).toLowerCase() === 'jogos' && (
+    <JogosPorPaisContinente
+      jogos={jogos}
+      favoritos={favoritos}
+      onToggleFavorito={toggleFavorito}
+      onAbrirJogo={(j) => {
+        if (j.demo || String(j.id || '').startsWith('demo-home')) return setJogoSelecionado(j);
+        if (!userData?.is_vip) return setMenuAtivo('assinar pro');
+        setJogoSelecionado(j);
+      }}
+    />
+  )}
+</div>
+
 <nav className="fixed bottom-0 left-0 right-0 bg-[#050816] border-t border-white/5 z-50 flex flex-col shadow-[0_-5px_20px_rgba(0,0,0,0.5)]">
 <div className="flex justify-around items-center h-16 pt-2 w-full">
 <button onClick={() => { setMenuAtivo('Todos os Jogos'); setViewMode('jogos'); setFilterCentro('Todos'); setJogoSelecionado(null); }} className={`flex flex-col items-center gap-1.5 ${viewMode === 'jogos' && filterCentro !== 'Ao Vivo' ? 'text-blue-500' : 'text-slate-500'}`} style={{ touchAction: 'manipulation' }}><Home className="w-5 h-5" /><span className="text-[8px] font-black uppercase mt-0.5">Inicio</span></button>
