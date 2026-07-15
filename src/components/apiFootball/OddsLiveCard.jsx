@@ -39,7 +39,7 @@ export default function OddsLiveCard({ odds = [], oddsLive = [] }) {
   if (!pre.length && !live.length) {
     return (
       <div className="bg-[#0f172a] rounded-2xl border border-white/10 p-5 text-center text-xs font-bold text-slate-500">
-        Odds pré-jogo ou ao vivo ainda não disponíveis neste plano/partida.
+        Odds pre-jogo ou ao vivo ainda nao disponiveis neste plano/partida.
       </div>
     );
   }
@@ -79,7 +79,7 @@ export default function OddsLiveCard({ odds = [], oddsLive = [] }) {
   return (
     <div className="space-y-4">
       {live.length > 0 && <Bloco titulo="Odds ao vivo" icon={Radio} lista={live} cor="text-red-400" />}
-      {pre.length > 0 && <Bloco titulo="Cotações pré-jogo" icon={DollarSign} lista={pre} cor="text-yellow-400" />}
+      {pre.length > 0 && <Bloco titulo="Cotacoes pre-jogo" icon={DollarSign} lista={pre} cor="text-yellow-400" />}
     </div>
   );
 }

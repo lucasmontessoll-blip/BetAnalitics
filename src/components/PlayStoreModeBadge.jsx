@@ -12,8 +12,8 @@ export default function PlayStoreModeBadge(){
         <div>
           <h3 className="text-[11px] font-black uppercase tracking-widest text-blue-300">Modo seguro Play Store</h3>
           <p className="text-[10px] text-slate-400 leading-relaxed mt-1">
-            O BetAnalytics PRO é uma plataforma de análise esportiva. Não somos casa de aposta,
-            não aceitamos apostas, não processamos depósitos e não garantimos lucro.
+            O BetAnalytics PRO e uma plataforma de analise esportiva. Nao somos casa de aposta,
+            nao aceitamos apostas, nao processamos depositos e nao garantimos lucro.
           </p>
         </div>
       </div>

@@ -1,7 +1,7 @@
 // Import the functions you need from the SDKs you need
 import { initializeApp } from "firebase/app";
 import { getAnalytics } from "firebase/analytics";
-import { getFirestore } from "firebase/firestore"; // 🔥 FOI ESTA A IMPORTAÇÃO QUE FALTOU!
+import { getFirestore } from "firebase/firestore"; //  FOI ESTA A IMPORTACAO QUE FALTOU!
 
 // Your web app's Firebase configuration
 const firebaseConfig = {
@@ -18,5 +18,5 @@ const firebaseConfig = {
 const app = initializeApp(firebaseConfig);
 const analytics = getAnalytics(app);
 
-// Exporta a ligação do banco de dados para o app.jsx poder usar
+// Exporta a ligacao do banco de dados para o app.jsx poder usar
 export const db = getFirestore(app);

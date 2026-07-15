@@ -57,14 +57,14 @@ export default function ApiFootballMatchCenter({ jogo }) {
           });
           setDetalhe(pacote);
         } catch (pacoteErro) {
-          console.warn('Pacote completo indisponível, usando detalhe básico:', pacoteErro);
+          console.warn('Pacote completo indisponivel, usando detalhe basico:', pacoteErro);
           const basico = await buscarDetalhesJogoApiFootball(fixtureId, { signal: controller.signal });
           setDetalhe(basico);
         }
       } catch (e) {
         if (e?.name === 'AbortError') return;
         console.error('Erro detalhes API-Football:', e);
-        setErro(e?.message || 'Não foi possível carregar detalhes.');
+        setErro(e?.message || 'Nao foi possivel carregar detalhes.');
       } finally {
         setLoading(false);
       }
@@ -84,7 +84,7 @@ export default function ApiFootballMatchCenter({ jogo }) {
   if (!fixtureId) {
     return (
       <div className="bg-[#0f172a] rounded-3xl p-5 border border-white/10 text-center text-xs text-slate-500 font-bold">
-        Este jogo ainda não possui ID da API-Football.
+        Este jogo ainda nao possui ID da API-Football.
       </div>
     );
   }

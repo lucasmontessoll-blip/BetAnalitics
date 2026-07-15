@@ -14,8 +14,8 @@ export default function HistoricoAssertividade(){
         <div className="flex items-center gap-3 mb-4">
           <TrendingUp className="w-6 h-6 text-emerald-400"/>
           <div>
-            <h2 className="text-xl font-black text-white">Histórico de Assertividade</h2>
-            <p className="text-xs text-slate-500 font-bold">Resultados simulados e estatísticos</p>
+            <h2 className="text-xl font-black text-white">Historico de Assertividade</h2>
+            <p className="text-xs text-slate-500 font-bold">Resultados simulados e estatisticos</p>
           </div>
         </div>
 
@@ -47,7 +47,7 @@ export default function HistoricoAssertividade(){
           <h3 className="text-xs font-black uppercase text-yellow-400">Aviso</h3>
         </div>
         <p className="text-[11px] text-yellow-100/80 leading-relaxed">
-          Resultados passados não garantem resultados futuros. Estes dados são informativos e não representam promessa de lucro.
+          Resultados passados nao garantem resultados futuros. Estes dados sao informativos e nao representam promessa de lucro.
         </p>
       </div>
     </div>

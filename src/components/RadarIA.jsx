@@ -36,13 +36,13 @@ export default function RadarIA({
         { dia: 'Qua', banca: 1200 },
         { dia: 'Qui', banca: 1380 },
         { dia: 'Sex', banca: 1460 },
-        { dia: 'Sáb', banca: 1620 },
+        { dia: 'Sab', banca: 1620 },
         { dia: 'Dom', banca: 1810 }
       ];
     }
 
     let banca = Number(bancaInicial || 1000);
-    const dias = ['Seg', 'Ter', 'Qua', 'Qui', 'Sex', 'Sáb', 'Dom'];
+    const dias = ['Seg', 'Ter', 'Qua', 'Qui', 'Sex', 'Sab', 'Dom'];
 
     return dias.map((dia, index) => {
       const aposta = apostas[index];
@@ -72,12 +72,12 @@ export default function RadarIA({
         { dia: 'Qua', acertos: 12, erros: 5 },
         { dia: 'Qui', acertos: 20, erros: 4 },
         { dia: 'Sex', acertos: 25, erros: 6 },
-        { dia: 'Sáb', acertos: 32, erros: 5 },
+        { dia: 'Sab', acertos: 32, erros: 5 },
         { dia: 'Dom', acertos: 28, erros: 3 }
       ];
     }
 
-    const dias = ['Seg', 'Ter', 'Qua', 'Qui', 'Sex', 'Sáb', 'Dom'];
+    const dias = ['Seg', 'Ter', 'Qua', 'Qui', 'Sex', 'Sab', 'Dom'];
 
     return dias.map((dia, index) => {
       const base = apostas.filter((_, apostaIndex) => apostaIndex % 7 === index);
@@ -125,7 +125,7 @@ export default function RadarIA({
         </div>
 
         <p className="relative z-10 text-xs text-slate-400 font-bold leading-relaxed">
-          Área principal para análises, gráficos, desempenho líquido, acertos vs erros,
+          Area principal para analises, graficos, desempenho liquido, acertos vs erros,
           radar mundial e oportunidades com IA.
         </p>
       </div>
@@ -161,8 +161,8 @@ export default function RadarIA({
       </div>
 
       <GraficoCard
-        etiqueta="Evolução da banca"
-        titulo="Desempenho Líquido"
+        etiqueta="Evolucao da banca"
+        titulo="Desempenho Liquido"
         badge="+47.0%"
         icon={TrendingUp}
       >
@@ -198,7 +198,7 @@ export default function RadarIA({
       </GraficoCard>
 
       <GraficoCard
-        etiqueta="Precisão da IA"
+        etiqueta="Precisao da IA"
         titulo="Acertos vs Erros"
         badge={`${winRate}% Win Rate`}
         icon={BarChart3}
@@ -225,14 +225,14 @@ export default function RadarIA({
       <div className="grid grid-cols-1 gap-4 mb-5">
         <ModuloRadar
           icon={ShieldAlert}
-          titulo="Análise de Risco"
-          texto="Os indicadores de risco, banca, ROI e comportamento saíram do Perfil e ficam concentrados aqui no Radar IA."
+          titulo="Analise de Risco"
+          texto="Os indicadores de risco, banca, ROI e comportamento sairam do Perfil e ficam concentrados aqui no Radar IA."
         />
 
         <ModuloRadar
           icon={Trophy}
           titulo="Ranking Inteligente"
-          texto="Use esta área para destacar os jogos com maior confiança, melhor odd e melhor oportunidade do dia."
+          texto="Use esta area para destacar os jogos com maior confianca, melhor odd e melhor oportunidade do dia."
         />
       </div>
 

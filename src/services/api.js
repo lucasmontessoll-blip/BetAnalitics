@@ -1,7 +1,7 @@
 // Ficheiro: src/services/api.js
 import axios from "axios";
 
-// Instância base para a API Football
+// Instancia base para a API Football
 const api = axios.create({
   baseURL: "https://v3.football.api-sports.io",
   headers: {
@@ -11,11 +11,11 @@ const api = axios.create({
 
 export const buscarEstatisticasJogo = async (fixtureId) => {
   try {
-    // Em produção real:
+    // Em producao real:
     // const { data } = await api.get(`/fixtures/statistics?fixture=${fixtureId}`);
     // return data.response;
     
-    // Mock para simulação enquanto não tem a chave ativada:
+    // Mock para simulacao enquanto nao tem a chave ativada:
     return [
       { shotsOnGoal: 6, ballPossession: 65, corners: 8 }, 
       { shotsOnGoal: 2, ballPossession: 35, corners: 2 }
@@ -31,7 +31,7 @@ export const analisarPartidaAoVivo = (stats) => {
   
   const casa = stats[0];
   const fora = stats[1];
-  let score = 40; // Confiança base
+  let score = 40; // Confianca base
 
   if (casa.shotsOnGoal > fora.shotsOnGoal) score += 20;
   if (casa.ballPossession > fora.ballPossession) score += 15;
@@ -39,6 +39,6 @@ export const analisarPartidaAoVivo = (stats) => {
 
   return {
     confianca: Math.min(score, 99),
-    recomendacao: score > 75 ? "Forte Tendência Casa" : score > 60 ? "Over Gols Sugerido" : "Mercado Indefinido"
+    recomendacao: score > 75 ? "Forte Tendencia Casa" : score > 60 ? "Over Gols Sugerido" : "Mercado Indefinido"
   };
 };

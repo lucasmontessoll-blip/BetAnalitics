@@ -3,8 +3,8 @@ import { Goal, Users } from "lucide-react";
 
 export default function CopaStats({ artilheiros = [], assistencias = [] }) {
   // Mock fallback se vier vazio
-  const listaGols = artilheiros.length ? artilheiros : [{id:1, nome:"Mbappé", gols: 5}, {id:2, nome:"Kane", gols: 4}];
-  const listaAssists = assistencias.length ? assistencias : [{id:1, nome:"De Bruyne", assistencias: 4}, {id:2, nome:"Vinícius Jr", assistencias: 3}];
+  const listaGols = artilheiros.length ? artilheiros : [{id:1, nome:"Mbappe", gols: 5}, {id:2, nome:"Kane", gols: 4}];
+  const listaAssists = assistencias.length ? assistencias : [{id:1, nome:"De Bruyne", assistencias: 4}, {id:2, nome:"Vinicius Jr", assistencias: 3}];
 
   return (
     <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mt-6">
@@ -26,10 +26,10 @@ export default function CopaStats({ artilheiros = [], assistencias = [] }) {
         </div>
       </div>
 
-      {/* Box Assistências */}
+      {/* Box Assistencias */}
       <div className="bg-[#0f172a] rounded-3xl p-5 border border-white/5 shadow-lg">
         <h3 className="text-sm font-black text-blue-400 flex items-center gap-2 mb-4 uppercase tracking-wider">
-          <Users className="w-4 h-4" /> Garçons da Copa
+          <Users className="w-4 h-4" /> Garcons da Copa
         </h3>
         <div className="space-y-3">
           {listaAssists.map((j, i) => (

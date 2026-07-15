@@ -51,7 +51,7 @@ export default function JogadorExtras({ playerId, coachId }) {
 
   return (
     <div className="space-y-3 mt-4">
-      <Card titulo="Transferências" icon={ArrowLeftRight} cor="text-cyan-400">
+      <Card titulo="Transferencias" icon={ArrowLeftRight} cor="text-cyan-400">
         {dados.transferencias.length ? dados.transferencias.slice(0, 8).map((item, idx) => (
           <div key={`tr-${idx}`} className="bg-[#050816] rounded-xl p-3 border border-white/5 mb-2 last:mb-0">
             <div className="text-xs font-black text-white">{item?.player?.name || 'Jogador'}</div>
@@ -61,16 +61,16 @@ export default function JogadorExtras({ playerId, coachId }) {
               </div>
             ))}
           </div>
-        )) : <div className="text-xs font-bold text-slate-500">Sem transferências disponíveis.</div>}
+        )) : <div className="text-xs font-bold text-slate-500">Sem transferencias disponiveis.</div>}
       </Card>
 
-      <Card titulo="Troféus" icon={Trophy} cor="text-yellow-400">
+      <Card titulo="Trofeus" icon={Trophy} cor="text-yellow-400">
         {dados.trofeus.length ? dados.trofeus.slice(0, 10).map((t, idx) => (
           <div key={`tp-${idx}`} className="flex justify-between gap-2 text-[10px] font-bold text-slate-300 border-b border-white/5 py-2 last:border-b-0">
-            <span className="truncate">{t?.league || t?.place || 'Troféu'}</span>
+            <span className="truncate">{t?.league || t?.place || 'Trofeu'}</span>
             <span className="text-yellow-300 whitespace-nowrap">{t?.season || '-'}</span>
           </div>
-        )) : <div className="text-xs font-bold text-slate-500">Sem troféus disponíveis.</div>}
+        )) : <div className="text-xs font-bold text-slate-500">Sem trofeus disponiveis.</div>}
       </Card>
 
       <Card titulo="Sidelined / Marginalizado" icon={AlertTriangle} cor="text-red-400">
@@ -78,7 +78,7 @@ export default function JogadorExtras({ playerId, coachId }) {
           <div key={`sd-${idx}`} className="bg-red-500/10 border border-red-500/20 rounded-xl p-3 mb-2 last:mb-0">
             <div className="text-xs font-black text-white">{s?.player?.name || s?.coach?.name || 'Registro'}</div>
             <div className="text-[10px] font-bold text-red-200">{s?.type || s?.reason || '-'}</div>
-            <div className="text-[9px] font-bold text-slate-500">{s?.start || '-'} até {s?.end || '-'}</div>
+            <div className="text-[9px] font-bold text-slate-500">{s?.start || '-'} ate {s?.end || '-'}</div>
           </div>
         )) : <div className="text-xs font-bold text-slate-500">Sem registros de sidelined.</div>}
       </Card>

@@ -3,7 +3,7 @@ export const probabilidadeProximoGol = (statsCasa, statsFora) => {
     const scoreFora = (statsFora.shotsOnGoal * 4) + (statsFora.possession * 0.2) + (statsFora.corners * 2);
     const total = scoreCasa + scoreFora;
 
-    if (total === 0) return { casa: '50.0', fora: '50.0' }; // Evitar divisão por zero
+    if (total === 0) return { casa: '50.0', fora: '50.0' }; // Evitar divisao por zero
 
     return {
         casa: ((scoreCasa / total) * 100).toFixed(1),

@@ -30,7 +30,7 @@ export default function ClassificacaoWidget({ league, season }) {
         const payload = await buscarClassificacaoApiFootball({ league, season, signal: controller.signal });
         setDados(payload);
       } catch (e) {
-        console.error('Erro classificação:', e);
+        console.error('Erro classificacao:', e);
         setDados([]);
       } finally {
         setLoading(false);
@@ -44,13 +44,13 @@ export default function ClassificacaoWidget({ league, season }) {
   const standings = dados?.[0]?.league?.standings?.[0] || [];
 
   if (loading) {
-    return <div className="p-5 text-center text-xs font-black text-blue-400 animate-pulse">Carregando classificação...</div>;
+    return <div className="p-5 text-center text-xs font-black text-blue-400 animate-pulse">Carregando classificacao...</div>;
   }
 
   if (!standings.length) {
     return (
       <div className="bg-[#0f172a] rounded-2xl border border-white/10 p-5 text-center text-xs font-bold text-slate-500">
-        Classificação indisponível para esta competição/temporada.
+        Classificacao indisponivel para esta competicao/temporada.
       </div>
     );
   }
@@ -58,13 +58,13 @@ export default function ClassificacaoWidget({ league, season }) {
   return (
     <div className="bg-white text-slate-900 rounded-2xl overflow-hidden shadow-xl">
       <div className="flex items-center gap-2 px-3 py-2 text-xs font-black">
-        <span>⭐</span>
+        <span></span>
         {dados?.[0]?.league?.flag && <img src={dados[0].league.flag} className="w-4 h-4 object-contain" alt="" />}
         <span className="truncate">{dados?.[0]?.league?.country} : {dados?.[0]?.league?.name}</span>
       </div>
 
       <div className="bg-teal-400 text-white text-center py-2 text-[10px] font-black uppercase">
-        Classificação {season}
+        Classificacao {season}
       </div>
 
       <div className="overflow-x-auto">

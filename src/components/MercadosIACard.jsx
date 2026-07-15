@@ -132,8 +132,8 @@ export default function MercadosIACard({ jogo }) {
 
   const melhorEntrada = mercadosUnicos[0] || null;
 
-  // Aqui está a correção principal:
-  // A lista começa no índice 1, então o melhor mercado nunca aparece duas vezes.
+  // Aqui esta a correcao principal:
+  // A lista comeca no indice 1, entao o melhor mercado nunca aparece duas vezes.
   const mercadosDaLista = mercadosUnicos.slice(1);
 
   const mercadosPrincipais = mercadosDaLista.slice(0, 3);
@@ -169,7 +169,7 @@ export default function MercadosIACard({ jogo }) {
           </div>
 
           <div className="text-[10px] font-bold text-slate-500 mt-1">
-            Resultado, gols, escanteios, cartões, jogadores, ao vivo e múltiplas.
+            Resultado, gols, escanteios, cartoes, jogadores, ao vivo e multiplas.
           </div>
         </div>
 
@@ -275,7 +275,7 @@ export default function MercadosIACard({ jogo }) {
 
       <div className="mt-3 flex items-start gap-1.5 text-[9px] text-slate-500 font-semibold leading-relaxed">
         <ShieldCheck className="w-3 h-3 mt-0.5 flex-shrink-0" />
-        O app calcula chance, odd justa, odd mínima, risco e mercado a evitar. Não é garantia de resultado.
+        O app calcula chance, odd justa, odd minima, risco e mercado a evitar. Nao e garantia de resultado.
       </div>
     </div>
   );

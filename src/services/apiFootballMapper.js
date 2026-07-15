@@ -151,18 +151,18 @@ export function listaEstatisticasComparativas(stats = []) {
     ['Shots off Goal', 'Chutes para fora'],
     ['Total Shots', 'Total de chutes'],
     ['Blocked Shots', 'Chutes bloqueados'],
-    ['Shots insidebox', 'Chutes dentro da área'],
-    ['Shots outsidebox', 'Chutes fora da área'],
+    ['Shots insidebox', 'Chutes dentro da area'],
+    ['Shots outsidebox', 'Chutes fora da area'],
     ['Fouls', 'Faltas'],
     ['Corner Kicks', 'Escanteios'],
     ['Offsides', 'Impedimentos'],
     ['Ball Possession', 'Posse de bola'],
-    ['Yellow Cards', 'Cartões amarelos'],
-    ['Red Cards', 'Cartões vermelhos'],
+    ['Yellow Cards', 'Cartoes amarelos'],
+    ['Red Cards', 'Cartoes vermelhos'],
     ['Goalkeeper Saves', 'Defesas do goleiro'],
     ['Total passes', 'Total de passes'],
     ['Passes accurate', 'Passes certos'],
-    ['Passes %', 'Precisão dos passes'],
+    ['Passes %', 'Precisao dos passes'],
   ];
 
   return pares.map(([tipo, label]) => ({
@@ -190,11 +190,11 @@ export function normalizarEvento(ev = {}) {
 
 export function eventoIcone(tipo = '', detalhe = '') {
   const t = `${tipo} ${detalhe}`.toLowerCase();
-  if (t.includes('goal')) return '⚽';
-  if (t.includes('yellow')) return '🟨';
-  if (t.includes('red')) return '🟥';
-  if (t.includes('subst')) return '🔁';
-  if (t.includes('var')) return '📺';
-  if (t.includes('penalty')) return '🥅';
+  if (t.includes('goal')) return '';
+  if (t.includes('yellow')) return '';
+  if (t.includes('red')) return '';
+  if (t.includes('subst')) return '';
+  if (t.includes('var')) return '';
+  if (t.includes('penalty')) return '';
   return '•';
 }

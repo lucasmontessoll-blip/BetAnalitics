@@ -8,7 +8,7 @@ export function useJogos(apiUrl, ligaAtivaId, mockJogosData) {
         setLoading(true);
         
         // Simula o tempo de resposta de um servidor (500ms) e carrega os dados
-        // sem tentar aceder à rota /api/dados inexistente.
+        // sem tentar aceder a rota /api/dados inexistente.
         const timer = setTimeout(() => {
             try {
                 const todosJogos = mockJogosData || [];

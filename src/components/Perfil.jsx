@@ -22,7 +22,7 @@ export default function Perfil({
   setViewMode,
   setMenuAtivo
 }) {
-  const nomeUsuario = form?.nome || userData?.nome || 'Usuário BetAnalytics';
+  const nomeUsuario = form?.nome || userData?.nome || 'Usuario BetAnalytics';
   const emailUsuario = userData?.email || form?.email || 'sem-email';
   const isVip = Boolean(userData?.is_vip);
 
@@ -56,8 +56,8 @@ export default function Perfil({
       acao: () => setViewMode?.('jogos')
     },
     {
-      titulo: 'Configurações',
-      descricao: 'Notificações e preferências do aplicativo',
+      titulo: 'Configuracoes',
+      descricao: 'Notificacoes e preferencias do aplicativo',
       icon: Settings,
       cor: 'text-blue-400',
       borda: 'border-blue-500/20',
@@ -65,7 +65,7 @@ export default function Perfil({
     },
     {
       titulo: 'Plano PRO',
-      descricao: isVip ? 'Gerenciar assinatura ativa' : 'Ver benefícios e assinar',
+      descricao: isVip ? 'Gerenciar assinatura ativa' : 'Ver beneficios e assinar',
       icon: Crown,
       cor: 'text-amber-400',
       borda: 'border-amber-500/20',
@@ -73,15 +73,15 @@ export default function Perfil({
     },
     {
       titulo: 'Termos e Privacidade',
-      descricao: 'Política, +18, responsabilidade e condições de uso',
+      descricao: 'Politica, +18, responsabilidade e condicoes de uso',
       icon: FileText,
       cor: 'text-slate-300',
       borda: 'border-white/10',
       acao: () => setViewMode?.('termos')
     },
     {
-      titulo: 'Educação',
-      descricao: 'Odds, EV+, gestão de banca e jogo responsável',
+      titulo: 'Educacao',
+      descricao: 'Odds, EV+, gestao de banca e jogo responsavel',
       icon: BookOpen,
       cor: 'text-emerald-400',
       borda: 'border-emerald-500/20',
@@ -96,7 +96,7 @@ export default function Perfil({
       acao: abrirSuporte
     },
     {
-      titulo: 'Histórico de Assertividade',
+      titulo: 'Historico de Assertividade',
       descricao: 'Acompanhar desempenho e acertos da IA',
       icon: TrendingUp,
       cor: 'text-purple-400',
@@ -151,7 +151,7 @@ export default function Perfil({
       <div className="bg-[#0f172a] border border-white/10 rounded-3xl p-4 mb-5">
         <div className="flex items-center justify-between mb-4">
           <h3 className="text-sm font-black text-white uppercase">
-            Perfil do usuário
+            Perfil do usuario
           </h3>
 
           <span className="text-[10px] text-slate-500 font-black uppercase">
@@ -204,7 +204,7 @@ export default function Perfil({
           </div>
 
           <div className="text-[10px] text-red-300/70 font-bold mt-1">
-            Encerrar sessão atual
+            Encerrar sessao atual
           </div>
         </div>
 
@@ -213,8 +213,8 @@ export default function Perfil({
 
       <div className="mt-6 text-center">
         <p className="text-[10px] text-slate-600 font-bold leading-relaxed">
-          BetAnalytics PRO é uma plataforma de análise esportiva. Não somos casa de aposta,
-          não aceitamos depósitos e não garantimos lucro.
+          BetAnalytics PRO e uma plataforma de analise esportiva. Nao somos casa de aposta,
+          nao aceitamos depositos e nao garantimos lucro.
         </p>
       </div>
     </div>

@@ -14,7 +14,7 @@ export default function OddsComparison({ odds }) {
 
   return (
     <div className="bg-[#111827] rounded-xl p-4 border border-white/5 mt-4">
-      <h2 className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-3">💰 Comparador de Odds (Tempo Real)</h2>
+      <h2 className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-3"> Comparador de Odds (Tempo Real)</h2>
       <div className="flex gap-2 overflow-x-auto no-scrollbar">
         {casas.map(casa => (
           <div key={casa.nome} className={`min-w-[80px] p-2 rounded-lg flex flex-col items-center border ${melhor.nome === casa.nome ? "bg-green-600/20 border-green-500 text-green-400 shadow-[0_0_10px_rgba(34,197,94,0.3)]" : "bg-[#050816] border-slate-700 text-slate-400"}`}>

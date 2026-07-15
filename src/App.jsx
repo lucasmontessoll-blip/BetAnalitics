@@ -122,10 +122,10 @@ if (url && key && url.startsWith('http')) supabase = createClient(url, key);
 console.error("Erro Supabase:", e);
 }
 initMercadoPago(import.meta.env.VITE_MP_PUBLIC_KEY || 'APP_USR-5947285218976034', { locale: 'pt-BR' });
-const PAISES = ['brasil', 'argentina', 'colômbia', 'uruguai', 'chile', 'peru', 'equador', 'venezuela', 'bolívia', 'paraguai', 'espanha', 'alemanha', 'frança', 'portugal', 'inglaterra', 'itália', 'holanda', 'bélgica', 'croácia', 'méxico', 'eua', 'estados unidos', 'canadá'];
+const PAISES = ['brasil', 'argentina', 'colombia', 'uruguai', 'chile', 'peru', 'equador', 'venezuela', 'bolivia', 'paraguai', 'espanha', 'alemanha', 'franca', 'portugal', 'inglaterra', 'italia', 'holanda', 'belgica', 'croacia', 'mexico', 'eua', 'estados unidos', 'canada'];
 const isSelecao = (h, a, l) => {
 const str = `${h || ''} ${a || ''} ${l || ''}`.toLowerCase();
-if (str.includes('euro') || str.includes('copa américa') || str.includes('nations league') || str.includes('world cup')) return true;
+if (str.includes('euro') || str.includes('copa america') || str.includes('nations league') || str.includes('world cup')) return true;
 return PAISES.some(p => str.includes(p));
 };
 const getLocalYYYYMMDD = () => {
@@ -133,21 +133,21 @@ const d = new Date();
 d.setMinutes(d.getMinutes() - d.getTimezoneOffset());
 return d.toISOString().split('T')[0];
 };
-const listaLigas = [{ name: 'Todos', id: null }, { name: 'Brasileirão', id: 71 }, { name: 'Champions', id: 2 }, { name: 'Premier League', id: 39 }];
-const crescimentoBancaGlobal = [{ dia: "Seg", banca: 1000 }, { dia: "Ter", banca: 1120 }, { dia: "Qua", banca: 1210 }, { dia: "Qui", banca: 1380 }, { dia: "Sex", banca: 1470 }, { dia: "Sáb", banca: 1650 }, { dia: "Dom", banca: 1840 }];
-const desempenhoDiario = [{ dia: "Seg", acertos: 14, erros: 3 }, { dia: "Ter", acertos: 18, erros: 2 }, { dia: "Qua", acertos: 12, erros: 5 }, { dia: "Qui", acertos: 20, erros: 4 }, { dia: "Sex", acertos: 25, erros: 6 }, { dia: "Sáb", acertos: 32, erros: 5 }, { dia: "Dom", acertos: 29, erros: 3 }];
-const BUSCA_Equipes = [{ tipo: 'time', nome: 'Brasil', sub: 'Seleção Brasileira', emoji: '' }, { tipo: 'time', nome: 'França', sub: 'Seleção Francesa', emoji: '' }, { tipo: 'time', nome: 'Noruega', sub: 'Seleção Norueguesa', emoji: '' }, { tipo: 'time', nome: 'Real Madrid', sub: 'Espanha', emoji: '' }, { tipo: 'time', nome: 'FC Barcelona', sub: 'Espanha', emoji: '' }, { tipo: 'time', nome: 'Manchester City', sub: 'Inglaterra', emoji: '' }];
-const BUSCA_Jogadores = [{ tipo: 'atleta', nome: 'Lionel Messi', sub: 'Atacante', emoji: '' }, { tipo: 'atleta', nome: 'Kylian Mbappé', sub: 'Atacante', emoji: '' }, { tipo: 'atleta', nome: 'Erling Haaland', sub: 'Atacante', emoji: '' }, { tipo: 'atleta', nome: 'Cristiano Ronaldo', sub: 'Atacante', emoji: '' }, { tipo: 'atleta', nome: 'Lamine Yamal', sub: 'Atacante', emoji: '' }, { tipo: 'atleta', nome: 'Vinícius Júnior', sub: 'Atacante', emoji: '' }];
-const BUSCA_Ranking = [{ tipo: 'Ranking', nome: 'Ranking da FIFA', sub: 'Seleções', emoji: '' }, { tipo: 'Ranking', nome: 'Ranking da UEFA', sub: 'Europa', emoji: '' }];
-const BUSCA_COMPETICOES = [{ tipo: 'competicao', nome: 'Brasileirão Betano', sub: 'Brasil', emoji: '' }, { tipo: 'competicao', nome: 'FIFA Club World Cup', sub: 'Mundo', emoji: '' }, { tipo: 'competicao', nome: 'Liga dos Campeões', sub: 'Europa', emoji: '' }, { tipo: 'competicao', nome: 'UEFA Liga Europa', sub: 'Europa', emoji: '' }, { tipo: 'competicao', nome: 'Premier League', sub: 'Inglaterra', emoji: '' }, { tipo: 'competicao', nome: 'LaLiga', sub: 'Espanha', emoji: '' }];
-const TODAS_COMPETICOES = [{ pais: 'Brasil', emoji: '', qtd: 6, ligas: ['Brasileirão Série A', 'Brasileirão Série B', 'Copa do Brasil', 'Paulistão', 'Carioca', 'Série C'] }, { pais: 'Brasil (Amador)', emoji: '', qtd: 22, ligas: ['Sub-20', 'Sub-23', 'Feminino', 'Estaduais', 'Copa Paulista', 'Aspirantes'] }, { pais: 'Mundo', emoji: '', qtd: 33, ligas: ['Copa do Mundo', 'Mundial de Clubes', 'Amistosos Internacionais', 'Nations League', 'Eliminatórias', 'Olímpico'] }, { pais: 'Europa', emoji: '', qtd: 6, ligas: ['Champions League', 'Europa League', 'Conference League', 'Eurocopa', 'Supercopa UEFA', 'Nations League'] }, { pais: 'América do Sul', emoji: '', qtd: 8, ligas: ['Libertadores', 'Sul-Americana', 'Recopa', 'Copa América', 'Argentina Primera', 'Uruguai Primera'] }];
+const listaLigas = [{ name: 'Todos', id: null }, { name: 'Brasileirao', id: 71 }, { name: 'Champions', id: 2 }, { name: 'Premier League', id: 39 }];
+const crescimentoBancaGlobal = [{ dia: "Seg", banca: 1000 }, { dia: "Ter", banca: 1120 }, { dia: "Qua", banca: 1210 }, { dia: "Qui", banca: 1380 }, { dia: "Sex", banca: 1470 }, { dia: "Sab", banca: 1650 }, { dia: "Dom", banca: 1840 }];
+const desempenhoDiario = [{ dia: "Seg", acertos: 14, erros: 3 }, { dia: "Ter", acertos: 18, erros: 2 }, { dia: "Qua", acertos: 12, erros: 5 }, { dia: "Qui", acertos: 20, erros: 4 }, { dia: "Sex", acertos: 25, erros: 6 }, { dia: "Sab", acertos: 32, erros: 5 }, { dia: "Dom", acertos: 29, erros: 3 }];
+const BUSCA_Equipes = [{ tipo: 'time', nome: 'Brasil', sub: 'Selecao Brasileira', emoji: '' }, { tipo: 'time', nome: 'Franca', sub: 'Selecao Francesa', emoji: '' }, { tipo: 'time', nome: 'Noruega', sub: 'Selecao Norueguesa', emoji: '' }, { tipo: 'time', nome: 'Real Madrid', sub: 'Espanha', emoji: '' }, { tipo: 'time', nome: 'FC Barcelona', sub: 'Espanha', emoji: '' }, { tipo: 'time', nome: 'Manchester City', sub: 'Inglaterra', emoji: '' }];
+const BUSCA_Jogadores = [{ tipo: 'atleta', nome: 'Lionel Messi', sub: 'Atacante', emoji: '' }, { tipo: 'atleta', nome: 'Kylian Mbappe', sub: 'Atacante', emoji: '' }, { tipo: 'atleta', nome: 'Erling Haaland', sub: 'Atacante', emoji: '' }, { tipo: 'atleta', nome: 'Cristiano Ronaldo', sub: 'Atacante', emoji: '' }, { tipo: 'atleta', nome: 'Lamine Yamal', sub: 'Atacante', emoji: '' }, { tipo: 'atleta', nome: 'Vinicius Junior', sub: 'Atacante', emoji: '' }];
+const BUSCA_Ranking = [{ tipo: 'Ranking', nome: 'Ranking da FIFA', sub: 'Selecoes', emoji: '' }, { tipo: 'Ranking', nome: 'Ranking da UEFA', sub: 'Europa', emoji: '' }];
+const BUSCA_COMPETICOES = [{ tipo: 'competicao', nome: 'Brasileirao Betano', sub: 'Brasil', emoji: '' }, { tipo: 'competicao', nome: 'FIFA Club World Cup', sub: 'Mundo', emoji: '' }, { tipo: 'competicao', nome: 'Liga dos Campeoes', sub: 'Europa', emoji: '' }, { tipo: 'competicao', nome: 'UEFA Liga Europa', sub: 'Europa', emoji: '' }, { tipo: 'competicao', nome: 'Premier League', sub: 'Inglaterra', emoji: '' }, { tipo: 'competicao', nome: 'LaLiga', sub: 'Espanha', emoji: '' }];
+const TODAS_COMPETICOES = [{ pais: 'Brasil', emoji: '', qtd: 6, ligas: ['Brasileirao Serie A', 'Brasileirao Serie B', 'Copa do Brasil', 'Paulistao', 'Carioca', 'Serie C'] }, { pais: 'Brasil (Amador)', emoji: '', qtd: 22, ligas: ['Sub-20', 'Sub-23', 'Feminino', 'Estaduais', 'Copa Paulista', 'Aspirantes'] }, { pais: 'Mundo', emoji: '', qtd: 33, ligas: ['Copa do Mundo', 'Mundial de Clubes', 'Amistosos Internacionais', 'Nations League', 'Eliminatorias', 'Olimpico'] }, { pais: 'Europa', emoji: '', qtd: 6, ligas: ['Champions League', 'Europa League', 'Conference League', 'Eurocopa', 'Supercopa UEFA', 'Nations League'] }, { pais: 'America do Sul', emoji: '', qtd: 8, ligas: ['Libertadores', 'Sul-Americana', 'Recopa', 'Copa America', 'Argentina Primera', 'Uruguai Primera'] }];
 const normalizarTexto = (v = '') => String(v).normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase();
 const abasPesquisa = [
 { id: 'Equipes', label: ' Equipes' },
-{ id: 'Jogadores', label: '👤 Jogadores' },
-{ id: 'Ranking', label: '🌐 Ranking' },
+{ id: 'Jogadores', label: ' Jogadores' },
+{ id: 'Ranking', label: ' Ranking' },
 { id: 'principais', label: ' Ligas Principais' },
-{ id: 'todas', label: '🌍 Todas Competições' },
+{ id: 'todas', label: ' Todas Competicoes' },
 ];
 export default function App() {
 const [showSplash, setShowSplash] = useState(true);
@@ -300,7 +300,7 @@ return Object.entries(jGrp).map(([leagueName, matches]) => (
 {matches.map(j => (
 <div key={j.id} onClick={() => { if (!userData?.is_vip) return setMenuAtivo('assinar pro'); setJogoSelecionado(j); }} className="bg-[#0f172a] border border-white/10 rounded-3xl p-5 shadow-lg mb-4 cursor-pointer hover:border-blue-500/50 transform-gpu transition-colors">
 <div className="flex justify-between items-center mb-5">
-{j.status === 'Live' ? (<span className="bg-red-500 px-3 py-1 rounded-full text-[10px] font-black uppercase">🔴 Ao Vivo {String(j.time_elapsed).replace("'", "")}'</span>) : (<span className="text-slate-400 text-[10px] font-bold uppercase">{j.status === 'Finished' ? 'Finalizado' : 'Agendado'}</span>)}
+{j.status === 'Live' ? (<span className="bg-red-500 px-3 py-1 rounded-full text-[10px] font-black uppercase"> Ao Vivo {String(j.time_elapsed).replace("'", "")}'</span>) : (<span className="text-slate-400 text-[10px] font-bold uppercase">{j.status === 'Finished' ? 'Finalizado' : 'Agendado'}</span>)}
 <button onClick={(e) => { e.stopPropagation(); toggleFavorito(e, j.id); }} className="p-1"><Star className={`w-5 h-5 ${favoritos.includes(j.id) ? 'fill-yellow-400 text-yellow-400' : 'text-slate-600'}`} /></button>
 </div>
 <div className="grid grid-cols-3 items-center text-center mb-4">
@@ -351,9 +351,9 @@ style={{ touchAction: 'manipulation' }}
 </button>
 );
 };
-const FavVazio = ({ tipo }) => (<div className="min-h-[360px] flex flex-col items-center justify-center text-center px-6"><h3 className="text-base font-black text-white mb-2">É hora de adicionar alguns Favoritos</h3><p className="text-xs text-slate-400 font-semibold mb-6">Os {tipo} favoritos serão exibidos aqui para acesso rápido.</p><button onClick={() => setViewMode('Pesquisa')} className="w-28 h-24 rounded-2xl bg-blue-600/20 border border-blue-500/30 flex flex-col items-center justify-center text-blue-400 font-black gap-2 active:scale-95"><div className="w-9 h-9 rounded-full border-2 border-blue-400 flex items-center justify-center"><Plus className="w-5 h-5" /></div><span className="text-xs">Adicionar</span></button></div>);
-const FavCard = ({ item }) => (<div className="bg-[#0f172a] border border-white/10 rounded-2xl p-4 mb-3 flex items-center gap-3"><div className="w-11 h-11 rounded-2xl bg-[#050816] flex items-center justify-center text-xl border border-white/10">{item.emoji || '⭐'}</div><div className="flex-1 min-w-0"><div className="text-sm font-black text-white truncate">{item.nome || item.titulo}</div><div className="text-[10px] text-slate-500 font-bold uppercase">{item.sub || item.tipo}</div></div><button onClick={() => removerFavCatalogo(item.id)} className="text-[10px] font-black text-red-400 bg-red-500/10 border border-red-500/20 px-3 py-2 rounded-xl">Remover</button></div>);
-const solicitarPermissaoNotificacaoApp = async () => { try { if (!('Notification' in window)) { alert('Este dispositivo não suporta notificações.'); return; } const permissao = await Notification.requestPermission(); if (permissao === 'granted') { alert('Alertas ativados com sucesso!'); } else { alert('Permissão de notificações não liberada.'); } } catch (e) { console.error(e); alert('Não foi possível ativar as notificações agora.'); } };
+const FavVazio = ({ tipo }) => (<div className="min-h-[360px] flex flex-col items-center justify-center text-center px-6"><h3 className="text-base font-black text-white mb-2">E hora de adicionar alguns Favoritos</h3><p className="text-xs text-slate-400 font-semibold mb-6">Os {tipo} favoritos serao exibidos aqui para acesso rapido.</p><button onClick={() => setViewMode('Pesquisa')} className="w-28 h-24 rounded-2xl bg-blue-600/20 border border-blue-500/30 flex flex-col items-center justify-center text-blue-400 font-black gap-2 active:scale-95"><div className="w-9 h-9 rounded-full border-2 border-blue-400 flex items-center justify-center"><Plus className="w-5 h-5" /></div><span className="text-xs">Adicionar</span></button></div>);
+const FavCard = ({ item }) => (<div className="bg-[#0f172a] border border-white/10 rounded-2xl p-4 mb-3 flex items-center gap-3"><div className="w-11 h-11 rounded-2xl bg-[#050816] flex items-center justify-center text-xl border border-white/10">{item.emoji}</div><div className="flex-1 min-w-0"><div className="text-sm font-black text-white truncate">{item.nome || item.titulo}</div><div className="text-[10px] text-slate-500 font-bold uppercase">{item.sub || item.tipo}</div></div><button onClick={() => removerFavCatalogo(item.id)} className="text-[10px] font-black text-red-400 bg-red-500/10 border border-red-500/20 px-3 py-2 rounded-xl">Remover</button></div>);
+const solicitarPermissaoNotificacaoApp = async () => { try { if (!('Notification' in window)) { alert('Este dispositivo nao suporta notificacoes.'); return; } const permissao = await Notification.requestPermission(); if (permissao === 'granted') { alert('Alertas ativados com sucesso!'); } else { alert('Permissao de notificacoes nao liberada.'); } } catch (e) { console.error(e); alert('Nao foi possivel ativar as notificacoes agora.'); } };
 const limparCpf = (valor = '') => String(valor).replace(/\D/g, '');
 const emailValido = (valor = '') => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(String(valor).trim());
 const validarContaObrigatoria = () => {
@@ -367,11 +367,11 @@ setPagamentoStatus(s => ({ ...s, erro: 'Informe seu nome completo antes de assin
 return null;
 }
 if (!emailValido(email)) {
-setPagamentoStatus(s => ({ ...s, erro: 'Informe um e-mail válido para criar sua conta.', sucesso: '' }));
+setPagamentoStatus(s => ({ ...s, erro: 'Informe um e-mail valido para criar sua conta.', sucesso: '' }));
 return null;
 }
 if (cpf.length !== 11) {
-setPagamentoStatus(s => ({ ...s, erro: 'Informe um CPF válido com 11 números.', sucesso: '' }));
+setPagamentoStatus(s => ({ ...s, erro: 'Informe um CPF valido com 11 numeros.', sucesso: '' }));
 return null;
 }
 if (!senha || senha.length < 6) {
@@ -415,7 +415,7 @@ const consultarStatusPagamento = async (paymentId, conta) => {
 try {
 const resp = await fetch(`/api/pagamento/status/${paymentId}`);
 const data = await resp.json();
-if (!resp.ok) throw new Error(data?.erro || 'Não foi possível consultar o pagamento.');
+if (!resp.ok) throw new Error(data?.erro || 'Nao foi possivel consultar o pagamento.');
 if (data.aprovado || data.status === 'approved' || data.status === 'processed') {
 if (pollingPagamentoRef.current) clearInterval(pollingPagamentoRef.current);
 pollingPagamentoRef.current = null;
@@ -449,7 +449,7 @@ if (!resp.ok) throw new Error(data?.erro || 'Erro ao gerar PIX.');
 setPagamentoStatus({
 loading: false,
 erro: '',
-sucesso: 'PIX gerado. Pague pelo QR Code ou copie o código abaixo.',
+sucesso: 'PIX gerado. Pague pelo QR Code ou copie o codigo abaixo.',
 pix: data,
 id: data.id || data.payment_id || null,
 });
@@ -463,10 +463,10 @@ setPagamentoStatus({ loading: false, erro: err.message || 'Erro ao gerar PIX.', 
 };
 const enviarPagamentoCartaoSeguro = async (dadosCartao, conta) => {
 try {
-setPagamentoStatus({ loading: true, erro: '', sucesso: 'Processando cartão com segurança...', pix: null, id: null });
+setPagamentoStatus({ loading: true, erro: '', sucesso: 'Processando cartao com seguranca...', pix: null, id: null });
 const token = dadosCartao?.token;
 const paymentMethodId = dadosCartao?.paymentMethodId || dadosCartao?.payment_method_id;
-if (!token || !paymentMethodId) throw new Error('Preencha todos os dados do cartão antes de concluir.');
+if (!token || !paymentMethodId) throw new Error('Preencha todos os dados do cartao antes de concluir.');
 const resp = await fetch('/api/pagamento/cartao', {
 method: 'POST',
 headers: { 'Content-Type': 'application/json' },
@@ -491,9 +491,9 @@ if (data.aprovado || data.status === 'approved' || data.status === 'processed') 
 ativarVipAposPagamento(conta, { id: data.id || data.payment_id, status: data.status, metodo: metodoPagamento });
 return;
 }
-setPagamentoStatus({ loading: false, erro: data.mensagem || `Pagamento não aprovado. Status: ${data.status || 'recusado'}`, sucesso: '', pix: null, id: data.id || null });
+setPagamentoStatus({ loading: false, erro: data.mensagem || `Pagamento nao aprovado. Status: ${data.status || 'recusado'}`, sucesso: '', pix: null, id: data.id || null });
 } catch (err) {
-setPagamentoStatus({ loading: false, erro: err.message || 'Erro ao processar cartão.', sucesso: '', pix: null, id: null });
+setPagamentoStatus({ loading: false, erro: err.message || 'Erro ao processar cartao.', sucesso: '', pix: null, id: null });
 }
 };
 const carregarMercadoPagoJs = () => new Promise((resolve, reject) => {
@@ -508,7 +508,7 @@ const script = document.createElement('script');
 script.id = 'mercadopago-js-v2';
 script.src = 'https://sdk.mercadopago.com/js/v2';
 script.onload = resolve;
-script.onerror = () => reject(new Error('Não foi possível carregar o Mercado Pago.js.'));
+script.onerror = () => reject(new Error('Nao foi possivel carregar o Mercado Pago.js.'));
 document.body.appendChild(script);
 });
 useEffect(() => {
@@ -517,7 +517,7 @@ if (metodoPagamento !== 'credito' && metodoPagamento !== 'debito') return;
 let cancelado = false;
 const iniciarCardForm = async () => {
 try {
-setPagamentoStatus(s => ({ ...s, erro: '', sucesso: 'Carregando formulário seguro do cartão...' }));
+setPagamentoStatus(s => ({ ...s, erro: '', sucesso: 'Carregando formulario seguro do cartao...' }));
 await carregarMercadoPagoJs();
 await new Promise(resolve => setTimeout(resolve, 120));
 if (cancelado || !window.MercadoPago) return;
@@ -529,9 +529,9 @@ amount: String(PLANO_PRO.valor.toFixed(2)),
 iframe: true,
 form: {
 id: 'form-checkout',
-cardholderName: { id: 'form-checkout__cardholderName', placeholder: 'Nome impresso no cartão' },
+cardholderName: { id: 'form-checkout__cardholderName', placeholder: 'Nome impresso no cartao' },
 cardholderEmail: { id: 'form-checkout__cardholderEmail', placeholder: 'E-mail da conta' },
-cardNumber: { id: 'form-checkout__cardNumber', placeholder: 'Número do cartão' },
+cardNumber: { id: 'form-checkout__cardNumber', placeholder: 'Numero do cartao' },
 expirationDate: { id: 'form-checkout__expirationDate', placeholder: 'MM/AA' },
 securityCode: { id: 'form-checkout__securityCode', placeholder: 'CVV' },
 installments: { id: 'form-checkout__installments', placeholder: 'Parcelas' },
@@ -540,7 +540,7 @@ identificationNumber: { id: 'form-checkout__identificationNumber', placeholder: 
 issuer: { id: 'form-checkout__issuer', placeholder: 'Banco emissor' },
 },
 callbacks: {
-onReady: () => setPagamentoStatus(s => ({ ...s, erro: '', sucesso: 'Formulário seguro do cartão pronto.' })),
+onReady: () => setPagamentoStatus(s => ({ ...s, erro: '', sucesso: 'Formulario seguro do cartao pronto.' })),
 onSubmit: async (event) => {
 event.preventDefault();
 const conta = validarContaObrigatoria();
@@ -551,12 +551,12 @@ return Promise.resolve();
 },
 onError: (error) => {
 console.error(error);
-setPagamentoStatus(s => ({ ...s, erro: 'Erro no formulário seguro do cartão. Confira os dados informados.', sucesso: '' }));
+setPagamentoStatus(s => ({ ...s, erro: 'Erro no formulario seguro do cartao. Confira os dados informados.', sucesso: '' }));
 },
 },
 });
 } catch (err) {
-setPagamentoStatus(s => ({ ...s, erro: err.message || 'Erro ao carregar cartão.', sucesso: '' }));
+setPagamentoStatus(s => ({ ...s, erro: err.message || 'Erro ao carregar cartao.', sucesso: '' }));
 }
 };
 iniciarCardForm();
@@ -592,7 +592,7 @@ return (
 />
 )}
 {menuAtivo !== 'assinar pro' && !jogoSelecionado && (<div className="animate-fade-in pt-4 w-full">
-{viewMode === 'copa' && (<div className="px-4 w-full"><div className="bg-gradient-to-br from-yellow-500 to-yellow-700 rounded-3xl p-6 mb-6 shadow-lg relative overflow-hidden"><Globe className="absolute -right-4 -top-4 w-32 h-32 text-yellow-500/20" /><h2 className="text-2xl font-black text-white flex items-center gap-2 relative z-10"><Trophy className="w-6 h-6 text-yellow-300" /> Seleções</h2><p className="text-yellow-200 text-xs mt-1 relative z-10 font-bold">Monitoramento de Eurocopa, Copa América e Internacionais</p></div><div className="flex gap-2 overflow-x-auto pb-4 no-scrollbar mb-2 w-full"><button onClick={() => setFilterCentro('Todos')} className={`px-5 py-2.5 rounded-full text-xs font-black border ${filterCentro === 'Todos' ? 'bg-white text-black' : 'bg-transparent border-slate-700 text-slate-400'}`}>Todos</button><button onClick={() => setFilterCentro('Ao Vivo')} className={`px-5 py-2.5 rounded-full text-xs font-black flex items-center gap-2 border ${filterCentro === 'Ao Vivo' ? 'bg-white text-black border-white' : 'bg-transparent border-slate-700 text-slate-400'}`}>Ao Vivo <span className="w-2 h-2 rounded-full bg-red-500 animate-pulse"></span></button></div><RenderizarListaJogos />
+{viewMode === 'copa' && (<div className="px-4 w-full"><div className="bg-gradient-to-br from-yellow-500 to-yellow-700 rounded-3xl p-6 mb-6 shadow-lg relative overflow-hidden"><Globe className="absolute -right-4 -top-4 w-32 h-32 text-yellow-500/20" /><h2 className="text-2xl font-black text-white flex items-center gap-2 relative z-10"><Trophy className="w-6 h-6 text-yellow-300" /> Selecoes</h2><p className="text-yellow-200 text-xs mt-1 relative z-10 font-bold">Monitoramento de Eurocopa, Copa America e Internacionais</p></div><div className="flex gap-2 overflow-x-auto pb-4 no-scrollbar mb-2 w-full"><button onClick={() => setFilterCentro('Todos')} className={`px-5 py-2.5 rounded-full text-xs font-black border ${filterCentro === 'Todos' ? 'bg-white text-black' : 'bg-transparent border-slate-700 text-slate-400'}`}>Todos</button><button onClick={() => setFilterCentro('Ao Vivo')} className={`px-5 py-2.5 rounded-full text-xs font-black flex items-center gap-2 border ${filterCentro === 'Ao Vivo' ? 'bg-white text-black border-white' : 'bg-transparent border-slate-700 text-slate-400'}`}>Ao Vivo <span className="w-2 h-2 rounded-full bg-red-500 animate-pulse"></span></button></div><RenderizarListaJogos />
 <JogosPorPaisContinente
   jogos={jogos}
   favoritos={favoritos}
@@ -605,16 +605,16 @@ return (
   }}
 />
 
-<div className="bg-[#0f172a] rounded-3xl p-5 mb-4 shadow-lg border border-white/5 mt-4"><h3 className="text-yellow-500 font-black text-xs uppercase flex items-center gap-2 mb-4"><Target className="w-4 h-4" /> Chuteira de Ouro</h3><div className="bg-[#050816] rounded-xl p-3 mb-2 flex justify-between items-center"><span className="text-xs font-bold text-slate-300"><span className="text-slate-500 mr-2">1º</span> Mbappé</span><span className="text-xs font-black text-yellow-500">5 <span className="text-[9px] text-slate-400">Gols</span></span></div><div className="bg-[#050816] rounded-xl p-3 flex justify-between items-center"><span className="text-xs font-bold text-slate-300"><span className="text-slate-500 mr-2">2º</span> Kane</span><span className="text-xs font-black text-yellow-500">4 <span className="text-[9px] text-slate-400">Gols</span></span></div></div><div className="bg-[#0f172a] rounded-3xl p-5 mb-4 shadow-lg border border-white/5"><h3 className="text-blue-400 font-black text-xs uppercase flex items-center gap-2 mb-4"><User className="w-4 h-4" /> Garçons da Copa</h3><div className="bg-[#050816] rounded-xl p-3 mb-2 flex justify-between items-center"><span className="text-xs font-bold text-slate-300"><span className="text-slate-500 mr-2">1º</span> De Bruyne</span><span className="text-xs font-black text-blue-400">4 <span className="text-[9px] text-slate-400">Ast.</span></span></div><div className="bg-[#050816] rounded-xl p-3 flex justify-between items-center"><span className="text-xs font-bold text-slate-300"><span className="text-slate-500 mr-2">2º</span> Vinícius Jr</span><span className="text-xs font-black text-blue-400">3 <span className="text-[9px] text-slate-400">Ast.</span></span></div></div><div className="px-4 mt-10 mb-10 text-center"><LegalCompliance modo="botao" /></div></div>)}
+<div className="bg-[#0f172a] rounded-3xl p-5 mb-4 shadow-lg border border-white/5 mt-4"><h3 className="text-yellow-500 font-black text-xs uppercase flex items-center gap-2 mb-4"><Target className="w-4 h-4" /> Chuteira de Ouro</h3><div className="bg-[#050816] rounded-xl p-3 mb-2 flex justify-between items-center"><span className="text-xs font-bold text-slate-300"><span className="text-slate-500 mr-2">1º</span> Mbappe</span><span className="text-xs font-black text-yellow-500">5 <span className="text-[9px] text-slate-400">Gols</span></span></div><div className="bg-[#050816] rounded-xl p-3 flex justify-between items-center"><span className="text-xs font-bold text-slate-300"><span className="text-slate-500 mr-2">2º</span> Kane</span><span className="text-xs font-black text-yellow-500">4 <span className="text-[9px] text-slate-400">Gols</span></span></div></div><div className="bg-[#0f172a] rounded-3xl p-5 mb-4 shadow-lg border border-white/5"><h3 className="text-blue-400 font-black text-xs uppercase flex items-center gap-2 mb-4"><User className="w-4 h-4" /> Garcons da Copa</h3><div className="bg-[#050816] rounded-xl p-3 mb-2 flex justify-between items-center"><span className="text-xs font-bold text-slate-300"><span className="text-slate-500 mr-2">1º</span> De Bruyne</span><span className="text-xs font-black text-blue-400">4 <span className="text-[9px] text-slate-400">Ast.</span></span></div><div className="bg-[#050816] rounded-xl p-3 flex justify-between items-center"><span className="text-xs font-bold text-slate-300"><span className="text-slate-500 mr-2">2º</span> Vinicius Jr</span><span className="text-xs font-black text-blue-400">3 <span className="text-[9px] text-slate-400">Ast.</span></span></div></div><div className="px-4 mt-10 mb-10 text-center"><LegalCompliance modo="botao" /></div></div>)}
 {viewMode === 'jogos' && (<>{userData?.is_vip && (<HeroPremium onViewOportunidades={() => setViewMode('radar')} />)}<div className="flex gap-2 px-4 overflow-x-auto pb-4 no-scrollbar mt-4"><button onClick={() => setFilterCentro('Todos')} className={`px-5 py-2.5 rounded-full text-xs font-black border ${filterCentro === 'Todos' ? 'bg-white text-black' : 'bg-transparent border-slate-700 text-slate-400'}`}>Todos</button><button onClick={() => setFilterCentro('Ao Vivo')} className={`px-5 py-2.5 rounded-full text-xs font-black flex items-center gap-2 border ${filterCentro === 'Ao Vivo' ? 'bg-white text-black border-white' : 'bg-transparent border-slate-700 text-slate-400'}`}>Ao Vivo <span className="w-2 h-2 rounded-full bg-red-500 animate-pulse"></span></button>{listaLigas.filter(l => l.id !== null).map(l => (<button key={l.name} onClick={() => setLigaAtivaId(l.id)} className={`px-4 py-2.5 rounded-full text-xs font-black border ${ligaAtivaId === l.id ? 'bg-[#0f172a] text-white border-white/10' : 'bg-transparent border-slate-700 text-slate-400'}`}>{l.name}</button>))}</div><div className="px-4 w-full"><RenderizarListaJogos />
 
 </div><div className="px-4 mt-10 mb-10 text-center"><LegalCompliance modo="botao" /></div></>)}
-{viewMode === 'perfil' && (<div className="px-4 animate-fade-in w-full pb-6 pt-4"><Suspense fallback={<div className="text-center p-10 font-black text-blue-500 animate-pulse uppercase tracking-widest text-xs">A carregar Perfil...</div>}><Perfil userData={userData || { nome: "Usuário", email: "sem-email", is_vip: false, is_admin: false }} form={form} setForm={setForm} nivelUsuario={nivelUsuario()} xp={xp} setViewMode={setViewMode} solicitarPermissaoNotificacao={solicitarPermissaoNotificacaoApp} apostas={apostas} bancaInicial={bancaInicial} metaMensal={metaMensal} setMenuAtivo={setMenuAtivo} /></Suspense><div className="px-4 mt-10 mb-10 text-center"><LegalCompliance modo="botao" /></div></div>)}
-{viewMode === 'radar' && (<div className="px-4 animate-fade-in pb-20 w-full"><HeaderNav title="Central de Inteligência" onBack={() => setViewMode('jogos')} /><div className="mb-6 bg-[#0f172a] border border-white/5 rounded-3xl p-5 shadow-2xl relative mt-4"><div className="mb-6"><h3 className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-1">Evolução da Banca</h3><h2 className="text-xl font-black text-white flex items-center gap-3">Desempenho Líquido<span className="text-emerald-400 text-[10px] font-black bg-[#050816] border border-emerald-500/20 px-2 py-0.5 rounded-full flex items-center gap-1"><TrendingUp className="w-3 h-3" /> +47.0%</span></h2></div><div className="w-full h-48 sm:h-56 relative z-10 -ml-4"><ResponsiveContainer width="100%" height="100%"><AreaChart data={crescimentoBancaGlobal} margin={{ top: 10, right: 10, left: 0, bottom: 0 }}><defs><linearGradient id="colorBancaRadar" x1="0" y1="0" x2="0" y2="1"><stop offset="5%" stopColor="#10b981" stopOpacity={0.25} /><stop offset="95%" stopColor="#10b981" stopOpacity={0} /></linearGradient></defs><CartesianGrid strokeDasharray="0" stroke="rgba(255,255,255,0.02)" vertical={false} /><XAxis dataKey="dia" stroke="rgba(255,255,255,0.3)" fontSize={10} fontWeight="bold" axisLine={false} tickLine={false} tickMargin={10} /><YAxis stroke="rgba(255,255,255,0.3)" fontSize={10} fontWeight="bold" axisLine={false} tickLine={false} tickMargin={10} domain={['dataMin - 50', 'dataMax + 50']} /><Tooltip contentStyle={{ backgroundColor: '#050816', borderColor: 'rgba(255,255,255,0.1)', borderRadius: '12px' }} itemStyle={{ color: '#10b981', fontWeight: 'bold' }} /><Area type="monotone" dataKey="banca" stroke="#10b981" strokeWidth={3} fill="url(#colorBancaRadar)" dot={{ fill: '#0f172a', stroke: '#10b981', strokeWidth: 2, r: 4 }} activeDot={{ r: 6, fill: '#10b981', stroke: '#fff', strokeWidth: 2 }} /></AreaChart></ResponsiveContainer></div></div><div className="mb-6 bg-[#0f172a] border border-white/5 rounded-3xl p-5 shadow-2xl relative"><div className="mb-6"><h3 className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-1">Precisão da IA</h3><h2 className="text-xl font-black text-white flex items-center gap-3">Acertos vs Erros<span className="text-emerald-400 text-[10px] font-black bg-[#050816] border border-emerald-500/20 px-2 py-0.5 rounded-full flex items-center gap-1"><Target className="w-3 h-3" /> 84% Win Rate</span></h2></div><div className="w-full h-48 sm:h-56 relative z-10 -ml-4"><ResponsiveContainer width="100%" height="100%"><BarChart data={desempenhoDiario} margin={{ top: 10, right: 10, left: 0, bottom: 0 }} barSize={6} barGap={4}><CartesianGrid strokeDasharray="0" stroke="rgba(255,255,255,0.02)" vertical={false} /><XAxis dataKey="dia" stroke="rgba(255,255,255,0.3)" fontSize={10} fontWeight="bold" axisLine={false} tickLine={false} tickMargin={10} /><YAxis stroke="rgba(255,255,255,0.3)" fontSize={10} fontWeight="bold" axisLine={false} tickLine={false} tickMargin={10} /><Tooltip cursor={{ fill: 'rgba(255,255,255,0.02)' }} contentStyle={{ backgroundColor: '#050816', borderColor: 'rgba(255,255,255,0.1)', borderRadius: '12px' }} /><Bar dataKey="acertos" name="Greens" fill="#10b981" radius={[4, 4, 0, 0]} /><Bar dataKey="erros" name="Reds" fill="#ef4444" radius={[4, 4, 0, 0]} /></BarChart></ResponsiveContainer></div></div><div className="grid grid-cols-2 gap-3 mb-6"><div className="bg-[#0f172a] border border-green-500/30 p-4 rounded-2xl"><div className="flex items-center gap-1.5 text-green-400 mb-2"><TrendingUp className="w-3 h-3" /><span className="text-[9px] font-black uppercase">Melhor Value Bet</span></div><div className="text-xs font-bold text-white truncate">Flamengo x Palmeiras...</div></div><div className="bg-[#0f172a] border border-red-500/30 p-4 rounded-2xl"><div className="flex items-center gap-1.5 text-red-400 mb-2"><Target className="w-3 h-3" /><span className="text-[9px] font-black uppercase">Gol Iminente</span></div><div className="text-xs font-bold text-white truncate">Real Madrid (Ataque ...</div></div><div className="bg-[#0f172a] border border-purple-500/30 p-4 rounded-2xl"><div className="flex items-center gap-1.5 text-purple-400 mb-2"><TrendingUp className="w-3 h-3" /><span className="text-[9px] font-black uppercase">Mercado Errado</span></div><div className="text-xs font-bold text-white truncate">Empate Anulado odd ...</div></div><div className="bg-[#0f172a] border border-blue-500/30 p-4 rounded-2xl"><div className="flex items-center gap-1.5 text-blue-400 mb-2"><Zap className="w-3 h-3" /><span className="text-[9px] font-black uppercase">Maior EV+</span></div><div className="text-xs font-bold text-white truncate">+14.2% EV (Escanteios)</div></div></div><div className="bg-[#0f172a] rounded-3xl p-5 mb-4 shadow-lg border border-white/5"><h3 className="text-white font-black text-sm flex items-center gap-2 mb-6"><Globe className="w-5 h-5 text-blue-500" /> Radar Mundial PRO</h3><p className="text-xs text-slate-500 font-bold text-center py-6">Nenhuma super-oportunidade detectada no momento.</p></div><MercadosIAResumo jogos={jogos} onSelecionarJogo={(j) => setJogoSelecionado(j)} />
+{viewMode === 'perfil' && (<div className="px-4 animate-fade-in w-full pb-6 pt-4"><Suspense fallback={<div className="text-center p-10 font-black text-blue-500 animate-pulse uppercase tracking-widest text-xs">A carregar Perfil...</div>}><Perfil userData={userData || { nome: "Usuario", email: "sem-email", is_vip: false, is_admin: false }} form={form} setForm={setForm} nivelUsuario={nivelUsuario()} xp={xp} setViewMode={setViewMode} solicitarPermissaoNotificacao={solicitarPermissaoNotificacaoApp} apostas={apostas} bancaInicial={bancaInicial} metaMensal={metaMensal} setMenuAtivo={setMenuAtivo} /></Suspense><div className="px-4 mt-10 mb-10 text-center"><LegalCompliance modo="botao" /></div></div>)}
+{viewMode === 'radar' && (<div className="px-4 animate-fade-in pb-20 w-full"><HeaderNav title="Central de Inteligencia" onBack={() => setViewMode('jogos')} /><div className="mb-6 bg-[#0f172a] border border-white/5 rounded-3xl p-5 shadow-2xl relative mt-4"><div className="mb-6"><h3 className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-1">Evolucao da Banca</h3><h2 className="text-xl font-black text-white flex items-center gap-3">Desempenho Liquido<span className="text-emerald-400 text-[10px] font-black bg-[#050816] border border-emerald-500/20 px-2 py-0.5 rounded-full flex items-center gap-1"><TrendingUp className="w-3 h-3" /> +47.0%</span></h2></div><div className="w-full h-48 sm:h-56 relative z-10 -ml-4"><ResponsiveContainer width="100%" height="100%"><AreaChart data={crescimentoBancaGlobal} margin={{ top: 10, right: 10, left: 0, bottom: 0 }}><defs><linearGradient id="colorBancaRadar" x1="0" y1="0" x2="0" y2="1"><stop offset="5%" stopColor="#10b981" stopOpacity={0.25} /><stop offset="95%" stopColor="#10b981" stopOpacity={0} /></linearGradient></defs><CartesianGrid strokeDasharray="0" stroke="rgba(255,255,255,0.02)" vertical={false} /><XAxis dataKey="dia" stroke="rgba(255,255,255,0.3)" fontSize={10} fontWeight="bold" axisLine={false} tickLine={false} tickMargin={10} /><YAxis stroke="rgba(255,255,255,0.3)" fontSize={10} fontWeight="bold" axisLine={false} tickLine={false} tickMargin={10} domain={['dataMin - 50', 'dataMax + 50']} /><Tooltip contentStyle={{ backgroundColor: '#050816', borderColor: 'rgba(255,255,255,0.1)', borderRadius: '12px' }} itemStyle={{ color: '#10b981', fontWeight: 'bold' }} /><Area type="monotone" dataKey="banca" stroke="#10b981" strokeWidth={3} fill="url(#colorBancaRadar)" dot={{ fill: '#0f172a', stroke: '#10b981', strokeWidth: 2, r: 4 }} activeDot={{ r: 6, fill: '#10b981', stroke: '#fff', strokeWidth: 2 }} /></AreaChart></ResponsiveContainer></div></div><div className="mb-6 bg-[#0f172a] border border-white/5 rounded-3xl p-5 shadow-2xl relative"><div className="mb-6"><h3 className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-1">Precisao da IA</h3><h2 className="text-xl font-black text-white flex items-center gap-3">Acertos vs Erros<span className="text-emerald-400 text-[10px] font-black bg-[#050816] border border-emerald-500/20 px-2 py-0.5 rounded-full flex items-center gap-1"><Target className="w-3 h-3" /> 84% Win Rate</span></h2></div><div className="w-full h-48 sm:h-56 relative z-10 -ml-4"><ResponsiveContainer width="100%" height="100%"><BarChart data={desempenhoDiario} margin={{ top: 10, right: 10, left: 0, bottom: 0 }} barSize={6} barGap={4}><CartesianGrid strokeDasharray="0" stroke="rgba(255,255,255,0.02)" vertical={false} /><XAxis dataKey="dia" stroke="rgba(255,255,255,0.3)" fontSize={10} fontWeight="bold" axisLine={false} tickLine={false} tickMargin={10} /><YAxis stroke="rgba(255,255,255,0.3)" fontSize={10} fontWeight="bold" axisLine={false} tickLine={false} tickMargin={10} /><Tooltip cursor={{ fill: 'rgba(255,255,255,0.02)' }} contentStyle={{ backgroundColor: '#050816', borderColor: 'rgba(255,255,255,0.1)', borderRadius: '12px' }} /><Bar dataKey="acertos" name="Greens" fill="#10b981" radius={[4, 4, 0, 0]} /><Bar dataKey="erros" name="Reds" fill="#ef4444" radius={[4, 4, 0, 0]} /></BarChart></ResponsiveContainer></div></div><div className="grid grid-cols-2 gap-3 mb-6"><div className="bg-[#0f172a] border border-green-500/30 p-4 rounded-2xl"><div className="flex items-center gap-1.5 text-green-400 mb-2"><TrendingUp className="w-3 h-3" /><span className="text-[9px] font-black uppercase">Melhor Value Bet</span></div><div className="text-xs font-bold text-white truncate">Flamengo x Palmeiras...</div></div><div className="bg-[#0f172a] border border-red-500/30 p-4 rounded-2xl"><div className="flex items-center gap-1.5 text-red-400 mb-2"><Target className="w-3 h-3" /><span className="text-[9px] font-black uppercase">Gol Iminente</span></div><div className="text-xs font-bold text-white truncate">Real Madrid (Ataque ...</div></div><div className="bg-[#0f172a] border border-purple-500/30 p-4 rounded-2xl"><div className="flex items-center gap-1.5 text-purple-400 mb-2"><TrendingUp className="w-3 h-3" /><span className="text-[9px] font-black uppercase">Mercado Errado</span></div><div className="text-xs font-bold text-white truncate">Empate Anulado odd ...</div></div><div className="bg-[#0f172a] border border-blue-500/30 p-4 rounded-2xl"><div className="flex items-center gap-1.5 text-blue-400 mb-2"><Zap className="w-3 h-3" /><span className="text-[9px] font-black uppercase">Maior EV+</span></div><div className="text-xs font-bold text-white truncate">+14.2% EV (Escanteios)</div></div></div><div className="bg-[#0f172a] rounded-3xl p-5 mb-4 shadow-lg border border-white/5"><h3 className="text-white font-black text-sm flex items-center gap-2 mb-6"><Globe className="w-5 h-5 text-blue-500" /> Radar Mundial PRO</h3><p className="text-xs text-slate-500 font-bold text-center py-6">Nenhuma super-oportunidade detectada no momento.</p></div><MercadosIAResumo jogos={jogos} onSelecionarJogo={(j) => setJogoSelecionado(j)} />
 <ComparadorOdds onAbrirCasa={(casa) => abrirCasaAfiliada(casa, null, 'radar_comparador_odds')} /><div className="px-4 mt-10 mb-10 text-center"><LegalCompliance modo="botao" /></div></div>)}
-{viewMode === 'educacao' && (<div className="px-4 animate-fade-in pb-20 w-full"><HeaderNav title="Educação" onBack={() => setViewMode('perfil')} /><EducacaoBetAnalytics /></div>)}
-{viewMode === 'historico' && (<div className="px-4 animate-fade-in pb-20 w-full"><HeaderNav title="📈 Histórico de Assertividade" onBack={() => setViewMode('perfil')} /><HistoricoAssertividade /></div>)}
-{viewMode === 'como-ia' && (<div className="px-4 animate-fade-in pb-20 w-full"><HeaderNav title="🧠 Como a IA calcula" onBack={() => setViewMode('radar')} /><ComoIACalcula /></div>)}
+{viewMode === 'educacao' && (<div className="px-4 animate-fade-in pb-20 w-full"><HeaderNav title="Educacao" onBack={() => setViewMode('perfil')} /><EducacaoBetAnalytics /></div>)}
+{viewMode === 'historico' && (<div className="px-4 animate-fade-in pb-20 w-full"><HeaderNav title=" Historico de Assertividade" onBack={() => setViewMode('perfil')} /><HistoricoAssertividade /></div>)}
+{viewMode === 'como-ia' && (<div className="px-4 animate-fade-in pb-20 w-full"><HeaderNav title=" Como a IA calcula" onBack={() => setViewMode('radar')} /><ComoIACalcula /></div>)}
 {viewMode === 'Ranking' && (<div className="px-4 animate-fade-in pb-20 w-full"><HeaderNav title=" Ranking de Oportunidades" onBack={() => setViewMode('radar')} /><RankingOportunidades jogos={jogos} onSelecionarJogo={(j) => setJogoSelecionado(j)} /></div>)}
 {viewMode === 'Pesquisa' && (<div className="px-4 animate-fade-in pb-28 w-full">
 <HeaderNav title="Pesquisa" onBack={() => setViewMode('jogos')} />
@@ -625,7 +625,7 @@ return (
 <div className="flex items-center justify-between mb-4">
 <div>
 <h2 className="text-xl font-black text-white uppercase">CENTRAL DE PESQUISA</h2>
-<p className="text-[11px] text-blue-100 font-bold mt-1">Times, Jogadores, Rankings e competições em um só lugar.</p>
+<p className="text-[11px] text-blue-100 font-bold mt-1">Times, Jogadores, Rankings e competicoes em um so lugar.</p>
 </div>
 <div className="w-12 h-12 rounded-2xl bg-white/15 border border-white/20 flex items-center justify-center"><Search className="w-6 h-6 text-white" /></div>
 </div>
@@ -641,7 +641,7 @@ return (
 <input value={buscaPesquisa} onChange={(e) => setBuscaPesquisa(e.target.value)} placeholder="Pesquisar time, jogador ou liga..." className="flex-1 outline-none text-xs font-black placeholder:text-slate-400" />
 {buscaPesquisa && <button onClick={() => setBuscaPesquisa('')} className="w-6 h-6 rounded-full bg-slate-100 text-slate-500 font-black flex items-center justify-center"><X className="w-3.5 h-3.5" /></button>}
 </div>
-{/* --- PÍLULAS DAS SUB-ABAS OTMIZADAS PARA MOBILE (MAIS FINAS E NATIVAS) --- */}
+{/* --- PILULAS DAS SUB-ABAS OTMIZADAS PARA MOBILE (MAIS FINAS E NATIVAS) --- */}
 <div className="flex gap-1.5 overflow-x-auto no-scrollbar pb-0.5 pt-0.5 select-none" style={{ WebkitOverflowScrolling: 'touch', touchAction: 'pan-x' }}>
 {abasPesquisa.map(a => (
 <button
@@ -668,11 +668,11 @@ abaPesquisaAtiva === a.id
 {favCatalogo.slice(0, 10).map(item => <div key={`fav-${item.id}`} className="min-w-[90px] w-[90px] shrink-0"><PesquisaCard item={item} /></div>)}
 </div>
 </div>)}
-{/* --- SISTEMA MÓVEL DE CARDS COMPACTOS EM 3 COLUNAS --- */}
+{/* --- SISTEMA MOVEL DE CARDS COMPACTOS EM 3 COLUNAS --- */}
 <div className="mb-6">
 {abaPesquisaAtiva === 'Equipes' && (
 <div>
-<div className="mb-2.5"><h3 className="text-xs font-black text-white uppercase"> Melhores Equipes e Seleções</h3><p className="text-[9px] text-slate-500 font-bold mt-0.5">Clique para favoritar no seu radar</p></div>
+<div className="mb-2.5"><h3 className="text-xs font-black text-white uppercase"> Melhores Equipes e Selecoes</h3><p className="text-[9px] text-slate-500 font-bold mt-0.5">Clique para favoritar no seu radar</p></div>
 <div className="grid grid-cols-3 sm:grid-cols-4 gap-2">
 {BUSCA_Equipes.filter(i => !buscaPesquisa.trim() || normalizarTexto(`${i.nome} ${i.sub}`).includes(normalizarTexto(buscaPesquisa))).map(item => <PesquisaCard key={`eq-${item.nome}`} item={item} />)}
 </div>
@@ -680,7 +680,7 @@ abaPesquisaAtiva === a.id
 )}
 {abaPesquisaAtiva === 'Jogadores' && (
 <div>
-<div className="mb-2.5"><h3 className="text-xs font-black text-white uppercase">👤 Atletas em Destaque</h3><p className="text-[9px] text-slate-500 font-bold mt-0.5">Monitore assistências, gols e cartões</p></div>
+<div className="mb-2.5"><h3 className="text-xs font-black text-white uppercase"> Atletas em Destaque</h3><p className="text-[9px] text-slate-500 font-bold mt-0.5">Monitore assistencias, gols e cartoes</p></div>
 <div className="grid grid-cols-3 sm:grid-cols-4 gap-2">
 {BUSCA_Jogadores.filter(i => !buscaPesquisa.trim() || normalizarTexto(`${i.nome} ${i.sub}`).includes(normalizarTexto(buscaPesquisa))).map(item => <PesquisaCard key={`jog-${item.nome}`} item={item} />)}
 </div>
@@ -688,7 +688,7 @@ abaPesquisaAtiva === a.id
 )}
 {abaPesquisaAtiva === 'Ranking' && (
 <div>
-<div className="mb-2.5"><h3 className="text-xs font-black text-white uppercase">Classificações e Rankings</h3><p className="text-[9px] text-slate-500 font-bold mt-0.5">Acompanhe pontuação mundial</p></div>
+<div className="mb-2.5"><h3 className="text-xs font-black text-white uppercase">Classificacoes e Rankings</h3><p className="text-[9px] text-slate-500 font-bold mt-0.5">Acompanhe pontuacao mundial</p></div>
 <div className="grid grid-cols-3 sm:grid-cols-4 gap-2">
 {BUSCA_Ranking.filter(i => !buscaPesquisa.trim() || normalizarTexto(`${i.nome} ${i.sub}`).includes(normalizarTexto(buscaPesquisa))).map(item => <PesquisaCard key={`rank-${item.nome}`} item={item} />)}
 </div>
@@ -704,13 +704,13 @@ abaPesquisaAtiva === a.id
 )}
 {abaPesquisaAtiva === 'todas' && (
 <div>
-<div className="mb-2.5"><h3 className="text-xs font-black text-white uppercase">🌍 Catálogo Completo de Ligas</h3><p className="text-[9px] text-slate-500 font-bold mt-0.5">Abra o país e favorite as divisões desejadas</p></div>
+<div className="mb-2.5"><h3 className="text-xs font-black text-white uppercase"> Catalogo Completo de Ligas</h3><p className="text-[9px] text-slate-500 font-bold mt-0.5">Abra o pais e favorite as divisoes desejadas</p></div>
 <div className="flex flex-col gap-2.5">
 {TODAS_COMPETICOES.filter(c => !buscaPesquisa.trim() || normalizarTexto(`${c.pais} ${c.ligas.join(' ')}`).includes(normalizarTexto(buscaPesquisa))).map(c => (
 <div key={c.pais} className="bg-[#0f172a] text-white rounded-2xl shadow-lg overflow-hidden border border-white/10">
 <button onClick={() => setCategoriaAberta(categoriaAberta === c.pais ? '' : c.pais)} className="w-full flex items-center gap-3 py-3 px-3.5 text-left active:scale-[0.99]">
 <span className="w-9 h-9 rounded-xl bg-[#050816] border border-white/10 flex items-center justify-center text-lg">{c.emoji}</span>
-<span className="flex-1"><span className="block text-xs font-black">{c.pais}</span><span className="block text-[9px] text-slate-500 font-bold mt-0.5">{c.qtd} competições disponíveis</span></span>
+<span className="flex-1"><span className="block text-xs font-black">{c.pais}</span><span className="block text-[9px] text-slate-500 font-bold mt-0.5">{c.qtd} competicoes disponiveis</span></span>
 <ChevronRight className={`w-4 h-4 text-slate-500 transition ${categoriaAberta === c.pais ? 'rotate-90 text-blue-400' : ''}`} />
 </button>
 {categoriaAberta === c.pais && (
@@ -733,12 +733,12 @@ return (
 </div>
 )}
 </div>
-{/* --- FIM DA RENDERIZAÇÃO POR ABAS --- */}
+{/* --- FIM DA RENDERIZACAO POR ABAS --- */}
 </div>)}
-{viewMode === 'favoritos' && (<div className="animate-fade-in pb-28 w-full"><div className="bg-blue-700 border-b border-blue-400/30 sticky top-0 z-20"><div className="flex overflow-x-auto no-scrollbar px-2">{['Eventos', 'Times', 'Competições', 'Atletas'].map(aba => <button key={aba} onClick={() => setFavAba(aba)} className={`px-4 py-4 text-xs font-black whitespace-nowrap border-b-2 ${favAba === aba ? 'text-white border-white' : 'text-blue-200 border-transparent'}`} style={{ touchAction: 'manipulation' }}>{aba}</button>)}</div></div><div className="px-4 pt-5">{favAba === 'Eventos' && (<>{jogos.filter(j => favoritos.includes(j.id)).length ? jogos.filter(j => favoritos.includes(j.id)).map(j => (<div key={j.id} onClick={() => setJogoSelecionado(j)} className="bg-[#0f172a] border border-yellow-500/20 rounded-3xl p-5 mb-3"><div className="flex justify-between items-center mb-2"><span className="text-[10px] text-yellow-400 font-black uppercase">{j.league_name}</span><Star className="w-4 h-4 fill-yellow-400 text-yellow-400" /></div><div className="text-sm font-black text-white">{j.home_team} x {j.away_team}</div><div className="text-[11px] text-slate-500 mt-1">Confiança IA: {j.confianca_ia || 0}% • Odd {j.odd_principal || '-'}</div></div>)) : <FavVazio tipo="eventos da sua equipe e competições" />}</>)}{favAba === 'Times' && (<>{favCatalogo.filter(f => f.tipo === 'time').length ? favCatalogo.filter(f => f.tipo === 'time').map(item => <FavCard key={item.id} item={item} />) : <FavVazio tipo="times" />}</>)}{favAba === 'Competições' && (<>{favCatalogo.filter(f => f.tipo === 'competicao' || f.tipo === 'Ranking').length ? favCatalogo.filter(f => f.tipo === 'competicao' || f.tipo === 'Ranking').map(item => <FavCard key={item.id} item={item} />) : <FavVazio tipo="competições" />}</>)}{favAba === 'Atletas' && (<>{favCatalogo.filter(f => f.tipo === 'atleta').length ? favCatalogo.filter(f => f.tipo === 'atleta').map(item => <FavCard key={item.id} item={item} />) : <FavVazio tipo="atletas" />}</>)}</div></div>)}
-{viewMode === 'config' && (<div className="px-4 animate-fade-in pb-20 w-full"><HeaderNav title="⚙Configurações" onBack={() => setViewMode('perfil')} /><div className="bg-[#0f172a] border border-white/5 rounded-3xl p-5 mb-4"><h3 className="text-sm font-black text-white mb-4">Preferências do aplicativo</h3><button onClick={solicitarPermissaoNotificacaoApp} className="w-full bg-[#050816] border border-blue-500/20 rounded-2xl p-4 text-left mb-3"><div className="text-xs font-black text-blue-400 uppercase">Ativar notificações</div><div className="text-[10px] text-slate-500 font-bold mt-1">Receba alertas de jogos, oportunidades e favoritos.</div></button><button onClick={() => setViewMode('termos')} className="w-full bg-[#050816] border border-white/10 rounded-2xl p-4 text-left mb-3"><div className="text-xs font-black text-white uppercase">Privacidade e termos</div><div className="text-[10px] text-slate-500 font-bold mt-1">Abrir políticas, +18 e responsabilidade.</div></button><button onClick={() => window.location.href = 'mailto:betanlyticspro@gmail.com'} className="w-full bg-[#050816] border border-cyan-500/20 rounded-2xl p-4 text-left"><div className="text-xs font-black text-cyan-400 uppercase">Suporte</div><div className="text-[10px] text-slate-500 font-bold mt-1">betanlyticspro@gmail.com</div></button></div><PlayStoreModeBadge /></div>)}
-{viewMode === 'termos' && (<div className="px-4 animate-fade-in pb-20 w-full"><HeaderNav title="📄 Termos e Políticas" onBack={() => setViewMode('jogos')} /><LegalCompliance /></div>)}
-{viewMode === 'admin' && (<div className="px-4 animate-fade-in pb-20 w-full"><HeaderNav title="⚙Painel de Controle Admin" onBack={() => setViewMode('perfil')} /><div className="bg-[#0f172a] p-5 rounded-3xl border border-white/5 shadow-lg mb-3"><div className="text-[10px] text-slate-400 uppercase font-bold mb-1 tracking-widest">Total Usuários</div><div className="text-3xl font-black text-white">1,248</div></div><div className="bg-[#0f172a] p-5 rounded-3xl border border-yellow-500/20 shadow-lg mb-3"><div className="text-[10px] text-slate-400 uppercase font-bold mb-1 tracking-widest">Assinantes PRO</div><div className="text-3xl font-black text-yellow-400">312</div></div><div className="bg-[#0f172a] p-5 rounded-3xl border border-green-500/20 shadow-lg flex justify-between items-center"><div><div className="text-[10px] text-slate-400 uppercase font-bold mb-1 tracking-widest">Receita Mensal Estimada</div><div className="text-3xl font-black text-green-400">R$ 9.328,80</div></div><DollarSign className="w-10 h-10 text-green-500 opacity-50" /></div></div>)}
+{viewMode === 'favoritos' && (<div className="animate-fade-in pb-28 w-full"><div className="bg-blue-700 border-b border-blue-400/30 sticky top-0 z-20"><div className="flex overflow-x-auto no-scrollbar px-2">{['Eventos', 'Times', 'Competicoes', 'Atletas'].map(aba => <button key={aba} onClick={() => setFavAba(aba)} className={`px-4 py-4 text-xs font-black whitespace-nowrap border-b-2 ${favAba === aba ? 'text-white border-white' : 'text-blue-200 border-transparent'}`} style={{ touchAction: 'manipulation' }}>{aba}</button>)}</div></div><div className="px-4 pt-5">{favAba === 'Eventos' && (<>{jogos.filter(j => favoritos.includes(j.id)).length ? jogos.filter(j => favoritos.includes(j.id)).map(j => (<div key={j.id} onClick={() => setJogoSelecionado(j)} className="bg-[#0f172a] border border-yellow-500/20 rounded-3xl p-5 mb-3"><div className="flex justify-between items-center mb-2"><span className="text-[10px] text-yellow-400 font-black uppercase">{j.league_name}</span><Star className="w-4 h-4 fill-yellow-400 text-yellow-400" /></div><div className="text-sm font-black text-white">{j.home_team} x {j.away_team}</div><div className="text-[11px] text-slate-500 mt-1">Confianca IA: {j.confianca_ia || 0}% • Odd {j.odd_principal || '-'}</div></div>)) : <FavVazio tipo="eventos da sua equipe e competicoes" />}</>)}{favAba === 'Times' && (<>{favCatalogo.filter(f => f.tipo === 'time').length ? favCatalogo.filter(f => f.tipo === 'time').map(item => <FavCard key={item.id} item={item} />) : <FavVazio tipo="times" />}</>)}{favAba === 'Competicoes' && (<>{favCatalogo.filter(f => f.tipo === 'competicao' || f.tipo === 'Ranking').length ? favCatalogo.filter(f => f.tipo === 'competicao' || f.tipo === 'Ranking').map(item => <FavCard key={item.id} item={item} />) : <FavVazio tipo="competicoes" />}</>)}{favAba === 'Atletas' && (<>{favCatalogo.filter(f => f.tipo === 'atleta').length ? favCatalogo.filter(f => f.tipo === 'atleta').map(item => <FavCard key={item.id} item={item} />) : <FavVazio tipo="atletas" />}</>)}</div></div>)}
+{viewMode === 'config' && (<div className="px-4 animate-fade-in pb-20 w-full"><HeaderNav title="Configuracoes" onBack={() => setViewMode('perfil')} /><div className="bg-[#0f172a] border border-white/5 rounded-3xl p-5 mb-4"><h3 className="text-sm font-black text-white mb-4">Preferencias do aplicativo</h3><button onClick={solicitarPermissaoNotificacaoApp} className="w-full bg-[#050816] border border-blue-500/20 rounded-2xl p-4 text-left mb-3"><div className="text-xs font-black text-blue-400 uppercase">Ativar notificacoes</div><div className="text-[10px] text-slate-500 font-bold mt-1">Receba alertas de jogos, oportunidades e favoritos.</div></button><button onClick={() => setViewMode('termos')} className="w-full bg-[#050816] border border-white/10 rounded-2xl p-4 text-left mb-3"><div className="text-xs font-black text-white uppercase">Privacidade e termos</div><div className="text-[10px] text-slate-500 font-bold mt-1">Abrir politicas, +18 e responsabilidade.</div></button><button onClick={() => window.location.href = 'mailto:betanlyticspro@gmail.com'} className="w-full bg-[#050816] border border-cyan-500/20 rounded-2xl p-4 text-left"><div className="text-xs font-black text-cyan-400 uppercase">Suporte</div><div className="text-[10px] text-slate-500 font-bold mt-1">betanlyticspro@gmail.com</div></button></div><PlayStoreModeBadge /></div>)}
+{viewMode === 'termos' && (<div className="px-4 animate-fade-in pb-20 w-full"><HeaderNav title=" Termos e Politicas" onBack={() => setViewMode('jogos')} /><LegalCompliance /></div>)}
+{viewMode === 'admin' && (<div className="px-4 animate-fade-in pb-20 w-full"><HeaderNav title="Painel de Controle Admin" onBack={() => setViewMode('perfil')} /><div className="bg-[#0f172a] p-5 rounded-3xl border border-white/5 shadow-lg mb-3"><div className="text-[10px] text-slate-400 uppercase font-bold mb-1 tracking-widest">Total Usuarios</div><div className="text-3xl font-black text-white">1,248</div></div><div className="bg-[#0f172a] p-5 rounded-3xl border border-yellow-500/20 shadow-lg mb-3"><div className="text-[10px] text-slate-400 uppercase font-bold mb-1 tracking-widest">Assinantes PRO</div><div className="text-3xl font-black text-yellow-400">312</div></div><div className="bg-[#0f172a] p-5 rounded-3xl border border-green-500/20 shadow-lg flex justify-between items-center"><div><div className="text-[10px] text-slate-400 uppercase font-bold mb-1 tracking-widest">Receita Mensal Estimada</div><div className="text-3xl font-black text-green-400">R$ 9.328,80</div></div><DollarSign className="w-10 h-10 text-green-500 opacity-50" /></div></div>)}
 </div>)}
 {jogoSelecionado && menuAtivo !== 'assinar pro' && (
 <div className="fixed inset-0 z-[999] bg-[#050816] text-white overflow-y-auto pb-28 animate-fade-in">
@@ -750,13 +750,13 @@ return (
 </div>
 </div>
 )}
-<button onClick={() => setAiOpen(true)} className="fixed right-5 bottom-32 w-14 h-14 rounded-full bg-gradient-to-br from-blue-600 to-blue-400 flex items-center justify-center shadow-lg z-40 text-2xl">🤖</button>
+<button onClick={() => setAiOpen(true)} className="fixed right-5 bottom-32 w-14 h-14 rounded-full bg-gradient-to-br from-blue-600 to-blue-400 flex items-center justify-center shadow-lg z-40 text-2xl"></button>
 <AnimatePresence>
 {aiOpen && (<motion.div initial={{ opacity: 0, y: 20, scale: 0.9 }} animate={{ opacity: 1, y: 0, scale: 1 }} exit={{ opacity: 0, scale: 0.9, y: 20 }} className="fixed right-4 left-4 bottom-24 bg-[#0f172a] border border-slate-700 p-4 rounded-3xl shadow-[0_0_50px_rgba(0,0,0,0.8)] z-50 flex flex-col max-h-[70vh]"><div className="flex justify-between items-center mb-4 pb-3 border-b border-white/5"><h3 className="font-black flex items-center gap-2 text-white"><Zap className="w-5 h-5 text-yellow-400" /> Assistente IA</h3><button onClick={() => setAiOpen(false)} className="bg-slate-800 rounded-full p-1.5"><X className="w-4 h-4" /></button></div><div className="flex-1 overflow-y-auto flex flex-col gap-3 mb-4 pr-1 custom-scrollbar">{aiMessages.map((msg, idx) => (<div key={idx} className={`flex ${msg.role === 'user' ? 'justify-end' : 'justify-start'}`}><div className={`p-3.5 rounded-2xl max-w-[85%] text-xs font-semibold ${msg.role === 'user' ? 'bg-blue-600 text-white' : 'bg-[#050816] text-slate-300 border border-slate-800'}`}>{msg.text}</div></div>))}{aiLoading && (<div className="flex justify-start"><div className="p-3.5 rounded-2xl bg-[#050816] border border-slate-800 text-slate-300 text-xs font-bold animate-pulse">A processar...</div></div>)}</div><form onSubmit={handleAskAI} className="flex gap-2"><input type="text" placeholder="Qual a melhor aposta?" value={aiQuery} onChange={(e) => setAiQuery(e.target.value)} disabled={aiLoading} className="flex-1 bg-[#050816] border border-slate-700 rounded-2xl px-4 py-3 text-xs text-white outline-none" /><button type="submit" disabled={aiLoading || !aiQuery.trim()} className="bg-blue-600 text-white p-3 rounded-2xl"><Send className="w-5 h-5" /></button></form></motion.div>)}
 </AnimatePresence>
 <nav className="fixed bottom-0 left-0 right-0 bg-[#050816] border-t border-white/5 z-50 flex flex-col shadow-[0_-5px_20px_rgba(0,0,0,0.5)]">
 <div className="flex justify-around items-center h-16 pt-2 w-full">
-<button onClick={() => { setMenuAtivo('Todos os Jogos'); setViewMode('jogos'); setFilterCentro('Todos'); setJogoSelecionado(null); }} className={`flex flex-col items-center gap-1.5 ${viewMode === 'jogos' && filterCentro !== 'Ao Vivo' ? 'text-blue-500' : 'text-slate-500'}`} style={{ touchAction: 'manipulation' }}><Home className="w-5 h-5" /><span className="text-[8px] font-black uppercase mt-0.5">Início</span></button>
+<button onClick={() => { setMenuAtivo('Todos os Jogos'); setViewMode('jogos'); setFilterCentro('Todos'); setJogoSelecionado(null); }} className={`flex flex-col items-center gap-1.5 ${viewMode === 'jogos' && filterCentro !== 'Ao Vivo' ? 'text-blue-500' : 'text-slate-500'}`} style={{ touchAction: 'manipulation' }}><Home className="w-5 h-5" /><span className="text-[8px] font-black uppercase mt-0.5">Inicio</span></button>
 <button onClick={() => { setMenuAtivo('Todos os Jogos'); setViewMode('jogos'); setFilterCentro('Ao Vivo'); setJogoSelecionado(null); }} className={`flex flex-col items-center gap-1.5 ${filterCentro === 'Ao Vivo' ? 'text-red-500' : 'text-slate-500'}`} style={{ touchAction: 'manipulation' }}><Radio className="w-5 h-5" /><span className="text-[8px] font-black uppercase mt-0.5">Ao Vivo</span></button>
 <button onClick={() => { setMenuAtivo('Todos os Jogos'); setViewMode('Pesquisa'); setJogoSelecionado(null); }} className={`flex flex-col items-center gap-1.5 ${viewMode === 'Pesquisa' ? 'text-blue-500' : 'text-slate-500'}`} style={{ touchAction: 'manipulation' }}><Search className="w-5 h-5" /><span className="text-[8px] font-black uppercase mt-0.5">Pesquisa</span></button>
 <button onClick={() => { setMenuAtivo('Todos os Jogos'); setViewMode('copa'); setJogoSelecionado(null); }} className={`flex flex-col items-center gap-1.5 ${viewMode === 'copa' ? 'text-yellow-500' : 'text-slate-500'}`} style={{ touchAction: 'manipulation' }}><Trophy className="w-5 h-5" /><span className="text-[8px] font-black uppercase mt-0.5">Copa</span></button>

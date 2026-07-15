@@ -43,7 +43,7 @@ export default function JogadoresJogo({ players = [], jogo }) {
   if (!Array.isArray(players) || !players.length) {
     return (
       <div className="bg-[#0f172a] rounded-2xl border border-white/10 p-5 text-center text-xs font-bold text-slate-500">
-        Estatísticas de jogadores ainda não disponíveis para esta partida.
+        Estatisticas de jogadores ainda nao disponiveis para esta partida.
       </div>
     );
   }

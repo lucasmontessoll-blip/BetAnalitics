@@ -5,7 +5,7 @@ export default function JogosAoVivo() {
   const [carregando, setCarregando] = useState(true);
   const [erro, setErro] = useState(null);
 
-  // Função que vai ao nosso server.js buscar os dados atualizados do Supabase
+  // Funcao que vai ao nosso server.js buscar os dados atualizados do Supabase
   const buscarJogos = async () => {
     try {
       // Se o frontend e backend rodarem na mesma porta/servidor no Render, basta usar o caminho relativo
@@ -18,7 +18,7 @@ export default function JogosAoVivo() {
       setErro(null);
     } catch (err) {
       console.error("Erro ao carregar jogos:", err);
-      setErro("Não foi possível atualizar os placares.");
+      setErro("Nao foi possivel atualizar os placares.");
     } finally {
       setCarregando(false);
     }
@@ -33,22 +33,22 @@ export default function JogosAoVivo() {
       buscarJogos();
     }, 30000); 
 
-    // Limpa o temporizador se o utilizador fechar a página
+    // Limpa o temporizador se o utilizador fechar a pagina
     return () => clearInterval(intervalo);
   }, []);
 
   if (carregando) {
-    return <div style={{ textAlgin: 'center', padding: '20px', color: '#fff' }}>⏳ Carregando radar de jogos ao vivo...</div>;
+    return <div style={{ textAlgin: 'center', padding: '20px', color: '#fff' }}> Carregando radar de jogos ao vivo...</div>;
   }
 
   if (erro) {
-    return <div style={{ color: '#ff4d4d', padding: '20px', textAlign: 'center' }}>⚠️ {erro}</div>;
+    return <div style={{ color: '#ff4d4d', padding: '20px', textAlign: 'center' }}>️ {erro}</div>;
   }
 
   return (
     <div style={{ padding: '20px', maxWidth: '800px', margin: '0 auto', fontFamily: 'Arial, sans-serif' }}>
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '20px' }}>
-        <h2 style={{ color: '#fff', margin: 0 }}>🎮 Jogos Monitorados</h2>
+        <h2 style={{ color: '#fff', margin: 0 }}> Jogos Monitorados</h2>
         <span style={{ backgroundColor: '#22c55e', color: '#fff', padding: '5px 10px', borderRadius: '20px', fontSize: '12px', fontWeight: 'bold', animation: 'pulse 2s infinite' }}>
           • EM TEMPO REAL
         </span>
