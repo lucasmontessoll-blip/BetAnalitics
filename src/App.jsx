@@ -608,19 +608,7 @@ return (
 {menuAtivo !== 'assinar pro' && !jogoSelecionado && (<div className="animate-fade-in pt-4 w-full">
 {viewMode === 'copa' && (<div className="px-4 w-full"><div className="bg-gradient-to-br from-yellow-500 to-yellow-700 rounded-3xl p-6 mb-6 shadow-lg relative overflow-hidden"><Globe className="absolute -right-4 -top-4 w-32 h-32 text-yellow-500/20" /><h2 className="text-2xl font-black text-white flex items-center gap-2 relative z-10"><Trophy className="w-6 h-6 text-yellow-300" /> Selecoes</h2><p className="text-yellow-200 text-xs mt-1 relative z-10 font-bold">Monitoramento de Eurocopa, Copa America e Internacionais</p></div><div className="flex gap-2 overflow-x-auto pb-4 no-scrollbar mb-2 w-full"><button onClick={() => setFilterCentro('Todos')} className={`px-5 py-2.5 rounded-full text-xs font-black border ${filterCentro === 'Todos' ? 'bg-white text-black' : 'bg-transparent border-slate-700 text-slate-400'}`}>Todos</button><button onClick={() => setFilterCentro('Ao Vivo')} className={`px-5 py-2.5 rounded-full text-xs font-black flex items-center gap-2 border ${filterCentro === 'Ao Vivo' ? 'bg-white text-black border-white' : 'bg-transparent border-slate-700 text-slate-400'}`}>Ao Vivo <span className="w-2 h-2 rounded-full bg-red-500 animate-pulse"></span></button></div><RenderizarListaJogos />
 
-{String(viewMode).toLowerCase() === 'jogos' && String(menuAtivo || '').toLowerCase() !== 'copa' && (
-  <JogosPorPaisContinente
-    jogos={jogos}
-    favoritos={favoritos}
-    onToggleFavorito={toggleFavorito}
-    usarDemoQuandoVazio={true}
-    onAbrirJogo={(j) => {
-      if (j.demo || String(j.id || '').startsWith('demo-home')) return setJogoSelecionado(j);
-      if (!userData?.is_vip) return setMenuAtivo('assinar pro');
-      setJogoSelecionado(j);
-    }}
-  />
-)}
+
 
 
 
