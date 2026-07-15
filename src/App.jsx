@@ -136,10 +136,24 @@ return d.toISOString().split('T')[0];
 const listaLigas = [{ name: 'Todos', id: null }, { name: 'Brasileirao', id: 71 }, { name: 'Champions', id: 2 }, { name: 'Premier League', id: 39 }];
 const crescimentoBancaGlobal = [{ dia: "Seg", banca: 1000 }, { dia: "Ter", banca: 1120 }, { dia: "Qua", banca: 1210 }, { dia: "Qui", banca: 1380 }, { dia: "Sex", banca: 1470 }, { dia: "Sab", banca: 1650 }, { dia: "Dom", banca: 1840 }];
 const desempenhoDiario = [{ dia: "Seg", acertos: 14, erros: 3 }, { dia: "Ter", acertos: 18, erros: 2 }, { dia: "Qua", acertos: 12, erros: 5 }, { dia: "Qui", acertos: 20, erros: 4 }, { dia: "Sex", acertos: 25, erros: 6 }, { dia: "Sab", acertos: 32, erros: 5 }, { dia: "Dom", acertos: 29, erros: 3 }];
-const BUSCA_Equipes = [{ tipo: 'time', nome: 'Brasil', sub: 'Selecao Brasileira', emoji: '' }, { tipo: 'time', nome: 'Franca', sub: 'Selecao Francesa', emoji: '' }, { tipo: 'time', nome: 'Noruega', sub: 'Selecao Norueguesa', emoji: '' }, { tipo: 'time', nome: 'Real Madrid', sub: 'Espanha', emoji: '' }, { tipo: 'time', nome: 'FC Barcelona', sub: 'Espanha', emoji: '' }, { tipo: 'time', nome: 'Manchester City', sub: 'Inglaterra', emoji: '' }];
+const BUSCA_Equipes = [
+  { tipo: 'time', nome: 'Brasil', sub: 'Sele\u00e7\u00e3o Brasileira', emoji: '\u{1F1E7}\u{1F1F7}' },
+  { tipo: 'time', nome: 'Fran\u00e7a', sub: 'Sele\u00e7\u00e3o Francesa', emoji: '\u{1F1EB}\u{1F1F7}' },
+  { tipo: 'time', nome: 'Noruega', sub: 'Sele\u00e7\u00e3o Norueguesa', emoji: '\u{1F1F3}\u{1F1F4}' },
+  { tipo: 'time', nome: 'Real Madrid', sub: 'Espanha', emoji: '\u{26BD}' },
+  { tipo: 'time', nome: 'FC Barcelona', sub: 'Espanha', emoji: '\u{1F535}' },
+  { tipo: 'time', nome: 'Manchester City', sub: 'Inglaterra', emoji: '\u{1F535}' },
+];
 const BUSCA_Jogadores = [{ tipo: 'atleta', nome: 'Lionel Messi', sub: 'Atacante', emoji: '' }, { tipo: 'atleta', nome: 'Kylian Mbappe', sub: 'Atacante', emoji: '' }, { tipo: 'atleta', nome: 'Erling Haaland', sub: 'Atacante', emoji: '' }, { tipo: 'atleta', nome: 'Cristiano Ronaldo', sub: 'Atacante', emoji: '' }, { tipo: 'atleta', nome: 'Lamine Yamal', sub: 'Atacante', emoji: '' }, { tipo: 'atleta', nome: 'Vinicius Junior', sub: 'Atacante', emoji: '' }];
 const BUSCA_Ranking = [{ tipo: 'Ranking', nome: 'Ranking da FIFA', sub: 'Selecoes', emoji: '' }, { tipo: 'Ranking', nome: 'Ranking da UEFA', sub: 'Europa', emoji: '' }];
-const BUSCA_COMPETICOES = [{ tipo: 'competicao', nome: 'Brasileirao Betano', sub: 'Brasil', emoji: '' }, { tipo: 'competicao', nome: 'FIFA Club World Cup', sub: 'Mundo', emoji: '' }, { tipo: 'competicao', nome: 'Liga dos Campeoes', sub: 'Europa', emoji: '' }, { tipo: 'competicao', nome: 'UEFA Liga Europa', sub: 'Europa', emoji: '' }, { tipo: 'competicao', nome: 'Premier League', sub: 'Inglaterra', emoji: '' }, { tipo: 'competicao', nome: 'LaLiga', sub: 'Espanha', emoji: '' }];
+const BUSCA_COMPETICOES = [
+  { tipo: 'competicao', nome: 'Brasileir\u00e3o Betano', sub: 'Brasil', emoji: '\u{1F1E7}\u{1F1F7}' },
+  { tipo: 'competicao', nome: 'FIFA Club World Cup', sub: 'Mundo', emoji: '\u{1F30D}' },
+  { tipo: 'competicao', nome: 'Liga dos Campe\u00f5es', sub: 'Europa', emoji: '\u{1F3C6}' },
+  { tipo: 'competicao', nome: 'UEFA Liga Europa', sub: 'Europa', emoji: '\u{1F3C6}' },
+  { tipo: 'competicao', nome: 'Premier League', sub: 'Inglaterra', emoji: '\u{1F3F4}' },
+  { tipo: 'competicao', nome: 'LaLiga', sub: 'Espanha', emoji: '\u{1F1EA}\u{1F1F8}' },
+];
 const TODAS_COMPETICOES = [{ pais: 'Brasil', emoji: '', qtd: 6, ligas: ['Brasileirao Serie A', 'Brasileirao Serie B', 'Copa do Brasil', 'Paulistao', 'Carioca', 'Serie C'] }, { pais: 'Brasil (Amador)', emoji: '', qtd: 22, ligas: ['Sub-20', 'Sub-23', 'Feminino', 'Estaduais', 'Copa Paulista', 'Aspirantes'] }, { pais: 'Mundo', emoji: '', qtd: 33, ligas: ['Copa do Mundo', 'Mundial de Clubes', 'Amistosos Internacionais', 'Nations League', 'Eliminatorias', 'Olimpico'] }, { pais: 'Europa', emoji: '', qtd: 6, ligas: ['Champions League', 'Europa League', 'Conference League', 'Eurocopa', 'Supercopa UEFA', 'Nations League'] }, { pais: 'America do Sul', emoji: '', qtd: 8, ligas: ['Libertadores', 'Sul-Americana', 'Recopa', 'Copa America', 'Argentina Primera', 'Uruguai Primera'] }];
 const normalizarTexto = (v = '') => String(v).normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase();
 const abasPesquisa = [
@@ -625,7 +639,7 @@ return (
 {viewMode === 'como-ia' && (<div className="px-4 animate-fade-in pb-20 w-full"><HeaderNav title=" Como a IA calcula" onBack={() => setViewMode('radar')} /><ComoIACalcula /></div>)}
 {viewMode === 'Ranking' && (<div className="px-4 animate-fade-in pb-20 w-full"><HeaderNav title=" Ranking de Oportunidades" onBack={() => setViewMode('radar')} /><RankingOportunidades jogos={jogos} onSelecionarJogo={(j) => setJogoSelecionado(j)} /></div>)}
 {viewMode === 'Pesquisa' && (<div className="px-4 animate-fade-in pb-28 w-full">
-<HeaderNav title="Pesquisa" onBack={() => setViewMode('jogos')} />
+<HeaderNav title={'\u{1F50E} Pesquisa'} onBack={() => setViewMode('jogos')} />
 <div className="relative bg-gradient-to-br from-blue-700 via-blue-600 to-purple-700 border border-blue-300/20 rounded-[30px] p-5 mb-5 shadow-2xl overflow-hidden">
 <div className="absolute -right-16 -top-16 w-48 h-48 bg-white/10 rounded-full blur-3xl"></div>
 <div className="absolute -left-14 bottom-0 w-40 h-40 bg-cyan-400/10 rounded-full blur-3xl"></div>
