@@ -988,7 +988,24 @@ return (
 </div>
 {/* --- FIM DA RENDERIZACAO POR ABAS --- */}
 </div>)}
-{viewMode === 'favoritos' && (<div className="animate-fade-in pb-28 w-full"><div className="bg-blue-700 border-b border-blue-400/30 sticky top-0 z-20"><div className="flex overflow-x-auto no-scrollbar px-2">{['Eventos', 'Times', 'Competicoes', 'Atletas'].map(aba => <button key={aba} onClick={() => setFavAba(aba)} className={`px-4 py-4 text-xs font-black whitespace-nowrap border-b-2 ${favAba === aba ? 'text-white border-white' : 'text-blue-200 border-transparent'}`} style={{ touchAction: 'manipulation' }}>{aba}</button>)}</div></div><div className="px-4 pt-5">{favAba === 'Eventos' && (<>{jogos.filter(j => favoritos.includes(j.id)).length ? jogos.filter(j => favoritos.includes(j.id)).map(j => (<div key={j.id} onClick={() => setJogoSelecionado(j)} className="bg-[#0f172a] border border-yellow-500/20 rounded-3xl p-5 mb-3"><div className="flex justify-between items-center mb-2"><span className="text-[10px] text-yellow-400 font-black uppercase">{j.league_name}</span><Star className="w-4 h-4 fill-yellow-400 text-yellow-400" /></div><div className="text-sm font-black text-white">{j.home_team} x {j.away_team}</div><div className="text-[11px] text-slate-500 mt-1">Confianca IA: {j.confianca_ia || 0}% • Odd {j.odd_principal || '-'}</div></div>)) : <FavVazio tipo="eventos da sua equipe e competicoes" />}</>)}{favAba === 'Times' && (<>{favCatalogo.filter(f => f.tipo === 'time').length ? favCatalogo.filter(f => f.tipo === 'time').map(item => <FavCard key={item.id} item={item} />) : <FavVazio tipo="times" />}</>)}{favAba === 'Competicoes' && (<>{favCatalogo.filter(f => f.tipo === 'competicao' || f.tipo === 'Ranking').length ? favCatalogo.filter(f => f.tipo === 'competicao' || f.tipo === 'Ranking').map(item => <FavCard key={item.id} item={item} />) : <FavVazio tipo="competicoes" />}</>)}{favAba === 'Atletas' && (<>{favCatalogo.filter(f => f.tipo === 'atleta').length ? favCatalogo.filter(f => f.tipo === 'atleta').map(item => <FavCard key={item.id} item={item} />) : <FavVazio tipo="atletas" />}</>)}</div></div>)}
+{viewMode === 'favoritos' && (<div className="animate-fade-in pb-28 w-full">
+<div className="px-4 pt-3 pb-3 flex items-center gap-3 bg-[#050816]">
+  {/* VOLTAR_FAVORITOS_OFICIAL */}
+  <button
+    type="button"
+    onClick={() => setViewMode('Pesquisa')}
+    className="w-9 h-9 rounded-full border border-white/10 bg-[#0f172a] text-white flex items-center justify-center active:scale-95"
+    style={{ touchAction: 'manipulation' }}
+    aria-label="Voltar"
+  >
+    <span className="text-xl leading-none">←</span>
+  </button>
+
+  <div>
+    <div className="text-sm font-black text-white">Favoritos</div>
+    <div className="text-[10px] text-slate-500 font-bold">Voltar para a pesquisa</div>
+  </div>
+</div><div className="bg-blue-700 border-b border-blue-400/30 sticky top-0 z-20"><div className="flex overflow-x-auto no-scrollbar px-2">{['Eventos', 'Times', 'Competicoes', 'Atletas'].map(aba => <button key={aba} onClick={() => setFavAba(aba)} className={`px-4 py-4 text-xs font-black whitespace-nowrap border-b-2 ${favAba === aba ? 'text-white border-white' : 'text-blue-200 border-transparent'}`} style={{ touchAction: 'manipulation' }}>{aba}</button>)}</div></div><div className="px-4 pt-5">{favAba === 'Eventos' && (<>{jogos.filter(j => favoritos.includes(j.id)).length ? jogos.filter(j => favoritos.includes(j.id)).map(j => (<div key={j.id} onClick={() => setJogoSelecionado(j)} className="bg-[#0f172a] border border-yellow-500/20 rounded-3xl p-5 mb-3"><div className="flex justify-between items-center mb-2"><span className="text-[10px] text-yellow-400 font-black uppercase">{j.league_name}</span><Star className="w-4 h-4 fill-yellow-400 text-yellow-400" /></div><div className="text-sm font-black text-white">{j.home_team} x {j.away_team}</div><div className="text-[11px] text-slate-500 mt-1">Confianca IA: {j.confianca_ia || 0}% • Odd {j.odd_principal || '-'}</div></div>)) : <FavVazio tipo="eventos da sua equipe e competicoes" />}</>)}{favAba === 'Times' && (<>{favCatalogo.filter(f => f.tipo === 'time').length ? favCatalogo.filter(f => f.tipo === 'time').map(item => <FavCard key={item.id} item={item} />) : <FavVazio tipo="times" />}</>)}{favAba === 'Competicoes' && (<>{favCatalogo.filter(f => f.tipo === 'competicao' || f.tipo === 'Ranking').length ? favCatalogo.filter(f => f.tipo === 'competicao' || f.tipo === 'Ranking').map(item => <FavCard key={item.id} item={item} />) : <FavVazio tipo="competicoes" />}</>)}{favAba === 'Atletas' && (<>{favCatalogo.filter(f => f.tipo === 'atleta').length ? favCatalogo.filter(f => f.tipo === 'atleta').map(item => <FavCard key={item.id} item={item} />) : <FavVazio tipo="atletas" />}</>)}</div></div>)}
 {viewMode === 'config' && (<div className="px-4 animate-fade-in pb-20 w-full"><HeaderNav title="Configuracoes" onBack={() => setViewMode('perfil')} /><div className="bg-[#0f172a] border border-white/5 rounded-3xl p-5 mb-4"><h3 className="text-sm font-black text-white mb-4">Preferencias do aplicativo</h3><button onClick={solicitarPermissaoNotificacaoApp} className="w-full bg-[#050816] border border-blue-500/20 rounded-2xl p-4 text-left mb-3"><div className="text-xs font-black text-blue-400 uppercase">Ativar notificacoes</div><div className="text-[10px] text-slate-500 font-bold mt-1">Receba alertas de jogos, oportunidades e favoritos.</div></button><button onClick={() => setViewMode('termos')} className="w-full bg-[#050816] border border-white/10 rounded-2xl p-4 text-left mb-3"><div className="text-xs font-black text-white uppercase">Privacidade e termos</div><div className="text-[10px] text-slate-500 font-bold mt-1">Abrir politicas, +18 e responsabilidade.</div></button><button onClick={() => window.location.href = 'mailto:betanlyticspro@gmail.com'} className="w-full bg-[#050816] border border-cyan-500/20 rounded-2xl p-4 text-left"><div className="text-xs font-black text-cyan-400 uppercase">Suporte</div><div className="text-[10px] text-slate-500 font-bold mt-1">betanlyticspro@gmail.com</div></button></div><PlayStoreModeBadge /></div>)}
 {viewMode === 'termos' && (<div className="px-4 animate-fade-in pb-20 w-full"><HeaderNav title=" Termos e Politicas" onBack={() => setViewMode('jogos')} /><LegalCompliance /></div>)}
 {viewMode === 'admin' && (<div className="px-4 animate-fade-in pb-20 w-full"><HeaderNav title="Painel de Controle Admin" onBack={() => setViewMode('perfil')} /><div className="bg-[#0f172a] p-5 rounded-3xl border border-white/5 shadow-lg mb-3"><div className="text-[10px] text-slate-400 uppercase font-bold mb-1 tracking-widest">Total Usuarios</div><div className="text-3xl font-black text-white">1,248</div></div><div className="bg-[#0f172a] p-5 rounded-3xl border border-yellow-500/20 shadow-lg mb-3"><div className="text-[10px] text-slate-400 uppercase font-bold mb-1 tracking-widest">Assinantes PRO</div><div className="text-3xl font-black text-yellow-400">312</div></div><div className="bg-[#0f172a] p-5 rounded-3xl border border-green-500/20 shadow-lg flex justify-between items-center"><div><div className="text-[10px] text-slate-400 uppercase font-bold mb-1 tracking-widest">Receita Mensal Estimada</div><div className="text-3xl font-black text-green-400">R$ 9.328,80</div></div><DollarSign className="w-10 h-10 text-green-500 opacity-50" /></div></div>)}
@@ -1017,29 +1034,10 @@ return (
 <button onClick={() => { setMenuAtivo('Todos os Jogos'); setViewMode('jogos'); setFilterCentro('Ao Vivo'); setJogoSelecionado(null); }} className={`flex flex-col items-center gap-1.5 ${filterCentro === 'Ao Vivo' ? 'text-red-500' : 'text-slate-500'}`} style={{ touchAction: 'manipulation' }}><Radio className="w-5 h-5" /><span className="text-[8px] font-black uppercase mt-0.5">Ao Vivo</span></button>
 <button onClick={() => { setMenuAtivo('Todos os Jogos'); setViewMode('Pesquisa'); setJogoSelecionado(null); }} className={`flex flex-col items-center gap-1.5 ${viewMode === 'Pesquisa' ? 'text-blue-500' : 'text-slate-500'}`} style={{ touchAction: 'manipulation' }}><Search className="w-5 h-5" /><span className="text-[8px] font-black uppercase mt-0.5">Pesquisa</span></button>
 <button onClick={() => { setMenuAtivo('Todos os Jogos'); setViewMode('copa'); setJogoSelecionado(null); }} className={`flex flex-col items-center gap-1.5 ${viewMode === 'copa' ? 'text-yellow-500' : 'text-slate-500'}`} style={{ touchAction: 'manipulation' }}><Trophy className="w-5 h-5" /><span className="text-[8px] font-black uppercase mt-0.5">Jogos</span></button>
-<button onClick={() => { setMenuAtivo('Todos os Jogos'); setViewMode('radar'); setJogoSelecionado(null); }} className={`flex flex-col items-center gap-1.5 ${viewMode === 'radar' ? 'text-purple-500' : 'text-slate-500'}`} style={{ touchAction: 'manipulation' }}><Zap className="w-5 h-5" /><span className="text-[8px] font-black uppercase mt-0.5">Radar IA</span></button>
+<button onClick={() => { setMenuAtivo('Todos os Jogos'); setViewMode('radar'); setJogoSelecionado(null); }} className={`flex flex-col items-center gap-1.5 ${viewMode === 'radar' ? 'text-purple-500' : 'text-slate-500'}`} style={{ touchAction: 'manipulation' }}><span className="text-lg leading-none">{'\u{1F916}'}</span><span className="text-[8px] font-black uppercase mt-0.5">IA</span></button>
 {userData?.is_admin && (<button onClick={() => { setMenuAtivo('Todos os Jogos'); setViewMode('admin'); setJogoSelecionado(null); }} className={`flex flex-col items-center gap-1.5 ${viewMode === 'admin' ? 'text-yellow-500' : 'text-slate-500'}`} style={{ touchAction: 'manipulation' }}><Zap className="w-5 h-5" /><span className="text-[8px] font-black uppercase mt-0.5">Admin</span></button>)}
 </div>
 </nav>
-
-      {/* BOTAO_FLUTUANTE_IA_RESTAURADO */}
-      <button
-        type="button"
-        onClick={() => {
-          try {
-            if (typeof onAbrirIA === 'function') return onAbrirIA();
-          } catch {}
-          try {
-            if (typeof setViewMode === 'function') return setViewMode('radar');
-          } catch {}
-        }}
-        className="fixed bottom-24 right-4 z-[90] w-16 h-16 rounded-full bg-blue-500 shadow-[0_0_24px_rgba(59,130,246,0.55)] border border-white/10 flex items-center justify-center active:scale-[0.97]"
-        style={{ touchAction: 'manipulation' }}
-        aria-label="IA"
-        title="IA"
-      >
-        <span className="text-2xl leading-none">{'🤖'}</span>
-      </button>
 </div>
 );
 }
