@@ -251,21 +251,6 @@ const loading = loadingApiFootball;
 const { aiOpen, setAiOpen, aiQuery, setAiQuery, aiLoading, aiMessages, handleAskAI, gerarExplicacaoIA } = useIA(API_URL, jogos, setJogoSelecionado);
 useEffect(() => {
 const timer = setTimeout(() => setShowSplash(false), 2000);
-const handleVoltarTelaFavoritos = () => {
-  try {
-    if (typeof onVoltar === 'function') return onVoltar();
-  } catch {}
-  try {
-    if (typeof voltar === 'function') return voltar();
-  } catch {}
-  try {
-    if (typeof setViewMode === 'function') return setViewMode('perfil');
-  } catch {}
-  try {
-    if (typeof window !== 'undefined' && window.history.length > 1) return window.history.back();
-  } catch {}
-};
-
 return () => clearTimeout(timer);
 }, []);
 useEffect(() => {
@@ -469,25 +454,7 @@ function filtrarJogosAbaInicio(jogosOriginais = [], filterCentroAtual = 'Todos',
 // ===== FIM JOGOS DEMO DAS ABAS INICIO =====
 
 const RenderizarListaJogos = () => {
-if (loading) return (<div className="text-center text-slate-500 py-10">
-      {/* VOLTAR_FAVORITOS_HEADER */}
-      <div className="flex items-center gap-3 mb-3 px-1">
-        <button
-          type="button"
-          onClick={handleVoltarTelaFavoritos}
-          className="w-10 h-10 rounded-full border border-white/10 bg-[#0b1224] text-white flex items-center justify-center shadow-md active:scale-[0.98]"
-          style={{ touchAction: 'manipulation' }}
-          aria-label="Voltar"
-          title="Voltar"
-        >
-          <span className="text-xl leading-none">←</span>
-        </button>
-
-        <div className="min-w-0">
-          <div className="text-white text-sm font-black tracking-wide">Favoritos</div>
-          <div className="text-slate-400 text-[10px] font-bold">Voltar para a tela anterior</div>
-        </div>
-      </div>Buscando jogos na API-Football...</div>);
+if (loading) return (<div className="text-center text-slate-500 py-10">Buscando jogos na API-Football...</div>);
 if (Object.keys(jGrp).length === 0) {
 return (
 <div className="text-center text-slate-500 py-10 font-bold">
@@ -1021,25 +988,6 @@ return (
 {userData?.is_admin && (<button onClick={() => { setMenuAtivo('Todos os Jogos'); setViewMode('admin'); setJogoSelecionado(null); }} className={`flex flex-col items-center gap-1.5 ${viewMode === 'admin' ? 'text-yellow-500' : 'text-slate-500'}`} style={{ touchAction: 'manipulation' }}><Zap className="w-5 h-5" /><span className="text-[8px] font-black uppercase mt-0.5">Admin</span></button>)}
 </div>
 </nav>
-
-      {/* BOTAO_FLUTUANTE_IA_RESTAURADO */}
-      <button
-        type="button"
-        onClick={() => {
-          try {
-            if (typeof onAbrirIA === 'function') return onAbrirIA();
-          } catch {}
-          try {
-            if (typeof setViewMode === 'function') return setViewMode('radar');
-          } catch {}
-        }}
-        className="fixed bottom-24 right-4 z-[90] w-16 h-16 rounded-full bg-blue-500 shadow-[0_0_24px_rgba(59,130,246,0.55)] border border-white/10 flex items-center justify-center active:scale-[0.97]"
-        style={{ touchAction: 'manipulation' }}
-        aria-label="IA"
-        title="IA"
-      >
-        <span className="text-2xl leading-none">{'🤖'}</span>
-      </button>
 </div>
 );
 }
