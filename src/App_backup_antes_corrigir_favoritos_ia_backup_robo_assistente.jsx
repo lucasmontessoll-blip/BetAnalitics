@@ -251,6 +251,21 @@ const loading = loadingApiFootball;
 const { aiOpen, setAiOpen, aiQuery, setAiQuery, aiLoading, aiMessages, handleAskAI, gerarExplicacaoIA } = useIA(API_URL, jogos, setJogoSelecionado);
 useEffect(() => {
 const timer = setTimeout(() => setShowSplash(false), 2000);
+const handleVoltarTelaFavoritos = () => {
+  try {
+    if (typeof onVoltar === 'function') return onVoltar();
+  } catch {}
+  try {
+    if (typeof voltar === 'function') return voltar();
+  } catch {}
+  try {
+    if (typeof setViewMode === 'function') return setViewMode('perfil');
+  } catch {}
+  try {
+    if (typeof window !== 'undefined' && window.history.length > 1) return window.history.back();
+  } catch {}
+};
+
 return () => clearTimeout(timer);
 }, []);
 useEffect(() => {
@@ -454,7 +469,25 @@ function filtrarJogosAbaInicio(jogosOriginais = [], filterCentroAtual = 'Todos',
 // ===== FIM JOGOS DEMO DAS ABAS INICIO =====
 
 const RenderizarListaJogos = () => {
-if (loading) return (<div className="text-center text-slate-500 py-10">Buscando jogos na API-Football...</div>);
+if (loading) return (<div className="text-center text-slate-500 py-10">
+      {/* VOLTAR_FAVORITOS_HEADER */}
+      <div className="flex items-center gap-3 mb-3 px-1">
+        <button
+          type="button"
+          onClick={handleVoltarTelaFavoritos}
+          className="w-10 h-10 rounded-full border border-white/10 bg-[#0b1224] text-white flex items-center justify-center shadow-md active:scale-[0.98]"
+          style={{ touchAction: 'manipulation' }}
+          aria-label="Voltar"
+          title="Voltar"
+        >
+          <span className="text-xl leading-none">←</span>
+        </button>
+
+        <div className="min-w-0">
+          <div className="text-white text-sm font-black tracking-wide">Favoritos</div>
+          <div className="text-slate-400 text-[10px] font-bold">Voltar para a tela anterior</div>
+        </div>
+      </div>Buscando jogos na API-Football...</div>);
 if (Object.keys(jGrp).length === 0) {
 return (
 <div className="text-center text-slate-500 py-10 font-bold">
@@ -971,7 +1004,7 @@ return (
 )}
 <button onClick={() => setAiOpen(true)} className="fixed right-5 bottom-32 w-14 h-14 rounded-full bg-gradient-to-br from-blue-600 to-blue-400 flex items-center justify-center shadow-lg z-40 text-2xl"></button>
 <AnimatePresence>
-{aiOpen && (<motion.div initial={{ opacity: 0, y: 20, scale: 0.9 }} animate={{ opacity: 1, y: 0, scale: 1 }} exit={{ opacity: 0, scale: 0.9, y: 20 }} className="fixed right-4 left-4 bottom-24 bg-[#0f172a] border border-slate-700 p-4 rounded-3xl shadow-[0_0_50px_rgba(0,0,0,0.8)] z-50 flex flex-col max-h-[70vh]"><div className="flex justify-between items-center mb-4 pb-3 border-b border-white/5"><h3 className="font-black flex items-center gap-2 text-white"><span className="text-lg leading-none" aria-hidden="true">{'\u{1F916}'}</span> Assistente IA</h3><button onClick={() => setAiOpen(false)} className="bg-slate-800 rounded-full p-1.5"><X className="w-4 h-4" /></button></div><div className="flex-1 overflow-y-auto flex flex-col gap-3 mb-4 pr-1 custom-scrollbar">{aiMessages.map((msg, idx) => (<div key={idx} className={`flex ${msg.role === 'user' ? 'justify-end' : 'justify-start'}`}><div className={`p-3.5 rounded-2xl max-w-[85%] text-xs font-semibold ${msg.role === 'user' ? 'bg-blue-600 text-white' : 'bg-[#050816] text-slate-300 border border-slate-800'}`}>{msg.text}</div></div>))}{aiLoading && (<div className="flex justify-start"><div className="p-3.5 rounded-2xl bg-[#050816] border border-slate-800 text-slate-300 text-xs font-bold animate-pulse">A processar...</div></div>)}</div><form onSubmit={handleAskAI} className="flex gap-2"><input type="text" placeholder="Qual a melhor aposta?" value={aiQuery} onChange={(e) => setAiQuery(e.target.value)} disabled={aiLoading} className="flex-1 bg-[#050816] border border-slate-700 rounded-2xl px-4 py-3 text-xs text-white outline-none" /><button type="submit" disabled={aiLoading || !aiQuery.trim()} className="bg-blue-600 text-white p-3 rounded-2xl"><Send className="w-5 h-5" /></button></form></motion.div>)}
+{aiOpen && (<motion.div initial={{ opacity: 0, y: 20, scale: 0.9 }} animate={{ opacity: 1, y: 0, scale: 1 }} exit={{ opacity: 0, scale: 0.9, y: 20 }} className="fixed right-4 left-4 bottom-24 bg-[#0f172a] border border-slate-700 p-4 rounded-3xl shadow-[0_0_50px_rgba(0,0,0,0.8)] z-50 flex flex-col max-h-[70vh]"><div className="flex justify-between items-center mb-4 pb-3 border-b border-white/5"><h3 className="font-black flex items-center gap-2 text-white"><Zap className="w-5 h-5 text-yellow-400" /> Assistente IA</h3><button onClick={() => setAiOpen(false)} className="bg-slate-800 rounded-full p-1.5"><X className="w-4 h-4" /></button></div><div className="flex-1 overflow-y-auto flex flex-col gap-3 mb-4 pr-1 custom-scrollbar">{aiMessages.map((msg, idx) => (<div key={idx} className={`flex ${msg.role === 'user' ? 'justify-end' : 'justify-start'}`}><div className={`p-3.5 rounded-2xl max-w-[85%] text-xs font-semibold ${msg.role === 'user' ? 'bg-blue-600 text-white' : 'bg-[#050816] text-slate-300 border border-slate-800'}`}>{msg.text}</div></div>))}{aiLoading && (<div className="flex justify-start"><div className="p-3.5 rounded-2xl bg-[#050816] border border-slate-800 text-slate-300 text-xs font-bold animate-pulse">A processar...</div></div>)}</div><form onSubmit={handleAskAI} className="flex gap-2"><input type="text" placeholder="Qual a melhor aposta?" value={aiQuery} onChange={(e) => setAiQuery(e.target.value)} disabled={aiLoading} className="flex-1 bg-[#050816] border border-slate-700 rounded-2xl px-4 py-3 text-xs text-white outline-none" /><button type="submit" disabled={aiLoading || !aiQuery.trim()} className="bg-blue-600 text-white p-3 rounded-2xl"><Send className="w-5 h-5" /></button></form></motion.div>)}
 </AnimatePresence>
 
 <div className="px-4 mt-6">
