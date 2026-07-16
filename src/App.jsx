@@ -17,6 +17,7 @@ import { useApiFootball } from './hooks/useApiFootball.js';
 import { useIA } from './hooks/useIA.js';
 import HeroPremium from './components/HeroPremium.jsx';
 import LegalCompliance from './components/LegalCompliance.jsx';
+import PesquisaFuncional from './components/PesquisaFuncional.jsx';
 import JogosPorPaisContinente from './components/JogosPorPaisContinente.jsx';
 import Perfil from './components/Perfil.jsx';
 import PainelJogo from './components/PainelJogo.jsx';
