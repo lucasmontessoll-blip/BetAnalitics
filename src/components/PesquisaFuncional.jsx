@@ -1,4 +1,4 @@
-﻿import { Search, Star, ChevronRight, ChevronDown, Trophy, Users, User, Globe2, BarChart3 } from 'lucide-react';
+﻿import { Search, Star, ChevronRight, ChevronDown, Trophy, Users, User, Globe2, BarChart3, ArrowLeft } from 'lucide-react';
 import { useMemo, useState } from 'react';
 
 const EQUIPES = [
@@ -242,6 +242,7 @@ function CompeticoesLista({ termo, favoritos, toggleFavorito }) {
 export default function PesquisaFuncional() {
   const [aba, setAba] = useState('equipes');
   const [termo, setTermo] = useState('');
+  const [abaAnterior, setAbaAnterior] = useState(null);
   const { favoritos, toggle, ativo } = useFavoritosPesquisa();
 
   const itensAtuais = useMemo(() => {
@@ -310,7 +311,11 @@ export default function PesquisaFuncional() {
                 <button
                   key={item.id}
                   type="button"
-                  onClick={() => setAba(item.id)}
+                  onClick={() => {
+                    if (item.id === aba) return;
+                    setAbaAnterior(aba);
+                    setAba(item.id);
+                  }}
                   className={`px-4 py-2 rounded-full text-[10px] font-black whitespace-nowrap flex items-center gap-1.5 border ${
                     selecionado
                       ? 'bg-blue-600 text-white border-blue-500'
@@ -323,6 +328,21 @@ export default function PesquisaFuncional() {
               );
             })}
           </div>
+
+          {aba !== 'equipes' && (
+            <button
+              type="button"
+              onClick={() => {
+                setAba(abaAnterior || 'equipes');
+                setAbaAnterior(null);
+                setTermo('');
+              }}
+              className="mt-3 w-full h-10 rounded-xl bg-[#111827] border border-white/10 text-slate-300 text-xs font-black flex items-center justify-center gap-2 active:scale-[0.98]"
+            >
+              <ArrowLeft className="w-4 h-4" />
+              Voltar para {ABAS.find((x) => x.id === (abaAnterior || 'equipes'))?.nome || 'Equipes'}
+            </button>
+          )}
         </div>
 
         {favoritos.length > 0 && (
