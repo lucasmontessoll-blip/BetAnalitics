@@ -296,6 +296,162 @@ a[j.league_name].push(j);
 return a;
 }, {});
 }, [jFilt]);
+
+// ===== JOGOS DEMO DAS ABAS INICIO =====
+const JOGOS_DEMO_ABAS_INICIO = [
+  {
+    id: 'demo-brasileirao-1',
+    demo: true,
+    league_id: 71,
+    league_name: 'Brasileirao',
+    league_country: 'Brazil',
+    status: 'Not Started',
+    home_team: 'Flamengo',
+    away_team: 'Palmeiras',
+    scoreHome: 0,
+    scoreAway: 0,
+    placar_casa: 0,
+    placar_fora: 0,
+    confianca_ia: 89,
+    odd_principal: 1.82,
+    mercado_principal: 'Vitoria Flamengo',
+    time_elapsed: '',
+  },
+  {
+    id: 'demo-brasileirao-2',
+    demo: true,
+    league_id: 71,
+    league_name: 'Brasileirao',
+    league_country: 'Brazil',
+    status: 'Live',
+    home_team: 'Corinthians',
+    away_team: 'Sao Paulo',
+    scoreHome: 1,
+    scoreAway: 1,
+    placar_casa: 1,
+    placar_fora: 1,
+    confianca_ia: 86,
+    odd_principal: 2.05,
+    mercado_principal: 'Mais de 1.5 gols',
+    time_elapsed: "65'",
+  },
+  {
+    id: 'demo-champions-1',
+    demo: true,
+    league_id: 2,
+    league_name: 'Champions League',
+    league_country: 'World',
+    status: 'Not Started',
+    home_team: 'Real Madrid',
+    away_team: 'Manchester City',
+    scoreHome: 0,
+    scoreAway: 0,
+    placar_casa: 0,
+    placar_fora: 0,
+    confianca_ia: 88,
+    odd_principal: 2.10,
+    mercado_principal: 'Ambos marcam',
+    time_elapsed: '',
+  },
+  {
+    id: 'demo-premier-1',
+    demo: true,
+    league_id: 39,
+    league_name: 'Premier League',
+    league_country: 'England',
+    status: 'Live',
+    home_team: 'Liverpool',
+    away_team: 'Arsenal',
+    scoreHome: 2,
+    scoreAway: 1,
+    placar_casa: 2,
+    placar_fora: 1,
+    confianca_ia: 87,
+    odd_principal: 1.95,
+    mercado_principal: 'Liverpool ou empate',
+    time_elapsed: "72'",
+  },
+];
+
+function normalizarLigaAba(nome = '') {
+  return String(nome || '')
+    .toLowerCase()
+    .normalize('NFD')
+    .replace(/[\u0300-\u036f]/g, '');
+}
+
+function statusEhAoVivo(jogo) {
+  const status = normalizarLigaAba(jogo?.status || jogo?.fixture?.status?.short || '');
+  const tempo = String(jogo?.time_elapsed || jogo?.tempo_jogo || '').trim();
+
+  return status.includes('live') ||
+    status === '1h' ||
+    status === '2h' ||
+    status === 'ht' ||
+    tempo.includes("'");
+}
+
+function ligaDoJogoId(jogo) {
+  return Number(
+    jogo?.league_id ||
+    jogo?.liga_id ||
+    jogo?.raw_api_football?.league?.id ||
+    jogo?.league?.id ||
+    0
+  );
+}
+
+function ligaDoJogoNome(jogo) {
+  return normalizarLigaAba(
+    jogo?.league_name ||
+    jogo?.liga ||
+    jogo?.raw_api_football?.league?.name ||
+    jogo?.league?.name ||
+    ''
+  );
+}
+
+function filtrarJogosAbaInicio(jogosOriginais = [], filterCentroAtual = 'Todos', ligaAtivaAtual = null) {
+  const reais = Array.isArray(jogosOriginais) ? jogosOriginais : [];
+
+  const idsReais = new Set(reais.map((j) => String(j.id || j.fixture_id || '')));
+  const demosQueFaltam = JOGOS_DEMO_ABAS_INICIO.filter((j) => !idsReais.has(String(j.id)));
+
+  const base = [...reais, ...demosQueFaltam];
+
+  const filtro = String(filterCentroAtual || 'Todos');
+
+  if (filtro === 'Ao Vivo') {
+    return base.filter(statusEhAoVivo);
+  }
+
+  const ligaId = Number(ligaAtivaAtual || 0);
+
+  if (ligaId === 71) {
+    return base.filter((j) => {
+      const nome = ligaDoJogoNome(j);
+      return ligaDoJogoId(j) === 71 || nome.includes('brasileirao') || nome.includes('serie a');
+    });
+  }
+
+  if (ligaId === 2) {
+    return base.filter((j) => {
+      const nome = ligaDoJogoNome(j);
+      return ligaDoJogoId(j) === 2 || nome.includes('champions');
+    });
+  }
+
+  if (ligaId === 39) {
+    return base.filter((j) => {
+      const nome = ligaDoJogoNome(j);
+      return ligaDoJogoId(j) === 39 || nome.includes('premier');
+    });
+  }
+
+  return base;
+}
+// ===== FIM JOGOS DEMO DAS ABAS INICIO =====
+
 const RenderizarListaJogos = () => {
 if (loading) return (<div className="text-center text-slate-500 py-10">Buscando jogos na API-Football...</div>);
 if (Object.keys(jGrp).length === 0) {
