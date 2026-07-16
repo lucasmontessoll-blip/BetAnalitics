@@ -20,7 +20,6 @@ import LegalCompliance from './components/LegalCompliance.jsx';
 import JogosPorPaisContinente from './components/JogosPorPaisContinente.jsx';
 import Perfil from './components/Perfil.jsx';
 import PainelJogo from './components/PainelJogo.jsx';
-import AnaliseRigorosaCard from './components/AnaliseRigorosaCard.jsx';
 import ComparadorOdds from './components/ComparadorOdds.jsx';
 import AssinaturaPro from './components/AssinaturaPro.jsx';
 import MercadosIAResumo from './components/MercadosIAResumo.jsx';
@@ -775,7 +774,6 @@ return (
 <PainelJogo jogo={jogoSelecionado} setJogoSelecionado={setJogoSelecionado} bancaInicial={bancaInicial} gerarExplicacaoIA={gerarExplicacaoIA} calcularStake={calcularStake} calcularKelly={calcularKelly} />
 </Suspense>
 <div className="px-4 pb-8 space-y-4">
-<AnaliseRigorosaCard jogo={jogoSelecionado} />
 </div>
 </div>
 )}
@@ -801,6 +799,7 @@ return (
 </div>
 );
 }
+
 
 
 
