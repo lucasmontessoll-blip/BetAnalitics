@@ -14,6 +14,122 @@ const app = express();
 app.use(cors());
 app.use(express.json());
 
+// ===== ROTA_FALLBACK_API_FOOTBALL_SEM_404 =====
+app.get('/api/football/health', (req, res) => {
+  res.json({
+    ok: true,
+    fonte: 'api-football',
+    configurado: Boolean(process.env.API_FOOTBALL_KEY || process.env.API_FOOTBALL_TOKEN || process.env.APIFOOTBALL_KEY),
+    baseUrl: process.env.API_FOOTBALL_BASE_URL || 'https://v3.football.api-sports.io',
+    modo: process.env.API_FOOTBALL_KEY ? 'api' : 'demo'
+  });
+});
+
+app.get('/api/football/jogos', async (req, res) => {
+  try {
+    const key = process.env.API_FOOTBALL_KEY || process.env.API_FOOTBALL_TOKEN || process.env.APIFOOTBALL_KEY;
+
+    if (!key) {
+      return res.json({
+        ok: true,
+        fonte: 'api-football',
+        modo: 'demo',
+        count: 0,
+        jogos: [],
+        response: []
+      });
+    }
+
+    const baseUrl = process.env.API_FOOTBALL_BASE_URL || 'https://v3.football.api-sports.io';
+    const url = new URL(baseUrl + '/fixtures');
+
+    if (req.query.live) {
+      url.searchParams.set('live', req.query.live);
+    } else {
+      url.searchParams.set('date', req.query.date || new Date().toISOString().slice(0, 10));
+    }
+
+    if (req.query.league) url.searchParams.set('league', req.query.league);
+    if (req.query.season) url.searchParams.set('season', req.query.season);
+
+    const r = await fetch(url.toString(), {
+      headers: {
+        'x-apisports-key': key,
+        Accept: 'application/json'
+      }
+    });
+
+    const data = await r.json().catch(() => null);
+
+    if (!r.ok || data?.errors?.token) {
+      return res.json({
+        ok: false,
+        fonte: 'api-football',
+        modo: 'demo',
+        erro: data?.errors?.token || data?.message || 'API-Football indisponivel.',
+        jogos: [],
+        response: []
+      });
+    }
+
+    res.json({
+      ok: true,
+      fonte: 'api-football',
+      count: data?.response?.length || 0,
+      jogos: data?.response || [],
+      response: data?.response || []
+    });
+  } catch (e) {
+    res.json({
+      ok: false,
+      fonte: 'api-football',
+      modo: 'demo',
+      erro: e.message || 'Erro ao consultar API-Football.',
+      jogos: [],
+      response: []
+    });
+  }
+});
+
+app.get('/api/football/jogo/:fixtureId', (req, res) => {
+  res.json({
+    ok: true,
+    fonte: 'api-football',
+    modo: 'demo',
+    fixture: null,
+    statistics: [],
+    events: [],
+    lineups: [],
+    players: [],
+    odds: [],
+    oddsLive: [],
+    injuries: [],
+    h2h: [],
+    predictions: null
+  });
+});
+
+app.get('/api/football/pacote-completo/:fixtureId', (req, res) => {
+  res.json({
+    ok: true,
+    fonte: 'api-football',
+    modo: 'demo',
+    fixture: null,
+    statistics: [],
+    events: [],
+    lineups: [],
+    players: [],
+    injuries: [],
+    predictions: null,
+    odds: [],
+    oddsLive: [],
+    h2h: []
+  });
+});
+// ===== FIM ROTA_FALLBACK_API_FOOTBALL_SEM_404 =====
+
+
+
 // ===== INICIO API-FOOTBALL BETANALYTICS =====
 const API_FOOTBALL_BASE_URL = process.env.API_FOOTBALL_BASE_URL || 'https://v3.football.api-sports.io';
 const API_FOOTBALL_KEY = process.env.API_FOOTBALL_KEY || process.env.API_FOOTBALL_TOKEN || process.env.APIFOOTBALL_KEY;
