@@ -3,21 +3,69 @@
 const API_BASE = '';
 
 async function requestJson(url, options = {}) {
-  const resp = await fetch(url, {
-    ...options,
-    headers: {
-      Accept: 'application/json',
-      ...(options.headers || {}),
-    },
-  });
+  try {
+    const resp = await fetch(url, {
+      ...options,
+      headers: {
+        Accept: 'application/json',
+        ...(options.headers || {}),
+      },
+    });
 
-  const data = await resp.json().catch(() => null);
+    const data = await resp.json().catch(() => null);
 
-  if (!resp.ok || data?.ok === false) {
-    throw new Error(data?.erro || data?.message || `Erro HTTP ${resp.status}`);
+    if (!resp.ok || data?.ok === false) {
+      console.warn('API-Football indisponivel:', data?.erro || data?.message || `HTTP ${resp.status}`);
+
+      return {
+        ok: false,
+        demo: true,
+        response: [],
+        jogos: [],
+        standings: [],
+        ligas: [],
+        player: null,
+        team: null,
+        fixture: null,
+        statistics: [],
+        events: [],
+        lineups: [],
+        players: [],
+        injuries: [],
+        predictions: null,
+        odds: [],
+        oddsLive: [],
+        h2h: [],
+        erro: data?.erro || data?.message || 'API-Football indisponivel no momento.',
+      };
+    }
+
+    return data || { ok: true, response: [] };
+  } catch (err) {
+    console.warn('Falha ao consultar API-Football:', err?.message || err);
+
+    return {
+      ok: false,
+      demo: true,
+      response: [],
+      jogos: [],
+      standings: [],
+      ligas: [],
+      player: null,
+      team: null,
+      fixture: null,
+      statistics: [],
+      events: [],
+      lineups: [],
+      players: [],
+      injuries: [],
+      predictions: null,
+      odds: [],
+      oddsLive: [],
+      h2h: [],
+      erro: 'Servidor API-Football indisponivel.',
+    };
   }
-
-  return data;
 }
 
 export async function buscarJogosApiFootball({ data, ligaId = null, aoVivo = false, signal } = {}) {
@@ -43,7 +91,19 @@ export async function buscarJogosApiFootball({ data, ligaId = null, aoVivo = fal
 
 export async function buscarDetalhesJogoApiFootball(fixtureId, { signal } = {}) {
   if (!fixtureId) {
-    throw new Error('FixtureId nao informado.');
+    return {
+      ok: false,
+      fixture: null,
+      statistics: [],
+      events: [],
+      lineups: [],
+      players: [],
+      odds: [],
+      oddsLive: [],
+      injuries: [],
+      h2h: [],
+      predictions: null,
+    };
   }
 
   return requestJson(`${API_BASE}/api/football/jogo/${fixtureId}`, { signal });

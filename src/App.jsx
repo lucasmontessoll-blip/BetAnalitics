@@ -250,23 +250,7 @@ const jogos = useMemo(() => jogosApiFootball, [jogosApiFootball]);
 const loading = loadingApiFootball;
 const { aiOpen, setAiOpen, aiQuery, setAiQuery, aiLoading, aiMessages, handleAskAI, gerarExplicacaoIA } = useIA(API_URL, jogos, setJogoSelecionado);
 useEffect(() => {
-const timer = setTimeout(() => setShowSplash(false), 2000);
-const handleVoltarTelaFavoritos = () => {
-  try {
-    if (typeof onVoltar === 'function') return onVoltar();
-  } catch {}
-  try {
-    if (typeof voltar === 'function') return voltar();
-  } catch {}
-  try {
-    if (typeof setViewMode === 'function') return setViewMode('perfil');
-  } catch {}
-  try {
-    if (typeof window !== 'undefined' && window.history.length > 1) return window.history.back();
-  } catch {}
-};
-
-return () => clearTimeout(timer);
+const timer = setTimeout(() => setShowSplash(false), 2000);return () => clearTimeout(timer);
 }, []);
 useEffect(() => {
 return () => {
@@ -474,7 +458,7 @@ if (loading) return (<div className="text-center text-slate-500 py-10">
       <div className="flex items-center gap-3 mb-3 px-1">
         <button
           type="button"
-          onClick={handleVoltarTelaFavoritos}
+          onClick={() => setViewMode('Pesquisa')}
           className="w-10 h-10 rounded-full border border-white/10 bg-[#0b1224] text-white flex items-center justify-center shadow-md active:scale-[0.98]"
           style={{ touchAction: 'manipulation' }}
           aria-label="Voltar"
