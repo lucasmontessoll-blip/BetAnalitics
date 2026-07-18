@@ -53,9 +53,7 @@ export default function MobileBackAndCleanUI({
       const id = 'bet-toast-back-exit';
       const antigo = document.getElementById(id);
 
-      if (antigo) {
-        antigo.remove();
-      }
+      if (antigo) antigo.remove();
 
       const toast = document.createElement('div');
       toast.id = id;
@@ -86,30 +84,29 @@ export default function MobileBackAndCleanUI({
 
       if (atual.aiOpen) {
         setAiOpen?.(false);
-        return true;
+        return;
       }
 
       if (atual.jogoSelecionado) {
         setJogoSelecionado?.(null);
-        return true;
+        return;
       }
 
       if (atual.viewMode && atual.viewMode !== 'jogos') {
         setMenuAtivo?.('Todos os Jogos');
         setViewMode?.('jogos');
-        return true;
+        return;
       }
 
       const agora = Date.now();
 
       if (agora - lastBackRef.current < 1700) {
         CapacitorApp.exitApp();
-        return true;
+        return;
       }
 
       lastBackRef.current = agora;
       mostrarAvisoSair();
-      return true;
     };
 
     let nativeListener = null;
