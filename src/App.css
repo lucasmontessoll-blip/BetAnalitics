@@ -82,3 +82,23 @@ img {
     font-size: 16px;
   }
 }
+
+
+/* ESCONDE_BOTAO_IA_QUANDO_CHAT_ABERTO */
+body:has(input[placeholder*="melhor aposta"]) .bet-ia-floating-button,
+body:has(textarea[placeholder*="melhor aposta"]) .bet-ia-floating-button,
+body:has(input[placeholder*="melhor aposta"]) [aria-label="Abrir Assistente IA"],
+body:has(textarea[placeholder*="melhor aposta"]) [aria-label="Abrir Assistente IA"],
+body:has(input[placeholder*="melhor aposta"]) [title="IA"],
+body:has(textarea[placeholder*="melhor aposta"]) [title="IA"],
+body:has(input[placeholder*="melhor aposta"]) [class*="fixed"][class*="right-4"][class*="bottom-24"][class*="rounded-full"],
+body:has(textarea[placeholder*="melhor aposta"]) [class*="fixed"][class*="right-4"][class*="bottom-24"][class*="rounded-full"],
+body:has(input[placeholder*="melhor aposta"]) [class*="fixed"][class*="right-4"][class*="bottom-20"][class*="rounded-full"],
+body:has(textarea[placeholder*="melhor aposta"]) [class*="fixed"][class*="right-4"][class*="bottom-20"][class*="rounded-full"],
+body:has(input[placeholder*="aposta"]) .bet-ia-floating-button,
+body:has(textarea[placeholder*="aposta"]) .bet-ia-floating-button {
+  display: none !important;
+  opacity: 0 !important;
+  visibility: hidden !important;
+  pointer-events: none !important;
+}
