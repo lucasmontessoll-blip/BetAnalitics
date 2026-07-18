@@ -119,7 +119,7 @@ export default function CentralValorIA({
           titulo="Area VIP"
           texto="Libere recursos profissionais."
           cor="bg-purple-600"
-          onClick={() => setViewMode?.('perfil')}
+          onClick={() => setViewMode?.('vip-pro')}
         />
       </div>
 
