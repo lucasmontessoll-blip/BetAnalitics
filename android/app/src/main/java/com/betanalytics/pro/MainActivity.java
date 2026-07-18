@@ -1,4 +1,4 @@
-﻿package com.betanalytics.pro;
+package com.betanalytics.pro;
 
 import com.getcapacitor.BridgeActivity;
 
@@ -16,7 +16,7 @@ public class MainActivity extends BridgeActivity {
         return;
       }
     } catch (Exception e) {
-      // Fallback seguro
+      // fallback seguro
     }
 
     super.onBackPressed();
