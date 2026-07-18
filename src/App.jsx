@@ -776,9 +776,19 @@ return (<div className="flex flex-col justify-center items-center min-h-screen b
 return (
 <div className="min-h-screen bg-[#050816] text-white font-sans pb-28 w-full max-w-full overflow-x-hidden relative">
 <header className="flex items-center justify-between px-5 py-3 bg-[#050816] sticky top-0 z-40 border-b border-white/5">
-<div className="flex flex-col leading-none min-w-0">
-<h1 className="font-black text-xl sm:text-2xl tracking-tight flex items-center truncate"><span className="italic">BET</span><span className="text-blue-500">ANALYTICS</span><span className="ml-2 bg-blue-600 text-[10px] px-2 py-0.5 rounded-md">PRO</span></h1>
-{userData?.is_vip && (<span className="mt-1 text-[9px] font-black uppercase tracking-widest text-yellow-400 flex items-center gap-1"><Crown className="w-3 h-3" />VIP ativo</span>)}
+<div className="flex flex-col items-start justify-center min-w-0">
+  <img
+    src="/logo-oficial.png"
+    alt="BetAnalytics PRO"
+    className="h-9 sm:h-10 w-auto max-w-[220px] object-contain select-none"
+    draggable="false"
+  />
+  {userData?.is_vip && (
+    <span className="mt-1 text-[9px] font-black uppercase tracking-widest text-yellow-400 flex items-center gap-1">
+      <Crown className="w-3 h-3" />
+      VIP ativo
+    </span>
+  )}
 </div>
 <button onClick={() => { setMenuAtivo('Todos os Jogos'); setViewMode('perfil'); setJogoSelecionado(null); }} className="bg-blue-600 hover:bg-blue-500 text-white font-black px-3 py-2 rounded-xl flex items-center gap-2 text-xs shadow-lg uppercase"><User className="w-4 h-4" />Perfil</button>
 </header>
