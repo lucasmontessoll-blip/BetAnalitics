@@ -1,5 +1,5 @@
 import React from "react";
-import { PieChart, TrendingUp, TrendingDown, Target } from "lucide-react";
+import { PieChart, TrendingUp, TrendingDown, Target } from 'lucide-react';
 
 export default function HistoricoApostas({ apostas = [] }) {
   const total = apostas.length;

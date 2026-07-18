@@ -1,5 +1,5 @@
 ﻿import React from 'react';
-import {Trophy,Star} from 'lucide-react';
+import { Trophy, Star } from 'lucide-react';
 import {calcularScoreOportunidade} from '../utils/analiseRisco.js';
 import RiskBadge from './RiskBadge.jsx';
 

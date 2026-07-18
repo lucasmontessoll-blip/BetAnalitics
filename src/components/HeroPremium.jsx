@@ -1,5 +1,5 @@
 import React from 'react';
-import { Crown, TrendingUp } from "lucide-react";
+import { Crown, TrendingUp } from 'lucide-react';
 
 export default function HeroPremium({ onViewOportunidades }) {
   return (

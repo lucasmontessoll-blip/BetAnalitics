@@ -9,7 +9,7 @@ import HistoricoAssertividade from './components/HistoricoAssertividade.jsx';
 import { motion, AnimatePresence } from 'framer-motion';
 import { initMercadoPago } from '@mercadopago/sdk-react';
 import { createClient } from '@supabase/supabase-js';
-import { Home, Radio, Trophy, Crown, Star, ChevronRight, X, User, Zap, TrendingUp, ArrowLeft, Send, DollarSign, Target, Globe, CreditCard, Lock, Calendar, Search, Plus } from 'lucide-react';
+import { Home, Radio, Trophy, Crown, Star, ChevronRight, X, User, Zap, TrendingUp, Send, DollarSign, Target, Globe, CreditCard, Lock, Calendar, Search, Plus } from 'lucide-react';
 import { calcularKelly } from './utils/math.js';
 import { calcularStake } from './utils/risk.js';
 import { useFavoritos } from './hooks/useFavoritos.js';
@@ -39,6 +39,8 @@ import CasasParceirasPro from './components/CasasParceirasPro.jsx';
 import PerfilProCompleto from './components/PerfilProCompleto.jsx';
 import SemConexaoPro from './components/SemConexaoPro.jsx';
 import SplashLogoAnimado from './components/SplashLogoAnimado.jsx';
+import MobileBackAndCleanUI from './components/MobileBackAndCleanUI.jsx';
+import CalendarioSemanaJogos from './components/CalendarioSemanaJogos.jsx';
 const MODO_DEMONSTRACAO = true;
 const API_URL = '';
 function gerarEscudoAutomatico(nomeTime = 'TIME') {
@@ -471,16 +473,7 @@ const RenderizarListaJogos = () => {
 if (loading) return (<div className="text-center text-slate-500 py-10">
       {/* VOLTAR_FAVORITOS_HEADER */}
       <div className="flex items-center gap-3 mb-3 px-1">
-        <button
-          type="button"
-          onClick={() => setViewMode('Pesquisa')}
-          className="w-10 h-10 rounded-full border border-white/10 bg-[#0b1224] text-white flex items-center justify-center shadow-md active:scale-[0.98]"
-          style={{ touchAction: 'manipulation' }}
-          aria-label="Voltar"
-          title="Voltar"
-        >
-          <span className="text-xl leading-none">←</span>
-        </button>
+        
 
         <div className="min-w-0">
           <div className="text-white text-sm font-black tracking-wide">Favoritos</div>
@@ -534,7 +527,7 @@ return Object.entries(jGrp).map(([leagueName, matches]) => (
 </div>
 ));
 };
-const HeaderNav = ({ title, onBack }) => (<div className="flex items-center gap-3 mb-6"><button onClick={onBack} className="p-2 bg-[#050816] rounded-full border border-white/10"><ArrowLeft className="w-5 h-5" /></button><h2 className="text-xl font-black">{title}</h2></div>);
+const HeaderNav = ({ title, onBack }) => (<div className="flex items-center gap-3 mb-6"><h2 className="text-xl font-black">{title}</h2></div>);
 const todosItensPesquisa = useMemo(() => [...BUSCA_Equipes, ...BUSCA_Jogadores, ...BUSCA_Ranking, ...BUSCA_COMPETICOES, ...TODAS_COMPETICOES.flatMap(c => c.ligas.map(l => ({ tipo: 'competicao', nome: l, sub: c.pais, emoji: c.emoji })))], []);
 const textoTipoPesquisa = (tipo) => tipo === 'time' ? 'Time' : tipo === 'atleta' ? 'Jogador' : tipo === 'competicao' ? 'Liga' : tipo === 'Ranking' ? 'Rank' : 'Item';
 const salvarOuRemoverPesquisa = (item) => { const id = item.id || `${item.tipo}-${item.nome}`; if (favoritoCatalogoExiste(item)) { removerFavCatalogo(id); return; } salvarFavCatalogo(item); };
@@ -776,6 +769,16 @@ return <SplashLogoAnimado />;
 
 return (
 <div className="min-h-screen bg-[#050816] text-white font-sans pb-28 w-full max-w-full overflow-x-hidden relative">
+<MobileBackAndCleanUI
+  viewMode={viewMode}
+  setViewMode={setViewMode}
+  jogoSelecionado={jogoSelecionado}
+  setJogoSelecionado={setJogoSelecionado}
+  aiOpen={aiOpen}
+  setAiOpen={setAiOpen}
+  setMenuAtivo={setMenuAtivo}
+/>
+
 <header className="flex items-center justify-between gap-3 px-3 py-2 bg-[#050816] sticky top-0 z-40 border-b border-white/5">
 <div className="flex flex-col items-start justify-center min-w-0">
   <img
@@ -800,6 +803,7 @@ return (
 </div>
 <button onClick={() => { setMenuAtivo('Todos os Jogos'); setViewMode('perfil'); setJogoSelecionado(null); }} className="bg-blue-600 hover:bg-blue-500 text-white font-black px-3 py-2 rounded-xl flex items-center gap-2 text-xs shadow-lg uppercase"><User className="w-4 h-4" />Perfil</button>
 </header>
+<CalendarioSemanaJogos viewMode={viewMode} />
 <ModoDemoBadge modoDemo={MODO_DEMONSTRACAO} setViewMode={setViewMode} />
 <SemConexaoPro setViewMode={setViewMode} />
 {menuAtivo === 'assinar pro' && (

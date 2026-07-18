@@ -1,4 +1,4 @@
-﻿import { Search, Star, ChevronRight, ChevronDown, Trophy, Users, User, Globe2, BarChart3, ArrowLeft } from 'lucide-react';
+﻿import { Search, Star, ChevronRight, ChevronDown, Trophy, Users, User, Globe2, BarChart3 } from 'lucide-react';
 import { useMemo, useState } from 'react';
 
 const EQUIPES = [
@@ -329,20 +329,7 @@ export default function PesquisaFuncional() {
             })}
           </div>
 
-          {aba !== 'equipes' && (
-            <button
-              type="button"
-              onClick={() => {
-                setAba(abaAnterior || 'equipes');
-                setAbaAnterior(null);
-                setTermo('');
-              }}
-              className="mt-3 w-full h-10 rounded-xl bg-[#111827] border border-white/10 text-slate-300 text-xs font-black flex items-center justify-center gap-2 active:scale-[0.98]"
-            >
-              <ArrowLeft className="w-4 h-4" />
-              Voltar para {ABAS.find((x) => x.id === (abaAnterior || 'equipes'))?.nome || 'Equipes'}
-            </button>
-          )}
+          
         </div>
 
         {favoritos.length > 0 && (

@@ -1,5 +1,5 @@
 import React from 'react';
-import { ArrowLeft, Crown, CheckCircle2, Lock, Zap, ShieldCheck, Bell, Wallet, Brain, Gift } from 'lucide-react';
+import { Crown, CheckCircle2, Lock, Zap, ShieldCheck, Bell, Wallet, Brain, Gift } from 'lucide-react';
 
 const beneficios = [
   { titulo: 'Radar IA completo', texto: 'Ranking de oportunidades com confiança, risco e value bet.', icon: Brain },
@@ -29,13 +29,7 @@ export default function VipPro({ userData, setViewMode, setAiOpen, setAiQuery })
   return (
     <div className="px-4 animate-fade-in pb-28 w-full">
       <div className="flex items-center gap-3 mb-4">
-        <button
-          type="button"
-          onClick={() => setViewMode?.('radar')}
-          className="w-10 h-10 rounded-full bg-[#0f172a] border border-white/10 flex items-center justify-center active:scale-95"
-        >
-          <ArrowLeft className="w-5 h-5 text-white" />
-        </button>
+        
 
         <div>
           <div className="text-xl font-black text-white">Área VIP PRO</div>

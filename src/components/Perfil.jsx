@@ -1,5 +1,5 @@
 import React from 'react';
-import {User,Star,Settings,Crown,FileText,BookOpen,LifeBuoy,TrendingUp,LogOut,ChevronRight,Mail,ShieldCheck} from 'lucide-react';
+import { User, Star, Settings, Crown, FileText, BookOpen, LifeBuoy, TrendingUp, LogOut, ChevronRight, Mail, ShieldCheck } from 'lucide-react';
 
 export default function Perfil({userData,form,solicitarPermissaoNotificacao,setViewMode,setMenuAtivo}) {
   const nomeUsuario=form?.nome||userData?.nome||'Usuário BetAnalytics';

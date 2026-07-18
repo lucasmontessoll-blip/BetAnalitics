@@ -1,6 +1,6 @@
 ﻿import React from 'react';
 import {BarChart,Bar,ResponsiveContainer,XAxis,YAxis,Tooltip} from 'recharts';
-import {TrendingUp,AlertTriangle} from 'lucide-react';
+import { TrendingUp, AlertTriangle } from 'lucide-react';
 import {historicoAssertividade} from '../data/historicoAssertividade.js';
 
 export default function HistoricoAssertividade(){

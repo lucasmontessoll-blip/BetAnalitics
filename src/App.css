@@ -102,3 +102,15 @@ body:has(textarea[placeholder*="aposta"]) .bet-ia-floating-button {
   visibility: hidden !important;
   pointer-events: none !important;
 }
+
+/* bet-hide-visual-back-buttons-css */
+button:has(svg.lucide-arrow-left),
+button:has([data-lucide="arrow-left"]),
+a:has(svg.lucide-arrow-left),
+a:has([data-lucide="arrow-left"]),
+button[aria-label*="Voltar"],
+button[title*="Voltar"],
+.botao-voltar,
+.btn-voltar {
+  display: none !important;
+}
