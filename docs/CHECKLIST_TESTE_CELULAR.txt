@@ -1,0 +1,29 @@
+﻿CHECKLIST DE TESTE FINAL - BetAnalytics PRO
+
+1. Abrir o app no celular
+2. Conferir nome e ícone do app
+3. Conferir splash screen
+4. Testar tela inicial
+5. Testar Central IA
+6. Testar botão robô IA
+7. Testar envio de mensagem no Assistente IA
+8. Testar Favoritos PRO
+9. Testar Área VIP PRO
+10. Testar Gestão de Banca
+11. Testar Alertas IA
+12. Testar Detalhes do Jogo
+13. Testar Histórico IA
+14. Testar Configurações PRO
+15. Testar Modo Demonstração
+16. Testar Performance IA
+17. Testar Casas Parceiras
+18. Testar Perfil PRO
+19. Testar Tela Sem Conexão
+20. Testar Política de Privacidade:
+    /politica-privacidade.html
+21. Testar Termos de Uso:
+    /termos-uso.html
+22. Conferir se nenhuma tela fica preta
+23. Conferir se o botão IA não cobre a seta de enviar
+24. Conferir se o APK instala sem erro
+25. Conferir se o app abre depois de fechar e abrir novamente

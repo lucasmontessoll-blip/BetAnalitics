@@ -1,0 +1,25 @@
+﻿CHECKLIST DE PUBLICAÇÃO - BetAnalytics PRO
+
+ANTES DE VENDER/APRESENTAR:
+[ ] Nome final definido
+[ ] Ícone final definido
+[ ] Splash screen definido
+[ ] APK de demonstração gerado
+[ ] Testado em celular real
+[ ] Modo Demonstração claro dentro do app
+[ ] Política de Privacidade criada
+[ ] Termos de Uso criados
+
+ANTES DE PUBLICAR NA PLAY STORE:
+[ ] Política de Privacidade revisada
+[ ] Termos de Uso revisados
+[ ] Aviso legal revisado
+[ ] Jogo responsável revisado
+[ ] API-Football real configurada
+[ ] Links afiliados reais configurados, se for usar
+[ ] Pagamento real testado
+[ ] APK/AAB release gerado
+[ ] Assinatura do Android configurada
+[ ] Teste final em celular real
+[ ] Screenshots da loja preparados
+[ ] Descrição da loja preparada
