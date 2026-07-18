@@ -1,5 +1,5 @@
 import React from "react";
-import { Flame, Target, TrendingUp, Zap } from "lucide-react";
+import { Flame, Target, TrendingUp, Zap } from 'lucide-react';
 
 export default function DashboardIA({ insights }) {
   if (!insights) return null;

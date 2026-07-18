@@ -1,5 +1,5 @@
 import React from "react";
-import { Goal, Users } from "lucide-react";
+import { Goal, Users } from 'lucide-react';
 
 export default function CopaStats({ artilheiros = [], assistencias = [] }) {
   // Mock fallback se vier vazio

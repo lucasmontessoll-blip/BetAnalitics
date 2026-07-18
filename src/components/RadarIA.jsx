@@ -1,14 +1,5 @@
 import React, { useMemo } from 'react';
-import {
-  Activity,
-  BrainCircuit,
-  ShieldAlert,
-  TrendingUp,
-  Target,
-  Zap,
-  Trophy,
-  BarChart3
-} from 'lucide-react';
+import { Activity, BrainCircuit, ShieldAlert, TrendingUp, Target, Zap, Trophy, BarChart3 } from 'lucide-react';
 import {
   AreaChart,
   Area,

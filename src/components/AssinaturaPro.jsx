@@ -1,4 +1,4 @@
-import { ArrowLeft, Calendar, ChevronRight, CreditCard, Crown, DollarSign, Lock, User, Zap } from 'lucide-react';
+import { Calendar, ChevronRight, CreditCard, Crown, DollarSign, Lock, User, Zap } from 'lucide-react';
 
 export default function AssinaturaPro({
   form,
@@ -14,7 +14,7 @@ export default function AssinaturaPro({
 }) {
   return (
 <div className="px-4 pt-24 animate-fade-in pb-28 min-h-screen bg-[#050816] text-white absolute inset-0 z-[999] overflow-y-auto">
-<div className="fixed top-0 left-0 w-full bg-[#050816]/95 backdrop-blur-xl z-[9999] px-5 py-4 border-b border-white/10 flex items-center gap-3 shadow-xl"><button onClick={onVoltar} className="p-2 bg-[#0f172a] border border-white/10 rounded-full hover:border-yellow-500/50 transition flex-shrink-0"><ArrowLeft className="w-5 h-5 text-white" /></button><span className="font-black text-white uppercase tracking-widest text-xs">Voltar ao App</span></div>
+<div className="fixed top-0 left-0 w-full bg-[#050816]/95 backdrop-blur-xl z-[9999] px-5 py-4 border-b border-white/10 flex items-center gap-3 shadow-xl"><span className="font-black text-white uppercase tracking-widest text-xs">Voltar ao App</span></div>
 <div className="bg-[#0f172a] border border-yellow-500/20 rounded-3xl p-6 text-white shadow-[0_0_40px_rgba(234,179,8,0.08)] mt-4 relative overflow-hidden">
 <div className="absolute top-0 right-0 w-64 h-64 bg-yellow-500/10 rounded-full blur-[80px] -mr-20 -mt-20 pointer-events-none"></div>
 <h2 className="text-2xl font-black mb-2 flex items-center gap-2 relative z-10"><Crown className="w-6 h-6 text-yellow-400" />BetAnalytics<span className="text-transparent bg-clip-text bg-gradient-to-r from-yellow-400 to-yellow-600">PRO</span></h2>

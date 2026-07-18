@@ -1,5 +1,5 @@
 ﻿import React from 'react';
-import { ArrowLeft, FlaskConical, Database, Brain, ShieldAlert, CheckCircle2 } from 'lucide-react';
+import { FlaskConical, Database, Brain, ShieldAlert, CheckCircle2 } from 'lucide-react';
 
 export default function ModoDemoPro({ setViewMode }) {
   const itens = [
@@ -23,13 +23,7 @@ export default function ModoDemoPro({ setViewMode }) {
   return (
     <div className="px-4 animate-fade-in pb-28 w-full">
       <div className="flex items-center gap-3 mb-4">
-        <button
-          type="button"
-          onClick={() => setViewMode?.('config')}
-          className="w-10 h-10 rounded-full bg-[#0f172a] border border-white/10 flex items-center justify-center active:scale-95"
-        >
-          <ArrowLeft className="w-5 h-5 text-white" />
-        </button>
+        
 
         <div>
           <div className="text-xl font-black text-white">Modo Demonstração</div>
@@ -85,13 +79,7 @@ export default function ModoDemoPro({ setViewMode }) {
         </div>
       </div>
 
-      <button
-        type="button"
-        onClick={() => setViewMode?.('jogos')}
-        className="w-full h-14 rounded-2xl bg-blue-600 text-white text-sm font-black active:scale-[0.98]"
-      >
-        Voltar para o app
-      </button>
+      
     </div>
   );
 }

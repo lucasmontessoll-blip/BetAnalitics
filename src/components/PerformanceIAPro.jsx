@@ -1,5 +1,5 @@
 ﻿import React, { useMemo } from 'react';
-import { ArrowLeft, BarChart3, Brain, TrendingUp, Target, ShieldAlert, Bell, Trophy, Send } from 'lucide-react';
+import { BarChart3, Brain, TrendingUp, Target, ShieldAlert, Bell, Trophy, Send } from 'lucide-react';
 
 const demo = [
   { mercado: 'Mais de 1.5 gols', liga: 'Brasil Série A', confianca: 91, value: 12.4, status: 'green' },
@@ -98,13 +98,7 @@ export default function PerformanceIAPro({ setViewMode, setAiOpen, setAiQuery })
   return (
     <div className="px-4 animate-fade-in pb-28 w-full">
       <div className="flex items-center gap-3 mb-4">
-        <button
-          type="button"
-          onClick={() => setViewMode?.('radar')}
-          className="w-10 h-10 rounded-full bg-[#0f172a] border border-white/10 flex items-center justify-center active:scale-95"
-        >
-          <ArrowLeft className="w-5 h-5 text-white" />
-        </button>
+        
 
         <div>
           <div className="text-xl font-black text-white">Performance IA</div>

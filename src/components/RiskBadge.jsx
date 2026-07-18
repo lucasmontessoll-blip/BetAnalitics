@@ -1,5 +1,5 @@
 ﻿import React from 'react';
-import {AlertTriangle,ShieldCheck} from 'lucide-react';
+import { AlertTriangle, ShieldCheck } from 'lucide-react';
 import {calcularNivelRisco} from '../utils/analiseRisco.js';
 
 export default function RiskBadge({jogo,compacto=false}){

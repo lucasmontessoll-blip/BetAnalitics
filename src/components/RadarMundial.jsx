@@ -1,5 +1,5 @@
 import React from "react";
-import { Globe, Crosshair } from "lucide-react";
+import { Globe, Crosshair } from 'lucide-react';
 
 export default function RadarMundial({ jogos = [] }) {
   // Filtra jogos com alta confianca, odd de valor e EV positivo

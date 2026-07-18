@@ -1,5 +1,5 @@
 import React from "react";
-import { Trophy, Medal, Star } from "lucide-react";
+import { Trophy, Medal, Star } from 'lucide-react';
 
 export default function RankingGlobal({ usuarios = [] }) {
   if (!usuarios || usuarios.length === 0) return null;

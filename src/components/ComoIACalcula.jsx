@@ -1,5 +1,5 @@
 ﻿import React from 'react';
-import {Brain,TrendingUp,ShieldCheck,BarChart3,Target,AlertTriangle} from 'lucide-react';
+import { Brain, TrendingUp, ShieldCheck, BarChart3, Target, AlertTriangle } from 'lucide-react';
 
 const fatores=[
   {titulo:'Forma recente',texto:'Analisa desempenho recente, sequencia de vitorias, empates, derrotas e estabilidade.',icon:TrendingUp,cor:'text-emerald-400'},

@@ -1,5 +1,5 @@
 import React from "react";
-import { Brain, Flame, Target, ShieldAlert } from "lucide-react";
+import { Brain, Flame, Target, ShieldAlert } from 'lucide-react';
 
 export default function IAInsights({ jogos = [] }) {
   if (!jogos || jogos.length === 0) return null;

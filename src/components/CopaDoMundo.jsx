@@ -1,6 +1,6 @@
 import React from 'react';
 import { useCopa } from '../hooks/useCopa.js';
-import { ArrowLeft, Trophy, AlertTriangle } from 'lucide-react';
+import { Trophy, AlertTriangle } from 'lucide-react';
 
 export default function CopaDoMundo({ onBack }) {
     const { jogosCopa, loadingCopa } = useCopa();
@@ -16,9 +16,7 @@ export default function CopaDoMundo({ onBack }) {
 
     return (
         <div className="p-4 animate-fade-in w-full pb-20">
-            <button onClick={onBack} className="mb-6 flex items-center gap-2 text-slate-400 hover:text-white transition-colors bg-[#0f172a] px-4 py-2 rounded-full border border-white/5 w-fit text-sm font-bold">
-                <ArrowLeft className="w-4 h-4"/> Voltar para Radar
-            </button>
+            
             
             <div className="bg-gradient-to-r from-yellow-600 to-yellow-400 p-[1px] rounded-3xl mb-6 shadow-[0_0_30px_rgba(234,179,8,0.2)]">
                 <div className="bg-[#0f172a] rounded-3xl p-6 h-full w-full">

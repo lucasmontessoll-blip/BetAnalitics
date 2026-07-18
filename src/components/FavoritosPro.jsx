@@ -1,5 +1,5 @@
 import React, { useMemo, useState } from 'react';
-import { Star, Trophy, User, Bell, Pin, Search, Plus, ChevronRight, Trash2, Heart, Brain, ArrowLeft } from 'lucide-react';
+import { Star, Trophy, User, Bell, Pin, Search, Plus, ChevronRight, Trash2, Heart, Brain } from 'lucide-react';
 
 const abas = [
   { id: 'times', nome: 'Times', icon: Star },
@@ -96,13 +96,7 @@ export default function FavoritosPro({ setViewMode, setAiOpen, setAiQuery }) {
   return (
     <div className="px-4 animate-fade-in pb-28 w-full">
       <div className="flex items-center gap-3 mb-4">
-        <button
-          type="button"
-          onClick={() => setViewMode?.('Pesquisa')}
-          className="w-10 h-10 rounded-full bg-[#0f172a] border border-white/10 flex items-center justify-center active:scale-95"
-        >
-          <ArrowLeft className="w-5 h-5 text-white" />
-        </button>
+        
 
         <div>
           <div className="text-xl font-black text-white">Favoritos PRO</div>
