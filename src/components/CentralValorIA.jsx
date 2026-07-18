@@ -1,5 +1,5 @@
 import React, { useMemo } from 'react';
-import { Brain, Bell, Wallet, Crown, Star, ShieldCheck, TrendingUp, Target, ChevronRight } from 'lucide-react';
+import { Brain, Bell, Wallet, Crown, Star, ShieldCheck, TrendingUp, Target, ChevronRight, BarChart3, Landmark } from 'lucide-react';
 
 function normalizarJogo(jogo, index) {
   return {
@@ -93,6 +93,21 @@ export default function CentralValorIA({
       </div>
 
       <div className="grid grid-cols-2 gap-3 mb-5">
+        <CardAcao
+          icon={BarChart3}
+          titulo="Performance IA"
+          texto="Assertividade e mercados fortes."
+          cor="bg-emerald-600"
+          onClick={() => setViewMode?.('performance-ia')}
+        />
+        <CardAcao
+          icon={Landmark}
+          titulo="Casas Parceiras"
+          texto="Afiliados, odds e ofertas."
+          cor="bg-purple-600"
+          onClick={() => setViewMode?.('casas-parceiras')}
+        />
+
         <CardAcao
           icon={Wallet}
           titulo="Gestao de Banca"
