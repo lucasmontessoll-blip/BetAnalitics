@@ -38,7 +38,6 @@ import PerformanceIAPro from './components/PerformanceIAPro.jsx';
 import CasasParceirasPro from './components/CasasParceirasPro.jsx';
 import PerfilProCompleto from './components/PerfilProCompleto.jsx';
 import SemConexaoPro from './components/SemConexaoPro.jsx';
-import LogoOficialApp from './components/LogoOficialApp.jsx';
 const MODO_DEMONSTRACAO = true;
 const API_URL = '';
 function gerarEscudoAutomatico(nomeTime = 'TIME') {
@@ -775,12 +774,12 @@ return (<div className="flex flex-col justify-center items-center min-h-screen b
 }
 return (
 <div className="min-h-screen bg-[#050816] text-white font-sans pb-28 w-full max-w-full overflow-x-hidden relative">
-<header className="flex items-center justify-between px-5 py-3 bg-[#050816] sticky top-0 z-40 border-b border-white/5">
+<header className="flex items-center justify-between gap-3 px-3 py-2 bg-[#050816] sticky top-0 z-40 border-b border-white/5">
 <div className="flex flex-col items-start justify-center min-w-0">
   <img
-    src="/logo-oficial.png"
+    src="/logo-topo.png"
     alt="BetAnalytics PRO"
-    className="h-9 sm:h-10 w-auto max-w-[220px] object-contain select-none"
+    className="h-12 sm:h-14 w-auto max-w-[260px] object-contain select-none"
     draggable="false"
   />
   {userData?.is_vip && (
@@ -792,7 +791,6 @@ return (
 </div>
 <button onClick={() => { setMenuAtivo('Todos os Jogos'); setViewMode('perfil'); setJogoSelecionado(null); }} className="bg-blue-600 hover:bg-blue-500 text-white font-black px-3 py-2 rounded-xl flex items-center gap-2 text-xs shadow-lg uppercase"><User className="w-4 h-4" />Perfil</button>
 </header>
-<LogoOficialApp viewMode={viewMode} setViewMode={setViewMode} />
 <ModoDemoBadge modoDemo={MODO_DEMONSTRACAO} setViewMode={setViewMode} />
 <SemConexaoPro setViewMode={setViewMode} />
 {menuAtivo === 'assinar pro' && (
