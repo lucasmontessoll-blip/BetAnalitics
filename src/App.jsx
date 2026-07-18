@@ -38,6 +38,7 @@ import PerformanceIAPro from './components/PerformanceIAPro.jsx';
 import CasasParceirasPro from './components/CasasParceirasPro.jsx';
 import PerfilProCompleto from './components/PerfilProCompleto.jsx';
 import SemConexaoPro from './components/SemConexaoPro.jsx';
+import SplashLogoAnimado from './components/SplashLogoAnimado.jsx';
 const MODO_DEMONSTRACAO = true;
 const API_URL = '';
 function gerarEscudoAutomatico(nomeTime = 'TIME') {
@@ -770,8 +771,9 @@ try { cardFormMercadoPagoRef.current?.unmount?.(); } catch (e) {}
 };
 }, [menuAtivo, metodoPagamento]);
 if (showSplash) {
-return (<div className="flex flex-col justify-center items-center min-h-screen bg-[#050816] text-white"><motion.div initial={{ scale: 0.5, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} className="text-6xl mb-4"></motion.div><motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="text-2xl font-black tracking-tight flex items-center"><span className="italic">BET</span><span className="text-blue-500">ANALYTICS</span><span className="ml-2 bg-blue-600 text-[10px] px-2 py-0.5 rounded-md">PRO</span></motion.div></div>);
+return <SplashLogoAnimado />;
 }
+
 return (
 <div className="min-h-screen bg-[#050816] text-white font-sans pb-28 w-full max-w-full overflow-x-hidden relative">
 <header className="flex items-center justify-between gap-3 px-3 py-2 bg-[#050816] sticky top-0 z-40 border-b border-white/5">
