@@ -42,6 +42,7 @@ import SplashLogoAnimado from './components/SplashLogoAnimado.jsx';
 import MobileBackAndCleanUI from './components/MobileBackAndCleanUI.jsx';
 import CalendarioSemanaJogos from './components/CalendarioSemanaJogos.jsx';
 import RemoverSomentePesquisaBottom from './components/RemoverSomentePesquisaBottom.jsx';
+import RemoverRoboIAFlutuante from './components/RemoverRoboIAFlutuante.jsx';
 const MODO_DEMONSTRACAO = true;
 const API_URL = '';
 function gerarEscudoAutomatico(nomeTime = 'TIME') {
@@ -781,6 +782,7 @@ return (
 />
 
 <RemoverSomentePesquisaBottom />
+<RemoverRoboIAFlutuante />
 <header className="flex items-center justify-between gap-3 px-3 py-2 bg-[#050816] sticky top-0 z-40 border-b border-white/5">
 <div className="flex flex-col items-start justify-center min-w-0">
   <img
