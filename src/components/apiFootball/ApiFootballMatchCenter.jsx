@@ -48,7 +48,7 @@ export default function ApiFootballMatchCenter({ jogo }) {
 
         try {
           const pacote = await buscarPacoteCompletoApiFootball({
-            fixture: fixtureId,
+            fixtureId,
             league: leagueId,
             season,
             home: jogo?.home_id,
