@@ -783,6 +783,13 @@ return (
     alt="BetAnalytics PRO"
     className="h-12 sm:h-14 w-auto max-w-[250px] object-contain select-none"
     draggable="false"
+    style={{
+      background: 'transparent',
+      boxShadow: 'none',
+      filter: 'none',
+      border: 'none',
+      outline: 'none'
+    }}
   />
   {userData?.is_vip && (
     <span className="mt-1 text-[9px] font-black uppercase tracking-widest text-yellow-400 flex items-center gap-1">
