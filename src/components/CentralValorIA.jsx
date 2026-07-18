@@ -1,5 +1,18 @@
-import React, { useMemo } from 'react';
-import { Brain, Bell, Wallet, Crown, Star, ShieldCheck, TrendingUp, Target, ChevronRight, BarChart3, Landmark } from 'lucide-react';
+﻿import React, { useMemo, useState } from 'react';
+import {
+  Brain,
+  Bell,
+  Wallet,
+  Crown,
+  Star,
+  ShieldCheck,
+  TrendingUp,
+  Target,
+  ChevronRight,
+  BarChart3,
+  Landmark,
+  X
+} from 'lucide-react';
 
 function normalizarJogo(jogo, index) {
   return {
@@ -27,14 +40,27 @@ function CardAcao({ icon: Icone, titulo, texto, cor, onClick }) {
       onClick={onClick}
       className="bg-[#0f172a] border border-white/10 rounded-3xl p-4 text-left active:scale-[0.98]"
     >
-      <div className={`w-10 h-10 rounded-2xl ${cor} flex items-center justify-center mb-3`}>
+      <div className={'w-10 h-10 rounded-2xl ' + cor + ' flex items-center justify-center mb-3'}>
         <Icone className="w-5 h-5 text-white" />
       </div>
-      <div className="text-sm font-black text-white">{titulo}</div>
-      <div className="text-[11px] text-slate-500 font-semibold mt-1 leading-relaxed">{texto}</div>
+
+      <div className="text-sm font-black text-white">
+        {titulo}
+      </div>
+
+      <div className="text-[11px] text-slate-500 font-semibold mt-1 leading-relaxed">
+        {texto}
+      </div>
     </button>
   );
 }
+
+const perguntasRapidas = [
+  'Qual melhor oportunidade de hoje?',
+  'Explique o risco do jogo principal.',
+  'Como proteger minha banca hoje?',
+  'Mostre jogos com maior confianca IA.',
+];
 
 export default function CentralValorIA({
   jogos = [],
@@ -44,8 +70,11 @@ export default function CentralValorIA({
   setAiOpen,
   setAiQuery,
 }) {
+  const [perguntasAberta, setPerguntasAberta] = useState(false);
+
   const oportunidades = useMemo(() => {
     const base = Array.isArray(jogos) && jogos.length ? jogos.map(normalizarJogo) : demos;
+
     return base
       .sort((a, b) => b.confianca - a.confianca)
       .slice(0, 5);
@@ -80,10 +109,12 @@ export default function CentralValorIA({
               <div className="text-xl font-black">87%</div>
               <div className="text-[9px] font-bold text-blue-100 uppercase">Precisao IA</div>
             </div>
+
             <div className="bg-black/20 rounded-2xl p-3 border border-white/10">
               <div className="text-xl font-black">{oportunidades.length}</div>
               <div className="text-[9px] font-bold text-blue-100 uppercase">Oportunidades</div>
             </div>
+
             <div className="bg-black/20 rounded-2xl p-3 border border-white/10">
               <div className="text-xl font-black">{userData?.is_vip ? 'PRO' : 'FREE'}</div>
               <div className="text-[9px] font-bold text-blue-100 uppercase">Plano</div>
@@ -94,12 +125,37 @@ export default function CentralValorIA({
 
       <div className="grid grid-cols-2 gap-3 mb-5">
         <CardAcao
+          icon={Wallet}
+          titulo="Gestao de Banca"
+          texto="Stake, ROI, lucro e controle de risco."
+          cor="bg-emerald-600"
+          onClick={() => setViewMode?.('banca-pro')}
+        />
+
+        <CardAcao
+          icon={Bell}
+          titulo="Alertas IA"
+          texto="Oportunidades, odds e favoritos."
+          cor="bg-amber-600"
+          onClick={() => setViewMode?.('alertas-ia')}
+        />
+
+        <CardAcao
+          icon={ShieldCheck}
+          titulo="Como a IA calcula"
+          texto="Entenda criterios e confianca."
+          cor="bg-blue-600"
+          onClick={() => setViewMode?.('como-ia')}
+        />
+
+        <CardAcao
           icon={BarChart3}
           titulo="Performance IA"
           texto="Assertividade e mercados fortes."
           cor="bg-emerald-600"
           onClick={() => setViewMode?.('performance-ia')}
         />
+
         <CardAcao
           icon={Landmark}
           titulo="Casas Parceiras"
@@ -109,27 +165,6 @@ export default function CentralValorIA({
         />
 
         <CardAcao
-          icon={Wallet}
-          titulo="Gestao de Banca"
-          texto="Stake, ROI, lucro e controle de risco."
-          cor="bg-emerald-600"
-          onClick={() => setViewMode?.('banca-pro')}
-        />
-        <CardAcao
-          icon={Bell}
-          titulo="Alertas IA"
-          texto="Oportunidades, odds e favoritos."
-          cor="bg-amber-600"
-          onClick={() => setViewMode?.('alertas-ia')}
-        />
-        <CardAcao
-          icon={ShieldCheck}
-          titulo="Como a IA calcula"
-          texto="Entenda criterios e confianca."
-          cor="bg-blue-600"
-          onClick={() => setViewMode?.('como-ia')}
-        />
-        <CardAcao
           icon={Crown}
           titulo="Area VIP"
           texto="Libere recursos profissionais."
@@ -138,51 +173,83 @@ export default function CentralValorIA({
         />
       </div>
 
-      <div className="bg-[#0f172a] border border-white/10 rounded-3xl p-4 mb-5">
-        <div className="flex items-center justify-between mb-4">
-          <div>
-            <div className="text-[10px] text-slate-500 font-black uppercase tracking-widest">Perguntas rapidas</div>
-            <div className="text-base text-white font-black">Assistente IA</div>
-          </div>
-          <div className="w-11 h-11 rounded-2xl bg-blue-500/15 border border-blue-400/30 flex items-center justify-center">
-            <span className="text-2xl">{'\u{1F916}'}</span>
-          </div>
-        </div>
-
-        <div className="grid gap-2">
-          {[
-            'Qual melhor oportunidade de hoje?',
-            'Explique o risco do jogo principal.',
-            'Como proteger minha banca hoje?',
-            'Mostre jogos com maior confianca IA.',
-          ].map((pergunta) => (
-            <button
-              key={pergunta}
-              type="button"
-              onClick={() => abrirPergunta(pergunta)}
-              className="w-full bg-[#050816] border border-white/10 rounded-2xl px-4 py-3 text-left text-xs font-bold text-slate-300 flex items-center justify-between active:scale-[0.99]"
-            >
-              {pergunta}
-              <ChevronRight className="w-4 h-4 text-slate-600" />
-            </button>
-          ))}
-        </div>
-      </div>
-
       <div className="bg-[#0f172a] border border-white/10 rounded-3xl p-4">
-        <div className="flex items-center justify-between mb-4">
+        <div className="flex items-center justify-between gap-3 mb-4">
           <div>
-            <div className="text-[10px] text-slate-500 font-black uppercase tracking-widest">IA ao vivo</div>
-            <div className="text-base text-white font-black">Top oportunidades</div>
+            <div className="text-[10px] text-slate-500 font-black uppercase tracking-widest">
+              IA ao vivo
+            </div>
+
+            <div className="text-base text-white font-black">
+              Top oportunidades
+            </div>
           </div>
-          <button
-            type="button"
-            onClick={() => setViewMode?.('Ranking')}
-            className="text-[10px] font-black text-blue-400"
-          >
-            VER RANKING
-          </button>
+
+          <div className="flex items-center gap-2">
+            <button
+              type="button"
+              onClick={() => setViewMode?.('Ranking')}
+              className="text-[10px] font-black text-blue-400 px-2"
+            >
+              VER RANKING
+            </button>
+
+            <button
+              type="button"
+              onClick={() => setPerguntasAberta((v) => !v)}
+              className={
+                'w-12 h-12 rounded-2xl border flex flex-col items-center justify-center active:scale-95 transition ' +
+                (perguntasAberta
+                  ? 'bg-blue-600 border-blue-400 shadow-[0_0_24px_rgba(37,99,235,0.35)]'
+                  : 'bg-blue-500/10 border-blue-400/30')
+              }
+              aria-label="Perguntas rapidas IA"
+            >
+              <span className="text-xl leading-none">{'\u{1F916}'}</span>
+              <span className="text-[8px] font-black text-blue-100 leading-none mt-0.5">
+                IA
+              </span>
+            </button>
+          </div>
         </div>
+
+        {perguntasAberta && (
+          <div className="bg-[#050816] border border-blue-500/20 rounded-3xl p-3 mb-4 animate-fade-in">
+            <div className="flex items-center justify-between mb-3">
+              <div>
+                <div className="text-[10px] text-blue-400 font-black uppercase tracking-widest">
+                  Perguntas rapidas
+                </div>
+
+                <div className="text-sm text-white font-black">
+                  Assistente IA
+                </div>
+              </div>
+
+              <button
+                type="button"
+                onClick={() => setPerguntasAberta(false)}
+                className="w-8 h-8 rounded-xl bg-white/5 border border-white/10 flex items-center justify-center active:scale-95"
+              >
+                <X className="w-4 h-4 text-slate-400" />
+              </button>
+            </div>
+
+            <div className="grid gap-2">
+              {perguntasRapidas.map((pergunta) => (
+                <button
+                  key={pergunta}
+                  type="button"
+                  onClick={() => abrirPergunta(pergunta)}
+                  className="w-full bg-[#0b1020] border border-white/10 rounded-2xl px-4 py-3 text-left text-xs font-bold text-slate-300 flex items-center justify-between active:scale-[0.99]"
+                >
+                  {pergunta}
+                  <ChevronRight className="w-4 h-4 text-slate-600" />
+                </button>
+              ))}
+            </div>
+          </div>
+        )}
 
         <div className="space-y-3">
           {oportunidades.map((jogo, index) => {
@@ -196,7 +263,10 @@ export default function CentralValorIA({
                 className="w-full bg-[#050816] border border-white/10 rounded-2xl p-4 text-left active:scale-[0.99]"
               >
                 <div className="flex items-center justify-between mb-2">
-                  <span className="text-[10px] text-slate-500 font-black uppercase">{jogo.liga}</span>
+                  <span className="text-[10px] text-slate-500 font-black uppercase">
+                    {jogo.liga}
+                  </span>
+
                   <span className="text-[10px] font-black text-emerald-400 bg-emerald-500/10 border border-emerald-500/20 px-2 py-1 rounded-full">
                     EV +{ev}%
                   </span>
@@ -210,6 +280,7 @@ export default function CentralValorIA({
                   <div className="text-[11px] text-slate-400 font-bold">
                     {jogo.mercado} • Odd {jogo.odd.toFixed(2)}
                   </div>
+
                   <div className="text-xs font-black text-blue-400">
                     {jogo.confianca}%
                   </div>
@@ -228,15 +299,29 @@ export default function CentralValorIA({
       </div>
 
       <div className="grid grid-cols-3 gap-2 mt-5">
-        <button onClick={() => setViewMode?.('favoritos')} className="bg-[#0f172a] border border-white/10 rounded-2xl p-3 text-xs font-black text-white flex flex-col items-center gap-2">
+        <button
+          type="button"
+          onClick={() => setViewMode?.('favoritos')}
+          className="bg-[#0f172a] border border-white/10 rounded-2xl p-3 text-xs font-black text-white flex flex-col items-center gap-2 active:scale-[0.98]"
+        >
           <Star className="w-5 h-5 text-yellow-400" />
           Favoritos
         </button>
-        <button onClick={() => setViewMode?.('Ranking')} className="bg-[#0f172a] border border-white/10 rounded-2xl p-3 text-xs font-black text-white flex flex-col items-center gap-2">
+
+        <button
+          type="button"
+          onClick={() => setViewMode?.('Ranking')}
+          className="bg-[#0f172a] border border-white/10 rounded-2xl p-3 text-xs font-black text-white flex flex-col items-center gap-2 active:scale-[0.98]"
+        >
           <TrendingUp className="w-5 h-5 text-emerald-400" />
           Ranking
         </button>
-        <button onClick={() => abrirPergunta('Analise os jogos de hoje.')} className="bg-[#0f172a] border border-white/10 rounded-2xl p-3 text-xs font-black text-white flex flex-col items-center gap-2">
+
+        <button
+          type="button"
+          onClick={() => abrirPergunta('Analise os jogos de hoje.')}
+          className="bg-[#0f172a] border border-white/10 rounded-2xl p-3 text-xs font-black text-white flex flex-col items-center gap-2 active:scale-[0.98]"
+        >
           <Target className="w-5 h-5 text-blue-400" />
           Analisar
         </button>
