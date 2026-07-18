@@ -779,7 +779,7 @@ return (
   <img
     src="/logo-topo.png"
     alt="BetAnalytics PRO"
-    className="h-12 sm:h-14 w-auto max-w-[260px] object-contain select-none"
+    className="h-12 sm:h-14 w-auto max-w-[250px] object-contain select-none"
     draggable="false"
   />
   {userData?.is_vip && (
