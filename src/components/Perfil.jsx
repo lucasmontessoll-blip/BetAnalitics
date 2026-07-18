@@ -38,12 +38,7 @@ export default function Perfil({
   };
 
   const abrirPlanoPro = () => {
-    if (setMenuAtivo) {
-      setMenuAtivo('assinar pro');
-      return;
-    }
-
-    setViewMode?.('assinar-pro');
+    setViewMode?.('vip-pro');
   };
 
   const opcoesPerfil = [
@@ -53,7 +48,7 @@ export default function Perfil({
       icon: Star,
       cor: 'text-yellow-400',
       borda: 'border-yellow-500/20',
-      acao: () => setViewMode?.('jogos')
+      acao: () => setViewMode?.('favoritos')
     },
     {
       titulo: 'Configuracoes',
@@ -61,7 +56,7 @@ export default function Perfil({
       icon: Settings,
       cor: 'text-blue-400',
       borda: 'border-blue-500/20',
-      acao: solicitarPermissaoNotificacao
+      acao: () => setViewMode?.('config')
     },
     {
       titulo: 'Plano PRO',

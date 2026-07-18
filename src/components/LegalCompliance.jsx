@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { ShieldCheck, AlertTriangle, FileText, X, ExternalLink } from 'lucide-react';
 
 const DATA_ATUALIZACAO = '26/06/2026';
-const EMAIL_SUPORTE = 'seuemail@exemplo.com';
+const EMAIL_SUPORTE = 'betanlyticspro@gmail.com';
 
 const secoesLegais = [
   {

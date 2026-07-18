@@ -31,6 +31,9 @@ import AlertasIAPro from './components/AlertasIAPro.jsx';
 import { gerarClickIdAfiliado, montarUrlAfiliado } from './config/casasAfiliadas.js';
 import FavoritosPro from './components/FavoritosPro.jsx';
 import VipPro from './components/VipPro.jsx';
+import ConfiguracoesPro from './components/ConfiguracoesPro.jsx';
+import ModoDemoBadge from './components/ModoDemoBadge.jsx';
+import ModoDemoPro from './components/ModoDemoPro.jsx';
 const MODO_DEMONSTRACAO = true;
 const API_URL = '';
 function gerarEscudoAutomatico(nomeTime = 'TIME') {
@@ -774,6 +777,7 @@ return (
 </div>
 <button onClick={() => { setMenuAtivo('Todos os Jogos'); setViewMode('perfil'); setJogoSelecionado(null); }} className="bg-blue-600 hover:bg-blue-500 text-white font-black px-3 py-2 rounded-xl flex items-center gap-2 text-xs shadow-lg uppercase"><User className="w-4 h-4" />Perfil</button>
 </header>
+<ModoDemoBadge modoDemo={MODO_DEMONSTRACAO} setViewMode={setViewMode} />
 {menuAtivo === 'assinar pro' && (
 <AssinaturaPro
   form={form}
@@ -1007,14 +1011,28 @@ return (
 />
 )}
 
-{viewMode === 'config' && (<div className="px-4 animate-fade-in pb-20 w-full"><HeaderNav title="Configuracoes" onBack={() => setViewMode('perfil')} /><div className="bg-[#0f172a] border border-white/5 rounded-3xl p-5 mb-4"><h3 className="text-sm font-black text-white mb-4">Preferencias do aplicativo</h3><button onClick={solicitarPermissaoNotificacaoApp} className="w-full bg-[#050816] border border-blue-500/20 rounded-2xl p-4 text-left mb-3"><div className="text-xs font-black text-blue-400 uppercase">Ativar notificacoes</div><div className="text-[10px] text-slate-500 font-bold mt-1">Receba alertas de jogos, oportunidades e favoritos.</div></button><button onClick={() => setViewMode('termos')} className="w-full bg-[#050816] border border-white/10 rounded-2xl p-4 text-left mb-3"><div className="text-xs font-black text-white uppercase">Privacidade e termos</div><div className="text-[10px] text-slate-500 font-bold mt-1">Abrir politicas, +18 e responsabilidade.</div></button><button onClick={() => window.location.href = 'mailto:betanlyticspro@gmail.com'} className="w-full bg-[#050816] border border-cyan-500/20 rounded-2xl p-4 text-left"><div className="text-xs font-black text-cyan-400 uppercase">Suporte</div><div className="text-[10px] text-slate-500 font-bold mt-1">betanlyticspro@gmail.com</div></button></div><PlayStoreModeBadge /></div>)}
+{viewMode === 'modo-demo' && (
+<ModoDemoPro setViewMode={setViewMode} />
+)}
+
+{viewMode === 'config' && (
+<ConfiguracoesPro
+  userData={userData}
+  setViewMode={setViewMode}
+  solicitarPermissaoNotificacao={solicitarPermissaoNotificacaoApp}
+  setAiOpen={setAiOpen}
+  setAiQuery={setAiQuery}
+  modoDemo={MODO_DEMONSTRACAO}
+/>
+)}
+
 {viewMode === 'termos' && (<div className="px-4 animate-fade-in pb-20 w-full"><HeaderNav title=" Termos e Politicas" onBack={() => setViewMode('jogos')} /><LegalCompliance /></div>)}
 {viewMode === 'admin' && (<div className="px-4 animate-fade-in pb-20 w-full"><HeaderNav title="Painel de Controle Admin" onBack={() => setViewMode('perfil')} /><div className="bg-[#0f172a] p-5 rounded-3xl border border-white/5 shadow-lg mb-3"><div className="text-[10px] text-slate-400 uppercase font-bold mb-1 tracking-widest">Total Usuarios</div><div className="text-3xl font-black text-white">1,248</div></div><div className="bg-[#0f172a] p-5 rounded-3xl border border-yellow-500/20 shadow-lg mb-3"><div className="text-[10px] text-slate-400 uppercase font-bold mb-1 tracking-widest">Assinantes PRO</div><div className="text-3xl font-black text-yellow-400">312</div></div><div className="bg-[#0f172a] p-5 rounded-3xl border border-green-500/20 shadow-lg flex justify-between items-center"><div><div className="text-[10px] text-slate-400 uppercase font-bold mb-1 tracking-widest">Receita Mensal Estimada</div><div className="text-3xl font-black text-green-400">R$ 9.328,80</div></div><DollarSign className="w-10 h-10 text-green-500 opacity-50" /></div></div>)}
 </div>)}
 {jogoSelecionado && menuAtivo !== 'assinar pro' && (
 <div className="fixed inset-0 z-[999] bg-[#050816] text-white overflow-y-auto pb-28 animate-fade-in">
 <Suspense fallback={<div className="text-center p-10 font-black text-blue-500 animate-pulse text-xs">A carregar painel do jogo...</div>}>
-<PainelJogo jogo={jogoSelecionado} setJogoSelecionado={setJogoSelecionado} bancaInicial={bancaInicial} gerarExplicacaoIA={gerarExplicacaoIA} calcularStake={calcularStake} calcularKelly={calcularKelly} />
+<PainelJogo jogo={jogoSelecionado} setJogoSelecionado={setJogoSelecionado} bancaInicial={bancaInicial} gerarExplicacaoIA={gerarExplicacaoIA} calcularStake={calcularStake} calcularKelly={calcularKelly}  setAiOpen={setAiOpen}  setAiQuery={setAiQuery} />
 </Suspense>
 <div className="px-4 pb-8 space-y-4">
 </div>
