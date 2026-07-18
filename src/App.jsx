@@ -38,6 +38,7 @@ import PerformanceIAPro from './components/PerformanceIAPro.jsx';
 import CasasParceirasPro from './components/CasasParceirasPro.jsx';
 import PerfilProCompleto from './components/PerfilProCompleto.jsx';
 import SemConexaoPro from './components/SemConexaoPro.jsx';
+import LogoOficialApp from './components/LogoOficialApp.jsx';
 const MODO_DEMONSTRACAO = true;
 const API_URL = '';
 function gerarEscudoAutomatico(nomeTime = 'TIME') {
@@ -781,6 +782,7 @@ return (
 </div>
 <button onClick={() => { setMenuAtivo('Todos os Jogos'); setViewMode('perfil'); setJogoSelecionado(null); }} className="bg-blue-600 hover:bg-blue-500 text-white font-black px-3 py-2 rounded-xl flex items-center gap-2 text-xs shadow-lg uppercase"><User className="w-4 h-4" />Perfil</button>
 </header>
+<LogoOficialApp viewMode={viewMode} setViewMode={setViewMode} />
 <ModoDemoBadge modoDemo={MODO_DEMONSTRACAO} setViewMode={setViewMode} />
 <SemConexaoPro setViewMode={setViewMode} />
 {menuAtivo === 'assinar pro' && (
