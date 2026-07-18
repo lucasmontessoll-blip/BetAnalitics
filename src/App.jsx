@@ -34,6 +34,10 @@ import VipPro from './components/VipPro.jsx';
 import ConfiguracoesPro from './components/ConfiguracoesPro.jsx';
 import ModoDemoBadge from './components/ModoDemoBadge.jsx';
 import ModoDemoPro from './components/ModoDemoPro.jsx';
+import PerformanceIAPro from './components/PerformanceIAPro.jsx';
+import CasasParceirasPro from './components/CasasParceirasPro.jsx';
+import PerfilProCompleto from './components/PerfilProCompleto.jsx';
+import SemConexaoPro from './components/SemConexaoPro.jsx';
 const MODO_DEMONSTRACAO = true;
 const API_URL = '';
 function gerarEscudoAutomatico(nomeTime = 'TIME') {
@@ -778,6 +782,7 @@ return (
 <button onClick={() => { setMenuAtivo('Todos os Jogos'); setViewMode('perfil'); setJogoSelecionado(null); }} className="bg-blue-600 hover:bg-blue-500 text-white font-black px-3 py-2 rounded-xl flex items-center gap-2 text-xs shadow-lg uppercase"><User className="w-4 h-4" />Perfil</button>
 </header>
 <ModoDemoBadge modoDemo={MODO_DEMONSTRACAO} setViewMode={setViewMode} />
+<SemConexaoPro setViewMode={setViewMode} />
 {menuAtivo === 'assinar pro' && (
 <AssinaturaPro
   form={form}
@@ -857,7 +862,15 @@ return (
 
 
 </div><div className="px-4 mt-10 mb-10 text-center"><LegalCompliance modo="botao" /></div></>)}
-{viewMode === 'perfil' && (<div className="px-4 animate-fade-in w-full pb-6 pt-4"><Suspense fallback={<div className="text-center p-10 font-black text-blue-500 animate-pulse uppercase tracking-widest text-xs">A carregar Perfil...</div>}><Perfil userData={userData || { nome: "Usuario", email: "sem-email", is_vip: false, is_admin: false }} form={form} setForm={setForm} nivelUsuario={nivelUsuario()} xp={xp} setViewMode={setViewMode} solicitarPermissaoNotificacao={solicitarPermissaoNotificacaoApp} apostas={apostas} bancaInicial={bancaInicial} metaMensal={metaMensal} setMenuAtivo={setMenuAtivo} /></Suspense><div className="px-4 mt-10 mb-10 text-center"><LegalCompliance modo="botao" /></div></div>)}
+{viewMode === 'perfil' && (
+<PerfilProCompleto
+  userData={userData}
+  setViewMode={setViewMode}
+  setAiOpen={setAiOpen}
+  setAiQuery={setAiQuery}
+/>
+)}
+
 {viewMode === 'radar' && (
 <CentralValorIA
   jogos={jogos}
@@ -1013,6 +1026,21 @@ return (
 
 {viewMode === 'modo-demo' && (
 <ModoDemoPro setViewMode={setViewMode} />
+)}
+
+
+{viewMode === 'performance-ia' && (
+<PerformanceIAPro
+  setViewMode={setViewMode}
+  setAiOpen={setAiOpen}
+  setAiQuery={setAiQuery}
+/>
+)}
+{viewMode === 'casas-parceiras' && (
+<CasasParceirasPro setViewMode={setViewMode} />
+)}
+{viewMode === 'sem-conexao' && (
+<SemConexaoPro setViewMode={setViewMode} telaCompleta={true} />
 )}
 
 {viewMode === 'config' && (
