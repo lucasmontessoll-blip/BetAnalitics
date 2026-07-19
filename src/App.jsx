@@ -406,25 +406,37 @@ const JOGOS_DEMO_ENCERRADOS_FINAL = useMemo(() => ([
 ]), []);
 
 const jFilt = useMemo(() => {
-const baseJogosFiltro = filterCentro === 'Encerrado' ? [...jogos, ...jogosDemoEncerrados] : jogos;
-return baseJogosFiltro.filter(j => {
-if (j.demo) {
-if (viewMode === 'copa') return false;
-if (filterCentro === 'Favoritos') return favoritos.includes(j.id);
-if (filterCentro === 'Ao Vivo') return j.status === 'Live';
-if (filterCentro === 'Encerrado') return statusEhEncerrado(j);
-return true;
-}
-const sel = isSelecao(j.home_team, j.away_team, j.league_name);
-if (viewMode === 'jogos' && sel) return false;
-if (viewMode === 'copa' && !sel) return false;
-if (filterCentro === 'Ao Vivo') return j.status === 'Live';
-if (filterCentro === 'Encerrado') return statusEhEncerrado(j);
-if (filterCentro === 'Favoritos') return favoritos.includes(j.id);
-if (ligaAtivaId !== null && j.league_id !== ligaAtivaId && j.league_id !== 999) return false;
-return true;
-});
-}, [jogos, jogosDemoEncerrados, viewMode, filterCentro, favoritos, ligaAtivaId]);
+  const extrasEncerrados = typeof JOGOS_DEMO_ENCERRADOS_FINAL !== 'undefined'
+    ? JOGOS_DEMO_ENCERRADOS_FINAL
+    : [];
+
+  const baseJogos = viewMode === 'encerrado'
+    ? [...jogos, ...extrasEncerrados]
+    : jogos;
+
+  return baseJogos.filter(j => {
+    if (viewMode === 'encerrado') return statusEhEncerrado(j);
+
+    // Na tela inicial, nao mostra os jogos encerrados demonstrativos
+    if (j.demo && statusEhEncerrado(j)) return false;
+
+    if (j.demo) {
+      if (viewMode === 'copa') return false;
+      if (filterCentro === 'Favoritos') return favoritos.includes(j.id);
+      if (filterCentro === 'Ao Vivo') return statusEhAoVivo(j);
+      return true;
+    }
+
+    const sel = isSelecao(j.home_team, j.away_team, j.league_name);
+    if (viewMode === 'jogos' && sel) return false;
+    if (viewMode === 'copa' && !sel) return false;
+    if (filterCentro === 'Ao Vivo') return statusEhAoVivo(j);
+    if (filterCentro === 'Favoritos') return favoritos.includes(j.id);
+    if (ligaAtivaId !== null && j.league_id !== ligaAtivaId && j.league_id !== 999) return false;
+
+    return true;
+  });
+}, [jogos, viewMode, filterCentro, favoritos, ligaAtivaId]);
 const jGrp = useMemo(() => {
 return jFilt.reduce((a, j) => {
 if (!a[j.league_name]) a[j.league_name] = [];
@@ -997,12 +1009,12 @@ return (
     </div>
   </div>
 )}
-{viewMode === 'jogos' && (
+{(viewMode === 'jogos' || viewMode === 'encerrado') && (
 <>
 <div className="px-4 w-full">
 
 <JogosPorPaisContinente
-  jogos={filterCentro === 'Encerrado' ? jFilt : jogos}
+  jogos={viewMode === 'encerrado' ? jFilt : jogos}
   favoritos={favoritos}
   onToggleFavorito={toggleFavorito}
   onAbrirJogo={(j) => {
@@ -1263,7 +1275,7 @@ return (
 <div className="flex justify-around items-center h-16 pt-2 w-full">
 <button onClick={() => { setMenuAtivo('Todos os Jogos'); setViewMode('jogos'); setFilterCentro('Todos'); setLigaAtivaId(null); setJogoSelecionado(null); }} className={`flex flex-col items-center gap-1.5 ${viewMode === 'jogos' && filterCentro === 'Todos' ? 'text-blue-500' : 'text-slate-500'}`} style={{ touchAction: 'manipulation' }}><Home className="w-5 h-5" /><span className="text-[8px] font-black uppercase mt-0.5">Inicio</span></button>
 <button onClick={() => { setMenuAtivo('Todos os Jogos'); setViewMode('jogos'); setFilterCentro('Ao Vivo'); setLigaAtivaId(null); setJogoSelecionado(null); }} className={`flex flex-col items-center gap-1.5 ${filterCentro === 'Ao Vivo' ? 'text-red-500' : 'text-slate-500'}`} style={{ touchAction: 'manipulation' }}><Radio className="w-5 h-5" /><span className="text-[8px] font-black uppercase mt-0.5">Ao Vivo</span></button>
-<button onClick={() => { setMenuAtivo('Todos os Jogos'); setViewMode('jogos'); setFilterCentro('Encerrado'); setLigaAtivaId(null); setJogoSelecionado(null); }} className={`flex flex-col items-center gap-1.5 ${filterCentro === 'Encerrado' ? 'text-green-500' : 'text-slate-500'}`} style={{ touchAction: 'manipulation' }}><CheckCircle2 className="w-5 h-5" /><span className="text-[8px] font-black uppercase mt-0.5">Encerrado</span></button>
+<button onClick={() => { setMenuAtivo('Todos os Jogos'); setViewMode('encerrado'); setFilterCentro('Encerrado'); setLigaAtivaId(null); setJogoSelecionado(null); }} className={`flex flex-col items-center gap-1.5 ${viewMode === 'encerrado' ? 'text-green-500' : 'text-slate-500'}`} style={{ touchAction: 'manipulation' }}><CheckCircle2 className="w-5 h-5" /><span className="text-[8px] font-black uppercase mt-0.5">Encerrado</span></button>
 <button onClick={() => { setMenuAtivo('Todos os Jogos'); setViewMode('copa'); setFilterCentro('Todos'); setLigaAtivaId(null); setJogoSelecionado(null); }} className={`flex flex-col items-center gap-1.5 ${viewMode === 'copa' ? 'text-yellow-500' : 'text-slate-500'}`} style={{ touchAction: 'manipulation' }}><Trophy className="w-5 h-5" /><span className="text-[8px] font-black uppercase mt-0.5">Jogos</span></button>
 <button onClick={() => { setMenuAtivo('Todos os Jogos'); setViewMode('perfil'); setJogoSelecionado(null); }} className={`flex flex-col items-center gap-1.5 ${viewMode === 'perfil' ? 'text-blue-500' : 'text-slate-500'}`} style={{ touchAction: 'manipulation' }}><User className="w-5 h-5" /><span className="text-[8px] font-black uppercase mt-0.5">Perfil</span></button>
 </div>
