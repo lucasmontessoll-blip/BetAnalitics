@@ -405,63 +405,132 @@ const JOGOS_DEMO_ENCERRADOS_FINAL = useMemo(() => ([
   }
 ]), []);
 
+
+function ehJogoEncerradoBet(jogo) {
+  const texto = [
+    jogo?.status,
+    jogo?.status_short,
+    jogo?.fixture?.status?.short,
+    jogo?.fixture?.status?.long,
+    jogo?.time_elapsed,
+    jogo?.tempo_jogo
+  ].filter(Boolean).join(' ').toLowerCase().trim();
+
+  return texto === 'ft' ||
+    texto === 'aet' ||
+    texto === 'pen' ||
+    texto.includes('finished') ||
+    texto.includes('match finished') ||
+    texto.includes('finalizado') ||
+    texto.includes('encerrado');
+}
+
+
+const JOGOS_ENCERRADOS_FIXOS_BET = useMemo(() => ([
+  {
+    id: 'encerrado-flamengo-palmeiras',
+    demo: true,
+    league_id: 71,
+    league_name: 'Brasileirao',
+    league_country: 'Brasil',
+    status: 'Finished',
+    home_team: 'Flamengo',
+    away_team: 'Palmeiras',
+    scoreHome: 2,
+    scoreAway: 1,
+    placar_casa: 2,
+    placar_fora: 1,
+    confianca_ia: 92,
+    odd_principal: 1.82,
+    mercado_principal: 'Vitoria Flamengo',
+    time_elapsed: 'FT'
+  },
+  {
+    id: 'encerrado-real-city',
+    demo: true,
+    league_id: 2,
+    league_name: 'Champions League',
+    league_country: 'Europa',
+    status: 'Finished',
+    home_team: 'Real Madrid',
+    away_team: 'Manchester City',
+    scoreHome: 3,
+    scoreAway: 2,
+    placar_casa: 3,
+    placar_fora: 2,
+    confianca_ia: 88,
+    odd_principal: 2.10,
+    mercado_principal: 'Ambos marcam',
+    time_elapsed: 'FT'
+  },
+  {
+    id: 'encerrado-liverpool-arsenal',
+    demo: true,
+    league_id: 39,
+    league_name: 'Premier League',
+    league_country: 'Inglaterra',
+    status: 'Finished',
+    home_team: 'Liverpool',
+    away_team: 'Arsenal',
+    scoreHome: 1,
+    scoreAway: 1,
+    placar_casa: 1,
+    placar_fora: 1,
+    confianca_ia: 84,
+    odd_principal: 1.95,
+    mercado_principal: 'Mais de 1.5 gols',
+    time_elapsed: 'FT'
+  }
+]), []);
+
+
+const jogosBaseComEncerradosBet = useMemo(() => {
+  const reais = Array.isArray(jogos) ? jogos : [];
+  const idsReais = new Set(reais.map((j) => String(j?.id || j?.fixture?.id || '')));
+
+  const extras = JOGOS_ENCERRADOS_FIXOS_BET.filter((j) => {
+    const id = String(j?.id || '');
+    return !idsReais.has(id);
+  });
+
+  return [...reais, ...extras];
+}, [jogos, JOGOS_ENCERRADOS_FIXOS_BET]);
+
+const jogosTelaPrincipal = useMemo(() => {
+  const abaEncerrado = filterCentro === 'Encerrado';
+
+  return jogosBaseComEncerradosBet.filter((j) => {
+    const encerrado = ehJogoEncerradoBet(j);
+
+    if (abaEncerrado) return encerrado;
+
+    return !encerrado;
+  });
+}, [jogosBaseComEncerradosBet, filterCentro]);
+
 const jFilt = useMemo(() => {
-  const extrasEncerrados = typeof JOGOS_DEMO_ENCERRADOS_FINAL !== 'undefined'
-    ? JOGOS_DEMO_ENCERRADOS_FINAL
-    : [];
-
-  const baseJogos = viewMode === 'encerrado'
-    ? [...jogos, ...extrasEncerrados]
-    : jogos;
-
-  return baseJogos.filter(j => {
-    if (viewMode === 'encerrado') return betStatusEncerradoFinal(j);
-    if (viewMode !== 'encerrado' && betStatusEncerradoFinal(j)) return false;
-if (viewMode === 'encerrado') return statusEhEncerrado(j);
-
-    // Na tela inicial, nao mostra os jogos encerrados demonstrativos
-    if (j.demo && statusEhEncerrado(j)) return false;
+  return jogosTelaPrincipal.filter(j => {
+    if (filterCentro === 'Encerrado') return ehJogoEncerradoBet(j);
 
     if (j.demo) {
       if (viewMode === 'copa') return false;
       if (filterCentro === 'Favoritos') return favoritos.includes(j.id);
-      if (filterCentro === 'Ao Vivo') return statusEhAoVivo(j);
+      if (filterCentro === 'Ao Vivo') return j.status === 'Live';
       return true;
     }
 
     const sel = isSelecao(j.home_team, j.away_team, j.league_name);
+
     if (viewMode === 'jogos' && sel) return false;
     if (viewMode === 'copa' && !sel) return false;
-    if (filterCentro === 'Ao Vivo') return statusEhAoVivo(j);
+    if (filterCentro === 'Ao Vivo') return j.status === 'Live';
     if (filterCentro === 'Favoritos') return favoritos.includes(j.id);
     if (ligaAtivaId !== null && j.league_id !== ligaAtivaId && j.league_id !== 999) return false;
 
     return true;
   });
-}, [jogos, viewMode, filterCentro, favoritos, ligaAtivaId]);
+}, [jogosTelaPrincipal, viewMode, filterCentro, favoritos, ligaAtivaId]);
 
-const jogosInicioSemEncerradosFinal = useMemo(() => {
-  const lista = Array.isArray(jogos) ? jogos : [];
-  return lista.filter((j) => !betStatusEncerradoFinal(j));
-}, [jogos]);
-
-const jogosEncerradosFinal = useMemo(() => {
-  const lista = [
-    ...(Array.isArray(jogos) ? jogos : []),
-    ...(Array.isArray(JOGOS_DEMO_ENCERRADOS_FINAL) ? JOGOS_DEMO_ENCERRADOS_FINAL : [])
-  ];
-
-  const mapa = new Map();
-
-  lista
-    .filter((j) => betStatusEncerradoFinal(j))
-    .forEach((j, index) => {
-      const id = j?.id || j?.fixture?.id || `${j?.home_team || j?.teams?.home?.name || 'casa'}-${j?.away_team || j?.teams?.away?.name || 'fora'}-${index}`;
-      mapa.set(id, j);
-    });
-
-  return Array.from(mapa.values());
-}, [jogos, JOGOS_DEMO_ENCERRADOS_FINAL]);
 const jGrp = useMemo(() => {
 return jFilt.reduce((a, j) => {
 if (!a[j.league_name]) a[j.league_name] = [];
@@ -1060,7 +1129,7 @@ return (
 <div className="px-4 w-full">
 
 <JogosPorPaisContinente
-  jogos={viewMode === 'encerrado' ? jogosEncerradosFinal : jogosInicioSemEncerradosFinal}
+  jogos={jogosTelaPrincipal}
   favoritos={favoritos}
   onToggleFavorito={toggleFavorito}
   onAbrirJogo={(j) => {
@@ -1321,7 +1390,7 @@ return (
 <div className="flex justify-around items-center h-16 pt-2 w-full">
 <button onClick={() => { setMenuAtivo('Todos os Jogos'); setViewMode('jogos'); setFilterCentro('Todos'); setLigaAtivaId(null); setJogoSelecionado(null); }} className={`flex flex-col items-center gap-1.5 ${viewMode === 'jogos' && filterCentro === 'Todos' ? 'text-blue-500' : 'text-slate-500'}`} style={{ touchAction: 'manipulation' }}><Home className="w-5 h-5" /><span className="text-[8px] font-black uppercase mt-0.5">Inicio</span></button>
 <button onClick={() => { setMenuAtivo('Todos os Jogos'); setViewMode('jogos'); setFilterCentro('Ao Vivo'); setLigaAtivaId(null); setJogoSelecionado(null); }} className={`flex flex-col items-center gap-1.5 ${filterCentro === 'Ao Vivo' ? 'text-red-500' : 'text-slate-500'}`} style={{ touchAction: 'manipulation' }}><Radio className="w-5 h-5" /><span className="text-[8px] font-black uppercase mt-0.5">Ao Vivo</span></button>
-<button onClick={() => { setMenuAtivo('Todos os Jogos'); setViewMode('encerrado'); setFilterCentro('Encerrado'); setLigaAtivaId(null); setJogoSelecionado(null); }} className={`flex flex-col items-center gap-1.5 ${viewMode === 'encerrado' ? 'text-green-500' : 'text-slate-500'}`} style={{ touchAction: 'manipulation' }}><CheckCircle2 className="w-5 h-5" /><span className="text-[8px] font-black uppercase mt-0.5">Encerrado</span></button>
+<button onClick={() => { setMenuAtivo('Todos os Jogos'); setViewMode('jogos'); setFilterCentro('Encerrado'); setLigaAtivaId(null); setJogoSelecionado(null); }} className={`flex flex-col items-center gap-1.5 ${viewMode === 'encerrado' ? 'text-green-500' : 'text-slate-500'}`} style={{ touchAction: 'manipulation' }}><CheckCircle2 className="w-5 h-5" /><span className="text-[8px] font-black uppercase mt-0.5">Encerrado</span></button>
 <button onClick={() => { setMenuAtivo('Todos os Jogos'); setViewMode('copa'); setFilterCentro('Todos'); setLigaAtivaId(null); setJogoSelecionado(null); }} className={`flex flex-col items-center gap-1.5 ${viewMode === 'copa' ? 'text-yellow-500' : 'text-slate-500'}`} style={{ touchAction: 'manipulation' }}><Trophy className="w-5 h-5" /><span className="text-[8px] font-black uppercase mt-0.5">Jogos</span></button>
 <button onClick={() => { setMenuAtivo('Todos os Jogos'); setViewMode('perfil'); setJogoSelecionado(null); }} className={`flex flex-col items-center gap-1.5 ${viewMode === 'perfil' ? 'text-blue-500' : 'text-slate-500'}`} style={{ touchAction: 'manipulation' }}><User className="w-5 h-5" /><span className="text-[8px] font-black uppercase mt-0.5">Perfil</span></button>
 </div>
