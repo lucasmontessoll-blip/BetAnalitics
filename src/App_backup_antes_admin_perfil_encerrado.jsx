@@ -42,7 +42,6 @@ import SplashLogoAnimado from './components/SplashLogoAnimado.jsx';
 import MobileBackAndCleanUI from './components/MobileBackAndCleanUI.jsx';
 import CalendarioSemanaJogos from './components/CalendarioSemanaJogos.jsx';
 import RemoverSomentePesquisaBottom from './components/RemoverSomentePesquisaBottom.jsx';
-import AdminResumoPro from './components/AdminResumoPro.jsx';
 const MODO_DEMONSTRACAO = true;
 const API_URL = '';
 function gerarEscudoAutomatico(nomeTime = 'TIME') {
@@ -291,83 +290,23 @@ const validos = viewMode === 'copa' ? jogos.filter(j => isSelecao(j.home_team, j
 const selecoes = [...validos].filter(j => j.confianca_ia >= 80).sort((a, b) => b.confianca_ia - a.confianca_ia).slice(0, 3);
 return { selecoes, oddFinal: selecoes.reduce((acc, j) => acc * (j.odd_principal || 1), 1) };
 }, [jogos, viewMode]);
-const jogosDemoEncerrados = useMemo(() => ([
-  {
-    id: 'demo-encerrado-1',
-    demo: true,
-    league_id: 71,
-    league_name: 'Brasileirao',
-    league_country: 'Brazil',
-    status: 'Finished',
-    home_team: 'Flamengo',
-    away_team: 'Palmeiras',
-    scoreHome: 2,
-    scoreAway: 1,
-    placar_casa: 2,
-    placar_fora: 1,
-    confianca_ia: 92,
-    odd_principal: 1.82,
-    mercado_principal: 'Vitoria Flamengo',
-    time_elapsed: 'FT',
-  },
-  {
-    id: 'demo-encerrado-2',
-    demo: true,
-    league_id: 2,
-    league_name: 'Champions League',
-    league_country: 'World',
-    status: 'Finished',
-    home_team: 'Real Madrid',
-    away_team: 'Manchester City',
-    scoreHome: 3,
-    scoreAway: 2,
-    placar_casa: 3,
-    placar_fora: 2,
-    confianca_ia: 88,
-    odd_principal: 2.10,
-    mercado_principal: 'Ambos marcaram',
-    time_elapsed: 'FT',
-  },
-  {
-    id: 'demo-encerrado-3',
-    demo: true,
-    league_id: 39,
-    league_name: 'Premier League',
-    league_country: 'England',
-    status: 'Finished',
-    home_team: 'Liverpool',
-    away_team: 'Arsenal',
-    scoreHome: 1,
-    scoreAway: 1,
-    placar_casa: 1,
-    placar_fora: 1,
-    confianca_ia: 84,
-    odd_principal: 1.95,
-    mercado_principal: 'Mais de 1.5 gols',
-    time_elapsed: 'FT',
-  },
-]), []);
-
 const jFilt = useMemo(() => {
-const baseJogosFiltro = filterCentro === 'Encerrado' ? [...jogos, ...jogosDemoEncerrados] : jogos;
-return baseJogosFiltro.filter(j => {
+return jogos.filter(j => {
 if (j.demo) {
 if (viewMode === 'copa') return false;
 if (filterCentro === 'Favoritos') return favoritos.includes(j.id);
 if (filterCentro === 'Ao Vivo') return j.status === 'Live';
-if (filterCentro === 'Encerrado') return statusEhEncerrado(j);
 return true;
 }
 const sel = isSelecao(j.home_team, j.away_team, j.league_name);
 if (viewMode === 'jogos' && sel) return false;
 if (viewMode === 'copa' && !sel) return false;
 if (filterCentro === 'Ao Vivo') return j.status === 'Live';
-if (filterCentro === 'Encerrado') return statusEhEncerrado(j);
 if (filterCentro === 'Favoritos') return favoritos.includes(j.id);
 if (ligaAtivaId !== null && j.league_id !== ligaAtivaId && j.league_id !== 999) return false;
 return true;
 });
-}, [jogos, jogosDemoEncerrados, viewMode, filterCentro, favoritos, ligaAtivaId]);
+}, [jogos, viewMode, filterCentro, favoritos, ligaAtivaId]);
 const jGrp = useMemo(() => {
 return jFilt.reduce((a, j) => {
 if (!a[j.league_name]) a[j.league_name] = [];
@@ -470,17 +409,6 @@ function statusEhAoVivo(jogo) {
     tempo.includes("'");
 }
 
-function statusEhEncerrado(jogo) {
-  const status = normalizarLigaAba(jogo?.status || jogo?.status_short || jogo?.fixture?.status?.short || jogo?.fixture?.status?.long || '');
-  return status.includes('finished') ||
-    status.includes('finalizado') ||
-    status.includes('encerrado') ||
-    status === 'ft' ||
-    status === 'aet' ||
-    status === 'pen' ||
-    status === 'match finished';
-}
-
 function ligaDoJogoId(jogo) {
   return Number(
     jogo?.league_id ||
@@ -571,7 +499,7 @@ return Object.entries(jGrp).map(([leagueName, matches]) => (
 {matches.map(j => (
 <div key={j.id} onClick={() => { if (!userData?.is_vip) return setMenuAtivo('assinar pro'); setJogoSelecionado(j); }} className="bg-[#0f172a] border border-white/10 rounded-3xl p-5 shadow-lg mb-4 cursor-pointer hover:border-blue-500/50 transform-gpu transition-colors">
 <div className="flex justify-between items-center mb-5">
-{j.status === 'Live' ? (<span className="bg-red-500 px-3 py-1 rounded-full text-[10px] font-black uppercase"> Ao Vivo {String(j.time_elapsed).replace("'", "")}'</span>) : (<span className="text-slate-400 text-[10px] font-bold uppercase">{statusEhEncerrado(j) ? 'Finalizado' : 'Agendado'}</span>)}
+{j.status === 'Live' ? (<span className="bg-red-500 px-3 py-1 rounded-full text-[10px] font-black uppercase"> Ao Vivo {String(j.time_elapsed).replace("'", "")}'</span>) : (<span className="text-slate-400 text-[10px] font-bold uppercase">{j.status === 'Finished' ? 'Finalizado' : 'Agendado'}</span>)}
 <button onClick={(e) => { e.stopPropagation(); toggleFavorito(e, j.id); }} className="p-1"><Star className={`w-5 h-5 ${favoritos.includes(j.id) ? 'fill-yellow-400 text-yellow-400' : 'text-slate-600'}`} /></button>
 </div>
 <div className="grid grid-cols-3 items-center text-center mb-4">
@@ -584,7 +512,7 @@ return Object.entries(jGrp).map(([leagueName, matches]) => (
   className="w-10 h-10 object-contain"
   alt={j.home_team || 'Time casa'}
 /><span className="text-[10px] font-bold text-slate-200 truncate w-full">{j.home_team}</span></div>
-<div className="text-2xl font-black">{j.status === 'Live' || statusEhEncerrado(j) ? `${j.scoreHome} - ${j.scoreAway}` : <span className="text-slate-600">-</span>}</div>
+<div className="text-2xl font-black">{j.status === 'Live' || j.status === 'Finished' ? `${j.scoreHome} - ${j.scoreAway}` : <span className="text-slate-600">-</span>}</div>
 <div className="flex flex-col items-center gap-2"><img
   src={escudoTime(j.away_image, j.away_team)}
   onError={(e) => {
@@ -943,7 +871,7 @@ return (
 {viewMode === 'jogos' && (<>{userData?.is_vip && (<HeroPremium onViewOportunidades={() => setViewMode('radar')} />)}<div className="flex gap-2 px-4 overflow-x-auto pb-4 no-scrollbar mt-4"><button onClick={() => setFilterCentro('Todos')} className={`px-5 py-2.5 rounded-full text-xs font-black border ${filterCentro === 'Todos' ? 'bg-white text-black' : 'bg-transparent border-slate-700 text-slate-400'}`}>Todos</button><button onClick={() => setFilterCentro('Ao Vivo')} className={`px-5 py-2.5 rounded-full text-xs font-black flex items-center gap-2 border ${filterCentro === 'Ao Vivo' ? 'bg-white text-black border-white' : 'bg-transparent border-slate-700 text-slate-400'}`}>Ao Vivo <span className="w-2 h-2 rounded-full bg-red-500 animate-pulse"></span></button>{listaLigas.filter(l => l.id !== null).map(l => (<button key={l.name} onClick={() => setLigaAtivaId(l.id)} className={`px-4 py-2.5 rounded-full text-xs font-black border ${ligaAtivaId === l.id ? 'bg-[#0f172a] text-white border-white/10' : 'bg-transparent border-slate-700 text-slate-400'}`}>{l.name}</button>))}</div><div className="px-4 w-full">
 
 <JogosPorPaisContinente
-  jogos={filterCentro === 'Encerrado' ? jFilt : jogos}
+  jogos={jogos}
   favoritos={favoritos}
   onToggleFavorito={toggleFavorito}
   onAbrirJogo={(j) => {
@@ -960,33 +888,12 @@ return (
 
 </div><div className="px-4 mt-10 mb-10 text-center"><LegalCompliance modo="botao" /></div></>)}
 {viewMode === 'perfil' && (
-<>
 <PerfilProCompleto
   userData={userData}
   setViewMode={setViewMode}
   setAiOpen={setAiOpen}
   setAiQuery={setAiQuery}
 />
-<div className="px-4 mt-4 pb-28 w-full">
-  {/* ADMIN_DENTRO_PERFIL */}
-  <button
-    type="button"
-    onClick={() => { setMenuAtivo('Todos os Jogos'); setViewMode('admin'); setJogoSelecionado(null); }}
-    className="w-full bg-gradient-to-br from-yellow-500/20 via-[#0f172a] to-green-500/10 border border-yellow-500/30 rounded-3xl p-5 text-left shadow-lg active:scale-[0.99]"
-  >
-    <div className="flex items-center justify-between gap-3">
-      <div>
-        <div className="text-[10px] font-black uppercase tracking-[0.2em] text-yellow-400 mb-1">Aba Admin</div>
-        <div className="text-xl font-black text-white">Painel administrativo</div>
-        <div className="text-[11px] font-bold text-slate-400 mt-1">Inscritos, lucros, pagamentos, conversao e status do app.</div>
-      </div>
-      <div className="w-12 h-12 rounded-2xl bg-yellow-500/20 border border-yellow-400/30 flex items-center justify-center text-yellow-300">
-        <Zap className="w-6 h-6" />
-      </div>
-    </div>
-  </button>
-</div>
-</>
 )}
 
 {viewMode === 'radar' && (
@@ -1173,9 +1080,7 @@ return (
 )}
 
 {viewMode === 'termos' && (<div className="px-4 animate-fade-in pb-20 w-full"><HeaderNav title=" Termos e Politicas" onBack={() => setViewMode('jogos')} /><LegalCompliance /></div>)}
-{viewMode === 'admin' && (
-<AdminResumoPro setViewMode={setViewMode} userData={userData} jogos={jogos} />
-)}
+{viewMode === 'admin' && (<div className="px-4 animate-fade-in pb-20 w-full"><HeaderNav title="Painel de Controle Admin" onBack={() => setViewMode('perfil')} /><div className="bg-[#0f172a] p-5 rounded-3xl border border-white/5 shadow-lg mb-3"><div className="text-[10px] text-slate-400 uppercase font-bold mb-1 tracking-widest">Total Usuarios</div><div className="text-3xl font-black text-white">1,248</div></div><div className="bg-[#0f172a] p-5 rounded-3xl border border-yellow-500/20 shadow-lg mb-3"><div className="text-[10px] text-slate-400 uppercase font-bold mb-1 tracking-widest">Assinantes PRO</div><div className="text-3xl font-black text-yellow-400">312</div></div><div className="bg-[#0f172a] p-5 rounded-3xl border border-green-500/20 shadow-lg flex justify-between items-center"><div><div className="text-[10px] text-slate-400 uppercase font-bold mb-1 tracking-widest">Receita Mensal Estimada</div><div className="text-3xl font-black text-green-400">R$ 9.328,80</div></div><DollarSign className="w-10 h-10 text-green-500 opacity-50" /></div></div>)}
 </div>)}
 {jogoSelecionado && menuAtivo !== 'assinar pro' && (
 <div className="fixed inset-0 z-[999] bg-[#050816] text-white overflow-y-auto pb-28 animate-fade-in">
@@ -1202,10 +1107,11 @@ return (
 
 <nav className="fixed bottom-0 left-0 right-0 bg-[#050816] border-t border-white/5 z-50 flex flex-col shadow-[0_-5px_20px_rgba(0,0,0,0.5)]">
 <div className="flex justify-around items-center h-16 pt-2 w-full">
-<button onClick={() => { setMenuAtivo('Todos os Jogos'); setViewMode('jogos'); setFilterCentro('Todos'); setJogoSelecionado(null); }} className={`flex flex-col items-center gap-1.5 ${viewMode === 'jogos' && filterCentro === 'Todos' ? 'text-blue-500' : 'text-slate-500'}`} style={{ touchAction: 'manipulation' }}><Home className="w-5 h-5" /><span className="text-[8px] font-black uppercase mt-0.5">Inicio</span></button>
+<button onClick={() => { setMenuAtivo('Todos os Jogos'); setViewMode('jogos'); setFilterCentro('Todos'); setJogoSelecionado(null); }} className={`flex flex-col items-center gap-1.5 ${viewMode === 'jogos' && filterCentro !== 'Ao Vivo' ? 'text-blue-500' : 'text-slate-500'}`} style={{ touchAction: 'manipulation' }}><Home className="w-5 h-5" /><span className="text-[8px] font-black uppercase mt-0.5">Inicio</span></button>
 <button onClick={() => { setMenuAtivo('Todos os Jogos'); setViewMode('jogos'); setFilterCentro('Ao Vivo'); setJogoSelecionado(null); }} className={`flex flex-col items-center gap-1.5 ${filterCentro === 'Ao Vivo' ? 'text-red-500' : 'text-slate-500'}`} style={{ touchAction: 'manipulation' }}><Radio className="w-5 h-5" /><span className="text-[8px] font-black uppercase mt-0.5">Ao Vivo</span></button>
-<button onClick={() => { setMenuAtivo('Todos os Jogos'); setViewMode('jogos'); setFilterCentro('Encerrado'); setLigaAtivaId(null); setJogoSelecionado(null); }} className={`flex flex-col items-center gap-1.5 ${filterCentro === 'Encerrado' ? 'text-green-500' : 'text-slate-500'}`} style={{ touchAction: 'manipulation' }}><Calendar className="w-5 h-5" /><span className="text-[8px] font-black uppercase mt-0.5">Encerrado</span></button>
-<button onClick={() => { setMenuAtivo('Todos os Jogos'); setViewMode('copa'); setFilterCentro('Todos'); setJogoSelecionado(null); }} className={`flex flex-col items-center gap-1.5 ${viewMode === 'copa' ? 'text-yellow-500' : 'text-slate-500'}`} style={{ touchAction: 'manipulation' }}><Trophy className="w-5 h-5" /><span className="text-[8px] font-black uppercase mt-0.5">Jogos</span></button>
+<button onClick={() => { setMenuAtivo('Todos os Jogos'); setViewMode('Pesquisa'); setJogoSelecionado(null); }} className={`flex flex-col items-center gap-1.5 ${viewMode === 'Pesquisa' ? 'text-blue-500' : 'text-slate-500'}`} style={{ touchAction: 'manipulation' }}><Search className="w-5 h-5" /><span className="text-[8px] font-black uppercase mt-0.5">Pesquisa</span></button>
+<button onClick={() => { setMenuAtivo('Todos os Jogos'); setViewMode('copa'); setJogoSelecionado(null); }} className={`flex flex-col items-center gap-1.5 ${viewMode === 'copa' ? 'text-yellow-500' : 'text-slate-500'}`} style={{ touchAction: 'manipulation' }}><Trophy className="w-5 h-5" /><span className="text-[8px] font-black uppercase mt-0.5">Jogos</span></button>
+
 </div>
 </nav>
 </div>
