@@ -348,6 +348,63 @@ const jogosDemoEncerrados = useMemo(() => ([
   },
 ]), []);
 
+const JOGOS_DEMO_ENCERRADOS_FINAL = useMemo(() => ([
+  {
+    id: 'encerrado-final-1',
+    demo: true,
+    league_id: 71,
+    league_name: 'Brasileirao Serie A',
+    league_country: 'Brasil',
+    status: 'Finished',
+    home_team: 'Flamengo',
+    away_team: 'Palmeiras',
+    scoreHome: 2,
+    scoreAway: 1,
+    placar_casa: 2,
+    placar_fora: 1,
+    confianca_ia: 92,
+    odd_principal: 1.82,
+    mercado_principal: 'Vitoria Flamengo',
+    time_elapsed: 'FT'
+  },
+  {
+    id: 'encerrado-final-2',
+    demo: true,
+    league_id: 2,
+    league_name: 'Champions League',
+    league_country: 'Europa',
+    status: 'Finished',
+    home_team: 'Real Madrid',
+    away_team: 'Manchester City',
+    scoreHome: 3,
+    scoreAway: 2,
+    placar_casa: 3,
+    placar_fora: 2,
+    confianca_ia: 88,
+    odd_principal: 2.10,
+    mercado_principal: 'Ambos marcam',
+    time_elapsed: 'FT'
+  },
+  {
+    id: 'encerrado-final-3',
+    demo: true,
+    league_id: 39,
+    league_name: 'Premier League',
+    league_country: 'Inglaterra',
+    status: 'Finished',
+    home_team: 'Liverpool',
+    away_team: 'Arsenal',
+    scoreHome: 1,
+    scoreAway: 1,
+    placar_casa: 1,
+    placar_fora: 1,
+    confianca_ia: 84,
+    odd_principal: 1.95,
+    mercado_principal: 'Mais de 1.5 gols',
+    time_elapsed: 'FT'
+  }
+]), []);
+
 const jFilt = useMemo(() => {
 const baseJogosFiltro = filterCentro === 'Encerrado' ? [...jogos, ...jogosDemoEncerrados] : jogos;
 return baseJogosFiltro.filter(j => {
@@ -571,7 +628,7 @@ return Object.entries(jGrp).map(([leagueName, matches]) => (
 {matches.map(j => (
 <div key={j.id} onClick={() => { if (!userData?.is_vip) return setMenuAtivo('assinar pro'); setJogoSelecionado(j); }} className="bg-[#0f172a] border border-white/10 rounded-3xl p-5 shadow-lg mb-4 cursor-pointer hover:border-blue-500/50 transform-gpu transition-colors">
 <div className="flex justify-between items-center mb-5">
-{j.status === 'Live' ? (<span className="bg-red-500 px-3 py-1 rounded-full text-[10px] font-black uppercase"> Ao Vivo {String(j.time_elapsed).replace("'", "")}'</span>) : (<span className="text-slate-400 text-[10px] font-bold uppercase">{statusEhEncerrado(j) ? 'Finalizado' : 'Agendado'}</span>)}
+{statusEhAoVivo(j) ? (<span className="bg-red-500 px-3 py-1 rounded-full text-[10px] font-black uppercase"> Ao Vivo {String(j.time_elapsed).replace("'", "")}'</span>) : (<span className="text-slate-400 text-[10px] font-bold uppercase">{statusEhEncerrado(j) ? 'Finalizado' : 'Agendado'}</span>)}
 <button onClick={(e) => { e.stopPropagation(); toggleFavorito(e, j.id); }} className="p-1"><Star className={`w-5 h-5 ${favoritos.includes(j.id) ? 'fill-yellow-400 text-yellow-400' : 'text-slate-600'}`} /></button>
 </div>
 <div className="grid grid-cols-3 items-center text-center mb-4">
@@ -940,7 +997,9 @@ return (
     </div>
   </div>
 )}
-{viewMode === 'jogos' && (<>{userData?.is_vip && (<HeroPremium onViewOportunidades={() => setViewMode('radar')} />)}<div className="flex gap-2 px-4 overflow-x-auto pb-4 no-scrollbar mt-4"><button onClick={() => setFilterCentro('Todos')} className={`px-5 py-2.5 rounded-full text-xs font-black border ${filterCentro === 'Todos' ? 'bg-white text-black' : 'bg-transparent border-slate-700 text-slate-400'}`}>Todos</button><button onClick={() => setFilterCentro('Ao Vivo')} className={`px-5 py-2.5 rounded-full text-xs font-black flex items-center gap-2 border ${filterCentro === 'Ao Vivo' ? 'bg-white text-black border-white' : 'bg-transparent border-slate-700 text-slate-400'}`}>Ao Vivo <span className="w-2 h-2 rounded-full bg-red-500 animate-pulse"></span></button>{listaLigas.filter(l => l.id !== null).map(l => (<button key={l.name} onClick={() => setLigaAtivaId(l.id)} className={`px-4 py-2.5 rounded-full text-xs font-black border ${ligaAtivaId === l.id ? 'bg-[#0f172a] text-white border-white/10' : 'bg-transparent border-slate-700 text-slate-400'}`}>{l.name}</button>))}</div><div className="px-4 w-full">
+{viewMode === 'jogos' && (
+<>
+<div className="px-4 w-full">
 
 <JogosPorPaisContinente
   jogos={filterCentro === 'Encerrado' ? jFilt : jogos}
@@ -1202,10 +1261,11 @@ return (
 
 <nav className="fixed bottom-0 left-0 right-0 bg-[#050816] border-t border-white/5 z-50 flex flex-col shadow-[0_-5px_20px_rgba(0,0,0,0.5)]">
 <div className="flex justify-around items-center h-16 pt-2 w-full">
-<button onClick={() => { setMenuAtivo('Todos os Jogos'); setViewMode('jogos'); setFilterCentro('Todos'); setJogoSelecionado(null); }} className={`flex flex-col items-center gap-1.5 ${viewMode === 'jogos' && filterCentro === 'Todos' ? 'text-blue-500' : 'text-slate-500'}`} style={{ touchAction: 'manipulation' }}><Home className="w-5 h-5" /><span className="text-[8px] font-black uppercase mt-0.5">Inicio</span></button>
-<button onClick={() => { setMenuAtivo('Todos os Jogos'); setViewMode('jogos'); setFilterCentro('Ao Vivo'); setJogoSelecionado(null); }} className={`flex flex-col items-center gap-1.5 ${filterCentro === 'Ao Vivo' ? 'text-red-500' : 'text-slate-500'}`} style={{ touchAction: 'manipulation' }}><Radio className="w-5 h-5" /><span className="text-[8px] font-black uppercase mt-0.5">Ao Vivo</span></button>
-<button onClick={() => { setMenuAtivo('Todos os Jogos'); setViewMode('jogos'); setFilterCentro('Encerrado'); setLigaAtivaId(null); setJogoSelecionado(null); }} className={`flex flex-col items-center gap-1.5 ${filterCentro === 'Encerrado' ? 'text-green-500' : 'text-slate-500'}`} style={{ touchAction: 'manipulation' }}><Calendar className="w-5 h-5" /><span className="text-[8px] font-black uppercase mt-0.5">Encerrado</span></button>
-<button onClick={() => { setMenuAtivo('Todos os Jogos'); setViewMode('copa'); setFilterCentro('Todos'); setJogoSelecionado(null); }} className={`flex flex-col items-center gap-1.5 ${viewMode === 'copa' ? 'text-yellow-500' : 'text-slate-500'}`} style={{ touchAction: 'manipulation' }}><Trophy className="w-5 h-5" /><span className="text-[8px] font-black uppercase mt-0.5">Jogos</span></button>
+<button onClick={() => { setMenuAtivo('Todos os Jogos'); setViewMode('jogos'); setFilterCentro('Todos'); setLigaAtivaId(null); setJogoSelecionado(null); }} className={`flex flex-col items-center gap-1.5 ${viewMode === 'jogos' && filterCentro === 'Todos' ? 'text-blue-500' : 'text-slate-500'}`} style={{ touchAction: 'manipulation' }}><Home className="w-5 h-5" /><span className="text-[8px] font-black uppercase mt-0.5">Inicio</span></button>
+<button onClick={() => { setMenuAtivo('Todos os Jogos'); setViewMode('jogos'); setFilterCentro('Ao Vivo'); setLigaAtivaId(null); setJogoSelecionado(null); }} className={`flex flex-col items-center gap-1.5 ${filterCentro === 'Ao Vivo' ? 'text-red-500' : 'text-slate-500'}`} style={{ touchAction: 'manipulation' }}><Radio className="w-5 h-5" /><span className="text-[8px] font-black uppercase mt-0.5">Ao Vivo</span></button>
+<button onClick={() => { setMenuAtivo('Todos os Jogos'); setViewMode('jogos'); setFilterCentro('Encerrado'); setLigaAtivaId(null); setJogoSelecionado(null); }} className={`flex flex-col items-center gap-1.5 ${filterCentro === 'Encerrado' ? 'text-green-500' : 'text-slate-500'}`} style={{ touchAction: 'manipulation' }}><CheckCircle className="w-5 h-5" /><span className="text-[8px] font-black uppercase mt-0.5">Encerrado</span></button>
+<button onClick={() => { setMenuAtivo('Todos os Jogos'); setViewMode('copa'); setFilterCentro('Todos'); setLigaAtivaId(null); setJogoSelecionado(null); }} className={`flex flex-col items-center gap-1.5 ${viewMode === 'copa' ? 'text-yellow-500' : 'text-slate-500'}`} style={{ touchAction: 'manipulation' }}><Trophy className="w-5 h-5" /><span className="text-[8px] font-black uppercase mt-0.5">Jogos</span></button>
+<button onClick={() => { setMenuAtivo('Todos os Jogos'); setViewMode('perfil'); setJogoSelecionado(null); }} className={`flex flex-col items-center gap-1.5 ${viewMode === 'perfil' ? 'text-blue-500' : 'text-slate-500'}`} style={{ touchAction: 'manipulation' }}><User className="w-5 h-5" /><span className="text-[8px] font-black uppercase mt-0.5">Perfil</span></button>
 </div>
 </nav>
 </div>
