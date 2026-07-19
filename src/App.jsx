@@ -415,7 +415,9 @@ const jFilt = useMemo(() => {
     : jogos;
 
   return baseJogos.filter(j => {
-    if (viewMode === 'encerrado') return statusEhEncerrado(j);
+    if (viewMode === 'encerrado') return betStatusEncerradoFinal(j);
+    if (viewMode !== 'encerrado' && betStatusEncerradoFinal(j)) return false;
+if (viewMode === 'encerrado') return statusEhEncerrado(j);
 
     // Na tela inicial, nao mostra os jogos encerrados demonstrativos
     if (j.demo && statusEhEncerrado(j)) return false;
@@ -437,6 +439,29 @@ const jFilt = useMemo(() => {
     return true;
   });
 }, [jogos, viewMode, filterCentro, favoritos, ligaAtivaId]);
+
+const jogosInicioSemEncerradosFinal = useMemo(() => {
+  const lista = Array.isArray(jogos) ? jogos : [];
+  return lista.filter((j) => !betStatusEncerradoFinal(j));
+}, [jogos]);
+
+const jogosEncerradosFinal = useMemo(() => {
+  const lista = [
+    ...(Array.isArray(jogos) ? jogos : []),
+    ...(Array.isArray(JOGOS_DEMO_ENCERRADOS_FINAL) ? JOGOS_DEMO_ENCERRADOS_FINAL : [])
+  ];
+
+  const mapa = new Map();
+
+  lista
+    .filter((j) => betStatusEncerradoFinal(j))
+    .forEach((j, index) => {
+      const id = j?.id || j?.fixture?.id || `${j?.home_team || j?.teams?.home?.name || 'casa'}-${j?.away_team || j?.teams?.away?.name || 'fora'}-${index}`;
+      mapa.set(id, j);
+    });
+
+  return Array.from(mapa.values());
+}, [jogos, JOGOS_DEMO_ENCERRADOS_FINAL]);
 const jGrp = useMemo(() => {
 return jFilt.reduce((a, j) => {
 if (!a[j.league_name]) a[j.league_name] = [];
@@ -537,6 +562,27 @@ function statusEhAoVivo(jogo) {
     status === '2h' ||
     status === 'ht' ||
     tempo.includes("'");
+}
+
+
+function betStatusEncerradoFinal(jogo) {
+  const texto = [
+    jogo?.status,
+    jogo?.status_short,
+    jogo?.fixture?.status?.short,
+    jogo?.fixture?.status?.long,
+    jogo?.time_elapsed,
+    jogo?.tempo_jogo
+  ].filter(Boolean).join(' ').toLowerCase();
+
+  return texto.includes('finished') ||
+    texto.includes('finalizado') ||
+    texto.includes('encerrado') ||
+    texto === 'ft' ||
+    texto.includes(' ft') ||
+    texto.includes('match finished') ||
+    texto.includes('aet') ||
+    texto.includes('pen');
 }
 
 function statusEhEncerrado(jogo) {
@@ -1014,7 +1060,7 @@ return (
 <div className="px-4 w-full">
 
 <JogosPorPaisContinente
-  jogos={viewMode === 'encerrado' ? jFilt : jogos}
+  jogos={viewMode === 'encerrado' ? jogosEncerradosFinal : jogosInicioSemEncerradosFinal}
   favoritos={favoritos}
   onToggleFavorito={toggleFavorito}
   onAbrirJogo={(j) => {
