@@ -42,6 +42,7 @@ import SplashLogoAnimado from './components/SplashLogoAnimado.jsx';
 import MobileBackAndCleanUI from './components/MobileBackAndCleanUI.jsx';
 import CalendarioSemanaJogos from './components/CalendarioSemanaJogos.jsx';
 import RemoverSomentePesquisaBottom from './components/RemoverSomentePesquisaBottom.jsx';
+import RemoverRoboIAFlutuante from './components/RemoverRoboIAFlutuante.jsx';
 const MODO_DEMONSTRACAO = true;
 const API_URL = '';
 function gerarEscudoAutomatico(nomeTime = 'TIME') {
@@ -781,6 +782,7 @@ return (
 />
 
 <RemoverSomentePesquisaBottom />
+<RemoverRoboIAFlutuante />
 <header className="flex items-center justify-between gap-3 px-3 py-2 bg-[#050816] sticky top-0 z-40 border-b border-white/5">
 <div className="flex flex-col items-start justify-center min-w-0">
   <img
@@ -1094,11 +1096,27 @@ return (
 
 
 
-{null}
+{false && (
+  <>
+    {/* BOTAO_IA_FLUTUANTE_OFICIAL */}
+    <button
+      type="button"
+      onClick={() => setAiOpen(false)}
+      className="fixed right-4 bottom-24 z-[90] w-16 h-16 rounded-full bg-blue-500/25 border border-blue-300/50 shadow-[0_0_28px_rgba(59,130,246,0.55)] backdrop-blur-md flex flex-col items-center justify-center opacity-85 active:scale-95"
+      aria-label="Abrir Assistente IA"
+      title="IA"
+      style={{ touchAction: 'manipulation' }}
+    >
+      <span className="absolute inset-0 rounded-full bg-blue-400/20 blur-md pointer-events-none"></span>
+      <span className="relative text-2xl leading-none drop-shadow pointer-events-none">{'\u{1F916}'}</span>
+      <span className="relative text-[9px] font-black text-white/80 -mt-0.5 tracking-wide pointer-events-none">IA</span>
+    </button>
+  </>
+)}
 
 
 <AnimatePresence>
-{null}
+{aiOpen && (<motion.div initial={{ opacity: 0, y: 20, scale: 0.9 }} animate={{ opacity: 1, y: 0, scale: 1 }} exit={{ opacity: 0, scale: 0.9, y: 20 }} className="fixed right-4 left-4 bottom-24 bg-[#0f172a] border border-slate-700 p-4 rounded-3xl shadow-[0_0_50px_rgba(0,0,0,0.8)] z-[1000] flex flex-col max-h-[70vh]"><div className="flex justify-between items-center mb-4 pb-3 border-b border-white/5"><h3 className="font-black flex items-center gap-2 text-white"><span className="text-lg leading-none" aria-hidden="true">{'\u{1F916}'}</span> Assistente IA</h3><button onClick={() => setAiOpen(false)} className="bg-slate-800 rounded-full p-1.5"><X className="w-4 h-4" /></button></div><div className="flex-1 overflow-y-auto flex flex-col gap-3 mb-4 pr-1 custom-scrollbar">{aiMessages.map((msg, idx) => (<div key={idx} className={`flex ${msg.role === 'user' ? 'justify-end' : 'justify-start'}`}><div className={`p-3.5 rounded-2xl max-w-[85%] text-xs font-semibold ${msg.role === 'user' ? 'bg-blue-600 text-white' : 'bg-[#050816] text-slate-300 border border-slate-800'}`}>{msg.text}</div></div>))}{aiLoading && (<div className="flex justify-start"><div className="p-3.5 rounded-2xl bg-[#050816] border border-slate-800 text-slate-300 text-xs font-bold animate-pulse">A processar...</div></div>)}</div><form onSubmit={handleAskAI} className="flex gap-2"><input type="text" placeholder="Qual a melhor aposta?" value={aiQuery} onChange={(e) => setAiQuery(e.target.value)} disabled={aiLoading} className="flex-1 bg-[#050816] border border-slate-700 rounded-2xl px-4 py-3 text-xs text-white outline-none" /><button type="submit" disabled={aiLoading || !aiQuery.trim()} className="bg-blue-600 text-white p-3 rounded-2xl"><Send className="w-5 h-5" /></button></form></motion.div>)}
 </AnimatePresence>
 
 <div className="px-4 mt-6">
@@ -1111,6 +1129,7 @@ return (
 <button onClick={() => { setMenuAtivo('Todos os Jogos'); setViewMode('jogos'); setFilterCentro('Ao Vivo'); setJogoSelecionado(null); }} className={`flex flex-col items-center gap-1.5 ${filterCentro === 'Ao Vivo' ? 'text-red-500' : 'text-slate-500'}`} style={{ touchAction: 'manipulation' }}><Radio className="w-5 h-5" /><span className="text-[8px] font-black uppercase mt-0.5">Ao Vivo</span></button>
 <button onClick={() => { setMenuAtivo('Todos os Jogos'); setViewMode('Pesquisa'); setJogoSelecionado(null); }} className={`flex flex-col items-center gap-1.5 ${viewMode === 'Pesquisa' ? 'text-blue-500' : 'text-slate-500'}`} style={{ touchAction: 'manipulation' }}><Search className="w-5 h-5" /><span className="text-[8px] font-black uppercase mt-0.5">Pesquisa</span></button>
 <button onClick={() => { setMenuAtivo('Todos os Jogos'); setViewMode('copa'); setJogoSelecionado(null); }} className={`flex flex-col items-center gap-1.5 ${viewMode === 'copa' ? 'text-yellow-500' : 'text-slate-500'}`} style={{ touchAction: 'manipulation' }}><Trophy className="w-5 h-5" /><span className="text-[8px] font-black uppercase mt-0.5">Jogos</span></button>
+<button onClick={() => { setMenuAtivo('Todos os Jogos'); setViewMode('radar'); setJogoSelecionado(null); }} className={`flex flex-col items-center gap-1.5 ${viewMode === 'radar' ? 'text-purple-500' : 'text-slate-500'}`} style={{ touchAction: 'manipulation' }}><span className="text-lg leading-none">{'\u{1F916}'}</span><span className="text-[8px] font-black uppercase mt-0.5">IA</span></button>
 {userData?.is_admin && (<button onClick={() => { setMenuAtivo('Todos os Jogos'); setViewMode('admin'); setJogoSelecionado(null); }} className={`flex flex-col items-center gap-1.5 ${viewMode === 'admin' ? 'text-yellow-500' : 'text-slate-500'}`} style={{ touchAction: 'manipulation' }}><Zap className="w-5 h-5" /><span className="text-[8px] font-black uppercase mt-0.5">Admin</span></button>)}
 </div>
 </nav>

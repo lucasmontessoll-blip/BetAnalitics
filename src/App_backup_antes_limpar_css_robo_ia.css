@@ -115,3 +115,45 @@ button[title*="Voltar"],
   display: none !important;
 }
 
+/* remove-robo-ia-flutuante-final */
+button[class*="fixed"][class*="right-"][class*="bottom-"],
+div[class*="fixed"][class*="right-"][class*="bottom-"]:not([class*="left-0"]):not([class*="w-full"]),
+a[class*="fixed"][class*="right-"][class*="bottom-"] {
+  display: none !important;
+  visibility: hidden !important;
+  opacity: 0 !important;
+  pointer-events: none !important;
+}
+
+/* remove painel Assistente IA, caso seja recriado */
+div:has(input[placeholder*="Qual a melhor aposta"]),
+section:has(input[placeholder*="Qual a melhor aposta"]),
+div:has(input[placeholder*="melhor aposta"]),
+section:has(input[placeholder*="melhor aposta"]) {
+  display: none !important;
+  visibility: hidden !important;
+  opacity: 0 !important;
+  pointer-events: none !important;
+}
+
+/* remove-robo-flutuante-seguro-final */
+button[class*="fixed"][class*="right-"][class*="bottom-"],
+div[class*="fixed"][class*="right-"][class*="bottom-"]:not(nav):not([class*="left-0"]):not([class*="w-full"]),
+button[class*="absolute"][class*="right-"][class*="bottom-"],
+div[class*="absolute"][class*="right-"][class*="bottom-"] {
+  display: none !important;
+  visibility: hidden !important;
+  opacity: 0 !important;
+  pointer-events: none !important;
+}
+
+/* ocultar-robo-ia-final-css */
+button[class*="fixed"][class*="right"][class*="bottom"],
+div[class*="fixed"][class*="right"][class*="bottom"]:not(nav):not([class*="left-0"]):not([class*="w-full"]),
+button[style*="position: fixed"][style*="right"][style*="bottom"],
+div[style*="position: fixed"][style*="right"][style*="bottom"] {
+  display: none !important;
+  visibility: hidden !important;
+  opacity: 0 !important;
+  pointer-events: none !important;
+}
