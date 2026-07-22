@@ -45,6 +45,7 @@ import RemoverSomentePesquisaBottom from './components/RemoverSomentePesquisaBot
 import AdminResumoPro from './components/AdminResumoPro.jsx';
 import MenuRodape from './components/MenuRodape.jsx';
 import CardJogo from './components/CardJogo.jsx';
+import TelaEncerrados from './components/TelaEncerrados.jsx';
 const MODO_DEMONSTRACAO = true;
 const API_URL = '';
 function gerarEscudoAutomatico(nomeTime = 'TIME') {
@@ -1112,7 +1113,20 @@ return (
     </div>
   </div>
 )}
-{(viewMode === 'jogos' || viewMode === 'encerrado') && (
+{viewMode === 'encerrado' && (
+<TelaEncerrados
+  jogos={jogos}
+  userData={userData}
+  setMenuAtivo={setMenuAtivo}
+  setJogoSelecionado={setJogoSelecionado}
+  toggleFavorito={toggleFavorito}
+  favoritos={favoritos}
+  escudoTime={escudoTime}
+  gerarEscudoAutomatico={gerarEscudoAutomatico}
+/>
+)}
+
+{viewMode === 'jogos' && (
 <>
 <div className="px-4 w-full">
 

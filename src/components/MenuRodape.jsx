@@ -28,7 +28,7 @@ export default function MenuRodape({
 
   function irEncerrado() {
     setMenuAtivo('Todos os Jogos');
-    setViewMode('jogos');
+    setViewMode('encerrado');
     setFilterCentro('Encerrado');
     setLigaAtivaId(null);
     setJogoSelecionado(null);
