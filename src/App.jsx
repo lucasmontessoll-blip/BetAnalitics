@@ -46,6 +46,7 @@ import AdminResumoPro from './components/AdminResumoPro.jsx';
 import MenuRodape from './components/MenuRodape.jsx';
 import CardJogo from './components/CardJogo.jsx';
 import TelaEncerrados from './components/TelaEncerrados.jsx';
+import TelaAoVivo from './components/TelaAoVivo.jsx';
 const MODO_DEMONSTRACAO = true;
 const API_URL = '';
 function gerarEscudoAutomatico(nomeTime = 'TIME') {
@@ -1113,6 +1114,19 @@ return (
     </div>
   </div>
 )}
+{viewMode === 'aovivo' && (
+<TelaAoVivo
+  jogos={jogos}
+  userData={userData}
+  setMenuAtivo={setMenuAtivo}
+  setJogoSelecionado={setJogoSelecionado}
+  toggleFavorito={toggleFavorito}
+  favoritos={favoritos}
+  escudoTime={escudoTime}
+  gerarEscudoAutomatico={gerarEscudoAutomatico}
+/>
+)}
+
 {viewMode === 'encerrado' && (
 <TelaEncerrados
   jogos={jogos}

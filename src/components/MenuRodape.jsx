@@ -20,7 +20,7 @@ export default function MenuRodape({
 
   function irAoVivo() {
     setMenuAtivo('Todos os Jogos');
-    setViewMode('jogos');
+    setViewMode('aovivo');
     setFilterCentro('Ao Vivo');
     setLigaAtivaId(null);
     setJogoSelecionado(null);
