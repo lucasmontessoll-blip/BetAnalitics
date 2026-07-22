@@ -44,6 +44,7 @@ import CalendarioSemanaJogos from './components/CalendarioSemanaJogos.jsx';
 import RemoverSomentePesquisaBottom from './components/RemoverSomentePesquisaBottom.jsx';
 import AdminResumoPro from './components/AdminResumoPro.jsx';
 import MenuRodape from './components/MenuRodape.jsx';
+import CardJogo from './components/CardJogo.jsx';
 const MODO_DEMONSTRACAO = true;
 const API_URL = '';
 function gerarEscudoAutomatico(nomeTime = 'TIME') {
@@ -754,33 +755,19 @@ return Object.entries(jGrp).map(([leagueName, matches]) => (
 <div key={leagueName} className="mb-6 w-full">
 <div className="text-xs font-black text-slate-500 uppercase tracking-widest mb-3 pl-2">{leagueName}</div>
 {matches.map(j => (
-<div key={j.id} onClick={() => { if (!userData?.is_vip) return setMenuAtivo('assinar pro'); setJogoSelecionado(j); }} className="bg-[#0f172a] border border-white/10 rounded-3xl p-5 shadow-lg mb-4 cursor-pointer hover:border-blue-500/50 transform-gpu transition-colors">
-<div className="flex justify-between items-center mb-5">
-{statusEhAoVivo(j) ? (<span className="bg-red-500 px-3 py-1 rounded-full text-[10px] font-black uppercase"> Ao Vivo {String(j.time_elapsed).replace("'", "")}'</span>) : (<span className="text-slate-400 text-[10px] font-bold uppercase">{statusEhEncerrado(j) ? 'Finalizado' : 'Agendado'}</span>)}
-<button onClick={(e) => { e.stopPropagation(); toggleFavorito(e, j.id); }} className="p-1"><Star className={`w-5 h-5 ${favoritos.includes(j.id) ? 'fill-yellow-400 text-yellow-400' : 'text-slate-600'}`} /></button>
-</div>
-<div className="grid grid-cols-3 items-center text-center mb-4">
-<div className="flex flex-col items-center gap-2"><img
-  src={escudoTime(j.home_image, j.home_team)}
-  onError={(e) => {
-    e.currentTarget.onerror = null;
-    e.currentTarget.src = gerarEscudoAutomatico(j.home_team);
-  }}
-  className="w-10 h-10 object-contain"
-  alt={j.home_team || 'Time casa'}
-/><span className="text-[10px] font-bold text-slate-200 truncate w-full">{j.home_team}</span></div>
-<div className="text-2xl font-black">{j.status === 'Live' || statusEhEncerrado(j) ? `${j.scoreHome} - ${j.scoreAway}` : <span className="text-slate-600">-</span>}</div>
-<div className="flex flex-col items-center gap-2"><img
-  src={escudoTime(j.away_image, j.away_team)}
-  onError={(e) => {
-    e.currentTarget.onerror = null;
-    e.currentTarget.src = gerarEscudoAutomatico(j.away_team);
-  }}
-  className="w-10 h-10 object-contain"
-  alt={j.away_team || 'Time fora'}
-/><span className="text-[10px] font-bold text-slate-200 truncate w-full">{j.away_team}</span></div>
-</div>
-</div>
+<CardJogo
+  key={j.id}
+  j={j}
+  userData={userData}
+  setMenuAtivo={setMenuAtivo}
+  setJogoSelecionado={setJogoSelecionado}
+  toggleFavorito={toggleFavorito}
+  favoritos={favoritos}
+  escudoTime={escudoTime}
+  gerarEscudoAutomatico={gerarEscudoAutomatico}
+  statusEhAoVivo={statusEhAoVivo}
+  statusEhEncerrado={statusEhEncerrado}
+/>
 ))}
 </div>
 ));
