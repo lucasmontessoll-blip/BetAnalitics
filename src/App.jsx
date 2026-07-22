@@ -47,6 +47,7 @@ import MenuRodape from './components/MenuRodape.jsx';
 import CardJogo from './components/CardJogo.jsx';
 import TelaEncerrados from './components/TelaEncerrados.jsx';
 import TelaAoVivo from './components/TelaAoVivo.jsx';
+import TelaRadarIA from './components/TelaRadarIA.jsx';
 const MODO_DEMONSTRACAO = true;
 const API_URL = '';
 function gerarEscudoAutomatico(nomeTime = 'TIME') {
@@ -1114,6 +1115,19 @@ return (
     </div>
   </div>
 )}
+{viewMode === 'radarpro' && (
+<TelaRadarIA
+  jogos={jogos}
+  userData={userData}
+  setMenuAtivo={setMenuAtivo}
+  setJogoSelecionado={setJogoSelecionado}
+  toggleFavorito={toggleFavorito}
+  favoritos={favoritos}
+  escudoTime={escudoTime}
+  gerarEscudoAutomatico={gerarEscudoAutomatico}
+/>
+)}
+
 {viewMode === 'aovivo' && (
 <TelaAoVivo
   jogos={jogos}

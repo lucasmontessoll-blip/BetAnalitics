@@ -44,7 +44,7 @@ export default function MenuRodape({
 
   function irRadarIA() {
     setMenuAtivo('Todos os Jogos');
-    setViewMode('radar');
+    setViewMode('radarpro');
     setFilterCentro('Todos');
     setLigaAtivaId(null);
     setJogoSelecionado(null);
