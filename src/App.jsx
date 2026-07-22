@@ -48,6 +48,7 @@ import CardJogo from './components/CardJogo.jsx';
 import TelaEncerrados from './components/TelaEncerrados.jsx';
 import TelaAoVivo from './components/TelaAoVivo.jsx';
 import TelaRadarIA from './components/TelaRadarIA.jsx';
+import TelaInicial from './components/TelaInicial.jsx';
 const MODO_DEMONSTRACAO = true;
 const API_URL = '';
 function gerarEscudoAutomatico(nomeTime = 'TIME') {
@@ -1155,10 +1156,7 @@ return (
 )}
 
 {viewMode === 'jogos' && (
-<>
-<div className="px-4 w-full">
-
-<JogosPorPaisContinente
+<TelaInicial
   jogos={jogosTelaPrincipal}
   favoritos={favoritos}
   onToggleFavorito={toggleFavorito}
@@ -1167,14 +1165,10 @@ return (
     if (!userData?.is_vip) return setMenuAtivo('assinar pro');
     setJogoSelecionado(j);
   }}
+  renderizarListaJogos={RenderizarListaJogos}
 />
+)}
 
-<RenderizarListaJogos />
-
-
-
-
-</div><div className="px-4 mt-10 mb-10 text-center"><LegalCompliance modo="botao" /></div></>)}
 {viewMode === 'perfil' && (
 <>
 <PerfilProCompleto
