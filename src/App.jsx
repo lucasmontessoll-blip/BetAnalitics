@@ -1387,13 +1387,82 @@ return (
 </div>
 
 <nav className="fixed bottom-0 left-0 right-0 bg-[#050816] border-t border-white/5 z-50 flex flex-col shadow-[0_-5px_20px_rgba(0,0,0,0.5)]">
-<div className="flex justify-around items-center h-16 pt-2 w-full">
-<button onClick={() => { setMenuAtivo('Todos os Jogos'); setViewMode('jogos'); setFilterCentro('Todos'); setLigaAtivaId(null); setJogoSelecionado(null); }} className={`flex flex-col items-center gap-1.5 ${viewMode === 'jogos' && filterCentro === 'Todos' ? 'text-blue-500' : 'text-slate-500'}`} style={{ touchAction: 'manipulation' }}><Home className="w-5 h-5" /><span className="text-[8px] font-black uppercase mt-0.5">Inicio</span></button>
-<button onClick={() => { setMenuAtivo('Todos os Jogos'); setViewMode('jogos'); setFilterCentro('Ao Vivo'); setLigaAtivaId(null); setJogoSelecionado(null); }} className={`flex flex-col items-center gap-1.5 ${filterCentro === 'Ao Vivo' ? 'text-red-500' : 'text-slate-500'}`} style={{ touchAction: 'manipulation' }}><Radio className="w-5 h-5" /><span className="text-[8px] font-black uppercase mt-0.5">Ao Vivo</span></button>
-<button onClick={() => { setMenuAtivo('Todos os Jogos'); setViewMode('jogos'); setFilterCentro('Encerrado'); setLigaAtivaId(null); setJogoSelecionado(null); }} className={`flex flex-col items-center gap-1.5 ${viewMode === 'encerrado' ? 'text-green-500' : 'text-slate-500'}`} style={{ touchAction: 'manipulation' }}><CheckCircle2 className="w-5 h-5" /><span className="text-[8px] font-black uppercase mt-0.5">Encerrado</span></button>
-<button onClick={() => { setMenuAtivo('Todos os Jogos'); setViewMode('copa'); setFilterCentro('Todos'); setLigaAtivaId(null); setJogoSelecionado(null); }} className={`flex flex-col items-center gap-1.5 ${viewMode === 'copa' ? 'text-yellow-500' : 'text-slate-500'}`} style={{ touchAction: 'manipulation' }}><Trophy className="w-5 h-5" /><span className="text-[8px] font-black uppercase mt-0.5">Jogos</span></button>
-<button onClick={() => { setMenuAtivo('Todos os Jogos'); setViewMode('perfil'); setJogoSelecionado(null); }} className={`flex flex-col items-center gap-1.5 ${viewMode === 'perfil' ? 'text-blue-500' : 'text-slate-500'}`} style={{ touchAction: 'manipulation' }}><User className="w-5 h-5" /><span className="text-[8px] font-black uppercase mt-0.5">Perfil</span></button>
-</div>
+  <div className="flex justify-around items-center h-16 pt-2 w-full">
+
+    <button
+      onClick={() => {
+        setMenuAtivo('Todos os Jogos');
+        setViewMode('jogos');
+        setFilterCentro('Todos');
+        setLigaAtivaId(null);
+        setJogoSelecionado(null);
+      }}
+      className={`flex flex-col items-center gap-1.5 ${viewMode === 'jogos' && filterCentro === 'Todos' ? 'text-blue-500' : 'text-slate-500'}`}
+      style={{ touchAction: 'manipulation' }}
+    >
+      <Home className="w-5 h-5" />
+      <span className="text-[8px] font-black uppercase mt-0.5">Inicio</span>
+    </button>
+
+    <button
+      onClick={() => {
+        setMenuAtivo('Todos os Jogos');
+        setViewMode('jogos');
+        setFilterCentro('Ao Vivo');
+        setLigaAtivaId(null);
+        setJogoSelecionado(null);
+      }}
+      className={`flex flex-col items-center gap-1.5 ${filterCentro === 'Ao Vivo' ? 'text-red-500' : 'text-slate-500'}`}
+      style={{ touchAction: 'manipulation' }}
+    >
+      <Radio className="w-5 h-5" />
+      <span className="text-[8px] font-black uppercase mt-0.5">Ao Vivo</span>
+    </button>
+
+    <button
+      onClick={() => {
+        setMenuAtivo('Todos os Jogos');
+        setViewMode('jogos');
+        setFilterCentro('Encerrado');
+        setLigaAtivaId(null);
+        setJogoSelecionado(null);
+      }}
+      className={`flex flex-col items-center gap-1.5 ${filterCentro === 'Encerrado' ? 'text-green-500' : 'text-slate-500'}`}
+      style={{ touchAction: 'manipulation' }}
+    >
+      <CheckCircle2 className="w-5 h-5" />
+      <span className="text-[8px] font-black uppercase mt-0.5">Encerrado</span>
+    </button>
+
+    <button
+      onClick={() => {
+        setMenuAtivo('Todos os Jogos');
+        setViewMode('copa');
+        setFilterCentro('Todos');
+        setLigaAtivaId(null);
+        setJogoSelecionado(null);
+      }}
+      className={`flex flex-col items-center gap-1.5 ${viewMode === 'copa' ? 'text-yellow-500' : 'text-slate-500'}`}
+      style={{ touchAction: 'manipulation' }}
+    >
+      <Trophy className="w-5 h-5" />
+      <span className="text-[8px] font-black uppercase mt-0.5">Jogos</span>
+    </button>
+
+    <button
+      onClick={() => {
+        setMenuAtivo('Todos os Jogos');
+        setViewMode('radar');
+        setJogoSelecionado(null);
+      }}
+      className={`flex flex-col items-center gap-1.5 ${viewMode === 'radar' ? 'text-blue-500' : 'text-slate-500'}`}
+      style={{ touchAction: 'manipulation' }}
+    >
+      <Target className="w-5 h-5" />
+      <span className="text-[8px] font-black uppercase mt-0.5">Radar IA</span>
+    </button>
+
+  </div>
 </nav>
 </div>
 );
