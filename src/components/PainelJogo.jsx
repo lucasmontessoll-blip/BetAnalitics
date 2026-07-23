@@ -295,10 +295,6 @@ export default function PainelJogo(props) {
                 e.currentTarget.onerror = null;
                 e.currentTarget.src = criarEscudo(dados.fora);
               }}
-              onError={(e) => {
-                e.currentTarget.onerror = null;
-                e.currentTarget.src = criarEscudo(dados.fora);
-              }}
               className="w-16 h-16 object-contain"
               alt={dados.fora}
             />
