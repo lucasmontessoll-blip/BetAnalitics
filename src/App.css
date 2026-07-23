@@ -103,15 +103,29 @@ body:has(textarea[placeholder*="aposta"]) .bet-ia-floating-button {
   pointer-events: none !important;
 }
 
-/* bet-hide-visual-back-buttons-css */
-button:has(svg.lucide-arrow-left),
-button:has([data-lucide="arrow-left"]),
-a:has(svg.lucide-arrow-left),
-a:has([data-lucide="arrow-left"]),
-button[aria-label*="Voltar"],
-button[title*="Voltar"],
-.botao-voltar,
-.btn-voltar {
-  display: none !important;
-}
 
+
+/* bet-retorno-real-final */
+.bet-retorno-real {
+  position: fixed !important;
+  left: 12px !important;
+  top: 88px !important;
+  z-index: 2147483647 !important;
+  width: 54px !important;
+  height: 54px !important;
+  border-radius: 18px !important;
+  border: 2px solid rgba(255,255,255,0.35) !important;
+  background: #2563eb !important;
+  color: #ffffff !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  opacity: 1 !important;
+  visibility: visible !important;
+  pointer-events: auto !important;
+  font-size: 42px !important;
+  font-weight: 900 !important;
+  line-height: 1 !important;
+  box-shadow: 0 18px 45px rgba(0,0,0,0.65) !important;
+}
+/* fim-bet-retorno-real-final */
