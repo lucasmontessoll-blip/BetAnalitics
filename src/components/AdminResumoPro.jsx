@@ -5,7 +5,6 @@ import {
   Crown,
   DollarSign,
   TrendingUp,
-  Target,
   CreditCard,
   Activity,
   CheckCircle2
@@ -18,7 +17,7 @@ function dinheiro(valor) {
   });
 }
 
-function CardAdmin({ titulo, valor, subtitulo, icon: Icon, destaque = 'text-white' }) {
+function CardAdmin({ titulo, valor, subtitulo, icon: Icon, cor = 'text-white' }) {
   return (
     <div className="bg-[#0f172a] border border-white/10 rounded-3xl p-5 shadow-lg">
       <div className="flex items-start justify-between gap-3">
@@ -26,7 +25,7 @@ function CardAdmin({ titulo, valor, subtitulo, icon: Icon, destaque = 'text-whit
           <div className="text-[10px] font-black uppercase tracking-[0.18em] text-slate-500 mb-2">
             {titulo}
           </div>
-          <div className={`text-2xl font-black ${destaque}`}>
+          <div className={`text-2xl font-black ${cor}`}>
             {valor}
           </div>
           {subtitulo && (
@@ -36,11 +35,9 @@ function CardAdmin({ titulo, valor, subtitulo, icon: Icon, destaque = 'text-whit
           )}
         </div>
 
-        {Icon && (
-          <div className="w-11 h-11 rounded-2xl bg-white/5 border border-white/10 flex items-center justify-center">
-            <Icon className="w-5 h-5 text-blue-400" />
-          </div>
-        )}
+        <div className="w-11 h-11 rounded-2xl bg-white/5 border border-white/10 flex items-center justify-center">
+          <Icon className={`w-5 h-5 ${cor}`} />
+        </div>
       </div>
     </div>
   );
@@ -65,26 +62,21 @@ export default function AdminResumoPro({ setViewMode, userData, jogos = [] }) {
 
     const valorPlano = 29.90;
     const receitaMensal = inscritosPro * valorPlano;
+    const receitaAnual = receitaMensal * 12;
     const custosEstimados = receitaMensal * 0.22;
     const lucroEstimado = receitaMensal - custosEstimados;
-
-    const jogosFinalizados = Array.isArray(jogos)
-      ? jogos.filter((j) => {
-          const status = String(j?.status || j?.fixture?.status?.short || '').toLowerCase();
-          return status.includes('finished') || status.includes('finalizado') || status === 'ft';
-        }).length
-      : 0;
 
     return {
       totalUsuarios,
       inscritosPro,
       receitaMensal,
+      receitaAnual,
       lucroEstimado,
       custosEstimados,
-      pagamentosAprovados: Math.max(inscritosPro, 312),
+      pagamentosAprovados: inscritosPro,
+      pagamentosPendentes: 18,
       taxaConversao: ((inscritosPro / totalUsuarios) * 100).toFixed(1),
       jogosAnalisados: Array.isArray(jogos) ? jogos.length : 0,
-      jogosFinalizados,
       usuarioAtual: userData?.email || 'admin'
     };
   }, [userData, jogos]);
@@ -151,90 +143,64 @@ export default function AdminResumoPro({ setViewMode, userData, jogos = [] }) {
       </div>
 
       <div className="grid grid-cols-2 gap-3 mb-5">
-        <CardAdmin
-          titulo="Usuarios"
-          valor={dados.totalUsuarios}
-          subtitulo="Total cadastrado"
-          icon={Users}
-        />
-
-        <CardAdmin
-          titulo="Inscritos PRO"
-          valor={dados.inscritosPro}
-          subtitulo="Assinantes ativos"
-          icon={Crown}
-          destaque="text-yellow-300"
-        />
-
-        <CardAdmin
-          titulo="Lucro"
-          valor={dinheiro(dados.lucroEstimado)}
-          subtitulo="Estimativa mensal"
-          icon={DollarSign}
-          destaque="text-green-400"
-        />
-
-        <CardAdmin
-          titulo="Conversao"
-          valor={`${dados.taxaConversao}%`}
-          subtitulo="Free para PRO"
-          icon={TrendingUp}
-          destaque="text-blue-400"
-        />
+        <CardAdmin titulo="Usuarios" valor={dados.totalUsuarios} subtitulo="Total cadastrado" icon={Users} />
+        <CardAdmin titulo="PRO" valor={dados.inscritosPro} subtitulo="Assinantes ativos" icon={Crown} cor="text-yellow-300" />
+        <CardAdmin titulo="Lucro" valor={dinheiro(dados.lucroEstimado)} subtitulo="Estimativa mensal" icon={DollarSign} cor="text-green-400" />
+        <CardAdmin titulo="Conversao" valor={`${dados.taxaConversao}%`} subtitulo="Free para PRO" icon={TrendingUp} cor="text-blue-400" />
       </div>
 
       <div className="space-y-3">
         <div className="bg-[#0f172a] border border-white/10 rounded-3xl p-5">
           <div className="flex items-center gap-2 mb-4">
-            <Activity className="w-5 h-5 text-blue-400" />
+            <CreditCard className="w-5 h-5 text-blue-400" />
             <h3 className="font-black text-white text-sm uppercase">
-              Resumo operacional
+              Pagamentos
             </h3>
           </div>
 
           <div className="space-y-3 text-sm">
             <div className="flex justify-between border-b border-white/5 pb-2">
-              <span className="text-slate-400 font-bold">Pagamentos aprovados</span>
-              <span className="font-black text-white">{dados.pagamentosAprovados}</span>
+              <span className="text-slate-400 font-bold">Aprovados</span>
+              <span className="font-black text-green-300">{dados.pagamentosAprovados}</span>
             </div>
 
             <div className="flex justify-between border-b border-white/5 pb-2">
-              <span className="text-slate-400 font-bold">Custos estimados</span>
-              <span className="font-black text-red-300">{dinheiro(dados.custosEstimados)}</span>
+              <span className="text-slate-400 font-bold">Pendentes</span>
+              <span className="font-black text-yellow-300">{dados.pagamentosPendentes}</span>
             </div>
 
             <div className="flex justify-between border-b border-white/5 pb-2">
-              <span className="text-slate-400 font-bold">Jogos analisados</span>
-              <span className="font-black text-white">{dados.jogosAnalisados}</span>
+              <span className="text-slate-400 font-bold">Receita anual</span>
+              <span className="font-black text-white">{dinheiro(dados.receitaAnual)}</span>
             </div>
 
             <div className="flex justify-between">
-              <span className="text-slate-400 font-bold">Jogos encerrados</span>
-              <span className="font-black text-green-300">{dados.jogosFinalizados}</span>
+              <span className="text-slate-400 font-bold">Custos estimados</span>
+              <span className="font-black text-red-300">{dinheiro(dados.custosEstimados)}</span>
             </div>
           </div>
         </div>
 
         <div className="bg-[#0f172a] border border-green-500/20 rounded-3xl p-5">
-          <div className="flex items-center gap-2 mb-2">
-            <CheckCircle2 className="w-5 h-5 text-green-400" />
+          <div className="flex items-center gap-2 mb-3">
+            <Activity className="w-5 h-5 text-green-400" />
             <h3 className="font-black text-white text-sm uppercase">
               Status do sistema
             </h3>
           </div>
 
           <div className="grid grid-cols-2 gap-2 text-[11px] font-black">
-            <div className="bg-green-500/10 text-green-300 rounded-2xl p-3 border border-green-500/20">
-              API Online
+            <div className="bg-green-500/10 text-green-300 rounded-2xl p-3 border border-green-500/20 flex items-center gap-2">
+              <CheckCircle2 className="w-4 h-4" /> App Online
             </div>
-            <div className="bg-green-500/10 text-green-300 rounded-2xl p-3 border border-green-500/20">
-              Pagamentos OK
+            <div className="bg-green-500/10 text-green-300 rounded-2xl p-3 border border-green-500/20 flex items-center gap-2">
+              <CheckCircle2 className="w-4 h-4" /> Render OK
             </div>
-            <div className="bg-blue-500/10 text-blue-300 rounded-2xl p-3 border border-blue-500/20">
-              IA Ativa
+            <div className="bg-blue-500/10 text-blue-300 rounded-2xl p-3 border border-blue-500/20 flex items-center gap-2">
+              <CheckCircle2 className="w-4 h-4" /> IA Ativa
             </div>
-            <div className="bg-yellow-500/10 text-yellow-300 rounded-2xl p-3 border border-yellow-500/20">
-              PRO Ativo
+            <div className="bg-yellow-500/10 text-yellow-300 rounded-2xl p-3 border border-yellow-500/20 flex items-center gap-2">
+              <CheckCircle2 className="w-4 h-4" /> PRO Ativo
             </div>
           </div>
         </div>
