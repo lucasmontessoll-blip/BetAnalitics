@@ -52,6 +52,7 @@ import HeaderApp from './components/HeaderApp.jsx';
 import AdminResumoPro from './components/AdminResumoPro.jsx';
 import AtalhoAdminPerfil from './components/AtalhoAdminPerfil.jsx';
 import AreaProAssinatura from './components/AreaProAssinatura.jsx';
+import VoltarGlobal from './components/VoltarGlobal.jsx';
 const MODO_DEMONSTRACAO = true;
 const API_URL = '';
 function gerarEscudoAutomatico(nomeTime = 'TIME') {
@@ -1042,6 +1043,13 @@ return (
   setViewMode={setViewMode}
   setJogoSelecionado={setJogoSelecionado}
   setFilterCentro={setFilterCentro}
+/>
+<VoltarGlobal
+  setViewMode={setViewMode}
+  setMenuAtivo={setMenuAtivo}
+  setJogoSelecionado={setJogoSelecionado}
+  setFilterCentro={setFilterCentro}
+  setLigaAtivaId={setLigaAtivaId}
 />
 
 {(
