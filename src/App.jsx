@@ -51,6 +51,7 @@ import TelaInicial from './components/TelaInicial.jsx';
 import HeaderApp from './components/HeaderApp.jsx';
 import AdminResumoPro from './components/AdminResumoPro.jsx';
 import AtalhoAdminPerfil from './components/AtalhoAdminPerfil.jsx';
+import AreaProAssinatura from './components/AreaProAssinatura.jsx';
 const MODO_DEMONSTRACAO = true;
 const API_URL = '';
 function gerarEscudoAutomatico(nomeTime = 'TIME') {
@@ -1106,6 +1107,15 @@ return (
     </div>
   </div>
 )}
+{menuAtivo === 'assinar pro' && (
+<AreaProAssinatura
+  userData={userData}
+  setMenuAtivo={setMenuAtivo}
+  setViewMode={setViewMode}
+  iniciarPagamento={typeof iniciarPagamento === 'function' ? iniciarPagamento : undefined}
+/>
+)}
+
 {viewMode === 'radarpro' && (
 <TelaRadarIA
   jogos={jogos}
