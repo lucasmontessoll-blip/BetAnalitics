@@ -42,7 +42,6 @@ import SplashLogoAnimado from './components/SplashLogoAnimado.jsx';
 import MobileBackAndCleanUI from './components/MobileBackAndCleanUI.jsx';
 import CalendarioSemanaJogos from './components/CalendarioSemanaJogos.jsx';
 import RemoverSomentePesquisaBottom from './components/RemoverSomentePesquisaBottom.jsx';
-import AdminResumoPro from './components/AdminResumoPro.jsx';
 import MenuRodape from './components/MenuRodape.jsx';
 import CardJogo from './components/CardJogo.jsx';
 import TelaEncerrados from './components/TelaEncerrados.jsx';
@@ -50,6 +49,8 @@ import TelaAoVivo from './components/TelaAoVivo.jsx';
 import TelaRadarIA from './components/TelaRadarIA.jsx';
 import TelaInicial from './components/TelaInicial.jsx';
 import HeaderApp from './components/HeaderApp.jsx';
+import AdminResumoPro from './components/AdminResumoPro.jsx';
+import AtalhoAdminPerfil from './components/AtalhoAdminPerfil.jsx';
 const MODO_DEMONSTRACAO = true;
 const API_URL = '';
 function gerarEscudoAutomatico(nomeTime = 'TIME') {
@@ -1036,6 +1037,12 @@ return (
   setViewMode={setViewMode}
   setJogoSelecionado={setJogoSelecionado}
 />
+<AtalhoAdminPerfil
+  viewMode={viewMode}
+  setViewMode={setViewMode}
+  setMenuAtivo={setMenuAtivo}
+  setJogoSelecionado={setJogoSelecionado}
+/>
 <CalendarioSemanaJogos viewMode={viewMode} />
 <ModoDemoBadge modoDemo={MODO_DEMONSTRACAO} setViewMode={setViewMode} />
 <SemConexaoPro setViewMode={setViewMode} />
@@ -1149,6 +1156,14 @@ return (
     setJogoSelecionado(j);
   }}
   renderizarListaJogos={RenderizarListaJogos}
+/>
+)}
+
+{viewMode === 'admin' && (
+<AdminResumoPro
+  setViewMode={setViewMode}
+  userData={userData}
+  jogos={jogos}
 />
 )}
 
@@ -1366,9 +1381,6 @@ return (
 )}
 
 {viewMode === 'termos' && (<div className="px-4 animate-fade-in pb-20 w-full"><HeaderNav title=" Termos e Politicas" onBack={() => setViewMode('jogos')} /><LegalCompliance /></div>)}
-{viewMode === 'admin' && (
-<AdminResumoPro setViewMode={setViewMode} userData={userData} jogos={jogos} />
-)}
 </div>)}
 {jogoSelecionado && menuAtivo !== 'assinar pro' && (
 <div className="fixed inset-0 z-[999] bg-[#050816] text-white overflow-y-auto pb-28 animate-fade-in">
