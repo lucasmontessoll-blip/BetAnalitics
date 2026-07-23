@@ -12,11 +12,15 @@ export default function HeaderApp({
   setJogoSelecionado,
   setFilterCentro,
 }) {
+  const v = String(viewMode || '').toLowerCase();
+  const m = String(menuAtivo || '').toLowerCase();
+  const f = String(filterCentro || '').toLowerCase();
+
   const estaNaTelaInicial =
     !jogoSelecionado &&
-    String(viewMode || '').toLowerCase() === 'jogos' &&
-    String(menuAtivo || '').toLowerCase() !== 'assinar pro' &&
-    (!filterCentro || String(filterCentro).toLowerCase() === 'todos');
+    v === 'jogos' &&
+    (m === 'todos os jogos' || m === 'todos' || m === '') &&
+    (f === 'todos' || f === '');
 
   function retornarInicio() {
     if (typeof setJogoSelecionado === 'function') {
@@ -68,7 +72,7 @@ export default function HeaderApp({
             <button
               type="button"
               onClick={retornarInicio}
-              className="w-10 h-10 rounded-2xl bg-[#0f172a] border border-white/15 flex items-center justify-center text-white text-2xl font-black shadow-lg active:scale-95 shrink-0"
+              className="bet-retorno-topo-pro"
               data-bet-retorno-header="true"
               aria-label="Retornar ao início"
             >
