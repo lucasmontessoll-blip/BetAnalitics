@@ -1040,9 +1040,10 @@ return (
   setJogoSelecionado={setJogoSelecionado}
 />
 <BotaoVoltarSimples
-  viewMode={viewMode}
-  menuAtivo={menuAtivo}
-  jogoSelecionado={jogoSelecionado}
+  viewMode={typeof viewMode !== 'undefined' ? viewMode : 'jogos'}
+  menuAtivo={typeof menuAtivo !== 'undefined' ? menuAtivo : 'Todos os Jogos'}
+  filterCentro={typeof filterCentro !== 'undefined' ? filterCentro : 'Todos'}
+  jogoSelecionado={typeof jogoSelecionado !== 'undefined' ? jogoSelecionado : null}
   setViewMode={setViewMode}
   setMenuAtivo={setMenuAtivo}
   setJogoSelecionado={setJogoSelecionado}

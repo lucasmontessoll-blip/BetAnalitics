@@ -4,16 +4,26 @@ import { ArrowLeft } from 'lucide-react';
 export default function BotaoVoltarSimples({
   viewMode,
   menuAtivo,
+  filterCentro,
   jogoSelecionado,
   setViewMode,
   setMenuAtivo,
   setJogoSelecionado,
   setFilterCentro,
 }) {
+  const menuNormalizado = String(menuAtivo || '').toLowerCase().trim();
+  const filtroNormalizado = String(filterCentro || '').toLowerCase().trim();
+  const viewNormalizado = String(viewMode || '').toLowerCase().trim();
+
+  const estaNaTelaInicial =
+    (!viewNormalizado || viewNormalizado === 'jogos' || viewNormalizado === 'inicio' || viewNormalizado === 'home') &&
+    (!menuNormalizado || menuNormalizado === 'todos os jogos' || menuNormalizado === 'todos' || menuNormalizado === 'início' || menuNormalizado === 'inicio') &&
+    (!filtroNormalizado || filtroNormalizado === 'todos');
+
   const deveMostrar =
     Boolean(jogoSelecionado) ||
-    menuAtivo === 'assinar pro' ||
-    (viewMode && viewMode !== 'jogos');
+    menuNormalizado === 'assinar pro' ||
+    !estaNaTelaInicial;
 
   function voltarInicio() {
     if (typeof setJogoSelecionado === 'function') {
@@ -50,15 +60,14 @@ export default function BotaoVoltarSimples({
   if (!deveMostrar) return null;
 
   return (
-    <div className="px-4 mt-3 mb-3 w-full">
-      <button
-        type="button"
-        onClick={voltarInicio}
-        className="inline-flex items-center gap-2 bg-[#0f172a] border border-white/10 text-white rounded-2xl px-4 py-3 text-xs font-black uppercase shadow-lg active:scale-95"
-      >
-        <ArrowLeft className="w-4 h-4" />
-        Voltar
-      </button>
-    </div>
+    <button
+      type="button"
+      onClick={voltarInicio}
+      className="fixed left-3 top-[82px] z-[9999] bg-[#0f172a] border border-white/20 text-white rounded-2xl px-3 py-3 shadow-2xl active:scale-95"
+      aria-label="Voltar"
+      title="Voltar"
+    >
+      <ArrowLeft className="w-5 h-5" />
+    </button>
   );
 }
