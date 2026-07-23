@@ -1039,16 +1039,45 @@ return (
   setViewMode={setViewMode}
   setJogoSelecionado={setJogoSelecionado}
 />
-<BotaoVoltarSimples
-  viewMode={typeof viewMode !== 'undefined' ? viewMode : 'jogos'}
-  menuAtivo={typeof menuAtivo !== 'undefined' ? menuAtivo : 'Todos os Jogos'}
-  filterCentro={typeof filterCentro !== 'undefined' ? filterCentro : 'Todos'}
-  jogoSelecionado={typeof jogoSelecionado !== 'undefined' ? jogoSelecionado : null}
-  setViewMode={setViewMode}
-  setMenuAtivo={setMenuAtivo}
-  setJogoSelecionado={setJogoSelecionado}
-  setFilterCentro={typeof setFilterCentro === 'function' ? setFilterCentro : undefined}
-/>
+
+{(
+  jogoSelecionado ||
+  menuAtivo === 'assinar pro' ||
+  viewMode !== 'jogos' ||
+  filterCentro !== 'Todos'
+) && (
+  <button
+    type="button"
+    onClick={() => {
+      setJogoSelecionado(null);
+      setMenuAtivo('Todos os Jogos');
+      setViewMode('jogos');
+      setFilterCentro('Todos');
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    }}
+    style={{
+      position: 'fixed',
+      top: '82px',
+      left: '12px',
+      zIndex: 2147483647,
+      width: '44px',
+      height: '44px',
+      borderRadius: '16px',
+      border: '1px solid rgba(255,255,255,0.18)',
+      background: '#0f172a',
+      color: '#ffffff',
+      fontSize: '24px',
+      fontWeight: 900,
+      lineHeight: '1',
+      boxShadow: '0 12px 32px rgba(0,0,0,0.45)'
+    }}
+    aria-label="Voltar"
+    title="Voltar"
+  >
+    ←
+  </button>
+)}
+
 <AtalhoAdminPerfil
   viewMode={viewMode}
   setViewMode={setViewMode}
