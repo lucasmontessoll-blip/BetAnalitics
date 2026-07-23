@@ -52,6 +52,7 @@ import HeaderApp from './components/HeaderApp.jsx';
 import AdminResumoPro from './components/AdminResumoPro.jsx';
 import AtalhoAdminPerfil from './components/AtalhoAdminPerfil.jsx';
 import AreaProAssinatura from './components/AreaProAssinatura.jsx';
+import BotaoVoltarSimples from './components/BotaoVoltarSimples.jsx';
 const MODO_DEMONSTRACAO = true;
 const API_URL = '';
 function gerarEscudoAutomatico(nomeTime = 'TIME') {
@@ -1038,6 +1039,15 @@ return (
   setViewMode={setViewMode}
   setJogoSelecionado={setJogoSelecionado}
 />
+<BotaoVoltarSimples
+  viewMode={viewMode}
+  menuAtivo={menuAtivo}
+  jogoSelecionado={jogoSelecionado}
+  setViewMode={setViewMode}
+  setMenuAtivo={setMenuAtivo}
+  setJogoSelecionado={setJogoSelecionado}
+  setFilterCentro={typeof setFilterCentro === 'function' ? setFilterCentro : undefined}
+/>
 <AtalhoAdminPerfil
   viewMode={viewMode}
   setViewMode={setViewMode}
@@ -1395,7 +1405,9 @@ return (
 {jogoSelecionado && menuAtivo !== 'assinar pro' && (
 <div className="fixed inset-0 z-[999] bg-[#050816] text-white overflow-y-auto pb-28 animate-fade-in">
 <Suspense fallback={<div className="text-center p-10 font-black text-blue-500 animate-pulse text-xs">A carregar painel do jogo...</div>}>
-<PainelJogo jogo={jogoSelecionado} setJogoSelecionado={setJogoSelecionado} bancaInicial={bancaInicial} gerarExplicacaoIA={gerarExplicacaoIA} calcularStake={calcularStake} calcularKelly={calcularKelly}  setAiOpen={setAiOpen}  setAiQuery={setAiQuery} />
+<PainelJogo jogo={jogoSelecionado} setJogoSelecionado={setJogoSelecionado} bancaInicial={bancaInicial} gerarExplicacaoIA={gerarExplicacaoIA} calcularStake={calcularStake} calcularKelly={calcularKelly}  setAiOpen={setAiOpen}  setAiQuery={setAiQuery}
+  setViewMode={setViewMode}
+/>
 </Suspense>
 <div className="px-4 pb-8 space-y-4">
 </div>

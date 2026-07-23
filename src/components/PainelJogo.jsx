@@ -215,7 +215,10 @@ export default function PainelJogo(props) {
 
     if (typeof props?.setViewMode === 'function') {
       props.setViewMode('jogos');
+      return;
     }
+
+    window.dispatchEvent(new CustomEvent('betanalytics:voltarInicio'));
   }
 
   return (
