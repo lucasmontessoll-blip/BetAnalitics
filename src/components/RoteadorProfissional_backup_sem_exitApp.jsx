@@ -68,7 +68,7 @@ export default function RoteadorProfissional({
     return '/';
   }
 
-  function subirTopo() {
+  function voltarParaTopo() {
     try {
       window.scrollTo({ top: 0, behavior: 'smooth' });
       document.documentElement.scrollTop = 0;
@@ -76,20 +76,10 @@ export default function RoteadorProfissional({
     } catch {}
   }
 
-  function aplicarInicio() {
-    if (typeof setJogoSelecionado === 'function') setJogoSelecionado(null);
-    if (typeof setMenuAtivo === 'function') setMenuAtivo('Todos os Jogos');
-    if (typeof setViewMode === 'function') setViewMode('jogos');
-    if (typeof setFilterCentro === 'function') setFilterCentro('Todos');
-    if (typeof setLigaAtivaId === 'function') setLigaAtivaId(null);
-
-    subirTopo();
-  }
-
   function aplicarRota(pathname) {
     const path = String(pathname || '/').toLowerCase();
 
-    if (!path.startsWith('/jogo/') && typeof setJogoSelecionado === 'function') {
+    if (typeof setJogoSelecionado === 'function' && !path.startsWith('/jogo/')) {
       setJogoSelecionado(null);
     }
 
@@ -101,7 +91,7 @@ export default function RoteadorProfissional({
       if (typeof setMenuAtivo === 'function') setMenuAtivo('Todos os Jogos');
       if (typeof setViewMode === 'function') setViewMode('aovivo');
       if (typeof setFilterCentro === 'function') setFilterCentro('Ao Vivo');
-      subirTopo();
+      voltarParaTopo();
       return;
     }
 
@@ -109,7 +99,7 @@ export default function RoteadorProfissional({
       if (typeof setMenuAtivo === 'function') setMenuAtivo('Todos os Jogos');
       if (typeof setViewMode === 'function') setViewMode('encerrado');
       if (typeof setFilterCentro === 'function') setFilterCentro('Encerrado');
-      subirTopo();
+      voltarParaTopo();
       return;
     }
 
@@ -117,7 +107,7 @@ export default function RoteadorProfissional({
       if (typeof setMenuAtivo === 'function') setMenuAtivo('Todos os Jogos');
       if (typeof setViewMode === 'function') setViewMode('radarpro');
       if (typeof setFilterCentro === 'function') setFilterCentro('Todos');
-      subirTopo();
+      voltarParaTopo();
       return;
     }
 
@@ -125,7 +115,7 @@ export default function RoteadorProfissional({
       if (typeof setMenuAtivo === 'function') setMenuAtivo('Todos os Jogos');
       if (typeof setViewMode === 'function') setViewMode('perfil');
       if (typeof setFilterCentro === 'function') setFilterCentro('Todos');
-      subirTopo();
+      voltarParaTopo();
       return;
     }
 
@@ -133,7 +123,7 @@ export default function RoteadorProfissional({
       if (typeof setMenuAtivo === 'function') setMenuAtivo('Todos os Jogos');
       if (typeof setViewMode === 'function') setViewMode('admin');
       if (typeof setFilterCentro === 'function') setFilterCentro('Todos');
-      subirTopo();
+      voltarParaTopo();
       return;
     }
 
@@ -141,7 +131,7 @@ export default function RoteadorProfissional({
       if (typeof setMenuAtivo === 'function') setMenuAtivo('Todos os Jogos');
       if (typeof setViewMode === 'function') setViewMode('banca-pro');
       if (typeof setFilterCentro === 'function') setFilterCentro('Todos');
-      subirTopo();
+      voltarParaTopo();
       return;
     }
 
@@ -150,7 +140,7 @@ export default function RoteadorProfissional({
       if (typeof setMenuAtivo === 'function') setMenuAtivo('assinar pro');
       if (typeof setViewMode === 'function') setViewMode('jogos');
       if (typeof setFilterCentro === 'function') setFilterCentro('Todos');
-      subirTopo();
+      voltarParaTopo();
       return;
     }
 
@@ -158,34 +148,20 @@ export default function RoteadorProfissional({
       if (typeof setMenuAtivo === 'function') setMenuAtivo('Todos os Jogos');
       if (typeof setViewMode === 'function') setViewMode('config');
       if (typeof setFilterCentro === 'function') setFilterCentro('Todos');
-      subirTopo();
+      voltarParaTopo();
       return;
     }
 
     if (path.startsWith('/jogo/')) {
-      subirTopo();
+      voltarParaTopo();
       return;
     }
 
-    aplicarInicio();
-  }
-
-  function voltarPeloBotaoNativo() {
-    const estado = estadoRef.current || {};
-    const rotaAtualPorEstado = rotaDaTela(estado);
-    const rotaAtualPorUrl = location.pathname || '/';
-
-    if (rotaAtualPorEstado !== '/' || rotaAtualPorUrl !== '/') {
-      aplicarInicio();
-
-      try {
-        navigate('/', { replace: false });
-      } catch {}
-
-      return;
-    }
-
-    aplicarInicio();
+    if (typeof setJogoSelecionado === 'function') setJogoSelecionado(null);
+    if (typeof setMenuAtivo === 'function') setMenuAtivo('Todos os Jogos');
+    if (typeof setViewMode === 'function') setViewMode('jogos');
+    if (typeof setFilterCentro === 'function') setFilterCentro('Todos');
+    voltarParaTopo();
   }
 
   useEffect(() => {
@@ -241,7 +217,14 @@ export default function RoteadorProfissional({
     async function registrarBotaoNativo() {
       try {
         const h = await CapacitorApp.addListener('backButton', () => {
-          voltarPeloBotaoNativo();
+          const path = estadoRef.current.pathname || '/';
+
+          if (path !== '/') {
+            navigate('/', { replace: false });
+            return;
+          }
+
+          CapacitorApp.exitApp();
         });
 
         if (!ativo && h?.remove) {
@@ -262,7 +245,7 @@ export default function RoteadorProfissional({
         handle.remove();
       }
     };
-  }, [navigate, location.pathname]);
+  }, [navigate]);
 
   return null;
 }
