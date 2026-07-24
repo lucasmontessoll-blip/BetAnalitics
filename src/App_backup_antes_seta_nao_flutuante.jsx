@@ -52,7 +52,6 @@ import HeaderApp from './components/HeaderApp.jsx';
 import AdminResumoPro from './components/AdminResumoPro.jsx';
 import AtalhoAdminPerfil from './components/AtalhoAdminPerfil.jsx';
 import AreaProAssinatura from './components/AreaProAssinatura.jsx';
-import RoteadorProfissional from './components/RoteadorProfissional.jsx';
 const MODO_DEMONSTRACAO = true;
 const API_URL = '';
 function gerarEscudoAutomatico(nomeTime = 'TIME') {
@@ -1035,21 +1034,14 @@ return (
 <RemoverSomentePesquisaBottom />
 <HeaderApp
   userData={userData}
-  setMenuAtivo={setMenuAtivo}
-  setViewMode={setViewMode}
-  setJogoSelecionado={setJogoSelecionado}
-  setFilterCentro={setFilterCentro}
-/>
-<RoteadorProfissional
   viewMode={viewMode}
   menuAtivo={menuAtivo}
   filterCentro={filterCentro}
   jogoSelecionado={jogoSelecionado}
-  setViewMode={setViewMode}
   setMenuAtivo={setMenuAtivo}
-  setFilterCentro={setFilterCentro}
+  setViewMode={setViewMode}
   setJogoSelecionado={setJogoSelecionado}
-  setLigaAtivaId={typeof setLigaAtivaId === 'function' ? setLigaAtivaId : undefined}
+  setFilterCentro={setFilterCentro}
 />
 {(
   jogoSelecionado ||

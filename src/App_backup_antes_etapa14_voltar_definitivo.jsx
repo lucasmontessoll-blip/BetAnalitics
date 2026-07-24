@@ -52,7 +52,7 @@ import HeaderApp from './components/HeaderApp.jsx';
 import AdminResumoPro from './components/AdminResumoPro.jsx';
 import AtalhoAdminPerfil from './components/AtalhoAdminPerfil.jsx';
 import AreaProAssinatura from './components/AreaProAssinatura.jsx';
-import RoteadorProfissional from './components/RoteadorProfissional.jsx';
+import BotaoVoltarSimples from './components/BotaoVoltarSimples.jsx';
 const MODO_DEMONSTRACAO = true;
 const API_URL = '';
 function gerarEscudoAutomatico(nomeTime = 'TIME') {
@@ -1038,57 +1038,17 @@ return (
   setMenuAtivo={setMenuAtivo}
   setViewMode={setViewMode}
   setJogoSelecionado={setJogoSelecionado}
-  setFilterCentro={setFilterCentro}
 />
-<RoteadorProfissional
-  viewMode={viewMode}
-  menuAtivo={menuAtivo}
-  filterCentro={filterCentro}
-  jogoSelecionado={jogoSelecionado}
+<BotaoVoltarSimples
+  viewMode={typeof viewMode !== 'undefined' ? viewMode : 'jogos'}
+  menuAtivo={typeof menuAtivo !== 'undefined' ? menuAtivo : 'Todos os Jogos'}
+  filterCentro={typeof filterCentro !== 'undefined' ? filterCentro : 'Todos'}
+  jogoSelecionado={typeof jogoSelecionado !== 'undefined' ? jogoSelecionado : null}
   setViewMode={setViewMode}
   setMenuAtivo={setMenuAtivo}
-  setFilterCentro={setFilterCentro}
   setJogoSelecionado={setJogoSelecionado}
-  setLigaAtivaId={typeof setLigaAtivaId === 'function' ? setLigaAtivaId : undefined}
+  setFilterCentro={typeof setFilterCentro === 'function' ? setFilterCentro : undefined}
 />
-{(
-  jogoSelecionado ||
-  menuAtivo === 'assinar pro' ||
-  viewMode !== 'jogos' ||
-  filterCentro !== 'Todos'
-) && (
-  <button
-    type="button"
-    onClick={() => {
-      setJogoSelecionado(null);
-      setMenuAtivo('Todos os Jogos');
-      setViewMode('jogos');
-      setFilterCentro('Todos');
-      window.scrollTo({ top: 0, behavior: 'smooth' });
-    }}
-    style={{
-      position: 'fixed',
-      top: '82px',
-      left: '12px',
-      zIndex: 2147483647,
-      width: '44px',
-      height: '44px',
-      borderRadius: '16px',
-      border: '1px solid rgba(255,255,255,0.18)',
-      background: '#0f172a',
-      color: '#ffffff',
-      fontSize: '24px',
-      fontWeight: 900,
-      lineHeight: '1',
-      boxShadow: '0 12px 32px rgba(0,0,0,0.45)'
-    }}
-    aria-label="Voltar"
-    title="Voltar"
-  >
-    ←
-  </button>
-)}
-
 <AtalhoAdminPerfil
   viewMode={viewMode}
   setViewMode={setViewMode}
@@ -1445,30 +1405,9 @@ return (
 </div>)}
 {jogoSelecionado && menuAtivo !== 'assinar pro' && (
 <div className="fixed inset-0 z-[999] bg-[#050816] text-white overflow-y-auto pb-28 animate-fade-in">
-<button
-  type="button"
-  onClick={() => {
-    setJogoSelecionado(null);
-    setMenuAtivo('Todos os Jogos');
-    setViewMode('jogos');
-    setFilterCentro('Todos');
-    window.scrollTo({ top: 0, behavior: 'smooth' });
-  }}
-  className="bet-retorno-painel-pro"
-  data-bet-retorno-painel="true"
-  aria-label="Retornar ao início"
->
-  {'<'}
-</button>
 <Suspense fallback={<div className="text-center p-10 font-black text-blue-500 animate-pulse text-xs">A carregar painel do jogo...</div>}>
 <PainelJogo jogo={jogoSelecionado} setJogoSelecionado={setJogoSelecionado} bancaInicial={bancaInicial} gerarExplicacaoIA={gerarExplicacaoIA} calcularStake={calcularStake} calcularKelly={calcularKelly}  setAiOpen={setAiOpen}  setAiQuery={setAiQuery}
   setViewMode={setViewMode}
-  onBack={() => {
-    setJogoSelecionado(null);
-    setMenuAtivo('Todos os Jogos');
-    setViewMode('jogos');
-    setFilterCentro('Todos');
-  }}
 />
 </Suspense>
 <div className="px-4 pb-8 space-y-4">
