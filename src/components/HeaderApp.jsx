@@ -23,21 +23,10 @@ export default function HeaderApp({
     (f === 'todos' || f === '');
 
   function retornarInicio() {
-    if (typeof setJogoSelecionado === 'function') {
-      setJogoSelecionado(null);
-    }
-
-    if (typeof setMenuAtivo === 'function') {
-      setMenuAtivo('Todos os Jogos');
-    }
-
-    if (typeof setViewMode === 'function') {
-      setViewMode('jogos');
-    }
-
-    if (typeof setFilterCentro === 'function') {
-      setFilterCentro('Todos');
-    }
+    if (typeof setJogoSelecionado === 'function') setJogoSelecionado(null);
+    if (typeof setMenuAtivo === 'function') setMenuAtivo('Todos os Jogos');
+    if (typeof setViewMode === 'function') setViewMode('jogos');
+    if (typeof setFilterCentro === 'function') setFilterCentro('Todos');
 
     try {
       window.scrollTo({ top: 0, behavior: 'smooth' });
@@ -47,25 +36,14 @@ export default function HeaderApp({
   }
 
   function abrirPerfil() {
-    if (typeof setMenuAtivo === 'function') {
-      setMenuAtivo('Todos os Jogos');
-    }
-
-    if (typeof setViewMode === 'function') {
-      setViewMode('perfil');
-    }
-
-    if (typeof setJogoSelecionado === 'function') {
-      setJogoSelecionado(null);
-    }
-
-    if (typeof setFilterCentro === 'function') {
-      setFilterCentro('Todos');
-    }
+    if (typeof setMenuAtivo === 'function') setMenuAtivo('Todos os Jogos');
+    if (typeof setViewMode === 'function') setViewMode('perfil');
+    if (typeof setJogoSelecionado === 'function') setJogoSelecionado(null);
+    if (typeof setFilterCentro === 'function') setFilterCentro('Todos');
   }
 
   return (
-    <header className="sticky top-0 z-[900] bg-[#050816]/95 backdrop-blur-xl border-b border-white/5 px-3 py-2">
+    <header className="bg-[#050816] border-b border-white/5 px-3 py-2">
       <div className="flex items-center justify-between gap-3">
         <div className="flex items-center gap-3 min-w-0">
           {!estaNaTelaInicial && (
