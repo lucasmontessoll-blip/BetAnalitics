@@ -52,7 +52,7 @@ import HeaderApp from './components/HeaderApp.jsx';
 import AdminResumoPro from './components/AdminResumoPro.jsx';
 import AtalhoAdminPerfil from './components/AtalhoAdminPerfil.jsx';
 import AreaProAssinatura from './components/AreaProAssinatura.jsx';
-import RoteadorProfissional from './components/RoteadorProfissional.jsx';
+import VoltarAndroidWeb from './components/VoltarAndroidWeb.jsx';
 const MODO_DEMONSTRACAO = true;
 const API_URL = '';
 function gerarEscudoAutomatico(nomeTime = 'TIME') {
@@ -1040,7 +1040,7 @@ return (
   setJogoSelecionado={setJogoSelecionado}
   setFilterCentro={setFilterCentro}
 />
-<RoteadorProfissional
+<VoltarAndroidWeb
   viewMode={viewMode}
   menuAtivo={menuAtivo}
   filterCentro={filterCentro}
@@ -1049,7 +1049,7 @@ return (
   setMenuAtivo={setMenuAtivo}
   setFilterCentro={setFilterCentro}
   setJogoSelecionado={setJogoSelecionado}
-  setLigaAtivaId={typeof setLigaAtivaId === 'function' ? setLigaAtivaId : undefined}
+  setLigaAtivaId={setLigaAtivaId}
 />
 {(
   jogoSelecionado ||

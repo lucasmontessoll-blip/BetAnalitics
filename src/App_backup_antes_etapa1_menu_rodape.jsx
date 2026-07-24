@@ -42,17 +42,7 @@ import SplashLogoAnimado from './components/SplashLogoAnimado.jsx';
 import MobileBackAndCleanUI from './components/MobileBackAndCleanUI.jsx';
 import CalendarioSemanaJogos from './components/CalendarioSemanaJogos.jsx';
 import RemoverSomentePesquisaBottom from './components/RemoverSomentePesquisaBottom.jsx';
-import MenuRodape from './components/MenuRodape.jsx';
-import CardJogo from './components/CardJogo.jsx';
-import TelaEncerrados from './components/TelaEncerrados.jsx';
-import TelaAoVivo from './components/TelaAoVivo.jsx';
-import TelaRadarIA from './components/TelaRadarIA.jsx';
-import TelaInicial from './components/TelaInicial.jsx';
-import HeaderApp from './components/HeaderApp.jsx';
 import AdminResumoPro from './components/AdminResumoPro.jsx';
-import AtalhoAdminPerfil from './components/AtalhoAdminPerfil.jsx';
-import AreaProAssinatura from './components/AreaProAssinatura.jsx';
-import RoteadorProfissional from './components/RoteadorProfissional.jsx';
 const MODO_DEMONSTRACAO = true;
 const API_URL = '';
 function gerarEscudoAutomatico(nomeTime = 'TIME') {
@@ -763,19 +753,33 @@ return Object.entries(jGrp).map(([leagueName, matches]) => (
 <div key={leagueName} className="mb-6 w-full">
 <div className="text-xs font-black text-slate-500 uppercase tracking-widest mb-3 pl-2">{leagueName}</div>
 {matches.map(j => (
-<CardJogo
-  key={j.id}
-  j={j}
-  userData={userData}
-  setMenuAtivo={setMenuAtivo}
-  setJogoSelecionado={setJogoSelecionado}
-  toggleFavorito={toggleFavorito}
-  favoritos={favoritos}
-  escudoTime={escudoTime}
-  gerarEscudoAutomatico={gerarEscudoAutomatico}
-  statusEhAoVivo={statusEhAoVivo}
-  statusEhEncerrado={statusEhEncerrado}
-/>
+<div key={j.id} onClick={() => { if (!userData?.is_vip) return setMenuAtivo('assinar pro'); setJogoSelecionado(j); }} className="bg-[#0f172a] border border-white/10 rounded-3xl p-5 shadow-lg mb-4 cursor-pointer hover:border-blue-500/50 transform-gpu transition-colors">
+<div className="flex justify-between items-center mb-5">
+{statusEhAoVivo(j) ? (<span className="bg-red-500 px-3 py-1 rounded-full text-[10px] font-black uppercase"> Ao Vivo {String(j.time_elapsed).replace("'", "")}'</span>) : (<span className="text-slate-400 text-[10px] font-bold uppercase">{statusEhEncerrado(j) ? 'Finalizado' : 'Agendado'}</span>)}
+<button onClick={(e) => { e.stopPropagation(); toggleFavorito(e, j.id); }} className="p-1"><Star className={`w-5 h-5 ${favoritos.includes(j.id) ? 'fill-yellow-400 text-yellow-400' : 'text-slate-600'}`} /></button>
+</div>
+<div className="grid grid-cols-3 items-center text-center mb-4">
+<div className="flex flex-col items-center gap-2"><img
+  src={escudoTime(j.home_image, j.home_team)}
+  onError={(e) => {
+    e.currentTarget.onerror = null;
+    e.currentTarget.src = gerarEscudoAutomatico(j.home_team);
+  }}
+  className="w-10 h-10 object-contain"
+  alt={j.home_team || 'Time casa'}
+/><span className="text-[10px] font-bold text-slate-200 truncate w-full">{j.home_team}</span></div>
+<div className="text-2xl font-black">{j.status === 'Live' || statusEhEncerrado(j) ? `${j.scoreHome} - ${j.scoreAway}` : <span className="text-slate-600">-</span>}</div>
+<div className="flex flex-col items-center gap-2"><img
+  src={escudoTime(j.away_image, j.away_team)}
+  onError={(e) => {
+    e.currentTarget.onerror = null;
+    e.currentTarget.src = gerarEscudoAutomatico(j.away_team);
+  }}
+  className="w-10 h-10 object-contain"
+  alt={j.away_team || 'Time fora'}
+/><span className="text-[10px] font-bold text-slate-200 truncate w-full">{j.away_team}</span></div>
+</div>
+</div>
 ))}
 </div>
 ));
@@ -1033,68 +1037,30 @@ return (
 />
 
 <RemoverSomentePesquisaBottom />
-<HeaderApp
-  userData={userData}
-  setMenuAtivo={setMenuAtivo}
-  setViewMode={setViewMode}
-  setJogoSelecionado={setJogoSelecionado}
-  setFilterCentro={setFilterCentro}
-/>
-<RoteadorProfissional
-  viewMode={viewMode}
-  menuAtivo={menuAtivo}
-  filterCentro={filterCentro}
-  jogoSelecionado={jogoSelecionado}
-  setViewMode={setViewMode}
-  setMenuAtivo={setMenuAtivo}
-  setFilterCentro={setFilterCentro}
-  setJogoSelecionado={setJogoSelecionado}
-  setLigaAtivaId={typeof setLigaAtivaId === 'function' ? setLigaAtivaId : undefined}
-/>
-{(
-  jogoSelecionado ||
-  menuAtivo === 'assinar pro' ||
-  viewMode !== 'jogos' ||
-  filterCentro !== 'Todos'
-) && (
-  <button
-    type="button"
-    onClick={() => {
-      setJogoSelecionado(null);
-      setMenuAtivo('Todos os Jogos');
-      setViewMode('jogos');
-      setFilterCentro('Todos');
-      window.scrollTo({ top: 0, behavior: 'smooth' });
-    }}
+<header className="flex items-center justify-between gap-3 px-3 py-2 bg-[#050816] sticky top-0 z-40 border-b border-white/5">
+<div className="flex flex-col items-start justify-center min-w-0">
+  <img
+    src="/logo-topo.png"
+    alt="BetAnalytics PRO"
+    className="h-12 sm:h-14 w-auto max-w-[250px] object-contain select-none"
+    draggable="false"
     style={{
-      position: 'fixed',
-      top: '82px',
-      left: '12px',
-      zIndex: 2147483647,
-      width: '44px',
-      height: '44px',
-      borderRadius: '16px',
-      border: '1px solid rgba(255,255,255,0.18)',
-      background: '#0f172a',
-      color: '#ffffff',
-      fontSize: '24px',
-      fontWeight: 900,
-      lineHeight: '1',
-      boxShadow: '0 12px 32px rgba(0,0,0,0.45)'
+      background: 'transparent',
+      boxShadow: 'none',
+      filter: 'none',
+      border: 'none',
+      outline: 'none'
     }}
-    aria-label="Voltar"
-    title="Voltar"
-  >
-    ←
-  </button>
-)}
-
-<AtalhoAdminPerfil
-  viewMode={viewMode}
-  setViewMode={setViewMode}
-  setMenuAtivo={setMenuAtivo}
-  setJogoSelecionado={setJogoSelecionado}
-/>
+  />
+  {userData?.is_vip && (
+    <span className="mt-1 text-[9px] font-black uppercase tracking-widest text-yellow-400 flex items-center gap-1">
+      <Crown className="w-3 h-3" />
+      VIP ativo
+    </span>
+  )}
+</div>
+<button onClick={() => { setMenuAtivo('Todos os Jogos'); setViewMode('perfil'); setJogoSelecionado(null); }} className="bg-blue-600 hover:bg-blue-500 text-white font-black px-3 py-2 rounded-xl flex items-center gap-2 text-xs shadow-lg uppercase"><User className="w-4 h-4" />Perfil</button>
+</header>
 <CalendarioSemanaJogos viewMode={viewMode} />
 <ModoDemoBadge modoDemo={MODO_DEMONSTRACAO} setViewMode={setViewMode} />
 <SemConexaoPro setViewMode={setViewMode} />
@@ -1158,56 +1124,11 @@ return (
     </div>
   </div>
 )}
-{menuAtivo === 'assinar pro' && (
-<AreaProAssinatura
-  userData={userData}
-  setMenuAtivo={setMenuAtivo}
-  setViewMode={setViewMode}
-  iniciarPagamento={typeof iniciarPagamento === 'function' ? iniciarPagamento : undefined}
-/>
-)}
+{(viewMode === 'jogos' || viewMode === 'encerrado') && (
+<>
+<div className="px-4 w-full">
 
-{viewMode === 'radarpro' && (
-<TelaRadarIA
-  jogos={jogos}
-  userData={userData}
-  setMenuAtivo={setMenuAtivo}
-  setJogoSelecionado={setJogoSelecionado}
-  toggleFavorito={toggleFavorito}
-  favoritos={favoritos}
-  escudoTime={escudoTime}
-  gerarEscudoAutomatico={gerarEscudoAutomatico}
-/>
-)}
-
-{viewMode === 'aovivo' && (
-<TelaAoVivo
-  jogos={jogos}
-  userData={userData}
-  setMenuAtivo={setMenuAtivo}
-  setJogoSelecionado={setJogoSelecionado}
-  toggleFavorito={toggleFavorito}
-  favoritos={favoritos}
-  escudoTime={escudoTime}
-  gerarEscudoAutomatico={gerarEscudoAutomatico}
-/>
-)}
-
-{viewMode === 'encerrado' && (
-<TelaEncerrados
-  jogos={jogos}
-  userData={userData}
-  setMenuAtivo={setMenuAtivo}
-  setJogoSelecionado={setJogoSelecionado}
-  toggleFavorito={toggleFavorito}
-  favoritos={favoritos}
-  escudoTime={escudoTime}
-  gerarEscudoAutomatico={gerarEscudoAutomatico}
-/>
-)}
-
-{viewMode === 'jogos' && (
-<TelaInicial
+<JogosPorPaisContinente
   jogos={jogosTelaPrincipal}
   favoritos={favoritos}
   onToggleFavorito={toggleFavorito}
@@ -1216,18 +1137,14 @@ return (
     if (!userData?.is_vip) return setMenuAtivo('assinar pro');
     setJogoSelecionado(j);
   }}
-  renderizarListaJogos={RenderizarListaJogos}
 />
-)}
 
-{viewMode === 'admin' && (
-<AdminResumoPro
-  setViewMode={setViewMode}
-  userData={userData}
-  jogos={jogos}
-/>
-)}
+<RenderizarListaJogos />
 
+
+
+
+</div><div className="px-4 mt-10 mb-10 text-center"><LegalCompliance modo="botao" /></div></>)}
 {viewMode === 'perfil' && (
 <>
 <PerfilProCompleto
@@ -1442,34 +1359,14 @@ return (
 )}
 
 {viewMode === 'termos' && (<div className="px-4 animate-fade-in pb-20 w-full"><HeaderNav title=" Termos e Politicas" onBack={() => setViewMode('jogos')} /><LegalCompliance /></div>)}
+{viewMode === 'admin' && (
+<AdminResumoPro setViewMode={setViewMode} userData={userData} jogos={jogos} />
+)}
 </div>)}
 {jogoSelecionado && menuAtivo !== 'assinar pro' && (
 <div className="fixed inset-0 z-[999] bg-[#050816] text-white overflow-y-auto pb-28 animate-fade-in">
-<button
-  type="button"
-  onClick={() => {
-    setJogoSelecionado(null);
-    setMenuAtivo('Todos os Jogos');
-    setViewMode('jogos');
-    setFilterCentro('Todos');
-    window.scrollTo({ top: 0, behavior: 'smooth' });
-  }}
-  className="bet-retorno-painel-pro"
-  data-bet-retorno-painel="true"
-  aria-label="Retornar ao início"
->
-  {'<'}
-</button>
 <Suspense fallback={<div className="text-center p-10 font-black text-blue-500 animate-pulse text-xs">A carregar painel do jogo...</div>}>
-<PainelJogo jogo={jogoSelecionado} setJogoSelecionado={setJogoSelecionado} bancaInicial={bancaInicial} gerarExplicacaoIA={gerarExplicacaoIA} calcularStake={calcularStake} calcularKelly={calcularKelly}  setAiOpen={setAiOpen}  setAiQuery={setAiQuery}
-  setViewMode={setViewMode}
-  onBack={() => {
-    setJogoSelecionado(null);
-    setMenuAtivo('Todos os Jogos');
-    setViewMode('jogos');
-    setFilterCentro('Todos');
-  }}
-/>
+<PainelJogo jogo={jogoSelecionado} setJogoSelecionado={setJogoSelecionado} bancaInicial={bancaInicial} gerarExplicacaoIA={gerarExplicacaoIA} calcularStake={calcularStake} calcularKelly={calcularKelly}  setAiOpen={setAiOpen}  setAiQuery={setAiQuery} />
 </Suspense>
 <div className="px-4 pb-8 space-y-4">
 </div>
@@ -1489,15 +1386,84 @@ return (
   
 </div>
 
-<MenuRodape
-  viewMode={viewMode}
-  filterCentro={filterCentro}
-  setMenuAtivo={setMenuAtivo}
-  setViewMode={setViewMode}
-  setFilterCentro={setFilterCentro}
-  setLigaAtivaId={setLigaAtivaId}
-  setJogoSelecionado={setJogoSelecionado}
-/>
+<nav className="fixed bottom-0 left-0 right-0 bg-[#050816] border-t border-white/5 z-50 flex flex-col shadow-[0_-5px_20px_rgba(0,0,0,0.5)]">
+  <div className="flex justify-around items-center h-16 pt-2 w-full">
+
+    <button
+      onClick={() => {
+        setMenuAtivo('Todos os Jogos');
+        setViewMode('jogos');
+        setFilterCentro('Todos');
+        setLigaAtivaId(null);
+        setJogoSelecionado(null);
+      }}
+      className={`flex flex-col items-center gap-1.5 ${viewMode === 'jogos' && filterCentro === 'Todos' ? 'text-blue-500' : 'text-slate-500'}`}
+      style={{ touchAction: 'manipulation' }}
+    >
+      <Home className="w-5 h-5" />
+      <span className="text-[8px] font-black uppercase mt-0.5">Inicio</span>
+    </button>
+
+    <button
+      onClick={() => {
+        setMenuAtivo('Todos os Jogos');
+        setViewMode('jogos');
+        setFilterCentro('Ao Vivo');
+        setLigaAtivaId(null);
+        setJogoSelecionado(null);
+      }}
+      className={`flex flex-col items-center gap-1.5 ${filterCentro === 'Ao Vivo' ? 'text-red-500' : 'text-slate-500'}`}
+      style={{ touchAction: 'manipulation' }}
+    >
+      <Radio className="w-5 h-5" />
+      <span className="text-[8px] font-black uppercase mt-0.5">Ao Vivo</span>
+    </button>
+
+    <button
+      onClick={() => {
+        setMenuAtivo('Todos os Jogos');
+        setViewMode('jogos');
+        setFilterCentro('Encerrado');
+        setLigaAtivaId(null);
+        setJogoSelecionado(null);
+      }}
+      className={`flex flex-col items-center gap-1.5 ${filterCentro === 'Encerrado' ? 'text-green-500' : 'text-slate-500'}`}
+      style={{ touchAction: 'manipulation' }}
+    >
+      <CheckCircle2 className="w-5 h-5" />
+      <span className="text-[8px] font-black uppercase mt-0.5">Encerrado</span>
+    </button>
+
+    <button
+      onClick={() => {
+        setMenuAtivo('Todos os Jogos');
+        setViewMode('copa');
+        setFilterCentro('Todos');
+        setLigaAtivaId(null);
+        setJogoSelecionado(null);
+      }}
+      className={`flex flex-col items-center gap-1.5 ${viewMode === 'copa' ? 'text-yellow-500' : 'text-slate-500'}`}
+      style={{ touchAction: 'manipulation' }}
+    >
+      <Trophy className="w-5 h-5" />
+      <span className="text-[8px] font-black uppercase mt-0.5">Jogos</span>
+    </button>
+
+    <button
+      onClick={() => {
+        setMenuAtivo('Todos os Jogos');
+        setViewMode('radar');
+        setJogoSelecionado(null);
+      }}
+      className={`flex flex-col items-center gap-1.5 ${viewMode === 'radar' ? 'text-blue-500' : 'text-slate-500'}`}
+      style={{ touchAction: 'manipulation' }}
+    >
+      <Target className="w-5 h-5" />
+      <span className="text-[8px] font-black uppercase mt-0.5">Radar IA</span>
+    </button>
+
+  </div>
+</nav>
 </div>
 );
 }

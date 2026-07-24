@@ -52,7 +52,8 @@ import HeaderApp from './components/HeaderApp.jsx';
 import AdminResumoPro from './components/AdminResumoPro.jsx';
 import AtalhoAdminPerfil from './components/AtalhoAdminPerfil.jsx';
 import AreaProAssinatura from './components/AreaProAssinatura.jsx';
-import RoteadorProfissional from './components/RoteadorProfissional.jsx';
+import VoltarGlobal from './components/VoltarGlobal.jsx';
+import VoltarReal from './components/VoltarReal.jsx';
 const MODO_DEMONSTRACAO = true;
 const API_URL = '';
 function gerarEscudoAutomatico(nomeTime = 'TIME') {
@@ -1035,22 +1036,30 @@ return (
 <RemoverSomentePesquisaBottom />
 <HeaderApp
   userData={userData}
-  setMenuAtivo={setMenuAtivo}
-  setViewMode={setViewMode}
-  setJogoSelecionado={setJogoSelecionado}
-  setFilterCentro={setFilterCentro}
-/>
-<RoteadorProfissional
   viewMode={viewMode}
   menuAtivo={menuAtivo}
   filterCentro={filterCentro}
   jogoSelecionado={jogoSelecionado}
+  setMenuAtivo={setMenuAtivo}
+  setViewMode={setViewMode}
+  setJogoSelecionado={setJogoSelecionado}
+  setFilterCentro={setFilterCentro}
+/>
+<VoltarReal
   setViewMode={setViewMode}
   setMenuAtivo={setMenuAtivo}
-  setFilterCentro={setFilterCentro}
   setJogoSelecionado={setJogoSelecionado}
-  setLigaAtivaId={typeof setLigaAtivaId === 'function' ? setLigaAtivaId : undefined}
+  setFilterCentro={setFilterCentro}
+  setLigaAtivaId={setLigaAtivaId}
 />
+<VoltarGlobal
+  setViewMode={setViewMode}
+  setMenuAtivo={setMenuAtivo}
+  setJogoSelecionado={setJogoSelecionado}
+  setFilterCentro={setFilterCentro}
+  setLigaAtivaId={setLigaAtivaId}
+/>
+
 {(
   jogoSelecionado ||
   menuAtivo === 'assinar pro' ||
@@ -1445,21 +1454,6 @@ return (
 </div>)}
 {jogoSelecionado && menuAtivo !== 'assinar pro' && (
 <div className="fixed inset-0 z-[999] bg-[#050816] text-white overflow-y-auto pb-28 animate-fade-in">
-<button
-  type="button"
-  onClick={() => {
-    setJogoSelecionado(null);
-    setMenuAtivo('Todos os Jogos');
-    setViewMode('jogos');
-    setFilterCentro('Todos');
-    window.scrollTo({ top: 0, behavior: 'smooth' });
-  }}
-  className="bet-retorno-painel-pro"
-  data-bet-retorno-painel="true"
-  aria-label="Retornar ao início"
->
-  {'<'}
-</button>
 <Suspense fallback={<div className="text-center p-10 font-black text-blue-500 animate-pulse text-xs">A carregar painel do jogo...</div>}>
 <PainelJogo jogo={jogoSelecionado} setJogoSelecionado={setJogoSelecionado} bancaInicial={bancaInicial} gerarExplicacaoIA={gerarExplicacaoIA} calcularStake={calcularStake} calcularKelly={calcularKelly}  setAiOpen={setAiOpen}  setAiQuery={setAiQuery}
   setViewMode={setViewMode}

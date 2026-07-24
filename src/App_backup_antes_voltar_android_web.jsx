@@ -52,7 +52,7 @@ import HeaderApp from './components/HeaderApp.jsx';
 import AdminResumoPro from './components/AdminResumoPro.jsx';
 import AtalhoAdminPerfil from './components/AtalhoAdminPerfil.jsx';
 import AreaProAssinatura from './components/AreaProAssinatura.jsx';
-import RoteadorProfissional from './components/RoteadorProfissional.jsx';
+import { App as CapacitorApp } from '@capacitor/app';
 const MODO_DEMONSTRACAO = true;
 const API_URL = '';
 function gerarEscudoAutomatico(nomeTime = 'TIME') {
@@ -200,6 +200,66 @@ const [userData, setUserData] = useState(null);
 const [viewMode, setViewMode] = useState('jogos');
 const [filterCentro, setFilterCentro] = useState('Todos');
 const [jogoSelecionado, setJogoSelecionado] = useState(null);
+
+// bet-android-back-handler
+useEffect(() => {
+  let listenerHandle = null;
+  let ativo = true;
+
+  function voltarParaInicio() {
+    setJogoSelecionado(null);
+    setMenuAtivo('Todos os Jogos');
+    setViewMode('jogos');
+    setFilterCentro('Todos');
+
+    if (typeof setLigaAtivaId === 'function') {
+      setLigaAtivaId(null);
+    }
+
+    try {
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+      document.documentElement.scrollTop = 0;
+      document.body.scrollTop = 0;
+    } catch {}
+  }
+
+  const registro = CapacitorApp.addListener('backButton', () => {
+    const temJogoAberto = Boolean(jogoSelecionado);
+    const estaNaAreaPro = String(menuAtivo || '').toLowerCase() === 'assinar pro';
+
+    const foraDoInicio =
+      String(viewMode || '').toLowerCase() !== 'jogos' ||
+      String(filterCentro || '').toLowerCase() !== 'todos';
+
+    if (temJogoAberto || estaNaAreaPro || foraDoInicio) {
+      voltarParaInicio();
+      return;
+    }
+
+    CapacitorApp.exitApp();
+  });
+
+  Promise.resolve(registro)
+    .then((handle) => {
+      if (!ativo && handle?.remove) {
+        handle.remove();
+        return;
+      }
+
+      listenerHandle = handle;
+    })
+    .catch(() => {});
+
+  return () => {
+    ativo = false;
+
+    if (listenerHandle?.remove) {
+      listenerHandle.remove();
+    }
+  };
+}, [jogoSelecionado, menuAtivo, viewMode, filterCentro]);
+// fim-bet-android-back-handler
+
 const [form, setForm] = useState({ nome: '', email: '', cpf: '', senha: '', nascimento: '' });
 const [metodoPagamento, setMetodoPagamento] = useState('pix');
 const [pagamentoStatus, setPagamentoStatus] = useState({ loading: false, erro: '', sucesso: '', pix: null, id: null });
@@ -1039,17 +1099,6 @@ return (
   setViewMode={setViewMode}
   setJogoSelecionado={setJogoSelecionado}
   setFilterCentro={setFilterCentro}
-/>
-<RoteadorProfissional
-  viewMode={viewMode}
-  menuAtivo={menuAtivo}
-  filterCentro={filterCentro}
-  jogoSelecionado={jogoSelecionado}
-  setViewMode={setViewMode}
-  setMenuAtivo={setMenuAtivo}
-  setFilterCentro={setFilterCentro}
-  setJogoSelecionado={setJogoSelecionado}
-  setLigaAtivaId={typeof setLigaAtivaId === 'function' ? setLigaAtivaId : undefined}
 />
 {(
   jogoSelecionado ||

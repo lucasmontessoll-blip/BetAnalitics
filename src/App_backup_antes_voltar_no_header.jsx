@@ -52,7 +52,7 @@ import HeaderApp from './components/HeaderApp.jsx';
 import AdminResumoPro from './components/AdminResumoPro.jsx';
 import AtalhoAdminPerfil from './components/AtalhoAdminPerfil.jsx';
 import AreaProAssinatura from './components/AreaProAssinatura.jsx';
-import RoteadorProfissional from './components/RoteadorProfissional.jsx';
+import BotaoVoltarSimples from './components/BotaoVoltarSimples.jsx';
 const MODO_DEMONSTRACAO = true;
 const API_URL = '';
 function gerarEscudoAutomatico(nomeTime = 'TIME') {
@@ -1038,19 +1038,8 @@ return (
   setMenuAtivo={setMenuAtivo}
   setViewMode={setViewMode}
   setJogoSelecionado={setJogoSelecionado}
-  setFilterCentro={setFilterCentro}
 />
-<RoteadorProfissional
-  viewMode={viewMode}
-  menuAtivo={menuAtivo}
-  filterCentro={filterCentro}
-  jogoSelecionado={jogoSelecionado}
-  setViewMode={setViewMode}
-  setMenuAtivo={setMenuAtivo}
-  setFilterCentro={setFilterCentro}
-  setJogoSelecionado={setJogoSelecionado}
-  setLigaAtivaId={typeof setLigaAtivaId === 'function' ? setLigaAtivaId : undefined}
-/>
+
 {(
   jogoSelecionado ||
   menuAtivo === 'assinar pro' ||
@@ -1445,30 +1434,9 @@ return (
 </div>)}
 {jogoSelecionado && menuAtivo !== 'assinar pro' && (
 <div className="fixed inset-0 z-[999] bg-[#050816] text-white overflow-y-auto pb-28 animate-fade-in">
-<button
-  type="button"
-  onClick={() => {
-    setJogoSelecionado(null);
-    setMenuAtivo('Todos os Jogos');
-    setViewMode('jogos');
-    setFilterCentro('Todos');
-    window.scrollTo({ top: 0, behavior: 'smooth' });
-  }}
-  className="bet-retorno-painel-pro"
-  data-bet-retorno-painel="true"
-  aria-label="Retornar ao início"
->
-  {'<'}
-</button>
 <Suspense fallback={<div className="text-center p-10 font-black text-blue-500 animate-pulse text-xs">A carregar painel do jogo...</div>}>
 <PainelJogo jogo={jogoSelecionado} setJogoSelecionado={setJogoSelecionado} bancaInicial={bancaInicial} gerarExplicacaoIA={gerarExplicacaoIA} calcularStake={calcularStake} calcularKelly={calcularKelly}  setAiOpen={setAiOpen}  setAiQuery={setAiQuery}
   setViewMode={setViewMode}
-  onBack={() => {
-    setJogoSelecionado(null);
-    setMenuAtivo('Todos os Jogos');
-    setViewMode('jogos');
-    setFilterCentro('Todos');
-  }}
 />
 </Suspense>
 <div className="px-4 pb-8 space-y-4">
