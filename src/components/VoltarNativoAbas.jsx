@@ -1,4 +1,4 @@
-﻿import React, { useEffect, useRef } from 'react';
+﻿import React, { useCallback, useEffect, useRef } from 'react';
 import { App as CapacitorApp } from '@capacitor/app';
 
 export default function VoltarNativoAbas({
@@ -13,32 +13,48 @@ export default function VoltarNativoAbas({
   setLigaAtivaId,
 }) {
   const estadoRef = useRef({});
-  const ultimoHistoricoRef = useRef('');
 
-  function estaNoInicioAtual(estado) {
-    const v = String(estado.viewMode || '').toLowerCase();
-    const m = String(estado.menuAtivo || '').toLowerCase();
-    const f = String(estado.filterCentro || '').toLowerCase();
+  const voltarInicio = useCallback(() => {
+    if (typeof setJogoSelecionado === 'function') {
+      setJogoSelecionado(null);
+    }
 
-    return (
-      !estado.jogoSelecionado &&
-      v === 'jogos' &&
-      m !== 'assinar pro' &&
-      (f === 'todos' || f === '')
-    );
-  }
+    if (typeof setMenuAtivo === 'function') {
+      setMenuAtivo('Todos os Jogos');
+    }
 
-  function voltarInicio() {
-    if (typeof setJogoSelecionado === 'function') setJogoSelecionado(null);
-    if (typeof setMenuAtivo === 'function') setMenuAtivo('Todos os Jogos');
-    if (typeof setViewMode === 'function') setViewMode('jogos');
-    if (typeof setFilterCentro === 'function') setFilterCentro('Todos');
-    if (typeof setLigaAtivaId === 'function') setLigaAtivaId(null);
+    if (typeof setViewMode === 'function') {
+      setViewMode('jogos');
+    }
+
+    if (typeof setFilterCentro === 'function') {
+      setFilterCentro('Todos');
+    }
+
+    if (typeof setLigaAtivaId === 'function') {
+      setLigaAtivaId(null);
+    }
 
     try {
       window.scrollTo({ top: 0, behavior: 'smooth' });
       document.documentElement.scrollTop = 0;
       document.body.scrollTop = 0;
+    } catch {}
+  }, [
+    setJogoSelecionado,
+    setMenuAtivo,
+    setViewMode,
+    setFilterCentro,
+    setLigaAtivaId,
+  ]);
+
+  function criarHistoricoProtecao() {
+    try {
+      window.history.pushState(
+        { betAnalyticsBackGuard: Date.now() },
+        '',
+        window.location.href
+      );
     } catch {}
   }
 
@@ -49,56 +65,21 @@ export default function VoltarNativoAbas({
       filterCentro,
       jogoSelecionado,
     };
+
+    criarHistoricoProtecao();
   }, [viewMode, menuAtivo, filterCentro, jogoSelecionado]);
 
   useEffect(() => {
     if (typeof window === 'undefined') return;
 
-    const estado = {
-      viewMode,
-      menuAtivo,
-      filterCentro,
-      jogoSelecionado,
-    };
-
-    const estaNoInicio = estaNoInicioAtual(estado);
-
-    const chave = [
-      String(viewMode || ''),
-      String(menuAtivo || ''),
-      String(filterCentro || ''),
-      jogoSelecionado?.id || jogoSelecionado?.fixture?.id || '',
-    ].join('|');
-
-    if (!estaNoInicio && ultimoHistoricoRef.current !== chave) {
-      ultimoHistoricoRef.current = chave;
-
-      try {
-        window.history.pushState(
-          {
-            betAnalyticsInterno: true,
-            chave,
-          },
-          '',
-          window.location.href
-        );
-      } catch {}
-    }
-
-    if (estaNoInicio) {
-      ultimoHistoricoRef.current = '';
-    }
-  }, [viewMode, menuAtivo, filterCentro, jogoSelecionado]);
-
-  useEffect(() => {
-    if (typeof window === 'undefined') return;
+    criarHistoricoProtecao();
 
     function aoVoltarNavegador() {
-      const estado = estadoRef.current;
+      voltarInicio();
 
-      if (!estaNoInicioAtual(estado)) {
-        voltarInicio();
-      }
+      setTimeout(() => {
+        criarHistoricoProtecao();
+      }, 80);
     }
 
     window.addEventListener('popstate', aoVoltarNavegador);
@@ -106,7 +87,7 @@ export default function VoltarNativoAbas({
     return () => {
       window.removeEventListener('popstate', aoVoltarNavegador);
     };
-  }, []);
+  }, [voltarInicio]);
 
   useEffect(() => {
     let handle = null;
@@ -115,14 +96,11 @@ export default function VoltarNativoAbas({
     async function registrarAndroid() {
       try {
         const h = await CapacitorApp.addListener('backButton', () => {
-          const estado = estadoRef.current;
+          voltarInicio();
 
-          if (!estaNoInicioAtual(estado)) {
-            voltarInicio();
-            return;
-          }
-
-          CapacitorApp.exitApp();
+          setTimeout(() => {
+            criarHistoricoProtecao();
+          }, 80);
         });
 
         if (!ativo && h?.remove) {
@@ -143,7 +121,7 @@ export default function VoltarNativoAbas({
         handle.remove();
       }
     };
-  }, []);
+  }, [voltarInicio]);
 
   return null;
 }
