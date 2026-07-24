@@ -52,7 +52,7 @@ import HeaderApp from './components/HeaderApp.jsx';
 import AdminResumoPro from './components/AdminResumoPro.jsx';
 import AtalhoAdminPerfil from './components/AtalhoAdminPerfil.jsx';
 import AreaProAssinatura from './components/AreaProAssinatura.jsx';
-import VoltarAndroidWeb from './components/VoltarAndroidWeb.jsx';
+import VoltarNativoAbas from './components/VoltarNativoAbas.jsx';
 const MODO_DEMONSTRACAO = true;
 const API_URL = '';
 function gerarEscudoAutomatico(nomeTime = 'TIME') {
@@ -1040,7 +1040,7 @@ return (
   setJogoSelecionado={setJogoSelecionado}
   setFilterCentro={setFilterCentro}
 />
-<VoltarAndroidWeb
+<VoltarNativoAbas
   viewMode={viewMode}
   menuAtivo={menuAtivo}
   filterCentro={filterCentro}
