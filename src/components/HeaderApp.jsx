@@ -9,21 +9,10 @@ export default function HeaderApp({
   setFilterCentro,
 }) {
   function abrirPerfil() {
-    if (typeof setMenuAtivo === 'function') {
-      setMenuAtivo('Todos os Jogos');
-    }
-
-    if (typeof setViewMode === 'function') {
-      setViewMode('perfil');
-    }
-
-    if (typeof setJogoSelecionado === 'function') {
-      setJogoSelecionado(null);
-    }
-
-    if (typeof setFilterCentro === 'function') {
-      setFilterCentro('Todos');
-    }
+    if (typeof setMenuAtivo === 'function') setMenuAtivo('Todos os Jogos');
+    if (typeof setViewMode === 'function') setViewMode('perfil');
+    if (typeof setJogoSelecionado === 'function') setJogoSelecionado(null);
+    if (typeof setFilterCentro === 'function') setFilterCentro('Todos');
   }
 
   return (
