@@ -59,7 +59,7 @@ function Linha({ icon: Icone, titulo, texto, onClick, cor = 'text-blue-400' }) {
 
 export default function PerfilProCompleto({ userData, setViewMode, setAiOpen, setAiQuery }) {
   const stats = useMemo(() => {
-    const historico = lerArray('bet_historico_ia_v1');
+    const historico = lerArray('betanalytics_historico_ia_v1');
     const favoritos = lerFavoritos();
     const banca = lerArray('bet_banca_historico_v2');
 
@@ -140,6 +140,7 @@ export default function PerfilProCompleto({ userData, setViewMode, setAiOpen, se
           <Linha icon={Star} titulo="Favoritos PRO" texto="Times, ligas, jogos e alertas salvos" cor="text-yellow-400" onClick={() => setViewMode?.('favoritos')} />
           <Linha icon={Bell} titulo="Alertas IA" texto="Alertas de odds, banca e oportunidades" cor="text-amber-400" onClick={() => setViewMode?.('alertas-ia')} />
           <Linha icon={Wallet} titulo="Gestão de Banca" texto="Stake, ROI, lucro e controle de risco" cor="text-emerald-400" onClick={() => setViewMode?.('banca-pro')} />
+          <Linha icon={BarChart3} titulo="Histórico IA PRO" texto="Análises abertas, Green, Red, lucro e ROI" cor="text-blue-400" onClick={() => setViewMode?.('historico')} />
           <Linha icon={Settings} titulo="Configurações PRO" texto="Conta, notificações, termos e modo demo" cor="text-slate-300" onClick={() => setViewMode?.('config')} />
           <Linha icon={ShieldCheck} titulo="Jogo responsável" texto="+18, avisos legais e controle" cor="text-cyan-400" onClick={() => setViewMode?.('termos')} />
         </div>
