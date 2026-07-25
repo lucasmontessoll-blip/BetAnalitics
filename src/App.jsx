@@ -53,6 +53,8 @@ import AdminResumoPro from './components/AdminResumoPro.jsx';
 import AtalhoAdminPerfil from './components/AtalhoAdminPerfil.jsx';
 import AreaProAssinatura from './components/AreaProAssinatura.jsx';
 import RoteadorProfissional from './components/RoteadorProfissional.jsx';
+import HistoricoIAPro from './components/HistoricoIAPro.jsx';
+import { salvarAnaliseIA } from './utils/historicoIA.js';
 const MODO_DEMONSTRACAO = true;
 const API_URL = '';
 function gerarEscudoAutomatico(nomeTime = 'TIME') {
@@ -200,6 +202,15 @@ const [userData, setUserData] = useState(null);
 const [viewMode, setViewMode] = useState('jogos');
 const [filterCentro, setFilterCentro] = useState('Todos');
 const [jogoSelecionado, setJogoSelecionado] = useState(null);
+
+  // bet-salvar-historico-ia-app
+  React.useEffect(() => {
+    if (!jogoSelecionado) return;
+    if (String(menuAtivo || '').toLowerCase() === 'assinar pro') return;
+
+    salvarAnaliseIA(jogoSelecionado);
+  }, [jogoSelecionado]);
+  // fim-bet-salvar-historico-ia-app
 const [form, setForm] = useState({ nome: '', email: '', cpf: '', senha: '', nascimento: '' });
 const [metodoPagamento, setMetodoPagamento] = useState('pix');
 const [pagamentoStatus, setPagamentoStatus] = useState({ loading: false, erro: '', sucesso: '', pix: null, id: null });
@@ -1269,7 +1280,7 @@ return (
 />
 )}
 {viewMode === 'educacao' && (<div className="px-4 animate-fade-in pb-20 w-full"><HeaderNav title="Educacao" onBack={() => setViewMode('perfil')} /><EducacaoBetAnalytics /></div>)}
-{viewMode === 'historico' && (<div className="px-4 animate-fade-in pb-20 w-full"><HeaderNav title=" Historico de Assertividade" onBack={() => setViewMode('perfil')} /><HistoricoAssertividade /></div>)}
+{viewMode === 'historico' && (<div className="px-4 animate-fade-in pb-20 w-full"><HeaderNav title="Historico IA PRO" onBack={() => setViewMode('perfil')} /><HistoricoIAPro /></div>)}
 {viewMode === 'como-ia' && (<div className="px-4 animate-fade-in pb-20 w-full"><HeaderNav title=" Como a IA calcula" onBack={() => setViewMode('radar')} /><ComoIACalcula /></div>)}
 {viewMode === 'Ranking' && (<div className="px-4 animate-fade-in pb-20 w-full"><HeaderNav title=" Ranking de Oportunidades" onBack={() => setViewMode('radar')} /><RankingOportunidades jogos={jogos} onSelecionarJogo={(j) => setJogoSelecionado(j)} /></div>)}
 {viewMode === 'Pesquisa' && (<div className="px-4 animate-fade-in pb-28 w-full">
