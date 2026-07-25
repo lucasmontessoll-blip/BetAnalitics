@@ -25,19 +25,6 @@ function dinheiro(valor) {
   });
 }
 
-function dataCurta(valor) {
-  try {
-    return new Date(valor).toLocaleString('pt-BR', {
-      day: '2-digit',
-      month: '2-digit',
-      hour: '2-digit',
-      minute: '2-digit'
-    });
-  } catch {
-    return '--';
-  }
-}
-
 function BadgeStatus({ status }) {
   if (status === 'green') {
     return (
@@ -62,15 +49,13 @@ function BadgeStatus({ status }) {
   );
 }
 
-function CardResumo({ icon: Icon, label, valor, cor = 'text-white' }) {
+function CardResumo({ icon: Icon, label, valor, cor }) {
   return (
     <div className="rounded-2xl border border-white/10 bg-white/5 p-4">
       <Icon className={`mb-2 h-5 w-5 ${cor}`} />
-
       <p className="text-[9px] font-black uppercase tracking-wide text-slate-500">
         {label}
       </p>
-
       <p className={`mt-1 text-xl font-black ${cor}`}>
         {valor}
       </p>
@@ -107,7 +92,6 @@ export default function HistoricoIAPro() {
       total: lista.length,
       greens,
       reds,
-      pendentes: lista.filter((item) => item.status === 'pendente').length,
       precisao,
       lucro,
       roi
@@ -129,7 +113,7 @@ export default function HistoricoIAPro() {
 
   return (
     <div className="animate-fade-in pb-28 text-white">
-      <section className="overflow-hidden rounded-[32px] border border-blue-500/20 bg-gradient-to-br from-blue-950 via-slate-950 to-black p-5 shadow-2xl">
+      <section className="rounded-[32px] border border-blue-500/20 bg-gradient-to-br from-blue-950 via-slate-950 to-black p-5 shadow-2xl">
         <div className="flex items-center justify-between gap-3">
           <span className="inline-flex items-center rounded-full border border-blue-400/20 bg-blue-500/10 px-3 py-1 text-[10px] font-black uppercase tracking-wide text-blue-300">
             <Activity className="mr-1 h-3 w-3" />
@@ -164,7 +148,6 @@ export default function HistoricoIAPro() {
         <div className="mt-3 rounded-2xl border border-white/10 bg-white/5 p-4">
           <div className="flex items-center justify-between text-xs font-black uppercase text-slate-400">
             <span>ROI estimado</span>
-
             <span className={resumo.roi >= 0 ? 'text-emerald-400' : 'text-red-400'}>
               {resumo.roi > 0 ? '+' : ''}{resumo.roi}%
             </span>
@@ -182,13 +165,8 @@ export default function HistoricoIAPro() {
       <div className="mt-5 flex items-center justify-between gap-3">
         <div>
           <h2 className="text-lg font-black">Analises salvas</h2>
-
           <p className="text-xs font-bold text-slate-400">
-            {resumo.total} registro(s) neste </section>
-
-      <div className="mt-5 flex items-center justify-between gap-3">
-        <div>
-          <h aparelho
+            {resumo.total} registro(s) neste aparelho
           </p>
         </div>
 
@@ -207,11 +185,9 @@ export default function HistoricoIAPro() {
       {lista.length === 0 ? (
         <div className="mt-5 rounded-3xl border border-white/10 bg-[#0f172a] p-6 text-center">
           <Clock className="mx-auto h-10 w-10 text-slate-500" />
-
           <h3 className="mt-4 text-lg font-black">
             Nenhuma analise salva ainda
           </h3>
-
           <p className="mt-2 text-sm font-semibold text-slate-400">
             Abra a analise completa de um jogo para o Historico IA comecar a registrar.
           </p>
@@ -228,9 +204,8 @@ export default function HistoricoIAPro() {
                   <h3 className="truncate text-lg font-black">
                     {item.jogo}
                   </h3>
-
                   <p className="mt-1 text-xs font-bold text-slate-400">
-                    {item.liga} • {dataCurta(item.criadoEm)}
+                    {item.liga}
                   </p>
                 </div>
 
@@ -262,7 +237,6 @@ export default function HistoricoIAPro() {
                 <p className="text-[9px] font-black uppercase text-slate-500">
                   Mercado recomendado
                 </p>
-
                 <p className="mt-1 text-sm font-black text-emerald-400">
                   {item.mercado}
                 </p>
