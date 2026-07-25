@@ -1,4 +1,5 @@
 ﻿const CHAVE = 'betanalytics_historico_ia_v1';
+const CHAVE_BANCA = 'bet_banca_historico_v2';
 
 function texto(valor, fallback = '') {
   return String(valor || fallback || '').trim();
@@ -17,6 +18,58 @@ function pegarIdJogo(jogo) {
     `${jogo?.home_team || jogo?.time_casa || 'casa'}-${jogo?.away_team || jogo?.time_fora || 'fora'}`;
 
   return texto(id, `jogo-${Date.now()}`);
+}
+
+function carregarBancaLocal() {
+  try {
+    const raw = localStorage.getItem(CHAVE_BANCA);
+    const dados = JSON.parse(raw || '[]');
+
+    return Array.isArray(dados) ? dados : [];
+  } catch {
+    return [];
+  }
+}
+
+function salvarBancaLocal(lista) {
+  try {
+    localStorage.setItem(CHAVE_BANCA, JSON.stringify(Array.isArray(lista) ? lista : []));
+  } catch {
+    // Mantem o app funcionando mesmo se o navegador bloquear localStorage.
+  }
+}
+
+function sincronizarAnaliseNaBanca(item) {
+  if (!item?.id) return;
+
+  const listaAtual = carregarBancaLocal();
+  const idBanca = `ia-${item.id}`;
+
+  const semDuplicar = listaAtual.filter((entrada) => {
+    return entrada.id !== idBanca && entrada.id_origem_ia !== item.id;
+  });
+
+  if (item.status !== 'green' && item.status !== 'red') {
+    salvarBancaLocal(semDuplicar);
+    return;
+  }
+
+  const stake = numero(item.stake, 50);
+  const odd = numero(item.odd, 1.85);
+
+  const entradaBanca = {
+    id: idBanca,
+    id_origem_ia: item.id,
+    origem: 'historico_ia',
+    jogo: texto(item.jogo, 'Jogo IA'),
+    mercado: texto(item.mercado, 'Mercado IA'),
+    stake,
+    odd,
+    resultado: item.status,
+    criadoEm: item.atualizadoEm || item.criadoEm || new Date().toISOString()
+  };
+
+  salvarBancaLocal([entradaBanca, ...semDuplicar].slice(0, 120));
 }
 
 export function carregarHistoricoIA() {
@@ -126,6 +179,7 @@ export function salvarAnaliseIA(jogo) {
 
 export function atualizarStatusAnaliseIA(id, status) {
   const lista = carregarHistoricoIA();
+  let itemAtualizado = null;
 
   const atualizada = lista.map((item) => {
     if (item.id !== id) {
@@ -145,18 +199,32 @@ export function atualizarStatusAnaliseIA(id, status) {
       lucro = -stake;
     }
 
-    return {
+    itemAtualizado = {
       ...item,
       status,
       lucro,
       atualizadoEm: new Date().toISOString()
     };
+
+    return itemAtualizado;
   });
 
   salvarHistoricoIA(atualizada);
+
+  if (itemAtualizado) {
+    sincronizarAnaliseNaBanca(itemAtualizado);
+  }
+
   return atualizada;
 }
 
 export function limparHistoricoIA() {
   salvarHistoricoIA([]);
+
+  try {
+    const banca = carregarBancaLocal().filter((entrada) => entrada.origem !== 'historico_ia');
+    salvarBancaLocal(banca);
+  } catch {
+    // Mantem o app funcionando.
+  }
 }
