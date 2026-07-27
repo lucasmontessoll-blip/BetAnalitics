@@ -55,6 +55,7 @@ import AreaProAssinatura from './components/AreaProAssinatura.jsx';
 import RoteadorProfissional from './components/RoteadorProfissional.jsx';
 import HistoricoIAPro from './components/HistoricoIAPro.jsx';
 import { salvarAnaliseIA } from './utils/historicoIA.js';
+import { registrarPagamentoGerado, registrarPagamentoAprovado, atualizarPagamentoLocal } from './utils/pagamentosLocal.js';
 const MODO_DEMONSTRACAO = true;
 const API_URL = '';
 function gerarEscudoAutomatico(nomeTime = 'TIME') {
@@ -867,6 +868,19 @@ localStorage.setItem('bet_vip_expira', usuario.vip_expira);
 const usuarios = JSON.parse(localStorage.getItem('bet_users') || '[]').filter(u => u.email !== usuario.email);
 usuarios.push(usuario);
 localStorage.setItem('bet_users', JSON.stringify(usuarios));
+
+// bet-pagamento-historico-aprovado
+registrarPagamentoAprovado(pagamento.id || pagamento.payment_id, {
+  nome: usuario.nome,
+  email: usuario.email,
+  metodo: usuario.metodo_pagamento,
+  valor: PLANO_PRO.valor,
+  descricao: PLANO_PRO.nome,
+  status: usuario.pagamento_status,
+  pagamento_id: usuario.pagamento_id
+});
+// fim-bet-pagamento-historico-aprovado
+
 setUserData(usuario);
 setMenuAtivo('Todos os Jogos');
 setViewMode('perfil');
@@ -878,6 +892,16 @@ try {
 const resp = await fetch(`/api/pagamento/status/${paymentId}`);
 const data = await resp.json();
 if (!resp.ok) throw new Error(data?.erro || 'Nao foi possivel consultar o pagamento.');
+
+// bet-pagamento-historico-status
+atualizarPagamentoLocal(paymentId, {
+  status: data.status || 'pending',
+  status_detail: data.status_detail || data.statusDetail || '',
+  aprovado: Boolean(data.aprovado || data.status === 'approved' || data.status === 'processed'),
+  ultimoRetorno: data
+});
+// fim-bet-pagamento-historico-status
+
 if (data.aprovado || data.status === 'approved' || data.status === 'processed') {
 if (pollingPagamentoRef.current) clearInterval(pollingPagamentoRef.current);
 pollingPagamentoRef.current = null;
@@ -908,6 +932,17 @@ descricao: PLANO_PRO.nome,
 });
 const data = await resp.json();
 if (!resp.ok) throw new Error(data?.erro || 'Erro ao gerar PIX.');
+
+// bet-pagamento-historico-pix
+registrarPagamentoGerado({
+  conta,
+  pagamento: data,
+  metodo: 'pix',
+  valor: PLANO_PRO.valor,
+  descricao: PLANO_PRO.nome
+});
+// fim-bet-pagamento-historico-pix
+
 setPagamentoStatus({
 loading: false,
 erro: '',
@@ -949,6 +984,17 @@ identificationNumber: limparCpf(dadosCartao?.identificationNumber || conta.cpf),
 });
 const data = await resp.json();
 if (!resp.ok) throw new Error(data?.erro || 'Pagamento recusado.');
+
+// bet-pagamento-historico-cartao
+registrarPagamentoGerado({
+  conta,
+  pagamento: data,
+  metodo: metodoPagamento,
+  valor: PLANO_PRO.valor,
+  descricao: PLANO_PRO.nome
+});
+// fim-bet-pagamento-historico-cartao
+
 if (data.aprovado || data.status === 'approved' || data.status === 'processed') {
 ativarVipAposPagamento(conta, { id: data.id || data.payment_id, status: data.status, metodo: metodoPagamento });
 return;
