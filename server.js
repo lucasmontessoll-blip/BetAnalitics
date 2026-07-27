@@ -11,6 +11,204 @@ const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
 const app = express();
+
+// ===== BET_RENDER_PAGAMENTO_FIX_INICIO =====
+app.use(express.json({ limit: '2mb' }));
+
+function betMpToken() {
+  return String(
+    process.env.MP_ACCESS_TOKEN ||
+    process.env.MERCADO_PAGO_ACCESS_TOKEN ||
+    process.env.MERCADOPAGO_ACCESS_TOKEN ||
+    ''
+  ).trim();
+}
+
+function betNumero(valor, fallback = 0) {
+  const n = Number(valor);
+  return Number.isFinite(n) ? n : fallback;
+}
+
+function betCpf(valor) {
+  return String(valor || '').replace(/\D/g, '').slice(0, 11);
+}
+
+function betNome(valor) {
+  return String(valor || 'Cliente BetAnalytics').trim();
+}
+
+function betEmail(valor) {
+  return String(valor || 'cliente@betanalytics.pro').trim().toLowerCase();
+}
+
+function betDescricao(valor) {
+  return String(valor || 'Plano PRO BetAnalytics').trim();
+}
+
+function betIdempotency() {
+  return `betanalytics-${Date.now()}-${Math.random().toString(16).slice(2)}`;
+}
+
+app.get('/api/pagamento/health', (req, res) => {
+  return res.status(200).json({
+    ok: true,
+    servico: 'BetAnalytics Pagamento',
+    mercado_pago_configurado: Boolean(betMpToken()),
+    plano_valor: betNumero(process.env.PLANO_PRO_VALOR, 29.90),
+    ambiente: process.env.NODE_ENV || 'development',
+    timestamp: new Date().toISOString()
+  });
+});
+
+app.post('/api/pagamento/pix', async (req, res) => {
+  try {
+    const token = betMpToken();
+
+    if (!token) {
+      return res.status(500).json({
+        ok: false,
+        erro: 'MP_ACCESS_TOKEN nao configurado no servidor.'
+      });
+    }
+
+    const body = req.body || {};
+    const valor = betNumero(body.valor || process.env.PLANO_PRO_VALOR, 29.90);
+    const nome = betNome(body.nome);
+    const email = betEmail(body.email);
+    const cpf = betCpf(body.cpf);
+    const descricao = betDescricao(body.descricao);
+
+    if (!email.includes('@')) {
+      return res.status(400).json({
+        ok: false,
+        erro: 'E-mail invalido.'
+      });
+    }
+
+    if (cpf.length !== 11) {
+      return res.status(400).json({
+        ok: false,
+        erro: 'CPF invalido. Informe 11 numeros.'
+      });
+    }
+
+    const payload = {
+      transaction_amount: Number(valor.toFixed(2)),
+      description: descricao,
+      payment_method_id: 'pix',
+      payer: {
+        email,
+        first_name: nome,
+        identification: {
+          type: 'CPF',
+          number: cpf
+        }
+      }
+    };
+
+    const resposta = await fetch('https://api.mercadopago.com/v1/payments', {
+      method: 'POST',
+      headers: {
+        Authorization: `Bearer ${token}`,
+        'Content-Type': 'application/json',
+        'X-Idempotency-Key': betIdempotency()
+      },
+      body: JSON.stringify(payload)
+    });
+
+    const data = await resposta.json().catch(() => ({}));
+
+    if (!resposta.ok) {
+      return res.status(resposta.status || 500).json({
+        ok: false,
+        erro: data?.message || data?.error || 'Erro ao gerar PIX no Mercado Pago.',
+        detalhe: data
+      });
+    }
+
+    const tx =
+      data?.point_of_interaction?.transaction_data ||
+      data?.transaction_data ||
+      {};
+
+    return res.status(201).json({
+      ok: true,
+      id: data.id,
+      payment_id: data.id,
+      status: data.status || 'pending',
+      status_detail: data.status_detail || '',
+      qr_code: tx.qr_code || data.qr_code || '',
+      qr_code_base64: tx.qr_code_base64 || data.qr_code_base64 || '',
+      ticket_url: tx.ticket_url || data.ticket_url || '',
+      valor,
+      metodo: 'pix'
+    });
+  } catch (err) {
+    return res.status(500).json({
+      ok: false,
+      erro: err?.message || 'Erro interno ao gerar PIX.'
+    });
+  }
+});
+
+app.get('/api/pagamento/status/:id', async (req, res) => {
+  try {
+    const token = betMpToken();
+
+    if (!token) {
+      return res.status(500).json({
+        ok: false,
+        erro: 'MP_ACCESS_TOKEN nao configurado no servidor.'
+      });
+    }
+
+    const id = String(req.params.id || '').trim();
+
+    if (!id) {
+      return res.status(400).json({
+        ok: false,
+        erro: 'ID do pagamento nao informado.'
+      });
+    }
+
+    const resposta = await fetch(`https://api.mercadopago.com/v1/payments/${id}`, {
+      method: 'GET',
+      headers: {
+        Authorization: `Bearer ${token}`,
+        'Content-Type': 'application/json'
+      }
+    });
+
+    const data = await resposta.json().catch(() => ({}));
+
+    if (!resposta.ok) {
+      return res.status(resposta.status || 500).json({
+        ok: false,
+        erro: data?.message || data?.error || 'Erro ao consultar pagamento.',
+        detalhe: data
+      });
+    }
+
+    return res.status(200).json({
+      ok: true,
+      id: data.id,
+      payment_id: data.id,
+      status: data.status || 'pending',
+      status_detail: data.status_detail || '',
+      aprovado: data.status === 'approved' || data.status === 'processed',
+      metodo: data.payment_method_id || data.payment_type_id || '',
+      valor: data.transaction_amount || 0
+    });
+  } catch (err) {
+    return res.status(500).json({
+      ok: false,
+      erro: err?.message || 'Erro interno ao consultar pagamento.'
+    });
+  }
+});
+// ===== BET_RENDER_PAGAMENTO_FIX_FIM =====
+
+
 app.use(cors());
 app.use(express.json());
 
