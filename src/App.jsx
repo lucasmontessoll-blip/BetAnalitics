@@ -56,6 +56,7 @@ import RoteadorProfissional from './components/RoteadorProfissional.jsx';
 import HistoricoIAPro from './components/HistoricoIAPro.jsx';
 import { salvarAnaliseIA } from './utils/historicoIA.js';
 import { registrarPagamentoGerado, registrarPagamentoAprovado, atualizarPagamentoLocal } from './utils/pagamentosLocal.js';
+import { temAcessoPro, carregarUsuarioSessaoPro, usuarioDemoFree, rotaExigePro } from './utils/acessoPro.js';
 const MODO_DEMONSTRACAO = true;
 const API_URL = '';
 function gerarEscudoAutomatico(nomeTime = 'TIME') {
@@ -300,13 +301,50 @@ try { cardFormMercadoPagoRef.current?.unmount?.(); } catch (e) {}
 };
 }, []);
 useEffect(() => {
-const em = localStorage.getItem('bet_sessao_ativa');
-if (em) {
-setUserData({ email: em, nome: localStorage.getItem('bet_user_nome') || "Lucas Montesso", is_vip: true, is_admin: em.includes('admin') });
-} else if (MODO_DEMONSTRACAO) {
-setUserData({ email: "lucas@vip.com", nome: "Lucas Montesso", is_vip: true, is_admin: true });
-}
+  // bet-pro-real-sessao-v2
+  const usuarioSessao = carregarUsuarioSessaoPro();
+
+  if (usuarioSessao) {
+    setUserData(usuarioSessao);
+  } else if (MODO_DEMONSTRACAO) {
+    setUserData(usuarioDemoFree());
+  }
+  // fim-bet-pro-real-sessao-v2
 }, []);
+
+const proAtivo = temAcessoPro(userData);
+
+React.useEffect(() => {
+  // bet-pro-real-bloqueio-v2
+  if (proAtivo) return;
+  if (String(menuAtivo || '').toLowerCase() === 'assinar pro') return;
+
+  const jogoEhDemo = Boolean(jogoSelecionado?.demo || String(jogoSelecionado?.id || '').startsWith('demo'));
+
+  if (jogoSelecionado && !jogoEhDemo) {
+    setJogoSelecionado(null);
+    setMenuAtivo('assinar pro');
+    setPagamentoStatus((s) => ({
+      ...s,
+      loading: false,
+      erro: '',
+      sucesso: 'Este recurso e exclusivo para assinantes PRO. Assine para liberar.'
+    }));
+    return;
+  }
+
+  if (rotaExigePro(viewMode)) {
+    setJogoSelecionado(null);
+    setMenuAtivo('assinar pro');
+    setPagamentoStatus((s) => ({
+      ...s,
+      loading: false,
+      erro: '',
+      sucesso: 'Area PRO bloqueada. Assine para liberar Radar IA, Historico, Banca e analises premium.'
+    }));
+  }
+  // fim-bet-pro-real-bloqueio-v2
+}, [viewMode, menuAtivo, jogoSelecionado, proAtivo]);
 const bilhetePremium = useMemo(() => {
 if (!jogos.length) return { selecoes: [], oddFinal: 1 };
 const validos = viewMode === 'copa' ? jogos.filter(j => isSelecao(j.home_team, j.away_team, j.league_name)) : jogos.filter(j => !isSelecao(j.home_team, j.away_team, j.league_name));
@@ -1270,7 +1308,7 @@ return (
   onToggleFavorito={toggleFavorito}
   onAbrirJogo={(j) => {
     if (j.demo || String(j.id || '').startsWith('demo-home')) return setJogoSelecionado(j);
-    if (!userData?.is_vip) return setMenuAtivo('assinar pro');
+    if (!proAtivo) return setMenuAtivo('assinar pro');
     setJogoSelecionado(j);
   }}
   renderizarListaJogos={RenderizarListaJogos}
