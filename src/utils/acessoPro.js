@@ -1,7 +1,13 @@
-﻿const ADMIN_EMAILS_BETANALYTICS = ['betanlyticspro@gmail.com'];
+﻿const ADMIN_EMAIL_OFICIAL = 'betanlyticspro@gmail.com';
+const ADMIN_SENHA_OFICIAL = '199Luc@s';
+const VIP_ADMIN_EXPIRA = '2099-12-31T23:59:59.000Z';
+
+function normalizarEmail(email) {
+  return String(email || '').trim().toLowerCase();
+}
 
 function emailEhAdmin(email) {
-  return ADMIN_EMAILS_BETANALYTICS.includes(String(email || '').toLowerCase());
+  return normalizarEmail(email) === ADMIN_EMAIL_OFICIAL;
 }
 
 function getLocal(chave, fallback = '') {
@@ -9,6 +15,14 @@ function getLocal(chave, fallback = '') {
     return localStorage.getItem(chave) || fallback;
   } catch {
     return fallback;
+  }
+}
+
+function setLocal(chave, valor) {
+  try {
+    localStorage.setItem(chave, valor);
+  } catch {
+    // silencioso
   }
 }
 
@@ -21,7 +35,50 @@ function getArray(chave) {
   }
 }
 
+function salvarArray(chave, lista) {
+  try {
+    localStorage.setItem(chave, JSON.stringify(lista));
+  } catch {
+    // silencioso
+  }
+}
+
+export function garantirAdminLocal() {
+  const usuarios = getArray('bet_users');
+  const idx = usuarios.findIndex((u) => normalizarEmail(u?.email) === ADMIN_EMAIL_OFICIAL);
+  const atual = idx >= 0 ? usuarios[idx] : {};
+
+  const admin = {
+    ...atual,
+    nome: atual?.nome || 'Admin BetAnalytics',
+    email: ADMIN_EMAIL_OFICIAL,
+    senha: ADMIN_SENHA_OFICIAL,
+    password: ADMIN_SENHA_OFICIAL,
+    is_admin: true,
+    admin: true,
+    is_vip: true,
+    vip: true,
+    plano: 'PRO',
+    vip_status: 'ativo',
+    vip_expira: VIP_ADMIN_EXPIRA,
+    vip_expira_em: VIP_ADMIN_EXPIRA,
+    vencimento: VIP_ADMIN_EXPIRA
+  };
+
+  if (idx >= 0) {
+    usuarios[idx] = admin;
+  } else {
+    usuarios.push(admin);
+  }
+
+  salvarArray('bet_users', usuarios);
+
+  return admin;
+}
+
 export function vipExpiraEm(usuario = {}) {
+  if (emailEhAdmin(usuario?.email)) return VIP_ADMIN_EXPIRA;
+
   return (
     usuario?.vip_expira ||
     usuario?.vip_expira_em ||
@@ -41,6 +98,8 @@ export function vipAindaValido(data) {
 }
 
 export function temAcessoPro(usuario = {}) {
+  if (emailEhAdmin(usuario?.email)) return true;
+
   const marcadoComoVip = Boolean(
     usuario?.is_vip ||
     usuario?.vip ||
@@ -53,24 +112,37 @@ export function temAcessoPro(usuario = {}) {
 }
 
 export function carregarUsuarioSessaoPro() {
+  garantirAdminLocal();
+
   const emailSessao = getLocal('bet_sessao_ativa', '');
 
   if (!emailSessao) return null;
 
   const usuarios = getArray('bet_users');
-  const salvo = usuarios.find((u) => {
-    return String(u?.email || '').toLowerCase() === String(emailSessao).toLowerCase();
-  });
+  let salvo = usuarios.find((u) => normalizarEmail(u?.email) === normalizarEmail(emailSessao));
+
+  if (emailEhAdmin(emailSessao)) {
+    salvo = {
+      ...salvo,
+      ...garantirAdminLocal()
+    };
+  }
+
+  const admin = emailEhAdmin(emailSessao);
 
   const base = {
     ...(salvo || {}),
     email: emailSessao,
-    nome: salvo?.nome || getLocal('bet_user_nome', 'Usuario BetAnalytics'),
-    vip_expira: salvo?.vip_expira || salvo?.vip_expira_em || getLocal('bet_vip_expira', ''),
-    is_admin: Boolean(salvo?.is_admin || emailEhAdmin(emailSessao))
+    nome: salvo?.nome || (admin ? 'Admin BetAnalytics' : getLocal('bet_user_nome', 'Usuario BetAnalytics')),
+    vip_expira: admin ? VIP_ADMIN_EXPIRA : (salvo?.vip_expira || salvo?.vip_expira_em || getLocal('bet_vip_expira', '')),
+    is_admin: Boolean(admin || salvo?.is_admin)
   };
 
-  const ativo = temAcessoPro(base);
+  const ativo = admin || temAcessoPro(base);
+
+  if (admin) {
+    setLocal('bet_vip_expira', VIP_ADMIN_EXPIRA);
+  }
 
   return {
     ...base,
@@ -82,12 +154,14 @@ export function carregarUsuarioSessaoPro() {
 }
 
 export function usuarioDemoFree() {
+  garantirAdminLocal();
+
   return {
     email: 'demo@betanalytics.pro',
     nome: 'Visitante BetAnalytics',
     is_vip: false,
     vip: false,
-    is_admin: true,
+    is_admin: false,
     plano: 'Free',
     vip_status: 'bloqueado'
   };

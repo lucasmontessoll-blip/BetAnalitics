@@ -328,7 +328,7 @@ React.useEffect(() => {
       ...s,
       loading: false,
       erro: '',
-      sucesso: 'Este recurso e exclusivo para assinantes PRO. Assine para liberar.'
+      sucesso: 'Somente VIP. Para liberar esta area, assine o PRO.'
     }));
     return;
   }
@@ -340,7 +340,7 @@ React.useEffect(() => {
       ...s,
       loading: false,
       erro: '',
-      sucesso: 'Area PRO bloqueada. Assine para liberar Radar IA, Historico, Banca e analises premium.'
+      sucesso: 'Somente VIP. Para liberar esta area, assine o PRO.'
     }));
   }
   // fim-bet-pro-real-bloqueio-v2
