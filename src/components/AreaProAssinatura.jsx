@@ -1,3 +1,4 @@
+import { temAcessoPro } from '../utils/acessoPro.js';
 ﻿import React, { useMemo } from 'react';
 import {
   Crown,
@@ -106,9 +107,9 @@ export default function AreaProAssinatura({
   iniciarPagamento,
 }) {
   const dados = useMemo(() => {
-    const vipAtivo = Boolean(userData?.is_vip || userData?.vip);
+    const vipAtivo = temAcessoPro(userData);
     const plano = userData?.plano || (vipAtivo ? 'PRO' : 'Free');
-    const vencimento = userData?.vip_expira_em || userData?.vencimento || '30 dias após ativação';
+    const vencimento = userData?.vip_expira || userData?.vip_expira_em || userData?.vencimento || 'Apos pagamento aprovado';
 
     return {
       vipAtivo,
