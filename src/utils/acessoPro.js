@@ -1,4 +1,10 @@
-﻿function getLocal(chave, fallback = '') {
+﻿const ADMIN_EMAILS_BETANALYTICS = ['betanlyticspro@gmail.com'];
+
+function emailEhAdmin(email) {
+  return ADMIN_EMAILS_BETANALYTICS.includes(String(email || '').toLowerCase());
+}
+
+function getLocal(chave, fallback = '') {
   try {
     return localStorage.getItem(chave) || fallback;
   } catch {
@@ -61,7 +67,7 @@ export function carregarUsuarioSessaoPro() {
     email: emailSessao,
     nome: salvo?.nome || getLocal('bet_user_nome', 'Usuario BetAnalytics'),
     vip_expira: salvo?.vip_expira || salvo?.vip_expira_em || getLocal('bet_vip_expira', ''),
-    is_admin: Boolean(salvo?.is_admin || String(emailSessao).includes('admin'))
+    is_admin: Boolean(salvo?.is_admin || emailEhAdmin(emailSessao))
   };
 
   const ativo = temAcessoPro(base);
