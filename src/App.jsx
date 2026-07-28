@@ -57,6 +57,7 @@ import HistoricoIAPro from './components/HistoricoIAPro.jsx';
 import { salvarAnaliseIA } from './utils/historicoIA.js';
 import { registrarPagamentoGerado, registrarPagamentoAprovado, atualizarPagamentoLocal } from './utils/pagamentosLocal.js';
 import { temAcessoPro, carregarUsuarioSessaoPro, usuarioDemoFree, rotaExigePro } from './utils/acessoPro.js';
+import { apiUrl } from './utils/apiBase.js';
 const MODO_DEMONSTRACAO = true;
 const API_URL = '';
 function gerarEscudoAutomatico(nomeTime = 'TIME') {
@@ -927,7 +928,7 @@ alert(' Pagamento aprovado. VIP PRO ativado com sucesso.');
 };
 const consultarStatusPagamento = async (paymentId, conta) => {
 try {
-const resp = await fetch(`/api/pagamento/status/${paymentId}`);
+const resp = await fetch(apiUrl(`/api/pagamento/status/${paymentId}`));
 const data = await resp.json();
 if (!resp.ok) throw new Error(data?.erro || 'Nao foi possivel consultar o pagamento.');
 
@@ -957,7 +958,7 @@ if (!conta) return;
 try {
 if (pollingPagamentoRef.current) clearInterval(pollingPagamentoRef.current);
 setPagamentoStatus({ loading: true, erro: '', sucesso: 'Gerando QR Code PIX...', pix: null, id: null });
-const resp = await fetch('/api/pagamento/pix', {
+const resp = await fetch(apiUrl('/api/pagamento/pix'), {
 method: 'POST',
 headers: { 'Content-Type': 'application/json' },
 body: JSON.stringify({
@@ -1002,7 +1003,7 @@ setPagamentoStatus({ loading: true, erro: '', sucesso: 'Processando cartao com s
 const token = dadosCartao?.token;
 const paymentMethodId = dadosCartao?.paymentMethodId || dadosCartao?.payment_method_id;
 if (!token || !paymentMethodId) throw new Error('Preencha todos os dados do cartao antes de concluir.');
-const resp = await fetch('/api/pagamento/cartao', {
+const resp = await fetch(apiUrl('/api/pagamento/cartao'), {
 method: 'POST',
 headers: { 'Content-Type': 'application/json' },
 body: JSON.stringify({

@@ -12,6 +12,17 @@ const __dirname = path.dirname(__filename);
 
 const app = express();
 
+/* BET_CORS_APK_PAGAMENTO_INICIO */
+app.use((req, res, next) => {
+  res.setHeader('Access-Control-Allow-Origin', '*');
+  res.setHeader('Access-Control-Allow-Methods', 'GET,POST,PUT,PATCH,DELETE,OPTIONS');
+  res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization');
+  if (req.method === 'OPTIONS') return res.sendStatus(204);
+  return next();
+});
+/* BET_CORS_APK_PAGAMENTO_FIM */
+
+
 // ===== BET_RENDER_PAGAMENTO_FIX_INICIO =====
 app.use(express.json({ limit: '2mb' }));
 
