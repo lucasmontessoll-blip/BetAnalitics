@@ -1,7 +1,7 @@
 import React from 'react';
 
-const COR_CASA = '#3157ff';
-const COR_FORA = '#ffb000';
+const COR_CASA = '#2563eb';
+const COR_FORA = '#ef4444';
 
 function pick(...values) {
   return values.find((value) => value !== undefined && value !== null && value !== '');
@@ -71,7 +71,7 @@ function TeamBadge({ team, fallback, side }) {
           style={{
             borderColor: side === 'home' ? `${COR_CASA}88` : `${COR_FORA}88`,
             background: side === 'home' ? `${COR_CASA}22` : `${COR_FORA}22`,
-            color: side === 'home' ? '#9fb0ff' : '#ffd77d'
+            color: side === 'home' ? '#93c5fd' : '#fca5a5'
           }}
         >
           {initials(name)}
