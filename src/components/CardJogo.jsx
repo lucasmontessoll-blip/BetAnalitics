@@ -1,4 +1,5 @@
 ﻿import React from 'react';
+import EstatisticasJogoPro from './EstatisticasJogoPro.jsx';
 
 function pick(...values) {
   return values.find((v) => v !== undefined && v !== null && v !== '');
@@ -397,7 +398,7 @@ export default function CardJogo({ jogo = {}, onClick, onSelect, selecionado = f
     if (tab === 'detalhes') return <DetailsPanel jogo={jogo} home={home} away={away} />;
     if (tab === 'escalacoes') return <LineupsPanel jogo={jogo} home={home} away={away} />;
     if (tab === 'ia') return <PredictionPanel jogo={jogo} />;
-    if (tab === 'estatisticas') return <StatsPanel jogo={jogo} home={home} away={away} />;
+    if (tab === 'estatisticas') return <EstatisticasJogoPro jogo={jogo} casa={home} fora={away} />;
     if (tab === 'classificacao') return <StandingsPanel jogo={jogo} />;
     if (tab === 'cd') return <H2HPanel jogo={jogo} home={home} away={away} />;
     return <CommentaryPanel jogo={jogo} />;
