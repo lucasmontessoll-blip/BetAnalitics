@@ -57,6 +57,7 @@ export default function RoteadorProfissional({
       return '/pro';
     }
 
+    if (v === 'prejogo' || f === 'pre-jogo' || f === 'prÃ©-jogo') return '/prejogo';
     if (v === 'aovivo' || f === 'ao vivo') return '/aovivo';
     if (v === 'encerrado' || f === 'encerrado') return '/encerrado';
     if (v === 'radarpro' || v === 'radar') return '/radar';
@@ -95,6 +96,14 @@ export default function RoteadorProfissional({
 
     if (typeof setLigaAtivaId === 'function') {
       setLigaAtivaId(null);
+    }
+
+    if (path === '/prejogo') {
+      if (typeof setMenuAtivo === 'function') setMenuAtivo('Todos os Jogos');
+      if (typeof setViewMode === 'function') setViewMode('prejogo');
+      if (typeof setFilterCentro === 'function') setFilterCentro('Pre-Jogo');
+      subirTopo();
+      return;
     }
 
     if (path === '/aovivo') {
