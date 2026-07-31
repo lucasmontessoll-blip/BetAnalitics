@@ -320,7 +320,7 @@ React.useEffect(() => {
   if (proAtivo) return;
   if (String(menuAtivo || '').toLowerCase() === 'assinar pro') return;
 
-  const jogoEhDemo = Boolean(jogoSelecionado?.demo || String(jogoSelecionado?.id || '').startsWith('demo'));
+  const jogoEhDemo = Boolean(jogoSelecionado); // Cards e abas do jogo podem ser visualizados por qualquer usuario.
 
   if (jogoSelecionado && !jogoEhDemo) {
     setJogoSelecionado(null);
@@ -795,8 +795,6 @@ const jogosTelaPrincipal = useMemo(() => {
                       key={j.id}
                       whileTap={{ scale: 0.992 }}
                       onClick={() => {
-                        if (!userData?.is_vip)
-                          return setMenuAtivo("assinar pro");
                         setJogoSelecionado(j);
                       }}
                       className={`group relative cursor-pointer overflow-hidden rounded-2xl border transition-all duration-300 ${
@@ -1415,8 +1413,6 @@ return (
   favoritos={favoritos}
   onToggleFavorito={toggleFavorito}
   onAbrirJogo={(j) => {
-    if (j.demo || String(j.id || '').startsWith('demo-home')) return setJogoSelecionado(j);
-    if (!proAtivo) return setMenuAtivo('assinar pro');
     setJogoSelecionado(j);
   }}
   renderizarListaJogos={RenderizarListaJogos}
@@ -1664,15 +1660,44 @@ return (
   {'<'}
 </button>
 <Suspense fallback={<div className="text-center p-10 font-black text-blue-500 animate-pulse text-xs">A carregar painel do jogo...</div>}>
-<PainelJogo jogo={jogoSelecionado} setJogoSelecionado={setJogoSelecionado} bancaInicial={bancaInicial} gerarExplicacaoIA={gerarExplicacaoIA} calcularStake={calcularStake} calcularKelly={calcularKelly}  setAiOpen={setAiOpen}  setAiQuery={setAiQuery}
-  setViewMode={setViewMode}
-  onBack={() => {
-    setJogoSelecionado(null);
-    setMenuAtivo('Todos os Jogos');
-    setViewMode('jogos');
-    setFilterCentro('Todos');
-  }}
-/>
+{/* BET_ETAPA_27_FINAL_CARD_ABAS */}
+<div className="w-full px-3 pt-16 sm:px-4 sm:pt-20">
+  <CardJogo
+    key={jogoSelecionado.id ?? jogoSelecionado.fixture?.id ?? "jogo-selecionado"}
+    jogo={{
+      ...jogoSelecionado,
+      id: jogoSelecionado.id ?? jogoSelecionado.id_jogo ?? jogoSelecionado.fixture?.id,
+      time_casa: jogoSelecionado.time_casa ?? jogoSelecionado.home_team ?? jogoSelecionado.homeTeam ?? jogoSelecionado.teams?.home?.name,
+      homeTeam: jogoSelecionado.homeTeam ?? jogoSelecionado.home_team ?? jogoSelecionado.time_casa ?? jogoSelecionado.teams?.home?.name,
+      mandante: jogoSelecionado.mandante ?? jogoSelecionado.home_team ?? jogoSelecionado.time_casa,
+      logo_casa: jogoSelecionado.logo_casa ?? jogoSelecionado.home_image ?? jogoSelecionado.homeLogo ?? jogoSelecionado.teams?.home?.logo,
+      homeLogo: jogoSelecionado.homeLogo ?? jogoSelecionado.home_image ?? jogoSelecionado.logo_casa ?? jogoSelecionado.teams?.home?.logo,
+      placar_casa: jogoSelecionado.placar_casa ?? jogoSelecionado.scoreHome ?? jogoSelecionado.home_score ?? jogoSelecionado.goals?.home ?? 0,
+      score_home: jogoSelecionado.score_home ?? jogoSelecionado.scoreHome ?? jogoSelecionado.placar_casa ?? jogoSelecionado.goals?.home ?? 0,
+      time_fora: jogoSelecionado.time_fora ?? jogoSelecionado.away_team ?? jogoSelecionado.awayTeam ?? jogoSelecionado.teams?.away?.name,
+      awayTeam: jogoSelecionado.awayTeam ?? jogoSelecionado.away_team ?? jogoSelecionado.time_fora ?? jogoSelecionado.teams?.away?.name,
+      visitante: jogoSelecionado.visitante ?? jogoSelecionado.away_team ?? jogoSelecionado.time_fora,
+      logo_fora: jogoSelecionado.logo_fora ?? jogoSelecionado.away_image ?? jogoSelecionado.awayLogo ?? jogoSelecionado.teams?.away?.logo,
+      awayLogo: jogoSelecionado.awayLogo ?? jogoSelecionado.away_image ?? jogoSelecionado.logo_fora ?? jogoSelecionado.teams?.away?.logo,
+      placar_fora: jogoSelecionado.placar_fora ?? jogoSelecionado.scoreAway ?? jogoSelecionado.away_score ?? jogoSelecionado.goals?.away ?? 0,
+      score_away: jogoSelecionado.score_away ?? jogoSelecionado.scoreAway ?? jogoSelecionado.placar_fora ?? jogoSelecionado.goals?.away ?? 0,
+      liga: jogoSelecionado.liga ?? jogoSelecionado.league_name ?? jogoSelecionado.league?.name ?? "Competicao",
+      campeonato: jogoSelecionado.campeonato ?? jogoSelecionado.league_name ?? jogoSelecionado.league?.name,
+      data: jogoSelecionado.data ?? jogoSelecionado.starting_at ?? jogoSelecionado.date ?? jogoSelecionado.fixture?.date,
+      horario: jogoSelecionado.horario ?? jogoSelecionado.starting_at ?? jogoSelecionado.date ?? jogoSelecionado.fixture?.date,
+      tempo: jogoSelecionado.tempo ?? jogoSelecionado.time_elapsed ?? jogoSelecionado.fixture?.status?.elapsed,
+      minuto: jogoSelecionado.minuto ?? jogoSelecionado.time_elapsed ?? jogoSelecionado.fixture?.status?.elapsed,
+      status: jogoSelecionado.status ?? jogoSelecionado.fixture?.status?.short ?? "Not Started",
+      odd: jogoSelecionado.odd ?? jogoSelecionado.odd_principal ?? jogoSelecionado.odds?.home,
+      odd_principal: jogoSelecionado.odd_principal ?? jogoSelecionado.odd ?? jogoSelecionado.odds?.home,
+      confianca: jogoSelecionado.confianca ?? jogoSelecionado.confianca_ia ?? jogoSelecionado.confiancaIA ?? 0,
+      confiancaIA: jogoSelecionado.confiancaIA ?? jogoSelecionado.confianca_ia ?? jogoSelecionado.confianca ?? 0,
+      confianca_ia: jogoSelecionado.confianca_ia ?? jogoSelecionado.confiancaIA ?? jogoSelecionado.confianca ?? 0,
+    }}
+    selecionado={true}
+  />
+</div>
+{/* BET_ETAPA_27_FINAL_CARD_ABAS_FIM */}
 </Suspense>
 <div className="px-4 pb-8 space-y-4">
 </div>
