@@ -46,6 +46,7 @@ import MenuRodape from './components/MenuRodape.jsx';
 import CardJogo from './components/CardJogo.jsx';
 import TelaEncerrados from './components/TelaEncerrados.jsx';
 import TelaAoVivo from './components/TelaAoVivo.jsx';
+import TelaPreJogo from './components/TelaPreJogo.jsx';
 import TelaRadarIA from './components/TelaRadarIA.jsx';
 import TelaInicial from './components/TelaInicial.jsx';
 import HeaderApp from './components/HeaderApp.jsx';
@@ -1261,10 +1262,11 @@ return (
   <button
     type="button"
     onClick={() => {
+      const origemJogo = jogoSelecionado?._origemTela;
       setJogoSelecionado(null);
       setMenuAtivo('Todos os Jogos');
-      setViewMode('jogos');
-      setFilterCentro('Todos');
+      setViewMode(origemJogo === 'prejogo' ? 'prejogo' : 'jogos');
+      setFilterCentro(origemJogo === 'prejogo' ? 'Pre-Jogo' : 'Todos');
       window.scrollTo({ top: 0, behavior: 'smooth' });
     }}
     style={{
@@ -1396,6 +1398,19 @@ return (
 
 {viewMode === 'encerrado' && (
 <TelaEncerrados
+  jogos={jogos}
+  userData={userData}
+  setMenuAtivo={setMenuAtivo}
+  setJogoSelecionado={setJogoSelecionado}
+  toggleFavorito={toggleFavorito}
+  favoritos={favoritos}
+  escudoTime={escudoTime}
+  gerarEscudoAutomatico={gerarEscudoAutomatico}
+/>
+)}
+
+{viewMode === 'prejogo' && (
+<TelaPreJogo
   jogos={jogos}
   userData={userData}
   setMenuAtivo={setMenuAtivo}
@@ -1647,10 +1662,11 @@ return (
 <button
   type="button"
   onClick={() => {
+    const origemJogo = jogoSelecionado?._origemTela;
     setJogoSelecionado(null);
     setMenuAtivo('Todos os Jogos');
-    setViewMode('jogos');
-    setFilterCentro('Todos');
+    setViewMode(origemJogo === 'prejogo' ? 'prejogo' : 'jogos');
+    setFilterCentro(origemJogo === 'prejogo' ? 'Pre-Jogo' : 'Todos');
     window.scrollTo({ top: 0, behavior: 'smooth' });
   }}
   className="bet-retorno-painel-pro"

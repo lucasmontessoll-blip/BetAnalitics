@@ -1,5 +1,5 @@
-﻿import React from 'react';
-import { Home, Radio, Trophy, Target, CheckCircle2 } from 'lucide-react';
+import React from 'react';
+import { Home, Radio, Target, CheckCircle2, CalendarDays } from 'lucide-react';
 
 export default function MenuRodape({
   viewMode,
@@ -10,49 +10,45 @@ export default function MenuRodape({
   setLigaAtivaId,
   setJogoSelecionado,
 }) {
-  function irInicio() {
+  function limparSelecao() {
     setMenuAtivo('Todos os Jogos');
-    setViewMode('jogos');
-    setFilterCentro('Todos');
     setLigaAtivaId(null);
     setJogoSelecionado(null);
+  }
+
+  function irInicio() {
+    limparSelecao();
+    setViewMode('jogos');
+    setFilterCentro('Todos');
   }
 
   function irAoVivo() {
-    setMenuAtivo('Todos os Jogos');
+    limparSelecao();
     setViewMode('aovivo');
     setFilterCentro('Ao Vivo');
-    setLigaAtivaId(null);
-    setJogoSelecionado(null);
   }
 
   function irEncerrado() {
-    setMenuAtivo('Todos os Jogos');
+    limparSelecao();
     setViewMode('encerrado');
     setFilterCentro('Encerrado');
-    setLigaAtivaId(null);
-    setJogoSelecionado(null);
   }
 
-  function irJogos() {
-    setMenuAtivo('Todos os Jogos');
-    setViewMode('copa');
-    setFilterCentro('Todos');
-    setLigaAtivaId(null);
-    setJogoSelecionado(null);
+  function irPreJogo() {
+    limparSelecao();
+    setViewMode('prejogo');
+    setFilterCentro('Pre-Jogo');
   }
 
   function irRadarIA() {
-    setMenuAtivo('Todos os Jogos');
+    limparSelecao();
     setViewMode('radarpro');
     setFilterCentro('Todos');
-    setLigaAtivaId(null);
-    setJogoSelecionado(null);
   }
 
   return (
-    <nav className="fixed bottom-0 left-0 right-0 bg-[#050816] border-t border-white/5 z-50 flex flex-col shadow-[0_-5px_20px_rgba(0,0,0,0.5)]">
-      <div className="flex justify-around items-center h-16 pt-2 w-full">
+    <nav className="fixed bottom-0 left-0 right-0 z-50 flex flex-col border-t border-white/5 bg-[#050816] shadow-[0_-5px_20px_rgba(0,0,0,0.5)]">
+      <div className="flex h-16 w-full items-center justify-around pt-2">
         <button
           type="button"
           onClick={irInicio}
@@ -63,64 +59,64 @@ export default function MenuRodape({
           }`}
           style={{ touchAction: 'manipulation' }}
         >
-          <Home className="w-5 h-5" />
-          <span className="text-[8px] font-black uppercase mt-0.5">Inicio</span>
+          <Home className="h-5 w-5" />
+          <span className="mt-0.5 text-[8px] font-black uppercase">InÃ­cio</span>
         </button>
 
         <button
           type="button"
           onClick={irAoVivo}
           className={`flex flex-col items-center gap-1.5 ${
-            filterCentro === 'Ao Vivo'
+            viewMode === 'aovivo' || filterCentro === 'Ao Vivo'
               ? 'text-red-500'
               : 'text-slate-500'
           }`}
           style={{ touchAction: 'manipulation' }}
         >
-          <Radio className="w-5 h-5" />
-          <span className="text-[8px] font-black uppercase mt-0.5">Ao Vivo</span>
+          <Radio className="h-5 w-5" />
+          <span className="mt-0.5 text-[8px] font-black uppercase">Ao Vivo</span>
         </button>
 
         <button
           type="button"
           onClick={irEncerrado}
           className={`flex flex-col items-center gap-1.5 ${
-            filterCentro === 'Encerrado'
+            viewMode === 'encerrado' || filterCentro === 'Encerrado'
               ? 'text-green-500'
               : 'text-slate-500'
           }`}
           style={{ touchAction: 'manipulation' }}
         >
-          <CheckCircle2 className="w-5 h-5" />
-          <span className="text-[8px] font-black uppercase mt-0.5">Encerrado</span>
+          <CheckCircle2 className="h-5 w-5" />
+          <span className="mt-0.5 text-[8px] font-black uppercase">Encerrado</span>
         </button>
 
         <button
           type="button"
-          onClick={irJogos}
+          onClick={irPreJogo}
           className={`flex flex-col items-center gap-1.5 ${
-            viewMode === 'copa'
-              ? 'text-yellow-500'
+            viewMode === 'prejogo'
+              ? 'text-yellow-400'
               : 'text-slate-500'
           }`}
           style={{ touchAction: 'manipulation' }}
         >
-          <Trophy className="w-5 h-5" />
-          <span className="text-[8px] font-black uppercase mt-0.5">Jogos</span>
+          <CalendarDays className="h-5 w-5" />
+          <span className="mt-0.5 text-[8px] font-black uppercase">PrÃ©-jogo</span>
         </button>
 
         <button
           type="button"
           onClick={irRadarIA}
           className={`flex flex-col items-center gap-1.5 ${
-            viewMode === 'radar'
+            viewMode === 'radarpro' || viewMode === 'radar'
               ? 'text-blue-500'
               : 'text-slate-500'
           }`}
           style={{ touchAction: 'manipulation' }}
         >
-          <Target className="w-5 h-5" />
-          <span className="text-[8px] font-black uppercase mt-0.5">Radar IA</span>
+          <Target className="h-5 w-5" />
+          <span className="mt-0.5 text-[8px] font-black uppercase">Radar IA</span>
         </button>
       </div>
     </nav>
