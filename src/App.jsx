@@ -1,4 +1,4 @@
-﻿import React, { useState, useEffect, useRef, Suspense, useMemo, useCallback } from 'react';
+import React, { useState, useEffect, useRef, Suspense, useMemo, useCallback } from 'react';
 import './App.css';
 import { AreaChart, Area, BarChart, Bar, ResponsiveContainer, XAxis, YAxis, CartesianGrid, Tooltip } from 'recharts';
 import PlayStoreModeBadge from './components/PlayStoreModeBadge.jsx';
@@ -569,269 +569,376 @@ const jogosTelaPrincipal = useMemo(() => {
   });
 }, [jogosBaseComEncerradosBet, filterCentro]);
 
-const jFilt = useMemo(() => {
-  return jogosTelaPrincipal.filter(j => {
-    if (filterCentro === 'Encerrado') return ehJogoEncerradoBet(j);
+  const statusNormalizado = (jogo = {}) =>
+    String(jogo.status ?? jogo.fixture?.status?.short ?? "").toLowerCase();
 
-    if (j.demo) {
-      if (viewMode === 'copa') return false;
-      if (filterCentro === 'Favoritos') return favoritos.includes(j.id);
-      if (filterCentro === 'Ao Vivo') return j.status === 'Live';
-      return true;
+  const jogoAoVivo = (jogo = {}) => {
+    const status = statusNormalizado(jogo);
+    const tempo = String(jogo.time_elapsed ?? jogo.fixture?.status?.elapsed ?? "").toLowerCase();
+    return (
+      status === "live" ||
+      status === "1h" ||
+      status === "2h" ||
+      status === "ht" ||
+      status.includes("in play") ||
+      status.includes("intervalo") ||
+      /\d{1,3}'/.test(tempo)
+    );
+  };
+
+  const jogoFinalizado = (jogo = {}) => {
+    const status = statusNormalizado(jogo);
+    return (
+      status === "ft" ||
+      status === "aet" ||
+      status === "pen" ||
+      status.includes("finished") ||
+      status.includes("finalizado") ||
+      status.includes("encerrado")
+    );
+  };
+
+  const minutoAoVivo = (jogo = {}) => {
+    const valor = jogo.time_elapsed ?? jogo.fixture?.status?.elapsed;
+    const texto = String(valor ?? "").trim();
+    if (!texto) return "LIVE";
+    if (/intervalo|half.?time|^ht$/i.test(texto)) return "INT";
+    const minuto = texto.match(/\d{1,3}/)?.[0];
+    return minuto ? `${minuto}'` : texto.toUpperCase();
+  };
+
+  const horarioJogo = (jogo = {}) => {
+    if (jogoAoVivo(jogo)) return minutoAoVivo(jogo);
+    if (jogoFinalizado(jogo)) return "FT";
+
+    const origem =
+      jogo.starting_at ??
+      jogo.date ??
+      jogo.fixture?.date ??
+      jogo.horario ??
+      jogo.time;
+
+    if (!origem) return "--:--";
+
+    const data = new Date(origem);
+    if (!Number.isNaN(data.getTime())) {
+      return data.toLocaleTimeString("pt-BR", {
+        hour: "2-digit",
+        minute: "2-digit",
+      });
     }
 
+    const horarioEncontrado = String(origem).match(/\b(\d{1,2}):(\d{2})\b/);
+    return horarioEncontrado
+      ? `${horarioEncontrado[1].padStart(2, "0")}:${horarioEncontrado[2]}`
+      : "--:--";
+  };
+
+  const ordemStatus = (jogo) => {
+    if (jogoAoVivo(jogo)) return 0;
+    if (jogoFinalizado(jogo)) return 2;
+    return 1;
+  };
+
+  let jFilt = jogos.filter((j) => {
     const sel = isSelecao(j.home_team, j.away_team, j.league_name);
-
-    if (viewMode === 'jogos' && sel) return false;
-    if (viewMode === 'copa' && !sel) return false;
-    if (filterCentro === 'Ao Vivo') return j.status === 'Live';
-    if (filterCentro === 'Favoritos') return favoritos.includes(j.id);
-    if (ligaAtivaId !== null && j.league_id !== ligaAtivaId && j.league_id !== 999) return false;
-
+    if (viewMode === "jogos" && sel) return false;
+    if (viewMode === "copa" && !sel) return false;
+    if (filterCentro === "Ao Vivo") return jogoAoVivo(j);
+    if (filterCentro === "Favoritos") return favoritos.includes(j.id);
+    if (
+      ligaAtivaId !== null &&
+      j.league_id !== ligaAtivaId &&
+      j.league_id !== 999
+    )
+      return false;
     return true;
   });
-}, [jogosTelaPrincipal, viewMode, filterCentro, favoritos, ligaAtivaId]);
 
-const jGrp = useMemo(() => {
-return jFilt.reduce((a, j) => {
-if (!a[j.league_name]) a[j.league_name] = [];
-a[j.league_name].push(j);
-return a;
-}, {});
-}, [jFilt]);
+  jFilt = [...jFilt].sort((a, b) => {
+    const porStatus = ordemStatus(a) - ordemStatus(b);
+    if (porStatus !== 0) return porStatus;
 
-// ===== JOGOS DEMO DAS ABAS INICIO =====
-const JOGOS_DEMO_ABAS_INICIO = [
-  {
-    id: 'demo-brasileirao-1',
-    demo: true,
-    league_id: 71,
-    league_name: 'Brasileirao',
-    league_country: 'Brazil',
-    status: 'Not Started',
-    home_team: 'Flamengo',
-    away_team: 'Palmeiras',
-    scoreHome: 0,
-    scoreAway: 0,
-    placar_casa: 0,
-    placar_fora: 0,
-    confianca_ia: 89,
-    odd_principal: 1.82,
-    mercado_principal: 'Vitoria Flamengo',
-    time_elapsed: '',
-  },
-  {
-    id: 'demo-brasileirao-2',
-    demo: true,
-    league_id: 71,
-    league_name: 'Brasileirao',
-    league_country: 'Brazil',
-    status: 'Live',
-    home_team: 'Corinthians',
-    away_team: 'Sao Paulo',
-    scoreHome: 1,
-    scoreAway: 1,
-    placar_casa: 1,
-    placar_fora: 1,
-    confianca_ia: 86,
-    odd_principal: 2.05,
-    mercado_principal: 'Mais de 1.5 gols',
-    time_elapsed: "65'",
-  },
-  {
-    id: 'demo-champions-1',
-    demo: true,
-    league_id: 2,
-    league_name: 'Champions League',
-    league_country: 'World',
-    status: 'Not Started',
-    home_team: 'Real Madrid',
-    away_team: 'Manchester City',
-    scoreHome: 0,
-    scoreAway: 0,
-    placar_casa: 0,
-    placar_fora: 0,
-    confianca_ia: 88,
-    odd_principal: 2.10,
-    mercado_principal: 'Ambos marcam',
-    time_elapsed: '',
-  },
-  {
-    id: 'demo-premier-1',
-    demo: true,
-    league_id: 39,
-    league_name: 'Premier League',
-    league_country: 'England',
-    status: 'Live',
-    home_team: 'Liverpool',
-    away_team: 'Arsenal',
-    scoreHome: 2,
-    scoreAway: 1,
-    placar_casa: 2,
-    placar_fora: 1,
-    confianca_ia: 87,
-    odd_principal: 1.95,
-    mercado_principal: 'Liverpool ou empate',
-    time_elapsed: "72'",
-  },
-];
+    const dataA = new Date(a.starting_at ?? a.date ?? a.fixture?.date ?? 0).getTime();
+    const dataB = new Date(b.starting_at ?? b.date ?? b.fixture?.date ?? 0).getTime();
+    const valorA = Number.isNaN(dataA) ? Number.MAX_SAFE_INTEGER : dataA;
+    const valorB = Number.isNaN(dataB) ? Number.MAX_SAFE_INTEGER : dataB;
+    return valorA - valorB;
+  });
 
-function normalizarLigaAba(nome = '') {
-  return String(nome || '')
-    .toLowerCase()
-    .normalize('NFD')
-    .replace(/[\u0300-\u036f]/g, '');
-}
+  const jGrp = jFilt.reduce((grupos, jogo) => {
+    const nomeLiga = jogo.league_name || jogo.league?.name || "Outros jogos";
+    if (!grupos[nomeLiga]) grupos[nomeLiga] = [];
+    grupos[nomeLiga].push(jogo);
+    return grupos;
+  }, {});
 
-function statusEhAoVivo(jogo) {
-  const status = normalizarLigaAba(jogo?.status || jogo?.fixture?.status?.short || '');
-  const tempo = String(jogo?.time_elapsed || jogo?.tempo_jogo || '').trim();
-
-  return status.includes('live') ||
-    status === '1h' ||
-    status === '2h' ||
-    status === 'ht' ||
-    tempo.includes("'");
-}
-
-
-function betStatusEncerradoFinal(jogo) {
-  const texto = [
-    jogo?.status,
-    jogo?.status_short,
-    jogo?.fixture?.status?.short,
-    jogo?.fixture?.status?.long,
-    jogo?.time_elapsed,
-    jogo?.tempo_jogo
-  ].filter(Boolean).join(' ').toLowerCase();
-
-  return texto.includes('finished') ||
-    texto.includes('finalizado') ||
-    texto.includes('encerrado') ||
-    texto === 'ft' ||
-    texto.includes(' ft') ||
-    texto.includes('match finished') ||
-    texto.includes('aet') ||
-    texto.includes('pen');
-}
-
-function statusEhEncerrado(jogo) {
-  const status = normalizarLigaAba(jogo?.status || jogo?.status_short || jogo?.fixture?.status?.short || jogo?.fixture?.status?.long || '');
-  return status.includes('finished') ||
-    status.includes('finalizado') ||
-    status.includes('encerrado') ||
-    status === 'ft' ||
-    status === 'aet' ||
-    status === 'pen' ||
-    status === 'match finished';
-}
-
-function ligaDoJogoId(jogo) {
-  return Number(
-    jogo?.league_id ||
-    jogo?.liga_id ||
-    jogo?.raw_api_football?.league?.id ||
-    jogo?.league?.id ||
-    0
-  );
-}
-
-function ligaDoJogoNome(jogo) {
-  return normalizarLigaAba(
-    jogo?.league_name ||
-    jogo?.liga ||
-    jogo?.raw_api_football?.league?.name ||
-    jogo?.league?.name ||
-    ''
-  );
-}
-
-function filtrarJogosAbaInicio(jogosOriginais = [], filterCentroAtual = 'Todos', ligaAtivaAtual = null) {
-  const reais = Array.isArray(jogosOriginais) ? jogosOriginais : [];
-
-  const idsReais = new Set(reais.map((j) => String(j.id || j.fixture_id || '')));
-  const demosQueFaltam = JOGOS_DEMO_ABAS_INICIO.filter((j) => !idsReais.has(String(j.id)));
-
-  const base = [...reais, ...demosQueFaltam];
-
-  const filtro = String(filterCentroAtual || 'Todos');
-
-  if (filtro === 'Ao Vivo') {
-    return base.filter(statusEhAoVivo);
-  }
-
-  const ligaId = Number(ligaAtivaAtual || 0);
-
-  if (ligaId === 71) {
-    return base.filter((j) => {
-      const nome = ligaDoJogoNome(j);
-      return ligaDoJogoId(j) === 71 || nome.includes('brasileirao') || nome.includes('serie a');
-    });
-  }
-
-  if (ligaId === 2) {
-    return base.filter((j) => {
-      const nome = ligaDoJogoNome(j);
-      return ligaDoJogoId(j) === 2 || nome.includes('champions');
-    });
-  }
-
-  if (ligaId === 39) {
-    return base.filter((j) => {
-      const nome = ligaDoJogoNome(j);
-      return ligaDoJogoId(j) === 39 || nome.includes('premier');
-    });
-  }
-
-  return base;
-}
-// ===== FIM JOGOS DEMO DAS ABAS INICIO =====
-
-const RenderizarListaJogos = () => {
-if (loading) return (<div className="text-center text-slate-500 py-10">
-      {/* VOLTAR_FAVORITOS_HEADER */}
-      <div className="flex items-center gap-3 mb-3 px-1">
-        
-
-        <div className="min-w-0">
-          <div className="text-white text-sm font-black tracking-wide">Favoritos</div>
-          <div className="text-slate-400 text-[10px] font-bold">Voltar para a tela anterior</div>
+  const RenderizarListaJogos = () => {
+    if (loading) {
+      return (
+        <div className="py-12 text-center">
+          <div className="mx-auto mb-3 h-9 w-9 animate-spin rounded-full border-2 border-blue-500/20 border-t-blue-500" />
+          <p className="text-xs font-black uppercase tracking-[0.18em] text-slate-500">
+            Buscando todos os jogos...
+          </p>
         </div>
-      </div>Buscando jogos na API-Football...</div>);
-if (Object.keys(jGrp).length === 0) {
-return (
-<div className="text-center text-slate-500 py-10 font-bold">
-<div>Nenhum jogo retornado pela API-Football com estes filtros.</div>
+      );
+    }
 
-        
+    if (Object.keys(jGrp).length === 0) {
+      return (
+        <div className="rounded-3xl border border-white/[0.06] bg-white/[0.025] px-5 py-12 text-center">
+          <Calendar className="mx-auto mb-3 h-8 w-8 text-slate-600" />
+          <p className="text-sm font-black text-slate-300">
+            Nenhum jogo encontrado
+          </p>
+          <p className="mt-1 text-xs font-semibold text-slate-600">
+            Troque o filtro ou tente novamente em alguns instantes.
+          </p>
+        </div>
+      );
+    }
 
-{erroApiFootball && (<div className="mt-2 text-[11px] text-red-400 font-bold">{erroApiFootball}</div>)}
-<button onClick={atualizarApiFootball} className="mt-4 bg-blue-600 text-white rounded-2xl px-5 py-3 text-xs font-black uppercase">Atualizar API-Football</button>
-</div>
-);
-}
-return Object.entries(jGrp).map(([leagueName, matches]) => (
-<div key={leagueName} className="mb-6 w-full">
-<div className="text-xs font-black text-slate-500 uppercase tracking-widest mb-3 pl-2">{leagueName}</div>
-{matches.map(j => (
-<CardJogo
-  key={j.id}
-  j={j}
-  userData={userData}
-  setMenuAtivo={setMenuAtivo}
-  setJogoSelecionado={setJogoSelecionado}
-  toggleFavorito={toggleFavorito}
-  favoritos={favoritos}
-  escudoTime={escudoTime}
-  gerarEscudoAutomatico={gerarEscudoAutomatico}
-  statusEhAoVivo={statusEhAoVivo}
-  statusEhEncerrado={statusEhEncerrado}
-/>
-))}
-</div>
-));
-};
-const HeaderNav = ({ title, onBack }) => (<div className="flex items-center gap-3 mb-6"><h2 className="text-xl font-black">{title}</h2></div>);
+    const totalAoVivo = jFilt.filter(jogoAoVivo).length;
+
+    return (
+      <div className="space-y-5 pb-3">
+        <div className="flex items-center justify-between rounded-2xl border border-white/[0.06] bg-white/[0.025] px-4 py-3">
+          <div>
+            <p className="text-sm font-black text-white">Todos os jogos</p>
+            <p className="mt-0.5 text-[10px] font-bold uppercase tracking-wider text-slate-500">
+              {jFilt.length} {jFilt.length === 1 ? "partida encontrada" : "partidas encontradas"}
+            </p>
+          </div>
+          {totalAoVivo > 0 ? (
+            <div className="flex items-center gap-2 rounded-full border border-red-500/25 bg-red-500/10 px-3 py-1.5">
+              <span className="relative flex h-2 w-2">
+                <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-red-400 opacity-70" />
+                <span className="relative inline-flex h-2 w-2 rounded-full bg-red-500" />
+              </span>
+              <span className="text-[10px] font-black uppercase text-red-300">
+                {totalAoVivo} ao vivo
+              </span>
+            </div>
+          ) : null}
+        </div>
+
+        {Object.entries(jGrp).map(([leagueName, matches]) => {
+          const primeiraPartida = matches[0] || {};
+          const logoLiga =
+            primeiraPartida.league_logo ||
+            primeiraPartida.league_image ||
+            primeiraPartida.logo_liga ||
+            primeiraPartida.league?.logo;
+          const paisLiga =
+            primeiraPartida.country?.name ||
+            (typeof primeiraPartida.country === "string"
+              ? primeiraPartida.country
+              : null) ||
+            primeiraPartida.country_name ||
+            primeiraPartida.league_country ||
+            primeiraPartida.area?.name ||
+            "Mundo";
+          const quantidadeAoVivo = matches.filter(jogoAoVivo).length;
+
+          return (
+            <section key={leagueName} className="w-full">
+              <div className="mb-2 flex items-center justify-between px-1.5">
+                <div className="flex min-w-0 items-center gap-2.5">
+                  <div className="flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-xl border border-white/[0.07] bg-white/[0.035]">
+                    {logoLiga ? (
+                      <img
+                        src={logoLiga}
+                        alt=""
+                        className="h-5 w-5 object-contain"
+                      />
+                    ) : (
+                      <Trophy className="h-4 w-4 text-slate-400" />
+                    )}
+                  </div>
+                  <div className="min-w-0">
+                    <h3 className="truncate text-xs font-black text-slate-100">
+                      {leagueName}
+                    </h3>
+                    <p className="mt-0.5 truncate text-[9px] font-bold uppercase tracking-wider text-slate-600">
+                      ðŸŒ {paisLiga}
+                    </p>
+                  </div>
+                </div>
+
+                <div className="flex items-center gap-2">
+                  {quantidadeAoVivo > 0 ? (
+                    <span className="rounded-full bg-amber-500/10 px-2 py-1 text-[8px] font-black uppercase text-amber-300">
+                      {quantidadeAoVivo} live
+                    </span>
+                  ) : null}
+                  <span className="text-[9px] font-black text-slate-600">
+                    {matches.length} {matches.length === 1 ? "jogo" : "jogos"}
+                  </span>
+                </div>
+              </div>
+
+              <div className="space-y-2">
+                {matches.map((j) => {
+                  const aoVivo = jogoAoVivo(j);
+                  const encerrado = jogoFinalizado(j);
+                  const placarCasa =
+                    j.scoreHome ?? j.home_score ?? j.goals?.home ?? 0;
+                  const placarFora =
+                    j.scoreAway ?? j.away_score ?? j.goals?.away ?? 0;
+                  const confianca = Number(j.confianca_ia ?? j.confiancaIA ?? 0);
+                  const odd = Number(j.odd_principal ?? j.odd ?? 0);
+
+                  return (
+                    <motion.div
+                      layout
+                      key={j.id}
+                      whileTap={{ scale: 0.992 }}
+                      onClick={() => {
+                        if (!userData?.is_vip)
+                          return setMenuAtivo("assinar pro");
+                        setJogoSelecionado(j);
+                      }}
+                      className={`group relative cursor-pointer overflow-hidden rounded-2xl border transition-all duration-300 ${
+                        aoVivo
+                          ? "border-amber-400/45 bg-gradient-to-r from-amber-500/10 via-[#151515] to-[#0d0f12] shadow-[inset_4px_0_0_#f59e0b,0_0_24px_rgba(245,158,11,0.12)]"
+                          : encerrado
+                            ? "border-white/[0.05] bg-[#0d1014]/75 opacity-80 hover:opacity-100"
+                            : "border-white/[0.07] bg-[#111419] shadow-lg shadow-black/10 hover:border-blue-500/35 hover:bg-[#141820]"
+                      }`}
+                    >
+                      {aoVivo ? (
+                        <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_0%_50%,rgba(245,158,11,0.16),transparent_38%)]" />
+                      ) : null}
+
+                      <div className="relative grid min-h-[78px] grid-cols-[58px_minmax(0,1fr)_32px_34px] items-center gap-2 px-2.5 py-2.5 sm:grid-cols-[66px_minmax(0,1fr)_38px_38px] sm:px-3">
+                        <div
+                          className={`flex min-h-[56px] flex-col items-center justify-center rounded-xl border px-1.5 text-center ${
+                            aoVivo
+                              ? "border-amber-400/25 bg-amber-500/10"
+                              : "border-white/[0.05] bg-black/20"
+                          }`}
+                        >
+                          {aoVivo ? (
+                            <>
+                              <div className="mb-1 flex items-center gap-1">
+                                <span className="relative flex h-1.5 w-1.5">
+                                  <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-red-400 opacity-75" />
+                                  <span className="relative inline-flex h-1.5 w-1.5 rounded-full bg-red-500" />
+                                </span>
+                                <span className="text-[7px] font-black uppercase tracking-wide text-amber-300">
+                                  Ao vivo
+                                </span>
+                              </div>
+                              <span className="text-sm font-black leading-none text-amber-100">
+                                {minutoAoVivo(j)}
+                              </span>
+                            </>
+                          ) : (
+                            <>
+                              <span className="text-xs font-black text-slate-200">
+                                {horarioJogo(j)}
+                              </span>
+                              <span className="mt-1 text-[7px] font-black uppercase tracking-wider text-slate-600">
+                                {encerrado ? "Encerrado" : "Agendado"}
+                              </span>
+                            </>
+                          )}
+                        </div>
+
+                        <div className="min-w-0">
+                          <div className="flex min-w-0 items-center gap-2 border-b border-white/[0.045] pb-1.5">
+                            <img
+                              src={j.home_image}
+                              alt={j.home_team || "Mandante"}
+                              className="h-5 w-5 flex-shrink-0 object-contain"
+                            />
+                            <span className="min-w-0 flex-1 truncate text-[11px] font-black text-slate-100 sm:text-xs">
+                              {j.home_team}
+                            </span>
+                          </div>
+                          <div className="flex min-w-0 items-center gap-2 pt-1.5">
+                            <img
+                              src={j.away_image}
+                              alt={j.away_team || "Visitante"}
+                              className="h-5 w-5 flex-shrink-0 object-contain"
+                            />
+                            <span className="min-w-0 flex-1 truncate text-[11px] font-black text-slate-100 sm:text-xs">
+                              {j.away_team}
+                            </span>
+                          </div>
+
+                          {(confianca > 0 || odd > 0) && (
+                            <div className="mt-2 flex items-center gap-1.5">
+                              {confianca > 0 ? (
+                                <span className="rounded-md border border-blue-500/15 bg-blue-500/10 px-1.5 py-0.5 text-[7px] font-black uppercase text-blue-300">
+                                  IA {Math.round(confianca)}%
+                                </span>
+                              ) : null}
+                              {odd > 0 ? (
+                                <span className="rounded-md border border-emerald-500/15 bg-emerald-500/10 px-1.5 py-0.5 text-[7px] font-black uppercase text-emerald-300">
+                                  Odd {odd.toFixed(2)}
+                                </span>
+                              ) : null}
+                            </div>
+                          )}
+                        </div>
+
+                        <div className="flex flex-col items-center justify-center gap-1.5">
+                          {aoVivo || encerrado ? (
+                            <>
+                              <span
+                                className={`flex h-6 min-w-6 items-center justify-center rounded-lg px-1 text-xs font-black ${
+                                  aoVivo
+                                    ? "bg-black/55 text-white shadow-inner"
+                                    : "bg-black/25 text-slate-400"
+                                }`}
+                              >
+                                {placarCasa}
+                              </span>
+                              <span
+                                className={`flex h-6 min-w-6 items-center justify-center rounded-lg px-1 text-xs font-black ${
+                                  aoVivo
+                                    ? "bg-black/55 text-white shadow-inner"
+                                    : "bg-black/25 text-slate-400"
+                                }`}
+                              >
+                                {placarFora}
+                              </span>
+                            </>
+                          ) : (
+                            <span className="text-sm font-black text-slate-700">â€”</span>
+                          )}
+                        </div>
+
+                        <button
+                          type="button"
+                          aria-label="Favoritar jogo"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            toggleFavorito(e, j.id);
+                          }}
+                          className="flex h-9 w-9 items-center justify-center rounded-xl text-slate-600 transition hover:bg-white/[0.04] hover:text-yellow-300"
+                        >
+                          <Star
+                            className={`h-4 w-4 ${
+                              favoritos.includes(j.id)
+                                ? "fill-yellow-400 text-yellow-400"
+                                : "text-slate-600"
+                            }`}
+                          />
+                        </button>
+                      </div>
+                    </motion.div>
+                  );
+                })}
+              </div>
+            </section>
+          );
+        })}
+      </div>
+    );
+  };const HeaderNav = ({ title, onBack }) => (<div className="flex items-center gap-3 mb-6"><h2 className="text-xl font-black">{title}</h2></div>);
 const todosItensPesquisa = useMemo(() => [...BUSCA_Equipes, ...BUSCA_Jogadores, ...BUSCA_Ranking, ...BUSCA_COMPETICOES, ...TODAS_COMPETICOES.flatMap(c => c.ligas.map(l => ({ tipo: 'competicao', nome: l, sub: c.pais, emoji: c.emoji })))], []);
 const textoTipoPesquisa = (tipo) => tipo === 'time' ? 'Time' : tipo === 'atleta' ? 'Jogador' : tipo === 'competicao' ? 'Liga' : tipo === 'Ranking' ? 'Rank' : 'Item';
 const salvarOuRemoverPesquisa = (item) => { const id = item.id || `${item.tipo}-${item.nome}`; if (favoritoCatalogoExiste(item)) { removerFavCatalogo(id); return; } salvarFavCatalogo(item); };
