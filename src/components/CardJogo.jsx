@@ -1,5 +1,7 @@
-﻿import React from 'react';
+import React from 'react';
 import EstatisticasJogoPro from './EstatisticasJogoPro.jsx';
+
+/* BET_ETAPA_29_ENCERRADOS_DESEMPENHO */
 
 function pick(...values) {
   return values.find((v) => v !== undefined && v !== null && v !== '');
@@ -20,6 +22,7 @@ function getHome(jogo = {}) {
   return {
     name: asText(
       jogo.time_casa,
+      jogo.home_team,
       jogo.homeTeam,
       jogo.mandante,
       jogo.casa,
@@ -30,6 +33,7 @@ function getHome(jogo = {}) {
     ),
     logo: pick(
       jogo.logo_casa,
+      jogo.home_image,
       jogo.homeLogo,
       jogo.logoHome,
       jogo.teams?.home?.logo,
@@ -38,6 +42,8 @@ function getHome(jogo = {}) {
     ),
     score: pick(
       jogo.placar_casa,
+      jogo.scoreHome,
+      jogo.home_score,
       jogo.gols_casa,
       jogo.score_home,
       jogo.goals?.home,
@@ -52,6 +58,7 @@ function getAway(jogo = {}) {
   return {
     name: asText(
       jogo.time_fora,
+      jogo.away_team,
       jogo.awayTeam,
       jogo.visitante,
       jogo.fora,
@@ -62,6 +69,7 @@ function getAway(jogo = {}) {
     ),
     logo: pick(
       jogo.logo_fora,
+      jogo.away_image,
       jogo.awayLogo,
       jogo.logoAway,
       jogo.teams?.away?.logo,
@@ -70,6 +78,8 @@ function getAway(jogo = {}) {
     ),
     score: pick(
       jogo.placar_fora,
+      jogo.scoreAway,
+      jogo.away_score,
       jogo.gols_fora,
       jogo.score_away,
       jogo.goals?.away,
@@ -83,6 +93,7 @@ function getAway(jogo = {}) {
 function getLeague(jogo = {}) {
   return asText(
     jogo.liga,
+    jogo.league_name,
     jogo.league?.name,
     jogo.league?.league?.name,
     jogo.competition?.name,
@@ -110,6 +121,7 @@ function getStatus(jogo = {}) {
 function getMinute(jogo = {}) {
   return asText(
     jogo.tempo_jogo,
+    jogo.time_elapsed,
     jogo.tempo,
     jogo.minuto,
     jogo.fixture?.status?.elapsed ? `${jogo.fixture.status.elapsed}'` : '',
@@ -118,7 +130,7 @@ function getMinute(jogo = {}) {
 }
 
 function getDateTime(jogo = {}) {
-  const raw = pick(jogo.horario, jogo.data_hora, jogo.dataHora, jogo.fixture?.date, jogo.date, jogo.inicio);
+  const raw = pick(jogo.horario, jogo.starting_at, jogo.data_hora, jogo.dataHora, jogo.fixture?.date, jogo.date, jogo.inicio);
 
   if (!raw) return '';
 
@@ -141,8 +153,15 @@ function isFinished(jogo = {}) {
 }
 
 function isLive(jogo = {}) {
+  if (isFinished(jogo)) return false;
+
   const s = getStatus(jogo).toLowerCase();
-  return Boolean(getMinute(jogo)) || ['live', '1h', '2h', 'ht', 'ao vivo', 'intervalo'].some((x) => s.includes(x));
+  const minuto = getMinute(jogo).toLowerCase();
+
+  return (
+    ['live', '1h', '2h', 'ht', 'ao vivo', 'intervalo', 'in play'].some((x) => s.includes(x)) ||
+    /^\d{1,3}'?$/.test(minuto.trim())
+  );
 }
 
 function initials(name = '') {
@@ -221,18 +240,200 @@ function InfoLine({ label, value }) {
   );
 }
 
+function clamp(value, min, max) {
+  return Math.max(min, Math.min(max, value));
+}
+
+function numberOrNull(value) {
+  if (value === undefined || value === null || value === '' || value === '-') return null;
+  const normalized = typeof value === 'string'
+    ? value.replace('%', '').replace(',', '.').replace(/[^0-9.-]/g, '')
+    : value;
+  const parsed = Number(normalized);
+  return Number.isFinite(parsed) ? parsed : null;
+}
+
+function pairShare(homeValue, awayValue, fallbackHome = 50) {
+  const home = numberOrNull(homeValue);
+  const away = numberOrNull(awayValue);
+
+  if (home === null && away === null) {
+    return { home: fallbackHome, away: 100 - fallbackHome, available: false };
+  }
+
+  if (home !== null && away === null) {
+    const homePercent = clamp(home, 0, 100);
+    return { home: homePercent, away: 100 - homePercent, available: true };
+  }
+
+  if (home === null && away !== null) {
+    const awayPercent = clamp(away, 0, 100);
+    return { home: 100 - awayPercent, away: awayPercent, available: true };
+  }
+
+  const total = Math.max(home + away, 0.0001);
+  return {
+    home: clamp((home / total) * 100, 0, 100),
+    away: clamp((away / total) * 100, 0, 100),
+    available: true
+  };
+}
+
+function getPerformanceData(jogo, home, away) {
+  const stats = pick(jogo.estatisticas, jogo.stats, jogo.statistics, {});
+  const homeScore = asNumber(home.score, 0);
+  const awayScore = asNumber(away.score, 0);
+
+  const possession = pairShare(
+    pick(stats.posseCasa, stats.posse_casa, stats.home?.possession, stats.casa?.posse, jogo.posseCasa, jogo.posse_casa),
+    pick(stats.posseFora, stats.posse_fora, stats.away?.possession, stats.fora?.posse, jogo.posseFora, jogo.posse_fora),
+    50
+  );
+
+  const shots = pairShare(
+    pick(stats.chutesCasa, stats.chutes_casa, stats.home?.shots, stats.casa?.chutes, jogo.chutesCasa, jogo.chutes_casa),
+    pick(stats.chutesFora, stats.chutes_fora, stats.away?.shots, stats.fora?.chutes, jogo.chutesFora, jogo.chutes_fora),
+    50
+  );
+
+  const shotsOnTarget = pairShare(
+    pick(stats.chutesNoAlvoCasa, stats.chutes_no_alvo_casa, stats.home?.shotsOnGoal, stats.home?.shots_on_target, stats.casa?.chutesNoAlvo, jogo.chutesNoAlvoCasa),
+    pick(stats.chutesNoAlvoFora, stats.chutes_no_alvo_fora, stats.away?.shotsOnGoal, stats.away?.shots_on_target, stats.fora?.chutesNoAlvo, jogo.chutesNoAlvoFora),
+    shots.home
+  );
+
+  const corners = pairShare(
+    pick(stats.escanteiosCasa, stats.cantos_casa, stats.home?.corners, stats.casa?.cantos, jogo.escanteiosCasa, jogo.cantos_casa),
+    pick(stats.escanteiosFora, stats.cantos_fora, stats.away?.corners, stats.fora?.cantos, jogo.escanteiosFora, jogo.cantos_fora),
+    50
+  );
+
+  const attacks = pairShare(
+    pick(stats.ataquesPerigososCasa, stats.ataques_perigosos_casa, stats.home?.dangerousAttacks, stats.casa?.ataquesPerigosos, stats.ataquesCasa),
+    pick(stats.ataquesPerigososFora, stats.ataques_perigosos_fora, stats.away?.dangerousAttacks, stats.fora?.ataquesPerigosos, stats.ataquesFora),
+    possession.home
+  );
+
+  const resultHome = homeScore > awayScore ? 96 : homeScore === awayScore ? 72 : 48;
+  const resultAway = awayScore > homeScore ? 96 : homeScore === awayScore ? 72 : 48;
+
+  const homeIndex = clamp(Math.round(
+    resultHome * 0.38 +
+    possession.home * 0.14 +
+    shots.home * 0.18 +
+    shotsOnTarget.home * 0.18 +
+    corners.home * 0.06 +
+    attacks.home * 0.06
+  ), 35, 98);
+
+  const awayIndex = clamp(Math.round(
+    resultAway * 0.38 +
+    possession.away * 0.14 +
+    shots.away * 0.18 +
+    shotsOnTarget.away * 0.18 +
+    corners.away * 0.06 +
+    attacks.away * 0.06
+  ), 35, 98);
+
+  const label = (value) => {
+    if (value >= 88) return 'Excelente';
+    if (value >= 76) return 'Muito bom';
+    if (value >= 64) return 'Regular';
+    return 'Abaixo';
+  };
+
+  return {
+    home: {
+      index: homeIndex,
+      label: label(homeIndex),
+      possession: Math.round(possession.home),
+      shots: numberOrNull(pick(stats.chutesCasa, stats.chutes_casa, stats.home?.shots, stats.casa?.chutes, jogo.chutesCasa, jogo.chutes_casa)),
+      shotsOnTarget: numberOrNull(pick(stats.chutesNoAlvoCasa, stats.chutes_no_alvo_casa, stats.home?.shotsOnGoal, stats.home?.shots_on_target, stats.casa?.chutesNoAlvo, jogo.chutesNoAlvoCasa)),
+      corners: numberOrNull(pick(stats.escanteiosCasa, stats.cantos_casa, stats.home?.corners, stats.casa?.cantos, jogo.escanteiosCasa, jogo.cantos_casa))
+    },
+    away: {
+      index: awayIndex,
+      label: label(awayIndex),
+      possession: Math.round(possession.away),
+      shots: numberOrNull(pick(stats.chutesFora, stats.chutes_fora, stats.away?.shots, stats.fora?.chutes, jogo.chutesFora, jogo.chutes_fora)),
+      shotsOnTarget: numberOrNull(pick(stats.chutesNoAlvoFora, stats.chutes_no_alvo_fora, stats.away?.shotsOnGoal, stats.away?.shots_on_target, stats.fora?.chutesNoAlvo, jogo.chutesNoAlvoFora)),
+      corners: numberOrNull(pick(stats.escanteiosFora, stats.cantos_fora, stats.away?.corners, stats.fora?.cantos, jogo.escanteiosFora, jogo.cantos_fora))
+    }
+  };
+}
+
+function TeamPerformancePanel({ jogo, home, away }) {
+  const performance = getPerformanceData(jogo, home, away);
+
+  const PerformanceCard = ({ team, data, side }) => (
+    <div className="rounded-2xl border border-white/10 bg-black/25 p-3">
+      <div className="flex items-center justify-between gap-2">
+        <div className="min-w-0">
+          <p className="truncate text-xs font-black text-white">{team.name}</p>
+          <p className="mt-0.5 text-[9px] font-bold uppercase tracking-wider text-white/40">
+            {data.label}
+          </p>
+        </div>
+        <span className={`text-xl font-black ${side === 'home' ? 'text-blue-300' : 'text-amber-300'}`}>
+          {data.index}%
+        </span>
+      </div>
+
+      <div className="mt-2 h-2 overflow-hidden rounded-full bg-white/[0.06]">
+        <div
+          className={`h-full rounded-full ${side === 'home' ? 'bg-blue-500' : 'bg-amber-400'}`}
+          style={{ width: `${data.index}%` }}
+        />
+      </div>
+
+      <div className="mt-3 grid grid-cols-2 gap-1.5 text-[9px] font-bold text-white/55">
+        <span>Posse <strong className="text-white">{data.possession}%</strong></span>
+        <span>Chutes <strong className="text-white">{data.shots ?? '-'}</strong></span>
+        <span>No alvo <strong className="text-white">{data.shotsOnTarget ?? '-'}</strong></span>
+        <span>Cantos <strong className="text-white">{data.corners ?? '-'}</strong></span>
+      </div>
+    </div>
+  );
+
+  return (
+    <div className="mb-3 rounded-3xl border border-white/10 bg-gradient-to-br from-blue-500/[0.06] via-black/20 to-amber-400/[0.05] p-3">
+      <div className="mb-2 flex items-center justify-between gap-2">
+        <div>
+          <p className="text-[10px] font-black uppercase tracking-[0.16em] text-white/45">
+            Desempenho dos times
+          </p>
+          <p className="mt-0.5 text-[9px] font-semibold text-white/30">
+            Ãndice calculado com placar e estatÃ­sticas disponÃ­veis
+          </p>
+        </div>
+        <span className="rounded-full border border-white/10 bg-white/[0.04] px-2 py-1 text-[8px] font-black text-white/45">
+          PÃ“S-JOGO
+        </span>
+      </div>
+
+      <div className="grid grid-cols-2 gap-2">
+        <PerformanceCard team={home} data={performance.home} side="home" />
+        <PerformanceCard team={away} data={performance.away} side="away" />
+      </div>
+    </div>
+  );
+}
+
 function DetailsPanel({ jogo, home, away }) {
   const odd = pick(jogo.odd_principal, jogo.odd, jogo.odds?.principal, jogo.odds?.home);
   const confidence = asNumber(pick(jogo.confianca_ia, jogo.confiancaIA, jogo.ia?.confianca), 0);
 
   return (
-    <div className="grid grid-cols-2 gap-2">
-      <InfoLine label="Status" value={getStatus(jogo) || (isFinished(jogo) ? 'Fim de jogo' : 'Pré-jogo')} />
-      <InfoLine label="Tempo" value={getMinute(jogo) || getDateTime(jogo) || '-'} />
-      <InfoLine label="Mandante" value={home.name} />
-      <InfoLine label="Visitante" value={away.name} />
-      <InfoLine label="Odd principal" value={odd ? Number(odd).toFixed(2) : '-'} />
-      <InfoLine label="Confiança IA" value={`${confidence}%`} />
+    <div>
+      {isFinished(jogo) && <TeamPerformancePanel jogo={jogo} home={home} away={away} />}
+      <div className="grid grid-cols-2 gap-2">
+        <InfoLine label="Status" value={getStatus(jogo) || (isFinished(jogo) ? 'Fim de jogo' : 'PrÃ©-jogo')} />
+        <InfoLine label="Tempo" value={getMinute(jogo) || getDateTime(jogo) || '-'} />
+        <InfoLine label="Mandante" value={home.name} />
+        <InfoLine label="Visitante" value={away.name} />
+        <InfoLine label="Odd principal" value={odd ? Number(odd).toFixed(2) : '-'} />
+        <InfoLine label="ConfianÃ§a IA" value={`${confidence}%`} />
+      </div>
     </div>
   );
 }
@@ -243,7 +444,7 @@ function LineupsPanel({ jogo, home, away }) {
 
   const renderList = (list) => {
     if (!Array.isArray(list) || list.length === 0) {
-      return <p className="text-xs text-white/45">Escalação será carregada pela API.</p>;
+      return <p className="text-xs text-white/45">EscalaÃ§Ã£o serÃ¡ carregada pela API.</p>;
     }
 
     return (
@@ -274,25 +475,25 @@ function LineupsPanel({ jogo, home, away }) {
 
 function PredictionPanel({ jogo }) {
   const confidence = asNumber(pick(jogo.confianca_ia, jogo.confiancaIA, jogo.ia?.confianca), 87);
-  const market = asText(jogo.mercado_principal, jogo.mercadoIA, jogo.ia?.mercado, 'Mercado principal será definido pela IA');
+  const market = asText(jogo.mercado_principal, jogo.mercadoIA, jogo.ia?.mercado, 'Mercado principal serÃ¡ definido pela IA');
   const ev = pick(jogo.ev, jogo.valor_esperado, jogo.ia?.ev);
 
   return (
     <div className="rounded-2xl bg-gradient-to-br from-yellow-400/10 to-blue-500/10 border border-yellow-400/20 p-3">
       <div className="flex items-center justify-between gap-3">
         <div>
-          <p className="text-[11px] text-yellow-300 font-black uppercase tracking-[0.16em]">Previsão IA</p>
+          <p className="text-[11px] text-yellow-300 font-black uppercase tracking-[0.16em]">PrevisÃ£o IA</p>
           <p className="text-sm text-white font-black mt-1">{market}</p>
         </div>
 
         <div className="text-right">
           <p className="text-2xl font-black text-yellow-300">{confidence}%</p>
-          <p className="text-[10px] text-white/45 font-bold">confiança</p>
+          <p className="text-[10px] text-white/45 font-bold">confianÃ§a</p>
         </div>
       </div>
 
       <p className="mt-3 text-xs text-white/65 leading-relaxed">
-        Quando a API estiver conectada, este bloco exibirá forma, odds, pressão, estatísticas, histórico e leitura do mercado.
+        Quando a API estiver conectada, este bloco exibirÃ¡ forma, odds, pressÃ£o, estatÃ­sticas, histÃ³rico e leitura do mercado.
       </p>
 
       {ev !== undefined && ev !== null && ev !== '' && (
@@ -325,8 +526,8 @@ function StandingsPanel({ jogo }) {
 
   return (
     <div className="grid grid-cols-2 gap-2">
-      <InfoLine label="Casa posição" value={pick(table.casa_posicao, table.home?.rank, '-')} />
-      <InfoLine label="Fora posição" value={pick(table.fora_posicao, table.away?.rank, '-')} />
+      <InfoLine label="Casa posiÃ§Ã£o" value={pick(table.casa_posicao, table.home?.rank, '-')} />
+      <InfoLine label="Fora posiÃ§Ã£o" value={pick(table.fora_posicao, table.away?.rank, '-')} />
       <InfoLine label="Casa pontos" value={pick(table.casa_pontos, table.home?.points, '-')} />
       <InfoLine label="Fora pontos" value={pick(table.fora_pontos, table.away?.points, '-')} />
     </div>
@@ -358,12 +559,12 @@ function CommentaryPanel({ jogo }) {
     jogo.commentary,
     jogo.narracao,
     jogo.analise,
-    'Comentário em tempo real será exibido quando a API enviar eventos, gols, cartões e mudanças importantes.'
+    'ComentÃ¡rio em tempo real serÃ¡ exibido quando a API enviar eventos, gols, cartÃµes e mudanÃ§as importantes.'
   );
 
   return (
     <div className="rounded-2xl bg-black/25 border border-white/10 p-3">
-      <p className="text-xs text-white/45 font-bold mb-2">Comentário</p>
+      <p className="text-xs text-white/45 font-bold mb-2">ComentÃ¡rio</p>
       <p className="text-sm text-white/75 leading-relaxed">{comment}</p>
     </div>
   );
@@ -387,7 +588,7 @@ export default function CardJogo({ jogo = {}, onClick, onSelect, selecionado = f
     ? 'Fim de jogo'
     : isLive(jogo)
       ? minute || 'Ao vivo'
-      : getStatus(jogo) || 'Pré-jogo';
+      : getStatus(jogo) || 'PrÃ©-jogo';
 
   function openCard() {
     if (typeof onClick === 'function') onClick(jogo);
@@ -398,7 +599,14 @@ export default function CardJogo({ jogo = {}, onClick, onSelect, selecionado = f
     if (tab === 'detalhes') return <DetailsPanel jogo={jogo} home={home} away={away} />;
     if (tab === 'escalacoes') return <LineupsPanel jogo={jogo} home={home} away={away} />;
     if (tab === 'ia') return <PredictionPanel jogo={jogo} />;
-    if (tab === 'estatisticas') return <EstatisticasJogoPro jogo={jogo} casa={home} fora={away} />;
+    if (tab === 'estatisticas') {
+      return (
+        <div>
+          <TeamPerformancePanel jogo={jogo} home={home} away={away} />
+          <EstatisticasJogoPro jogo={jogo} casa={home} fora={away} />
+        </div>
+      );
+    }
     if (tab === 'classificacao') return <StandingsPanel jogo={jogo} />;
     if (tab === 'cd') return <H2HPanel jogo={jogo} home={home} away={away} />;
     return <CommentaryPanel jogo={jogo} />;
@@ -415,12 +623,12 @@ export default function CardJogo({ jogo = {}, onClick, onSelect, selecionado = f
         <div className="flex items-center justify-between gap-3">
           <div className="flex items-center gap-2 min-w-0">
             <span className="w-5 h-5 rounded-full bg-yellow-400/15 border border-yellow-400/25 flex items-center justify-center text-[11px]">
-              🏆
+              ðŸ†
             </span>
 
             <p className="text-xs text-white/75 font-black truncate">
               {league}
-              {round ? <span className="text-white/35"> • {round}</span> : null}
+              {round ? <span className="text-white/35"> â€¢ {round}</span> : null}
             </p>
           </div>
 
@@ -445,7 +653,7 @@ export default function CardJogo({ jogo = {}, onClick, onSelect, selecionado = f
               className="mt-2 text-white/30 hover:text-yellow-300 transition-colors"
               title="Favoritar"
             >
-              ☆
+              â˜†
             </button>
           </div>
 
@@ -476,7 +684,7 @@ export default function CardJogo({ jogo = {}, onClick, onSelect, selecionado = f
               className="mt-2 text-white/30 hover:text-yellow-300 transition-colors"
               title="Favoritar"
             >
-              ☆
+              â˜†
             </button>
           </div>
         </div>
@@ -490,7 +698,7 @@ export default function CardJogo({ jogo = {}, onClick, onSelect, selecionado = f
             ))
           ) : (
             <span className="text-[11px] text-white/35 font-bold">
-              Gols e eventos serão exibidos automaticamente pela API
+              Gols e eventos serÃ£o exibidos automaticamente pela API
             </span>
           )}
         </div>
@@ -498,13 +706,13 @@ export default function CardJogo({ jogo = {}, onClick, onSelect, selecionado = f
 
       <div className="px-3 pb-3">
         <div className="flex gap-2 overflow-x-auto no-scrollbar pb-1">
-          <TabButton active={tab === 'detalhes'} onClick={() => setTab('detalhes')}>☰ Detalhes</TabButton>
-          <TabButton active={tab === 'escalacoes'} onClick={() => setTab('escalacoes')}>⚑ Escalações</TabButton>
-          <TabButton active={tab === 'ia'} onClick={() => setTab('ia')}>🤖 Previsão IA</TabButton>
-          <TabButton active={tab === 'estatisticas'} onClick={() => setTab('estatisticas')}>〽 Estatísticas</TabButton>
-          <TabButton active={tab === 'classificacao'} onClick={() => setTab('classificacao')}>♚ Classificações</TabButton>
-          <TabButton active={tab === 'cd'} onClick={() => setTab('cd')}>⚔ CD</TabButton>
-          <TabButton active={tab === 'comentario'} onClick={() => setTab('comentario')}>☷ Comentário</TabButton>
+          <TabButton active={tab === 'detalhes'} onClick={() => setTab('detalhes')}>â˜° Detalhes</TabButton>
+          <TabButton active={tab === 'escalacoes'} onClick={() => setTab('escalacoes')}>âš‘ EscalaÃ§Ãµes</TabButton>
+          <TabButton active={tab === 'ia'} onClick={() => setTab('ia')}>ðŸ¤– PrevisÃ£o IA</TabButton>
+          <TabButton active={tab === 'estatisticas'} onClick={() => setTab('estatisticas')}>ã€½ EstatÃ­sticas</TabButton>
+          <TabButton active={tab === 'classificacao'} onClick={() => setTab('classificacao')}>â™š ClassificaÃ§Ãµes</TabButton>
+          <TabButton active={tab === 'cd'} onClick={() => setTab('cd')}>âš” CD</TabButton>
+          <TabButton active={tab === 'comentario'} onClick={() => setTab('comentario')}>â˜· ComentÃ¡rio</TabButton>
         </div>
 
         <div onClick={(e) => e.stopPropagation()} className="mt-2 rounded-3xl border border-white/10 bg-black/20 p-3">
