@@ -12,15 +12,43 @@ const __dirname = path.dirname(__filename);
 
 const app = express();
 
-/* BET_CORS_APK_PAGAMENTO_INICIO */
-app.use((req, res, next) => {
-  res.setHeader('Access-Control-Allow-Origin', '*');
-  res.setHeader('Access-Control-Allow-Methods', 'GET,POST,PUT,PATCH,DELETE,OPTIONS');
-  res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization');
-  if (req.method === 'OPTIONS') return res.sendStatus(204);
-  return next();
-});
-/* BET_CORS_APK_PAGAMENTO_FIM */
+/* BET_ETAPA_35B_CORS_PRODUCAO_INICIO */
+const BET_CORS_ORIGENS_PADRAO = [
+  process.env.RENDER_EXTERNAL_URL,
+  'https://betanalitics-webservice.onrender.com',
+  'http://localhost:5173',
+  'http://localhost',
+  'capacitor://localhost'
+].filter(Boolean);
+
+const BET_CORS_ORIGENS = new Set(
+  String(
+    process.env.CORS_ALLOWED_ORIGINS ||
+    process.env.ALLOWED_ORIGINS ||
+    BET_CORS_ORIGENS_PADRAO.join(',')
+  )
+    .split(',')
+    .map((origem) => origem.trim().replace(/\/$/, ''))
+    .filter(Boolean)
+);
+
+function betCorsPermitido(origem) {
+  if (!origem) return true;
+  return BET_CORS_ORIGENS.has(String(origem).replace(/\/$/, ''));
+}
+
+app.use(
+  cors({
+    origin(origem, callback) {
+      callback(null, betCorsPermitido(origem));
+    },
+    methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
+    allowedHeaders: ['Content-Type', 'Authorization'],
+    credentials: false,
+    optionsSuccessStatus: 204
+  })
+);
+/* BET_ETAPA_35B_CORS_PRODUCAO_FIM */
 
 
 // ===== BET_RENDER_PAGAMENTO_FIX_INICIO =====
@@ -219,8 +247,7 @@ app.get('/api/pagamento/status/:id', async (req, res) => {
 });
 // ===== BET_RENDER_PAGAMENTO_FIX_FIM =====
 
-
-app.use(cors());
+/* CORS centralizado pela ETAPA 35B. */
 app.use(express.json());
 
 // ===== INICIO API-FOOTBALL BETANALYTICS =====
@@ -542,19 +569,67 @@ app.get('/api/football/pacote-completo/:fixtureId', async (req, res) => {
 // ============================================================================
 // ðŸ”‘ CHAVES DE ACESSO ESSENCIAIS (Supabase, Gemini, Mercado Pago, Sportradar)
 // ============================================================================
-const SUPABASE_URL = process.env.VITE_SUPABASE_URL || process.env.SUPABASE_URL || 'https://pztznppbmonhrrzfbnvh.supabase.co';
-const SUPABASE_KEY = process.env.VITE_SUPABASE_KEY || process.env.SUPABASE_KEY || 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InB6dHpucHBibW9uaHJyemZibnZoIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODA2MTcwOTIsImV4cCI6MjA5NjE5MzA5Mn0.4ztEexACzSpsa0cikJjDlniXUeCnA-DPh20LQhg9qvM';
+/* BET_ETAPA_35B_SEGREDOS_ENV_INICIO */
+const SUPABASE_URL = String(
+  process.env.SUPABASE_URL ||
+  process.env.VITE_SUPABASE_URL ||
+  ''
+).trim();
 
-const GEMINI_API_KEY = process.env.VITE_GEMINI_API_KEY || process.env.GEMINI_API_KEY || 'AIzaSyBKlaNtj0uEAJwOReTblDcLDGfpCjYqP18';
-const MP_ACCESS_TOKEN = process.env.VITE_MP_ACCESS_TOKEN || process.env.MP_ACCESS_TOKEN || 'APP_USR-5947285218976034-050113-a9857b202a29e411236349f75b6b25c3-669622996';
-const SPORTRADAR_KEY = process.env.VITE_SPORTRADAR_KEY || process.env.SPORTRADAR_KEY || '';
+const SUPABASE_KEY = String(
+  process.env.SUPABASE_SERVICE_ROLE_KEY ||
+  process.env.SUPABASE_KEY ||
+  process.env.VITE_SUPABASE_KEY ||
+  ''
+).trim();
 
-const supabase = createClient(SUPABASE_URL, SUPABASE_KEY);
+const GEMINI_API_KEY = String(
+  process.env.GEMINI_API_KEY ||
+  ''
+).trim();
 
-let genAI;
-if (GEMINI_API_KEY !== 'AIzaSyBKlaNtj0uEAJwOReTblDcLDGfpCjYqP18') {
-    genAI = new GoogleGenerativeAI(GEMINI_API_KEY);
+const MP_ACCESS_TOKEN = betMpToken();
+
+const SPORTRADAR_KEY = String(
+  process.env.SPORTRADAR_KEY ||
+  ''
+).trim();
+
+function betSupabaseFallback() {
+  const indisponivel = {
+    data: null,
+    error: new Error('Supabase não configurado no servidor.')
+  };
+
+  const consulta = new Proxy(
+    {},
+    {
+      get(_target, propriedade) {
+        if (propriedade === 'then') {
+          return (resolver) => resolver(indisponivel);
+        }
+
+        return () => consulta;
+      }
+    }
+  );
+
+  return {
+    from() {
+      return consulta;
+    }
+  };
 }
+
+const supabase =
+  SUPABASE_URL && SUPABASE_KEY
+    ? createClient(SUPABASE_URL, SUPABASE_KEY)
+    : betSupabaseFallback();
+
+const genAI = GEMINI_API_KEY
+  ? new GoogleGenerativeAI(GEMINI_API_KEY)
+  : null;
+/* BET_ETAPA_35B_SEGREDOS_ENV_FIM */
 
 // ============================================================================
 // ðŸ”„ MOTOR DE SINCRONIZAÃ‡ÃƒO AUTOMÃTICA (Sportradar -> Supabase)
@@ -925,4 +1000,21 @@ app.listen(PORT, () => {
     console.log(`ðŸš€ Motor BetAnalytics PRO operacional na porta ${PORT}`);
 });
 
-
+/* BET_ETAPA_35B_HEALTH_PRODUCAO_INICIO */
+app.get('/api/producao/health', (_req, res) => {
+  return res.status(200).json({
+    ok: true,
+    servico: 'BetAnalytics Produção',
+    ambiente: process.env.NODE_ENV || 'development',
+    configuracao: {
+      api_football: Boolean(API_FOOTBALL_KEY),
+      mercado_pago: Boolean(betMpToken()),
+      supabase: Boolean(SUPABASE_URL && SUPABASE_KEY),
+      gemini: Boolean(GEMINI_API_KEY),
+      sportradar: Boolean(SPORTRADAR_KEY)
+    },
+    cors_origens_configuradas: BET_CORS_ORIGENS.size,
+    timestamp: new Date().toISOString()
+  });
+});
+/* BET_ETAPA_35B_HEALTH_PRODUCAO_FIM */

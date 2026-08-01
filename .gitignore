@@ -24,7 +24,34 @@ dist-ssr
 *.sln
 *.sw?
 
-# 🔒 SEGURANÇA: NUNCA SUBIR AS CHAVES SECRETAS PARA O GITHUB
+# ðŸ”’ SEGURANÃ‡A: NUNCA SUBIR AS CHAVES SECRETAS PARA O GITHUB
 .env
 .env.*
 !.env.example
+
+# Arquivos locais e instaladores do BetAnalytics
+backups_etapas/
+backup/
+backups/
+ETAPA_*.ps1
+ETAPA_*.zip
+LEIA*.txt
+ARQUIVOS_ATUAIS*.zip
+RELATORIO_LIMPEZA_*.txt
+patch_*.cjs
+fix_*.cjs
+*.bak
+*.backup
+*.tmp
+# Caches e builds regeneraveis
+dist/
+.vite/
+coverage/
+
+# BET_ETAPA_35B_ARQUIVOS_LOCAIS
+backups_etapas/
+auditoria_producao/
+tools/auditoria35a/
+ETAPA_*_TEMP/
+*_backup*
+*backup_antes*

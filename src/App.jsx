@@ -59,8 +59,13 @@ import { salvarAnaliseIA } from './utils/historicoIA.js';
 import { registrarPagamentoGerado, registrarPagamentoAprovado, atualizarPagamentoLocal } from './utils/pagamentosLocal.js';
 import { temAcessoPro, carregarUsuarioSessaoPro, usuarioDemoFree, rotaExigePro } from './utils/acessoPro.js';
 import { apiUrl } from './utils/apiBase.js';
-const MODO_DEMONSTRACAO = true;
-const API_URL = '';
+/* BET_ETAPA_35B_MODO_PRODUCAO_INICIO */
+const MODO_DEMONSTRACAO =
+  String(import.meta.env.VITE_MODO_DEMO || 'false')
+    .trim()
+    .toLowerCase() === 'true';
+/* BET_ETAPA_35B_MODO_PRODUCAO_FIM */
+const API_URL = String(import.meta.env.VITE_API_URL || '').trim();
 function gerarEscudoAutomatico(nomeTime = 'TIME') {
   const nome = String(nomeTime || 'TIME').trim();
   const iniciais = nome
@@ -155,7 +160,19 @@ if (url && key && url.startsWith('http')) supabase = createClient(url, key);
 } catch (e) {
 console.error("Erro Supabase:", e);
 }
-initMercadoPago(import.meta.env.VITE_MP_PUBLIC_KEY || 'APP_USR-5947285218976034', { locale: 'pt-BR' });
+/* BET_ETAPA_35B_MP_PUBLICA_INICIO */
+const MP_PUBLIC_KEY = String(
+  import.meta.env.VITE_MP_PUBLIC_KEY || ''
+).trim();
+
+if (MP_PUBLIC_KEY) {
+  initMercadoPago(MP_PUBLIC_KEY, { locale: 'pt-BR' });
+} else if (import.meta.env.DEV) {
+  console.warn(
+    'VITE_MP_PUBLIC_KEY não configurada. O checkout ficará indisponível.'
+  );
+}
+/* BET_ETAPA_35B_MP_PUBLICA_FIM */
 const PAISES = ['brasil', 'argentina', 'colombia', 'uruguai', 'chile', 'peru', 'equador', 'venezuela', 'bolivia', 'paraguai', 'espanha', 'alemanha', 'franca', 'portugal', 'inglaterra', 'italia', 'holanda', 'belgica', 'croacia', 'mexico', 'eua', 'estados unidos', 'canada'];
 const isSelecao = (h, a, l) => {
 const str = `${h || ''} ${a || ''} ${l || ''}`.toLowerCase();
@@ -1175,7 +1192,7 @@ await carregarMercadoPagoJs();
 await new Promise(resolve => setTimeout(resolve, 120));
 if (cancelado || !window.MercadoPago) return;
 try { cardFormMercadoPagoRef.current?.unmount?.(); } catch (e) {}
-const publicKey = import.meta.env.VITE_MP_PUBLIC_KEY || 'APP_USR-5947285218976034';
+const publicKey = import.meta.env.VITE_MP_PUBLIC_KEY || '';
 const mp = new window.MercadoPago(publicKey, { locale: 'pt-BR' });
 cardFormMercadoPagoRef.current = mp.cardForm({
 amount: String(PLANO_PRO.valor.toFixed(2)),

@@ -8,7 +8,7 @@ from supabase import create_client, Client
 # 🔒 CONFIGURAÇÕES DE SEGURANÇA E CHAVES
 # =========================================================
 SUPABASE_URL = os.environ.get("https://pztnppbmonhrrzfbnvh.supabase.co")
-SUPABASE_KEY = os.environ.get("eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InB6dHpucHBibW9uaHJyemZibnZoIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODA2MTcwOTIsImV4cCI6MjA5NjE5MzA5Mn0.4ztEexACzSpsa0cikJjDlniXUeCnA-DPh20LQhg9qvM")
+SUPABASE_KEY = os.environ.get("SUPABASE_KEY", "")
 API_FOOTBALL_KEY = os.environ.get("API_FOOTBALL_KEY")
 
 supabase: Client = create_client(SUPABASE_URL, SUPABASE_KEY)
