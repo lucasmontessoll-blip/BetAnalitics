@@ -1,724 +1,681 @@
-import React from 'react';
+import React, { useMemo, useState } from 'react';
+import {
+  Activity,
+  BadgeDollarSign,
+  BarChart3,
+  CalendarClock,
+  CheckCircle2,
+  CircleDot,
+  Clock3,
+  Gauge,
+  List,
+  MessageSquareText,
+  Radio,
+  Shield,
+  Sparkles,
+  Swords,
+  Table2,
+  Target,
+  TrendingUp,
+  Trophy,
+  Users
+} from 'lucide-react';
 import EstatisticasJogoPro from './EstatisticasJogoPro.jsx';
+import {
+  awayLogo,
+  awayName,
+  awayScore,
+  clamp,
+  confidence,
+  dateTimeLabel,
+  elapsedText,
+  homeLogo,
+  homeName,
+  homeScore,
+  initials,
+  isFinished,
+  isLive,
+  isPreMatch,
+  leagueCountry,
+  leagueLogo,
+  leagueName,
+  mainOdd,
+  nullableNumber,
+  odds,
+  pick,
+  probabilities,
+  statusText,
+  teamPerformance,
+  text
+} from './matchProUtils.js';
 
-/* BET_ETAPA_29_ENCERRADOS_DESEMPENHO */
+/* BET_ETAPA_32A_CARD_JOGO_PREMIUM */
 
-function pick(...values) {
-  return values.find((v) => v !== undefined && v !== null && v !== '');
-}
+function TeamLogo({ src, name, size = 'large' }) {
+  const [failed, setFailed] = useState(false);
+  const sizeClass = size === 'large' ? 'h-14 w-14 sm:h-16 sm:w-16' : 'h-8 w-8';
 
-function asText(value, fallback = '') {
-  const v = pick(value, fallback);
-  if (typeof v === 'object') return fallback;
-  return String(v ?? fallback);
-}
-
-function asNumber(value, fallback = 0) {
-  const n = Number(value);
-  return Number.isFinite(n) ? n : fallback;
-}
-
-function getHome(jogo = {}) {
-  return {
-    name: asText(
-      jogo.time_casa,
-      jogo.home_team,
-      jogo.homeTeam,
-      jogo.mandante,
-      jogo.casa,
-      jogo.teams?.home?.name,
-      jogo.teams?.home?.team?.name,
-      jogo.equipes?.casa?.nome,
-      'Casa'
-    ),
-    logo: pick(
-      jogo.logo_casa,
-      jogo.home_image,
-      jogo.homeLogo,
-      jogo.logoHome,
-      jogo.teams?.home?.logo,
-      jogo.teams?.home?.team?.logo,
-      jogo.equipes?.casa?.logo
-    ),
-    score: pick(
-      jogo.placar_casa,
-      jogo.scoreHome,
-      jogo.home_score,
-      jogo.gols_casa,
-      jogo.score_home,
-      jogo.goals?.home,
-      jogo.score?.fulltime?.home,
-      jogo.score?.halftime?.home,
-      jogo.placar?.casa
-    )
-  };
-}
-
-function getAway(jogo = {}) {
-  return {
-    name: asText(
-      jogo.time_fora,
-      jogo.away_team,
-      jogo.awayTeam,
-      jogo.visitante,
-      jogo.fora,
-      jogo.teams?.away?.name,
-      jogo.teams?.away?.team?.name,
-      jogo.equipes?.fora?.nome,
-      'Fora'
-    ),
-    logo: pick(
-      jogo.logo_fora,
-      jogo.away_image,
-      jogo.awayLogo,
-      jogo.logoAway,
-      jogo.teams?.away?.logo,
-      jogo.teams?.away?.team?.logo,
-      jogo.equipes?.fora?.logo
-    ),
-    score: pick(
-      jogo.placar_fora,
-      jogo.scoreAway,
-      jogo.away_score,
-      jogo.gols_fora,
-      jogo.score_away,
-      jogo.goals?.away,
-      jogo.score?.fulltime?.away,
-      jogo.score?.halftime?.away,
-      jogo.placar?.fora
-    )
-  };
-}
-
-function getLeague(jogo = {}) {
-  return asText(
-    jogo.liga,
-    jogo.league_name,
-    jogo.league?.name,
-    jogo.league?.league?.name,
-    jogo.competition?.name,
-    jogo.campeonato,
-    typeof jogo.league === 'string' ? jogo.league : '',
-    'Liga'
-  );
-}
-
-function getRound(jogo = {}) {
-  return asText(jogo.rodada, jogo.round, jogo.league?.round, jogo.fase, '');
-}
-
-function getStatus(jogo = {}) {
-  return asText(
-    jogo.status,
-    jogo.status_jogo,
-    jogo.fixture?.status?.short,
-    jogo.fixture?.status?.long,
-    jogo.situacao,
-    ''
-  );
-}
-
-function getMinute(jogo = {}) {
-  return asText(
-    jogo.tempo_jogo,
-    jogo.time_elapsed,
-    jogo.tempo,
-    jogo.minuto,
-    jogo.fixture?.status?.elapsed ? `${jogo.fixture.status.elapsed}'` : '',
-    ''
-  );
-}
-
-function getDateTime(jogo = {}) {
-  const raw = pick(jogo.horario, jogo.starting_at, jogo.data_hora, jogo.dataHora, jogo.fixture?.date, jogo.date, jogo.inicio);
-
-  if (!raw) return '';
-
-  const d = new Date(raw);
-
-  if (!Number.isNaN(d.getTime())) {
-    const dia = String(d.getDate()).padStart(2, '0');
-    const mes = String(d.getMonth() + 1).padStart(2, '0');
-    const hora = String(d.getHours()).padStart(2, '0');
-    const min = String(d.getMinutes()).padStart(2, '0');
-    return `${dia}/${mes} - ${hora}:${min}`;
-  }
-
-  return String(raw);
-}
-
-function isFinished(jogo = {}) {
-  const s = getStatus(jogo).toLowerCase();
-  return ['ft', 'aet', 'pen', 'encerrado', 'fim de jogo', 'finished', 'finalizado'].some((x) => s.includes(x));
-}
-
-function isLive(jogo = {}) {
-  if (isFinished(jogo)) return false;
-
-  const s = getStatus(jogo).toLowerCase();
-  const minuto = getMinute(jogo).toLowerCase();
-
-  return (
-    ['live', '1h', '2h', 'ht', 'ao vivo', 'intervalo', 'in play'].some((x) => s.includes(x)) ||
-    /^\d{1,3}'?$/.test(minuto.trim())
-  );
-}
-
-function initials(name = '') {
-  return String(name)
-    .split(' ')
-    .filter(Boolean)
-    .slice(0, 2)
-    .map((p) => p[0])
-    .join('')
-    .toUpperCase();
-}
-
-function LogoTeam({ src, name }) {
-  const [error, setError] = React.useState(false);
-
-  if (src && !error) {
+  if (src && !failed) {
     return (
       <img
         src={src}
         alt={name}
-        onError={() => setError(true)}
-        className="w-12 h-12 sm:w-14 sm:h-14 object-contain drop-shadow-lg"
+        onError={() => setFailed(true)}
+        className={`${sizeClass} object-contain drop-shadow-[0_10px_18px_rgba(0,0,0,0.40)]`}
       />
     );
   }
 
   return (
-    <div className="w-12 h-12 sm:w-14 sm:h-14 rounded-full bg-white/10 border border-white/15 flex items-center justify-center text-xs font-black text-white/80">
+    <span className={`flex ${sizeClass} items-center justify-center rounded-full bg-white/[0.055] text-xs font-black text-white/70 ring-1 ring-inset ring-white/[0.08]`}>
       {initials(name)}
+    </span>
+  );
+}
+
+function SectionTitle({ eyebrow, title, description, icon: Icon }) {
+  return (
+    <div className="mb-4 flex items-start gap-3">
+      <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-white/[0.045] text-slate-300">
+        <Icon className="h-4 w-4" />
+      </span>
+      <div>
+        <p className="text-[8px] font-black uppercase tracking-[0.18em] text-slate-600">{eyebrow}</p>
+        <h3 className="mt-0.5 text-sm font-black text-white">{title}</h3>
+        {description && <p className="mt-1 text-[10px] font-medium leading-relaxed text-slate-500">{description}</p>}
+      </div>
     </div>
   );
 }
 
-function getGoals(jogo = {}) {
-  const list = pick(jogo.gols, jogo.scorers, jogo.eventos_gols, jogo.events, []);
-
-  if (!Array.isArray(list)) return [];
-
-  return list
-    .filter((e) => {
-      const type = String(e?.type || e?.tipo || e?.detail || '').toLowerCase();
-      return type.includes('goal') || type.includes('gol') || e?.jogador || e?.player;
-    })
-    .slice(0, 6)
-    .map((e) => ({
-      player: asText(e.jogador, e.player?.name, e.player, e.nome, 'Gol'),
-      minute: asText(e.minuto, e.time?.elapsed ? `${e.time.elapsed}'` : '', e.elapsed ? `${e.elapsed}'` : '')
-    }));
-}
-
-function TabButton({ active, children, onClick }) {
+function DataList({ items = [] }) {
   return (
-    <button
-      type="button"
-      onClick={(e) => {
-        e.stopPropagation();
-        onClick?.();
-      }}
-      className={`shrink-0 px-3 py-2 rounded-full text-[11px] font-black border transition-all ${
-        active
-          ? 'bg-yellow-400 text-black border-yellow-300 shadow-lg shadow-yellow-500/20'
-          : 'bg-white/[0.04] text-white/75 border-white/10 hover:bg-white/[0.08]'
-      }`}
-    >
-      {children}
-    </button>
-  );
-}
-
-function InfoLine({ label, value }) {
-  return (
-    <div className="flex items-center justify-between gap-3 rounded-2xl bg-black/25 border border-white/10 px-3 py-2">
-      <span className="text-[11px] text-white/45 font-bold">{label}</span>
-      <span className="text-xs text-white font-black text-right">{value}</span>
+    <div className="overflow-hidden rounded-2xl bg-white/[0.025]">
+      {items.map((item, index) => (
+        <div
+          key={`${item.label}-${index}`}
+          className={`flex items-center justify-between gap-4 px-3.5 py-3 ${
+            index > 0 ? 'border-t border-white/[0.055]' : ''
+          }`}
+        >
+          <span className="text-[10px] font-semibold text-slate-500">{item.label}</span>
+          <span className="max-w-[65%] text-right text-[11px] font-extrabold text-slate-100">
+            {item.value ?? '-'}
+          </span>
+        </div>
+      ))}
     </div>
   );
 }
 
-function clamp(value, min, max) {
-  return Math.max(min, Math.min(max, value));
-}
+function PerformancePanel({ jogo }) {
+  const performance = teamPerformance(jogo);
+  const home = homeName(jogo);
+  const away = awayName(jogo);
 
-function numberOrNull(value) {
-  if (value === undefined || value === null || value === '' || value === '-') return null;
-  const normalized = typeof value === 'string'
-    ? value.replace('%', '').replace(',', '.').replace(/[^0-9.-]/g, '')
-    : value;
-  const parsed = Number(normalized);
-  return Number.isFinite(parsed) ? parsed : null;
-}
-
-function pairShare(homeValue, awayValue, fallbackHome = 50) {
-  const home = numberOrNull(homeValue);
-  const away = numberOrNull(awayValue);
-
-  if (home === null && away === null) {
-    return { home: fallbackHome, away: 100 - fallbackHome, available: false };
-  }
-
-  if (home !== null && away === null) {
-    const homePercent = clamp(home, 0, 100);
-    return { home: homePercent, away: 100 - homePercent, available: true };
-  }
-
-  if (home === null && away !== null) {
-    const awayPercent = clamp(away, 0, 100);
-    return { home: 100 - awayPercent, away: awayPercent, available: true };
-  }
-
-  const total = Math.max(home + away, 0.0001);
-  return {
-    home: clamp((home / total) * 100, 0, 100),
-    away: clamp((away / total) * 100, 0, 100),
-    available: true
-  };
-}
-
-function getPerformanceData(jogo, home, away) {
-  const stats = pick(jogo.estatisticas, jogo.stats, jogo.statistics, {});
-  const homeScore = asNumber(home.score, 0);
-  const awayScore = asNumber(away.score, 0);
-
-  const possession = pairShare(
-    pick(stats.posseCasa, stats.posse_casa, stats.home?.possession, stats.casa?.posse, jogo.posseCasa, jogo.posse_casa),
-    pick(stats.posseFora, stats.posse_fora, stats.away?.possession, stats.fora?.posse, jogo.posseFora, jogo.posse_fora),
-    50
-  );
-
-  const shots = pairShare(
-    pick(stats.chutesCasa, stats.chutes_casa, stats.home?.shots, stats.casa?.chutes, jogo.chutesCasa, jogo.chutes_casa),
-    pick(stats.chutesFora, stats.chutes_fora, stats.away?.shots, stats.fora?.chutes, jogo.chutesFora, jogo.chutes_fora),
-    50
-  );
-
-  const shotsOnTarget = pairShare(
-    pick(stats.chutesNoAlvoCasa, stats.chutes_no_alvo_casa, stats.home?.shotsOnGoal, stats.home?.shots_on_target, stats.casa?.chutesNoAlvo, jogo.chutesNoAlvoCasa),
-    pick(stats.chutesNoAlvoFora, stats.chutes_no_alvo_fora, stats.away?.shotsOnGoal, stats.away?.shots_on_target, stats.fora?.chutesNoAlvo, jogo.chutesNoAlvoFora),
-    shots.home
-  );
-
-  const corners = pairShare(
-    pick(stats.escanteiosCasa, stats.cantos_casa, stats.home?.corners, stats.casa?.cantos, jogo.escanteiosCasa, jogo.cantos_casa),
-    pick(stats.escanteiosFora, stats.cantos_fora, stats.away?.corners, stats.fora?.cantos, jogo.escanteiosFora, jogo.cantos_fora),
-    50
-  );
-
-  const attacks = pairShare(
-    pick(stats.ataquesPerigososCasa, stats.ataques_perigosos_casa, stats.home?.dangerousAttacks, stats.casa?.ataquesPerigosos, stats.ataquesCasa),
-    pick(stats.ataquesPerigososFora, stats.ataques_perigosos_fora, stats.away?.dangerousAttacks, stats.fora?.ataquesPerigosos, stats.ataquesFora),
-    possession.home
-  );
-
-  const resultHome = homeScore > awayScore ? 96 : homeScore === awayScore ? 72 : 48;
-  const resultAway = awayScore > homeScore ? 96 : homeScore === awayScore ? 72 : 48;
-
-  const homeIndex = clamp(Math.round(
-    resultHome * 0.38 +
-    possession.home * 0.14 +
-    shots.home * 0.18 +
-    shotsOnTarget.home * 0.18 +
-    corners.home * 0.06 +
-    attacks.home * 0.06
-  ), 35, 98);
-
-  const awayIndex = clamp(Math.round(
-    resultAway * 0.38 +
-    possession.away * 0.14 +
-    shots.away * 0.18 +
-    shotsOnTarget.away * 0.18 +
-    corners.away * 0.06 +
-    attacks.away * 0.06
-  ), 35, 98);
-
-  const label = (value) => {
-    if (value >= 88) return 'Excelente';
-    if (value >= 76) return 'Muito bom';
-    if (value >= 64) return 'Regular';
-    return 'Abaixo';
-  };
-
-  return {
-    home: {
-      index: homeIndex,
-      label: label(homeIndex),
-      possession: Math.round(possession.home),
-      shots: numberOrNull(pick(stats.chutesCasa, stats.chutes_casa, stats.home?.shots, stats.casa?.chutes, jogo.chutesCasa, jogo.chutes_casa)),
-      shotsOnTarget: numberOrNull(pick(stats.chutesNoAlvoCasa, stats.chutes_no_alvo_casa, stats.home?.shotsOnGoal, stats.home?.shots_on_target, stats.casa?.chutesNoAlvo, jogo.chutesNoAlvoCasa)),
-      corners: numberOrNull(pick(stats.escanteiosCasa, stats.cantos_casa, stats.home?.corners, stats.casa?.cantos, jogo.escanteiosCasa, jogo.cantos_casa))
-    },
-    away: {
-      index: awayIndex,
-      label: label(awayIndex),
-      possession: Math.round(possession.away),
-      shots: numberOrNull(pick(stats.chutesFora, stats.chutes_fora, stats.away?.shots, stats.fora?.chutes, jogo.chutesFora, jogo.chutes_fora)),
-      shotsOnTarget: numberOrNull(pick(stats.chutesNoAlvoFora, stats.chutes_no_alvo_fora, stats.away?.shotsOnGoal, stats.away?.shots_on_target, stats.fora?.chutesNoAlvo, jogo.chutesNoAlvoFora)),
-      corners: numberOrNull(pick(stats.escanteiosFora, stats.cantos_fora, stats.away?.corners, stats.fora?.cantos, jogo.escanteiosFora, jogo.cantos_fora))
-    }
-  };
-}
-
-function TeamPerformancePanel({ jogo, home, away }) {
-  const performance = getPerformanceData(jogo, home, away);
-
-  const PerformanceCard = ({ team, data, side }) => (
-    <div className="rounded-2xl border border-white/10 bg-black/25 p-3">
-      <div className="flex items-center justify-between gap-2">
+  const Team = ({ name, value, side }) => (
+    <div className="min-w-0 flex-1">
+      <div className="flex items-end justify-between gap-2">
         <div className="min-w-0">
-          <p className="truncate text-xs font-black text-white">{team.name}</p>
-          <p className="mt-0.5 text-[9px] font-bold uppercase tracking-wider text-white/40">
-            {data.label}
+          <p className="truncate text-[11px] font-black text-slate-100">{name}</p>
+          <p className="mt-0.5 text-[8px] font-bold uppercase tracking-wider text-slate-600">
+            índice de desempenho
           </p>
         </div>
-        <span className={`text-xl font-black ${side === 'home' ? 'text-blue-300' : 'text-amber-300'}`}>
-          {data.index}%
+        <span className={`text-2xl font-black tabular-nums ${side === 'home' ? 'text-blue-300' : 'text-amber-300'}`}>
+          {value}%
         </span>
       </div>
-
-      <div className="mt-2 h-2 overflow-hidden rounded-full bg-white/[0.06]">
+      <div className="mt-2 h-1.5 overflow-hidden rounded-full bg-white/[0.055]">
         <div
           className={`h-full rounded-full ${side === 'home' ? 'bg-blue-500' : 'bg-amber-400'}`}
-          style={{ width: `${data.index}%` }}
+          style={{ width: `${value}%` }}
         />
-      </div>
-
-      <div className="mt-3 grid grid-cols-2 gap-1.5 text-[9px] font-bold text-white/55">
-        <span>Posse <strong className="text-white">{data.possession}%</strong></span>
-        <span>Chutes <strong className="text-white">{data.shots ?? '-'}</strong></span>
-        <span>No alvo <strong className="text-white">{data.shotsOnTarget ?? '-'}</strong></span>
-        <span>Cantos <strong className="text-white">{data.corners ?? '-'}</strong></span>
       </div>
     </div>
   );
 
   return (
-    <div className="mb-3 rounded-3xl border border-white/10 bg-gradient-to-br from-blue-500/[0.06] via-black/20 to-amber-400/[0.05] p-3">
-      <div className="mb-2 flex items-center justify-between gap-2">
-        <div>
-          <p className="text-[10px] font-black uppercase tracking-[0.16em] text-white/45">
-            Desempenho dos times
-          </p>
-          <p className="mt-0.5 text-[9px] font-semibold text-white/30">
-            Índice calculado com placar e estatísticas disponíveis
-          </p>
-        </div>
-        <span className="rounded-full border border-white/10 bg-white/[0.04] px-2 py-1 text-[8px] font-black text-white/45">
-          PÓS-JOGO
-        </span>
+    <div className="mb-5 rounded-2xl bg-gradient-to-br from-blue-500/[0.07] via-white/[0.025] to-amber-400/[0.06] p-4">
+      <div className="flex gap-5">
+        <Team name={home} value={performance.home} side="home" />
+        <span className="w-px bg-white/[0.06]" />
+        <Team name={away} value={performance.away} side="away" />
       </div>
 
-      <div className="grid grid-cols-2 gap-2">
-        <PerformanceCard team={home} data={performance.home} side="home" />
-        <PerformanceCard team={away} data={performance.away} side="away" />
+      <div className="mt-4 grid grid-cols-3 divide-x divide-white/[0.06] border-t border-white/[0.06] pt-3 text-center">
+        <div>
+          <p className="text-[8px] font-bold uppercase text-slate-600">Posse</p>
+          <p className="mt-1 text-[10px] font-black text-slate-200">
+            {Math.round(performance.possession.home)}% · {Math.round(performance.possession.away)}%
+          </p>
+        </div>
+        <div>
+          <p className="text-[8px] font-bold uppercase text-slate-600">Chutes</p>
+          <p className="mt-1 text-[10px] font-black text-slate-200">
+            {performance.shots.home ?? '-'} · {performance.shots.away ?? '-'}
+          </p>
+        </div>
+        <div>
+          <p className="text-[8px] font-bold uppercase text-slate-600">Cantos</p>
+          <p className="mt-1 text-[10px] font-black text-slate-200">
+            {performance.corners.home ?? '-'} · {performance.corners.away ?? '-'}
+          </p>
+        </div>
       </div>
     </div>
   );
 }
 
-function DetailsPanel({ jogo, home, away }) {
-  const odd = pick(jogo.odd_principal, jogo.odd, jogo.odds?.principal, jogo.odds?.home);
-  const confidence = asNumber(pick(jogo.confianca_ia, jogo.confiancaIA, jogo.ia?.confianca), 0);
+function DetailsPanel({ jogo }) {
+  const home = homeName(jogo);
+  const away = awayName(jogo);
+  const odd = mainOdd(jogo);
+  const ia = confidence(jogo);
+  const finished = isFinished(jogo);
 
   return (
     <div>
-      {isFinished(jogo) && <TeamPerformancePanel jogo={jogo} home={home} away={away} />}
-      <div className="grid grid-cols-2 gap-2">
-        <InfoLine label="Status" value={getStatus(jogo) || (isFinished(jogo) ? 'Fim de jogo' : 'Pré-jogo')} />
-        <InfoLine label="Tempo" value={getMinute(jogo) || getDateTime(jogo) || '-'} />
-        <InfoLine label="Mandante" value={home.name} />
-        <InfoLine label="Visitante" value={away.name} />
-        <InfoLine label="Odd principal" value={odd ? Number(odd).toFixed(2) : '-'} />
-        <InfoLine label="Confiança IA" value={`${confidence}%`} />
+      {finished && <PerformancePanel jogo={jogo} />}
+
+      <SectionTitle
+        eyebrow="Visão geral"
+        title="Informações da partida"
+        description="Dados principais organizados sem caixas sobrepostas."
+        icon={List}
+      />
+
+      <div className="grid gap-3 sm:grid-cols-2">
+        <DataList
+          items={[
+            { label: 'Status', value: finished ? 'Encerrado' : isLive(jogo) ? 'Ao vivo' : 'Pré-jogo' },
+            { label: 'Data e horário', value: dateTimeLabel(jogo) || '-' },
+            { label: 'Mandante', value: home },
+            { label: 'Visitante', value: away }
+          ]}
+        />
+        <DataList
+          items={[
+            { label: 'Competição', value: leagueName(jogo) },
+            { label: 'País / região', value: leagueCountry(jogo) },
+            { label: 'Odd principal', value: odd !== null ? odd.toFixed(2) : '-' },
+            { label: 'Confiança IA', value: ia > 0 ? `${ia}%` : '-' }
+          ]}
+        />
       </div>
     </div>
   );
 }
 
-function LineupsPanel({ jogo, home, away }) {
-  const homeList = pick(jogo.escalacoes?.casa, jogo.lineups?.home, jogo.lineup_home, []);
-  const awayList = pick(jogo.escalacoes?.fora, jogo.lineups?.away, jogo.lineup_away, []);
+function normalizePlayers(source) {
+  if (!Array.isArray(source)) return [];
 
-  const renderList = (list) => {
-    if (!Array.isArray(list) || list.length === 0) {
-      return <p className="text-xs text-white/45">Escalação será carregada pela API.</p>;
-    }
-
-    return (
-      <div className="space-y-1">
-        {list.slice(0, 8).map((p, i) => (
-          <p key={i} className="text-xs text-white/70">
-            {asText(p.numero, p.number, '')} {asText(p.nome, p.player?.name, p.name, p)}
-          </p>
-        ))}
-      </div>
+  return source.map((player) => {
+    if (typeof player === 'string') return player;
+    return text(
+      player?.nome,
+      player?.name,
+      player?.player?.name,
+      [player?.number, player?.player?.name].filter(Boolean).join(' ')
     );
-  };
+  }).filter(Boolean);
+}
+
+function LineupsPanel({ jogo }) {
+  const home = homeName(jogo);
+  const away = awayName(jogo);
+  const homePlayers = normalizePlayers(pick(jogo.escalacoes?.casa, jogo.lineups?.home, jogo.lineup_home, []));
+  const awayPlayers = normalizePlayers(pick(jogo.escalacoes?.fora, jogo.lineups?.away, jogo.lineup_away, []));
+
+  const TeamList = ({ name, players, side }) => (
+    <div className="min-w-0 flex-1">
+      <div className="mb-3 flex items-center gap-2">
+        <span className={`h-2 w-2 rounded-full ${side === 'home' ? 'bg-blue-400' : 'bg-amber-400'}`} />
+        <h4 className="truncate text-[11px] font-black text-white">{name}</h4>
+      </div>
+
+      {players.length > 0 ? (
+        <div className="space-y-0.5">
+          {players.slice(0, 11).map((player, index) => (
+            <div key={`${player}-${index}`} className="flex items-center gap-2 py-1.5 text-[10px] text-slate-400">
+              <span className="w-4 text-[8px] font-black tabular-nums text-slate-700">
+                {String(index + 1).padStart(2, '0')}
+              </span>
+              <span className="truncate font-semibold">{player}</span>
+            </div>
+          ))}
+        </div>
+      ) : (
+        <p className="py-6 text-center text-[10px] font-semibold text-slate-600">
+          Escalação aguardando dados da API.
+        </p>
+      )}
+    </div>
+  );
 
   return (
-    <div className="grid grid-cols-2 gap-3">
-      <div className="rounded-2xl bg-black/25 border border-white/10 p-3">
-        <p className="text-xs font-black text-white mb-2">{home.name}</p>
-        {renderList(homeList)}
-      </div>
+    <div>
+      <SectionTitle
+        eyebrow="Equipes"
+        title="Escalações"
+        description="Titulares e informações enviadas pela API da partida."
+        icon={Users}
+      />
 
-      <div className="rounded-2xl bg-black/25 border border-white/10 p-3">
-        <p className="text-xs font-black text-white mb-2">{away.name}</p>
-        {renderList(awayList)}
+      <div className="flex gap-5 rounded-2xl bg-white/[0.025] p-4">
+        <TeamList name={home} players={homePlayers} side="home" />
+        <span className="w-px bg-white/[0.06]" />
+        <TeamList name={away} players={awayPlayers} side="away" />
       </div>
     </div>
   );
 }
 
 function PredictionPanel({ jogo }) {
-  const confidence = asNumber(pick(jogo.confianca_ia, jogo.confiancaIA, jogo.ia?.confianca), 87);
-  const market = asText(jogo.mercado_principal, jogo.mercadoIA, jogo.ia?.mercado, 'Mercado principal será definido pela IA');
-  const ev = pick(jogo.ev, jogo.valor_esperado, jogo.ia?.ev);
+  const ia = confidence(jogo) || 87;
+  const market = text(
+    jogo.mercado_principal,
+    jogo.mercadoIA,
+    jogo.ia?.mercado,
+    'Mercado principal em análise'
+  );
+  const ev = nullableNumber(pick(jogo.ev, jogo.valor_esperado, jogo.ia?.ev));
 
   return (
-    <div className="rounded-2xl bg-gradient-to-br from-yellow-400/10 to-blue-500/10 border border-yellow-400/20 p-3">
-      <div className="flex items-center justify-between gap-3">
-        <div>
-          <p className="text-[11px] text-yellow-300 font-black uppercase tracking-[0.16em]">Previsão IA</p>
-          <p className="text-sm text-white font-black mt-1">{market}</p>
+    <div>
+      <SectionTitle
+        eyebrow="Inteligência artificial"
+        title="Previsão da partida"
+        description="Leitura de forma, mercado, risco, histórico e contexto do confronto."
+        icon={Sparkles}
+      />
+
+      <div className="overflow-hidden rounded-2xl bg-gradient-to-br from-blue-600/[0.16] via-white/[0.035] to-emerald-400/[0.08] p-5">
+        <div className="flex items-start justify-between gap-5">
+          <div>
+            <p className="text-[8px] font-black uppercase tracking-[0.18em] text-blue-300">
+              Melhor leitura encontrada
+            </p>
+            <h4 className="mt-2 text-base font-black leading-snug text-white">{market}</h4>
+            <p className="mt-2 max-w-md text-[10px] font-medium leading-relaxed text-slate-400">
+              A confiança combina desempenho recente, mando de campo, confronto direto,
+              produção ofensiva e comportamento das odds.
+            </p>
+          </div>
+
+          <div className="shrink-0 text-right">
+            <p className="text-4xl font-black tracking-tight text-white">{ia}%</p>
+            <p className="mt-1 text-[8px] font-black uppercase tracking-wider text-slate-600">
+              confiança
+            </p>
+          </div>
         </div>
 
-        <div className="text-right">
-          <p className="text-2xl font-black text-yellow-300">{confidence}%</p>
-          <p className="text-[10px] text-white/45 font-bold">confiança</p>
+        <div className="mt-5 h-1.5 overflow-hidden rounded-full bg-black/25">
+          <div className="h-full rounded-full bg-gradient-to-r from-blue-500 to-emerald-400" style={{ width: `${ia}%` }} />
         </div>
+
+        {ev !== null && (
+          <div className="mt-4 flex items-center gap-2 text-[10px] font-black text-emerald-300">
+            <TrendingUp className="h-4 w-4" />
+            Valor esperado estimado: {ev.toFixed(1)}%
+          </div>
+        )}
+      </div>
+    </div>
+  );
+}
+
+function OddsPanel({ jogo }) {
+  const values = odds(jogo);
+  const probability = probabilities(jogo);
+  const totalProbability = probability.home + probability.draw + probability.away;
+
+  const Option = ({ label, odd, probabilityValue, accent }) => (
+    <div className="flex-1 px-3 py-4 text-center">
+      <p className="text-[8px] font-black uppercase tracking-[0.14em] text-slate-600">{label}</p>
+      <p className="mt-2 text-2xl font-black tabular-nums text-white">{odd !== null ? odd.toFixed(2) : '-'}</p>
+      {totalProbability > 0 && (
+        <p className={`mt-1 text-[9px] font-black ${accent}`}>{probabilityValue}%</p>
+      )}
+    </div>
+  );
+
+  return (
+    <div>
+      <SectionTitle
+        eyebrow="Mercado"
+        title="Odds e probabilidades"
+        description="Comparação direta das principais opções da partida."
+        icon={BadgeDollarSign}
+      />
+
+      <div className="flex divide-x divide-white/[0.06] overflow-hidden rounded-2xl bg-white/[0.025]">
+        <Option label="Casa" odd={values.home} probabilityValue={probability.home} accent="text-blue-300" />
+        <Option label="Empate" odd={values.draw} probabilityValue={probability.draw} accent="text-slate-300" />
+        <Option label="Fora" odd={values.away} probabilityValue={probability.away} accent="text-amber-300" />
       </div>
 
-      <p className="mt-3 text-xs text-white/65 leading-relaxed">
-        Quando a API estiver conectada, este bloco exibirá forma, odds, pressão, estatísticas, histórico e leitura do mercado.
-      </p>
-
-      {ev !== undefined && ev !== null && ev !== '' && (
-        <p className="mt-2 text-xs text-emerald-300 font-black">EV estimado: {Number(ev).toFixed(1)}%</p>
+      {totalProbability > 0 && (
+        <div className="mt-4">
+          <div className="flex h-2 overflow-hidden rounded-full bg-white/[0.04]">
+            <span className="bg-blue-500" style={{ width: `${probability.home}%` }} />
+            <span className="bg-slate-500" style={{ width: `${probability.draw}%` }} />
+            <span className="bg-amber-400" style={{ width: `${probability.away}%` }} />
+          </div>
+          <div className="mt-2 flex justify-between text-[8px] font-bold text-slate-600">
+            <span>Casa {probability.home}%</span>
+            <span>Empate {probability.draw}%</span>
+            <span>Fora {probability.away}%</span>
+          </div>
+        </div>
       )}
     </div>
   );
 }
 
-function StatsPanel({ jogo, home, away }) {
-  const stats = pick(jogo.estatisticas, jogo.stats, jogo.statistics, {});
-  const posseHome = pick(stats.posse_casa, stats.home?.possession, stats.casa?.posse, jogo.posse_casa, '-');
-  const posseAway = pick(stats.posse_fora, stats.away?.possession, stats.fora?.posse, jogo.posse_fora, '-');
-  const shotsHome = pick(stats.chutes_casa, stats.home?.shots, stats.casa?.chutes, jogo.chutes_casa, '-');
-  const shotsAway = pick(stats.chutes_fora, stats.away?.shots, stats.fora?.chutes, jogo.chutes_fora, '-');
-  const cornersHome = pick(stats.cantos_casa, stats.home?.corners, stats.casa?.cantos, jogo.cantos_casa, '-');
-  const cornersAway = pick(stats.cantos_fora, stats.away?.corners, stats.fora?.cantos, jogo.cantos_fora, '-');
-
-  return (
-    <div className="space-y-2">
-      <InfoLine label="Posse" value={`${home.name}: ${posseHome} | ${away.name}: ${posseAway}`} />
-      <InfoLine label="Chutes" value={`${home.name}: ${shotsHome} | ${away.name}: ${shotsAway}`} />
-      <InfoLine label="Cantos" value={`${home.name}: ${cornersHome} | ${away.name}: ${cornersAway}`} />
-    </div>
-  );
-}
-
 function StandingsPanel({ jogo }) {
-  const table = pick(jogo.classificacao, jogo.standings, jogo.tabela, {});
+  const table = pick(jogo.classificacao, jogo.standings, jogo.tabela, {}) || {};
 
   return (
-    <div className="grid grid-cols-2 gap-2">
-      <InfoLine label="Casa posição" value={pick(table.casa_posicao, table.home?.rank, '-')} />
-      <InfoLine label="Fora posição" value={pick(table.fora_posicao, table.away?.rank, '-')} />
-      <InfoLine label="Casa pontos" value={pick(table.casa_pontos, table.home?.points, '-')} />
-      <InfoLine label="Fora pontos" value={pick(table.fora_pontos, table.away?.points, '-')} />
+    <div>
+      <SectionTitle
+        eyebrow="Competição"
+        title="Classificação"
+        description="Posição e pontuação atual das equipes."
+        icon={Table2}
+      />
+      <DataList
+        items={[
+          { label: `${homeName(jogo)} · posição`, value: pick(table.casa_posicao, table.home?.rank, '-') },
+          { label: `${homeName(jogo)} · pontos`, value: pick(table.casa_pontos, table.home?.points, '-') },
+          { label: `${awayName(jogo)} · posição`, value: pick(table.fora_posicao, table.away?.rank, '-') },
+          { label: `${awayName(jogo)} · pontos`, value: pick(table.fora_pontos, table.away?.points, '-') }
+        ]}
+      />
     </div>
   );
 }
 
-function H2HPanel({ jogo, home, away }) {
-  const h2h = pick(jogo.h2h, jogo.confronto_direto, jogo.cd, {});
+function H2HPanel({ jogo }) {
+  const h2h = pick(jogo.h2h, jogo.confronto_direto, jogo.cd, {}) || {};
 
   return (
-    <div className="rounded-2xl bg-black/25 border border-white/10 p-3">
-      <p className="text-xs text-white/45 font-bold mb-2">Confronto direto</p>
-      <p className="text-sm text-white/80 font-bold">
-        {asText(h2h.resumo, h2h.summary, `${home.name} x ${away.name}`)}
+    <div>
+      <SectionTitle
+        eyebrow="Histórico"
+        title="Confronto direto"
+        description="Resumo dos encontros recentes entre as equipes."
+        icon={Swords}
+      />
+
+      <p className="rounded-2xl bg-white/[0.025] px-4 py-4 text-[11px] font-semibold leading-relaxed text-slate-300">
+        {text(h2h.resumo, h2h.summary, `${homeName(jogo)} x ${awayName(jogo)}`)}
       </p>
 
-      <div className="grid grid-cols-3 gap-2 mt-3">
-        <InfoLine label="Casa" value={pick(h2h.vitorias_casa, h2h.homeWins, '-')} />
-        <InfoLine label="Empates" value={pick(h2h.empates, h2h.draws, '-')} />
-        <InfoLine label="Fora" value={pick(h2h.vitorias_fora, h2h.awayWins, '-')} />
+      <div className="mt-3 grid grid-cols-3 divide-x divide-white/[0.06] rounded-2xl bg-white/[0.025] py-3 text-center">
+        <div>
+          <p className="text-xl font-black text-blue-300">{pick(h2h.vitorias_casa, h2h.homeWins, '-')}</p>
+          <p className="mt-1 text-[8px] font-bold uppercase text-slate-600">Casa</p>
+        </div>
+        <div>
+          <p className="text-xl font-black text-white">{pick(h2h.empates, h2h.draws, '-')}</p>
+          <p className="mt-1 text-[8px] font-bold uppercase text-slate-600">Empates</p>
+        </div>
+        <div>
+          <p className="text-xl font-black text-amber-300">{pick(h2h.vitorias_fora, h2h.awayWins, '-')}</p>
+          <p className="mt-1 text-[8px] font-bold uppercase text-slate-600">Fora</p>
+        </div>
       </div>
     </div>
   );
 }
 
 function CommentaryPanel({ jogo }) {
-  const comment = asText(
+  const commentary = text(
     jogo.comentario,
     jogo.commentary,
     jogo.narracao,
     jogo.analise,
-    'Comentário em tempo real será exibido quando a API enviar eventos, gols, cartões e mudanças importantes.'
+    'Os comentários, gols, cartões e principais eventos serão exibidos quando a API enviar os dados.'
   );
 
   return (
-    <div className="rounded-2xl bg-black/25 border border-white/10 p-3">
-      <p className="text-xs text-white/45 font-bold mb-2">Comentário</p>
-      <p className="text-sm text-white/75 leading-relaxed">{comment}</p>
+    <div>
+      <SectionTitle
+        eyebrow="Leitura da partida"
+        title="Comentários"
+        description="Resumo técnico e eventos relevantes do confronto."
+        icon={MessageSquareText}
+      />
+      <p className="rounded-2xl bg-white/[0.025] px-4 py-5 text-[11px] font-medium leading-6 text-slate-300">
+        {commentary}
+      </p>
     </div>
   );
 }
 
-export default function CardJogo({ jogo = {}, onClick, onSelect, selecionado = false, compacto = false }) {
-  const [tab, setTab] = React.useState('detalhes');
+function StatsPanel({ jogo }) {
+  return (
+    <div>
+      <SectionTitle
+        eyebrow="Desempenho"
+        title="Estatísticas completas"
+        description="Comparativo técnico das equipes e métricas por período."
+        icon={BarChart3}
+      />
+      <PerformancePanel jogo={jogo} />
+      <EstatisticasJogoPro
+        jogo={jogo}
+        casa={{ name: homeName(jogo), logo: homeLogo(jogo) }}
+        fora={{ name: awayName(jogo), logo: awayLogo(jogo) }}
+      />
+    </div>
+  );
+}
 
-  const home = getHome(jogo);
-  const away = getAway(jogo);
-  const league = getLeague(jogo);
-  const round = getRound(jogo);
-  const goals = getGoals(jogo);
-  const dateTime = getDateTime(jogo);
-  const minute = getMinute(jogo);
+const TABS = [
+  { id: 'detalhes', label: 'Detalhes', icon: List },
+  { id: 'escalacoes', label: 'Escalações', icon: Users },
+  { id: 'ia', label: 'Previsão IA', icon: Sparkles },
+  { id: 'estatisticas', label: 'Estatísticas', icon: BarChart3 },
+  { id: 'odds', label: 'Odds', icon: BadgeDollarSign },
+  { id: 'classificacao', label: 'Classificação', icon: Table2 },
+  { id: 'cd', label: 'Confrontos', icon: Swords },
+  { id: 'comentario', label: 'Comentários', icon: MessageSquareText }
+];
 
-  const homeScore = home.score ?? '-';
-  const awayScore = away.score ?? '-';
+export default function CardJogo({
+  jogo = {},
+  onClick,
+  onSelect,
+  selecionado = false,
+  compacto = false
+}) {
+  const [tab, setTab] = useState('detalhes');
+  const home = homeName(jogo);
+  const away = awayName(jogo);
+  const live = isLive(jogo);
+  const finished = isFinished(jogo);
+  const prematch = isPreMatch(jogo);
+  const ia = confidence(jogo);
+  const odd = mainOdd(jogo);
+  const scoreH = homeScore(jogo);
+  const scoreA = awayScore(jogo);
+  const logoCompetition = leagueLogo(jogo);
 
-  const statusText = isFinished(jogo)
-    ? 'Fim de jogo'
-    : isLive(jogo)
-      ? minute || 'Ao vivo'
-      : getStatus(jogo) || 'Pré-jogo';
+  const status = live
+    ? elapsedText(jogo) || 'AO VIVO'
+    : finished
+      ? 'ENCERRADO'
+      : 'PRÉ-JOGO';
+
+  const statusClass = live
+    ? 'bg-red-500/10 text-red-300 ring-red-500/20'
+    : finished
+      ? 'bg-emerald-400/10 text-emerald-300 ring-emerald-400/20'
+      : 'bg-blue-500/10 text-blue-300 ring-blue-500/20';
+
+  const StatusIcon = live ? Radio : finished ? CheckCircle2 : Clock3;
+
+  const panel = useMemo(() => {
+    if (tab === 'detalhes') return <DetailsPanel jogo={jogo} />;
+    if (tab === 'escalacoes') return <LineupsPanel jogo={jogo} />;
+    if (tab === 'ia') return <PredictionPanel jogo={jogo} />;
+    if (tab === 'estatisticas') return <StatsPanel jogo={jogo} />;
+    if (tab === 'odds') return <OddsPanel jogo={jogo} />;
+    if (tab === 'classificacao') return <StandingsPanel jogo={jogo} />;
+    if (tab === 'cd') return <H2HPanel jogo={jogo} />;
+    return <CommentaryPanel jogo={jogo} />;
+  }, [tab, jogo]);
 
   function openCard() {
     if (typeof onClick === 'function') onClick(jogo);
     if (typeof onSelect === 'function') onSelect(jogo);
   }
 
-  function renderPanel() {
-    if (tab === 'detalhes') return <DetailsPanel jogo={jogo} home={home} away={away} />;
-    if (tab === 'escalacoes') return <LineupsPanel jogo={jogo} home={home} away={away} />;
-    if (tab === 'ia') return <PredictionPanel jogo={jogo} />;
-    if (tab === 'estatisticas') {
-      return (
-        <div>
-          <TeamPerformancePanel jogo={jogo} home={home} away={away} />
-          <EstatisticasJogoPro jogo={jogo} casa={home} fora={away} />
-        </div>
-      );
-    }
-    if (tab === 'classificacao') return <StandingsPanel jogo={jogo} />;
-    if (tab === 'cd') return <H2HPanel jogo={jogo} home={home} away={away} />;
-    return <CommentaryPanel jogo={jogo} />;
-  }
-
   return (
-    <article
-      onClick={openCard}
-      className={`w-full overflow-hidden rounded-[28px] border bg-gradient-to-b from-[#302315] via-[#161616] to-[#080808] shadow-xl transition-all ${
-        selecionado ? 'border-yellow-400/60 shadow-yellow-500/10' : 'border-white/10'
+    <section
+      onClick={compacto ? openCard : undefined}
+      className={`relative isolate w-full overflow-hidden rounded-[30px] bg-[#080b11] shadow-[0_24px_65px_rgba(0,0,0,0.38)] ring-1 ring-inset ${
+        selecionado ? 'ring-white/[0.10]' : 'ring-white/[0.065]'
       }`}
     >
-      <div className="px-4 py-3">
-        <div className="flex items-center justify-between gap-3">
-          <div className="flex items-center gap-2 min-w-0">
-            <span className="w-5 h-5 rounded-full bg-yellow-400/15 border border-yellow-400/25 flex items-center justify-center text-[11px]">
-              🏆
-            </span>
+      <div className={`absolute inset-x-0 top-0 h-[2px] ${
+        live ? 'bg-gradient-to-r from-transparent via-red-500 to-transparent'
+          : finished ? 'bg-gradient-to-r from-transparent via-emerald-400 to-transparent'
+            : 'bg-gradient-to-r from-transparent via-blue-500 to-transparent'
+      }`} />
 
-            <p className="text-xs text-white/75 font-black truncate">
-              {league}
-              {round ? <span className="text-white/35"> • {round}</span> : null}
+      <header className="flex items-center justify-between gap-3 px-4 pb-2 pt-4 sm:px-5">
+        <div className="flex min-w-0 items-center gap-2.5">
+          <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-xl bg-white/[0.045]">
+            {logoCompetition ? (
+              <img src={logoCompetition} alt="" className="h-5 w-5 object-contain" />
+            ) : (
+              <Trophy className="h-4 w-4 text-slate-500" />
+            )}
+          </span>
+          <div className="min-w-0">
+            <p className="truncate text-[10px] font-black text-slate-200">{leagueName(jogo)}</p>
+            <p className="mt-0.5 truncate text-[8px] font-bold uppercase tracking-[0.12em] text-slate-700">
+              {leagueCountry(jogo)}
+            </p>
+          </div>
+        </div>
+
+        <span className={`inline-flex shrink-0 items-center gap-1.5 rounded-full px-2.5 py-1 text-[8px] font-black tracking-[0.1em] ring-1 ring-inset ${statusClass}`}>
+          <StatusIcon className="h-3 w-3" />
+          {status}
+        </span>
+      </header>
+
+      <div className="px-4 pb-5 pt-4 sm:px-6">
+        <div className="grid grid-cols-[1fr_auto_1fr] items-center gap-3 sm:gap-6">
+          <div className="min-w-0 text-center">
+            <div className="mx-auto flex justify-center">
+              <TeamLogo src={homeLogo(jogo)} name={home} />
+            </div>
+            <p className="mt-2 truncate text-[11px] font-black text-white sm:text-sm">{home}</p>
+            <p className="mt-1 text-[8px] font-bold uppercase tracking-wider text-slate-700">Mandante</p>
+          </div>
+
+          <div className="flex min-w-[92px] flex-col items-center text-center">
+            <p className="mb-2 text-[8px] font-black uppercase tracking-[0.13em] text-slate-600">
+              {dateTimeLabel(jogo) || 'Hoje'}
+            </p>
+
+            {prematch ? (
+              <div className="flex h-[58px] min-w-[88px] items-center justify-center rounded-2xl bg-white/[0.035] px-4">
+                <CalendarClock className="mr-2 h-4 w-4 text-blue-400" />
+                <span className="text-xl font-black tabular-nums text-white">
+                  {dateTimeLabel(jogo).split(' ').slice(-1)[0] || '--:--'}
+                </span>
+              </div>
+            ) : (
+              <div className="flex h-[58px] min-w-[100px] items-center justify-center rounded-2xl bg-black/35 px-4">
+                <span className="text-3xl font-black tabular-nums tracking-tight text-white">
+                  {scoreH ?? 0}
+                </span>
+                <span className="mx-2 text-lg font-black text-slate-700">–</span>
+                <span className="text-3xl font-black tabular-nums tracking-tight text-white">
+                  {scoreA ?? 0}
+                </span>
+              </div>
+            )}
+
+            <p className="mt-2 text-[9px] font-black text-slate-500">
+              {live ? elapsedText(jogo) : finished ? 'Placar final' : statusText(jogo) || 'Agendado'}
             </p>
           </div>
 
-          {isLive(jogo) && (
-            <span className="shrink-0 rounded-full bg-red-500/15 border border-red-400/25 px-2 py-1 text-[10px] font-black text-red-300">
-              AO VIVO
-            </span>
-          )}
-        </div>
-
-        <div className={`grid grid-cols-[1fr_auto_1fr] items-center gap-3 ${compacto ? 'mt-3' : 'mt-5'}`}>
-          <div className="flex flex-col items-center text-center min-w-0">
-            <p className="text-[11px] sm:text-xs text-white font-black truncate w-full">{home.name}</p>
-
-            <div className="mt-2">
-              <LogoTeam src={home.logo} name={home.name} />
+          <div className="min-w-0 text-center">
+            <div className="mx-auto flex justify-center">
+              <TeamLogo src={awayLogo(jogo)} name={away} />
             </div>
-
-            <button
-              type="button"
-              onClick={(e) => e.stopPropagation()}
-              className="mt-2 text-white/30 hover:text-yellow-300 transition-colors"
-              title="Favoritar"
-            >
-              â˜†
-            </button>
-          </div>
-
-          <div className="flex flex-col items-center">
-            <p className="text-[11px] text-white/35 font-bold h-4">{dateTime || minute || 'Hoje'}</p>
-
-            <div className="mt-1 rounded-2xl bg-black border border-yellow-400/20 px-4 py-2 shadow-lg shadow-black/40">
-              <div className="flex items-center gap-2 text-4xl sm:text-5xl font-black leading-none tracking-tight">
-                <span className="text-yellow-400">{homeScore}</span>
-                <span className="text-white/45">-</span>
-                <span className="text-white">{awayScore}</span>
-              </div>
-            </div>
-
-            <p className="mt-2 text-[11px] text-white/45 font-bold">{statusText}</p>
-          </div>
-
-          <div className="flex flex-col items-center text-center min-w-0">
-            <p className="text-[11px] sm:text-xs text-white font-black truncate w-full">{away.name}</p>
-
-            <div className="mt-2">
-              <LogoTeam src={away.logo} name={away.name} />
-            </div>
-
-            <button
-              type="button"
-              onClick={(e) => e.stopPropagation()}
-              className="mt-2 text-white/30 hover:text-yellow-300 transition-colors"
-              title="Favoritar"
-            >
-              â˜†
-            </button>
+            <p className="mt-2 truncate text-[11px] font-black text-white sm:text-sm">{away}</p>
+            <p className="mt-1 text-[8px] font-bold uppercase tracking-wider text-slate-700">Visitante</p>
           </div>
         </div>
 
-        <div className="mt-3 min-h-[18px] flex flex-wrap items-center justify-center gap-x-3 gap-y-1">
-          {goals.length > 0 ? (
-            goals.map((g, i) => (
-              <span key={i} className="text-[11px] text-white/70 font-bold">
-                {g.minute ? `${g.minute} ` : ''}{g.player}
-              </span>
-            ))
-          ) : (
-            <span className="text-[11px] text-white/35 font-bold">
-              Gols e eventos serão exibidos automaticamente pela API
-            </span>
-          )}
+        <div className="mt-5 flex items-center justify-center divide-x divide-white/[0.06] border-t border-white/[0.06] pt-3">
+          <div className="flex min-w-[94px] items-center justify-center gap-2 px-3">
+            <Sparkles className="h-3.5 w-3.5 text-blue-400" />
+            <div>
+              <p className="text-[7px] font-black uppercase tracking-wider text-slate-700">Confiança IA</p>
+              <p className="mt-0.5 text-[10px] font-black text-slate-200">{ia > 0 ? `${ia}%` : '-'}</p>
+            </div>
+          </div>
+
+          <div className="flex min-w-[94px] items-center justify-center gap-2 px-3">
+            <TrendingUp className="h-3.5 w-3.5 text-emerald-400" />
+            <div>
+              <p className="text-[7px] font-black uppercase tracking-wider text-slate-700">Odd principal</p>
+              <p className="mt-0.5 text-[10px] font-black text-slate-200">{odd !== null ? odd.toFixed(2) : '-'}</p>
+            </div>
+          </div>
+
+          <div className="hidden min-w-[94px] items-center justify-center gap-2 px-3 sm:flex">
+            <Shield className="h-3.5 w-3.5 text-amber-400" />
+            <div>
+              <p className="text-[7px] font-black uppercase tracking-wider text-slate-700">Análise</p>
+              <p className="mt-0.5 text-[10px] font-black text-slate-200">Completa</p>
+            </div>
+          </div>
         </div>
       </div>
 
-      <div className="px-3 pb-3">
-        <div className="flex gap-2 overflow-x-auto no-scrollbar pb-1">
-          <TabButton active={tab === 'detalhes'} onClick={() => setTab('detalhes')}>☰ Detalhes</TabButton>
-          <TabButton active={tab === 'escalacoes'} onClick={() => setTab('escalacoes')}>⚑ Escalações</TabButton>
-          <TabButton active={tab === 'ia'} onClick={() => setTab('ia')}>🤖 Previsão IA</TabButton>
-          <TabButton active={tab === 'estatisticas'} onClick={() => setTab('estatisticas')}>〽 Estatísticas</TabButton>
-          <TabButton active={tab === 'classificacao'} onClick={() => setTab('classificacao')}>♚ Classificações</TabButton>
-          <TabButton active={tab === 'cd'} onClick={() => setTab('cd')}>⚔ CD</TabButton>
-          <TabButton active={tab === 'comentario'} onClick={() => setTab('comentario')}>☷ Comentário</TabButton>
-        </div>
+      {!compacto && (
+        <>
+          <nav className="flex gap-1 overflow-x-auto border-y border-white/[0.06] bg-white/[0.018] px-3 no-scrollbar sm:px-4">
+            {TABS.map(({ id, label, icon: Icon }) => {
+              const active = tab === id;
 
-        <div onClick={(e) => e.stopPropagation()} className="mt-2 rounded-3xl border border-white/10 bg-black/20 p-3">
-          {renderPanel()}
-        </div>
-      </div>
-    </article>
+              return (
+                <button
+                  key={id}
+                  type="button"
+                  onClick={(event) => {
+                    event.stopPropagation();
+                    setTab(id);
+                  }}
+                  className={`relative flex shrink-0 items-center gap-1.5 px-3 py-3 text-[9px] font-black transition ${
+                    active ? 'text-white' : 'text-slate-600 hover:text-slate-300'
+                  }`}
+                >
+                  <Icon className={`h-3.5 w-3.5 ${active ? 'text-blue-400' : ''}`} />
+                  {label}
+                  {active && <span className="absolute inset-x-2 bottom-0 h-[2px] rounded-full bg-blue-500" />}
+                </button>
+              );
+            })}
+          </nav>
+
+          <div onClick={(event) => event.stopPropagation()} className="px-4 py-5 sm:px-6 sm:py-6">
+            {panel}
+          </div>
+        </>
+      )}
+    </section>
   );
 }
