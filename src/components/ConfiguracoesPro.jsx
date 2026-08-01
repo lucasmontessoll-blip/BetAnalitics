@@ -1,231 +1,358 @@
 import React, { useState } from 'react';
-import { Settings, Crown, Bell, Wallet, Moon, ShieldCheck, FileText, LifeBuoy, LogOut, Brain, FlaskConical, ChevronRight, RotateCcw } from 'lucide-react';
+import {
+  Bell,
+  Brain,
+  ChevronRight,
+  Crown,
+  FileText,
+  FlaskConical,
+  LifeBuoy,
+  Lock,
+  LogOut,
+  Moon,
+  RotateCcw,
+  Settings,
+  ShieldCheck,
+  Sparkles,
+  Wallet
+} from 'lucide-react';
 
-function lerConfig() {
+import { temAcessoPro } from '../utils/acessoPro.js';
+
+/* BET_ETAPA_32D_CONFIGURACOES_PREMIUM */
+
+const DEFAULT_CONFIG = {
+  notificacoes: true,
+  tema: 'escuro',
+  moeda: 'BRL',
+  limiteDiario: 50,
+  iaConservadora: true
+};
+
+function readConfig() {
   try {
-    return JSON.parse(localStorage.getItem('bet_config_pro_v1') || 'null') || {
-      notificacoes: true,
-      tema: 'escuro',
-      moeda: 'BRL',
-      limiteDiario: 50,
-      iaConservadora: true,
+    const stored = JSON.parse(
+      localStorage.getItem('bet_config_pro_v1') || 'null'
+    );
+
+    return {
+      ...DEFAULT_CONFIG,
+      ...(stored && typeof stored === 'object' ? stored : {})
     };
   } catch {
-    return {
-      notificacoes: true,
-      tema: 'escuro',
-      moeda: 'BRL',
-      limiteDiario: 50,
-      iaConservadora: true,
-    };
+    return { ...DEFAULT_CONFIG };
   }
 }
 
-function LinhaConfig({ icon: Icone, titulo, texto, cor = 'text-blue-400', onClick, children }) {
+function SettingRow({
+  icon: Icon,
+  title,
+  description,
+  accent = 'text-blue-300',
+  onClick,
+  control
+}) {
   return (
     <button
       type="button"
       onClick={onClick}
-      className="w-full bg-[#050816] border border-white/10 rounded-2xl p-4 flex items-center gap-3 text-left active:scale-[0.99]"
+      className="group flex w-full items-center gap-3 px-4 py-4 text-left transition hover:bg-white/[0.025]"
     >
-      <div className="w-11 h-11 rounded-2xl bg-[#0f172a] border border-white/10 flex items-center justify-center shrink-0">
-        <Icone className={'w-5 h-5 ' + cor} />
+      <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-white/[0.035]">
+        <Icon className={`h-4 w-4 ${accent}`} />
+      </span>
+
+      <div className="min-w-0 flex-1">
+        <p className="truncate text-[11px] font-black text-white">{title}</p>
+        <p className="mt-1 truncate text-[8px] font-semibold text-slate-600">
+          {description}
+        </p>
       </div>
 
-      <div className="flex-1 min-w-0">
-        <div className="text-sm font-black text-white uppercase truncate">{titulo}</div>
-        <div className="text-[10px] text-slate-500 font-bold mt-1 truncate">{texto}</div>
-      </div>
-
-      {children || <ChevronRight className="w-5 h-5 text-slate-600 shrink-0" />}
+      {control || (
+        <ChevronRight className="h-4 w-4 shrink-0 text-slate-800 transition group-hover:translate-x-0.5 group-hover:text-slate-500" />
+      )}
     </button>
   );
 }
 
+function Toggle({ active }) {
+  return (
+    <span
+      className={`relative h-6 w-10 shrink-0 rounded-full transition ${
+        active ? 'bg-blue-600' : 'bg-white/[0.07]'
+      }`}
+    >
+      <span
+        className={`absolute top-1 h-4 w-4 rounded-full bg-white shadow transition ${
+          active ? 'left-5' : 'left-1'
+        }`}
+      />
+    </span>
+  );
+}
+
+function Section({ eyebrow, title, children }) {
+  return (
+    <section className="mt-7">
+      <div className="mb-3 px-1">
+        <p className="text-[8px] font-black uppercase tracking-[0.18em] text-slate-700">
+          {eyebrow}
+        </p>
+        <h2 className="mt-1 text-base font-black tracking-tight text-white">
+          {title}
+        </h2>
+      </div>
+
+      <div className="overflow-hidden rounded-[24px] bg-[#0b0e14] shadow-[0_15px_40px_rgba(0,0,0,0.24)] ring-1 ring-inset ring-white/[0.06]">
+        {children}
+      </div>
+    </section>
+  );
+}
+
 export default function ConfiguracoesPro({
-  userData,
+  userData = {},
   setViewMode,
   solicitarPermissaoNotificacao,
   setAiOpen,
   setAiQuery,
-  modoDemo = true,
+  modoDemo = true
 }) {
-  const [config, setConfig] = useState(lerConfig);
+  const [config, setConfig] = useState(readConfig);
+  const vipActive = temAcessoPro(userData);
+  const plan = userData?.plano || userData?.plan || (vipActive ? 'PRO' : 'Free');
+  const email = userData?.email || localStorage.getItem('bet_user_email') || 'Usuário demo';
 
-  const salvar = (patch) => {
-    const proximo = { ...config, ...patch };
-    setConfig(proximo);
+  function save(patch) {
+    const next = { ...config, ...patch };
+    setConfig(next);
 
     try {
-      localStorage.setItem('bet_config_pro_v1', JSON.stringify(proximo));
+      localStorage.setItem('bet_config_pro_v1', JSON.stringify(next));
     } catch {}
-  };
+  }
 
-  const sair = () => {
+  function logout() {
     localStorage.removeItem('bet_sessao_ativa');
     localStorage.removeItem('bet_user_nome');
     localStorage.removeItem('bet_user_email');
     window.location.reload();
-  };
+  }
 
-  const resetOnboarding = () => {
+  function resetOnboarding() {
     localStorage.removeItem('bet_onboarding_pro_v1');
     window.location.reload();
-  };
+  }
 
-  const perguntarIA = () => {
-    setAiQuery?.('Me ajude a configurar o BetAnalytics PRO de forma conservadora e segura.');
-    setAiOpen?.(true);
-  };
+  function askAI() {
+    if (typeof setAiQuery === 'function') {
+      setAiQuery(
+        'Me ajude a configurar o BetAnalytics PRO de forma conservadora e segura.'
+      );
+    }
 
-  const plano = userData?.is_vip ? 'VIP PRO ativo' : 'Plano gratuito';
+    if (typeof setAiOpen === 'function') {
+      setAiOpen(true);
+    }
+  }
+
+  function toggleNotifications() {
+    const next = !config.notificacoes;
+    save({ notificacoes: next });
+
+    if (next && typeof solicitarPermissaoNotificacao === 'function') {
+      solicitarPermissaoNotificacao();
+    }
+  }
 
   return (
-    <div className="px-4 animate-fade-in pb-28 w-full">
-      <div className="flex items-center gap-3 mb-4">
-        
+    <main className="w-full animate-fade-in px-3 pb-28 pt-3 sm:px-4">
+      <section className="relative isolate overflow-hidden rounded-[30px] bg-[#080c16] p-5 shadow-[0_24px_70px_rgba(0,0,0,0.38)] ring-1 ring-inset ring-slate-400/10 sm:p-6">
+        <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_12%_0%,rgba(71,85,105,0.24),transparent_40%),radial-gradient(circle_at_90%_100%,rgba(37,99,235,0.13),transparent_34%)]" />
+        <div className="pointer-events-none absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-slate-300/50 to-transparent" />
 
-        <div>
-          <div className="text-xl font-black text-white">Configurações PRO</div>
-          <div className="text-[11px] text-slate-500 font-bold">Preferências, segurança e dados do app</div>
-        </div>
-      </div>
+        <div className="relative">
+          <div className="flex items-center justify-between gap-3">
+            <span className="inline-flex items-center gap-1.5 text-[8px] font-black uppercase tracking-[0.18em] text-slate-300">
+              <Settings className="h-3.5 w-3.5" />
+              Conta e sistema
+            </span>
 
-      <div className="rounded-[2rem] bg-gradient-to-br from-slate-800 via-blue-900 to-slate-950 border border-blue-300/20 p-5 mb-5">
-        <div className="flex items-center gap-3">
-          <div className="w-14 h-14 rounded-3xl bg-blue-500/15 border border-blue-400/30 flex items-center justify-center">
-            <Settings className="w-7 h-7 text-blue-300" />
+            <span
+              className={`inline-flex items-center gap-1.5 rounded-full px-2.5 py-1 text-[8px] font-black ring-1 ring-inset ${
+                vipActive
+                  ? 'bg-yellow-400/10 text-yellow-300 ring-yellow-400/20'
+                  : 'bg-white/[0.04] text-slate-500 ring-white/[0.06]'
+              }`}
+            >
+              {vipActive ? <Crown className="h-3 w-3" /> : <Lock className="h-3 w-3" />}
+              {vipActive ? 'PRO ATIVO' : 'PLANO FREE'}
+            </span>
           </div>
 
-          <div className="flex-1 min-w-0">
-            <div className="text-[10px] text-blue-200 font-black uppercase tracking-widest">Conta e sistema</div>
-            <div className="text-lg font-black text-white truncate">{plano}</div>
-            <div className="text-[11px] text-slate-400 font-semibold mt-1 truncate">
-              {userData?.email || 'Usuário demo'}
+          <h1 className="mt-5 text-[27px] font-black leading-[1.08] tracking-[-0.035em] text-white sm:text-3xl">
+            Configurações
+          </h1>
+          <p className="mt-3 max-w-xl text-[11px] font-medium leading-5 text-slate-400">
+            Preferências, notificações, segurança e dados do aplicativo.
+          </p>
+
+          <div className="mt-6 grid grid-cols-2 divide-x divide-white/[0.06] overflow-hidden rounded-2xl bg-white/[0.035] py-3 ring-1 ring-inset ring-white/[0.055]">
+            <div className="min-w-0 px-3 text-center">
+              <p className="text-[7px] font-black uppercase tracking-wider text-slate-700">
+                Plano
+              </p>
+              <p className="mt-1 truncate text-sm font-black text-yellow-300">
+                {plan}
+              </p>
+            </div>
+            <div className="min-w-0 px-3 text-center">
+              <p className="text-[7px] font-black uppercase tracking-wider text-slate-700">
+                Conta
+              </p>
+              <p className="mt-1 truncate text-[10px] font-black text-slate-300">
+                {email}
+              </p>
             </div>
           </div>
         </div>
-      </div>
+      </section>
 
       {modoDemo && (
-        <div className="bg-amber-500/10 border border-amber-500/20 rounded-3xl p-4 mb-5 flex gap-3">
-          <FlaskConical className="w-5 h-5 text-amber-300 shrink-0" />
+        <section className="mt-4 flex items-start gap-3 rounded-[22px] bg-amber-500/[0.055] px-4 py-4 ring-1 ring-inset ring-amber-500/10">
+          <FlaskConical className="mt-0.5 h-4 w-4 shrink-0 text-amber-300" />
           <div>
-            <div className="text-xs font-black text-amber-300 uppercase">Modo Demonstração ativo</div>
-            <div className="text-[11px] text-amber-100/70 font-semibold mt-1">
-              Dados simulados até a API real ser conectada.
-            </div>
+            <p className="text-[10px] font-black text-amber-200">
+              Modo demonstração ativo
+            </p>
+            <p className="mt-1 text-[9px] font-medium leading-relaxed text-amber-100/55">
+              Alguns dados permanecem simulados até a integração completa da API.
+            </p>
           </div>
-        </div>
+        </section>
       )}
 
-      <div className="bg-[#0f172a] border border-white/10 rounded-3xl p-4 mb-5">
-        <div className="text-sm font-black text-white mb-3 uppercase">Atalhos principais</div>
+      <Section eyebrow="Preferências" title="Aplicativo e inteligência">
+        <SettingRow
+          icon={Crown}
+          title="Meu plano"
+          description={vipActive ? 'Assinatura PRO ativa' : 'Plano gratuito'}
+          accent="text-yellow-300"
+          onClick={() => setViewMode?.('vip-pro')}
+        />
+        <div className="border-t border-white/[0.055]" />
+        <SettingRow
+          icon={Wallet}
+          title="Limite de banca"
+          description={`Limite diário sugerido: R$ ${Number(
+            config.limiteDiario || 0
+          ).toFixed(2)}`}
+          accent="text-emerald-300"
+          onClick={() => setViewMode?.('banca-pro')}
+        />
+        <div className="border-t border-white/[0.055]" />
+        <SettingRow
+          icon={Bell}
+          title="Notificações"
+          description={
+            config.notificacoes
+              ? 'Alertas IA ativados'
+              : 'Alertas IA desativados'
+          }
+          accent="text-amber-300"
+          onClick={toggleNotifications}
+          control={<Toggle active={config.notificacoes} />}
+        />
+        <div className="border-t border-white/[0.055]" />
+        <SettingRow
+          icon={Brain}
+          title="Preferências da IA"
+          description={
+            config.iaConservadora
+              ? 'Modo conservador ativo'
+              : 'Modo agressivo demonstrativo'
+          }
+          accent="text-blue-300"
+          onClick={() =>
+            save({ iaConservadora: !config.iaConservadora })
+          }
+          control={<Toggle active={config.iaConservadora} />}
+        />
+        <div className="border-t border-white/[0.055]" />
+        <SettingRow
+          icon={Moon}
+          title="Tema"
+          description="Interface escura otimizada para análise"
+          accent="text-violet-300"
+          onClick={() => save({ tema: 'escuro' })}
+        />
+        <div className="border-t border-white/[0.055]" />
+        <SettingRow
+          icon={FlaskConical}
+          title="Modo demonstração"
+          description="Entenda quais informações são simuladas"
+          accent="text-amber-300"
+          onClick={() => setViewMode?.('modo-demo')}
+        />
+      </Section>
 
-        <div className="space-y-3">
-          <LinhaConfig
-            icon={Crown}
-            titulo="Meu plano"
-            texto={plano}
-            cor="text-yellow-400"
-            onClick={() => setViewMode?.('vip-pro')}
-          />
+      <Section eyebrow="Proteção" title="Legal e segurança">
+        <SettingRow
+          icon={ShieldCheck}
+          title="Jogo responsável"
+          description="Controle de risco, +18 e proteção de banca"
+          accent="text-emerald-300"
+          onClick={() => setViewMode?.('termos')}
+        />
+        <div className="border-t border-white/[0.055]" />
+        <SettingRow
+          icon={FileText}
+          title="Termos e privacidade"
+          description="Política, aviso legal e condições de uso"
+          accent="text-slate-300"
+          onClick={() => setViewMode?.('termos')}
+        />
+        <div className="border-t border-white/[0.055]" />
+        <SettingRow
+          icon={LifeBuoy}
+          title="Suporte"
+          description="betanlyticspro@gmail.com"
+          accent="text-cyan-300"
+          onClick={() => {
+            window.location.href = 'mailto:betanlyticspro@gmail.com';
+          }}
+        />
+      </Section>
 
-          <LinhaConfig
-            icon={Wallet}
-            titulo="Limite de banca"
-            texto={'Limite diário sugerido: R$ ' + Number(config.limiteDiario || 0).toFixed(2)}
-            cor="text-emerald-400"
-            onClick={() => setViewMode?.('banca-pro')}
-          />
-
-          <LinhaConfig
-            icon={Bell}
-            titulo="Notificações"
-            texto={config.notificacoes ? 'Alertas IA ativados' : 'Alertas IA desativados'}
-            cor="text-amber-400"
-            onClick={() => {
-              salvar({ notificacoes: !config.notificacoes });
-              solicitarPermissaoNotificacao?.();
-            }}
-          />
-
-          <LinhaConfig
-            icon={Brain}
-            titulo="Preferências da IA"
-            texto={config.iaConservadora ? 'Modo conservador ativo' : 'Modo agressivo demonstrativo'}
-            cor="text-blue-400"
-            onClick={() => salvar({ iaConservadora: !config.iaConservadora })}
-          />
-
-          <LinhaConfig
-            icon={FlaskConical}
-            titulo="Modo demonstração"
-            texto="Entenda quais dados são simulados"
-            cor="text-amber-300"
-            onClick={() => setViewMode?.('modo-demo')}
-          />
-        </div>
-      </div>
-
-      <div className="bg-[#0f172a] border border-white/10 rounded-3xl p-4 mb-5">
-        <div className="text-sm font-black text-white mb-3 uppercase">Legal e segurança</div>
-
-        <div className="space-y-3">
-          <LinhaConfig
-            icon={ShieldCheck}
-            titulo="Jogo responsável"
-            texto="Controle de risco, +18 e proteção de banca"
-            cor="text-emerald-400"
-            onClick={() => setViewMode?.('termos')}
-          />
-
-          <LinhaConfig
-            icon={FileText}
-            titulo="Termos e privacidade"
-            texto="Política, aviso legal e condições de uso"
-            cor="text-slate-300"
-            onClick={() => setViewMode?.('termos')}
-          />
-
-          <LinhaConfig
-            icon={LifeBuoy}
-            titulo="Suporte"
-            texto="betanlyticspro@gmail.com"
-            cor="text-cyan-400"
-            onClick={() => { window.location.href = 'mailto:betanlyticspro@gmail.com'; }}
-          />
-        </div>
-      </div>
-
-      <div className="grid grid-cols-2 gap-3 mb-5">
+      <div className="mt-5 grid grid-cols-2 gap-2.5">
         <button
           type="button"
-          onClick={perguntarIA}
-          className="h-14 rounded-2xl bg-blue-600 text-white text-xs font-black flex items-center justify-center gap-2 active:scale-[0.98]"
+          onClick={askAI}
+          className="flex h-12 items-center justify-center gap-2 rounded-2xl bg-blue-600 px-3 text-[9px] font-black uppercase tracking-wide text-white transition hover:bg-blue-500 active:scale-[0.99]"
         >
-          <Brain className="w-4 h-4" />
-          Perguntar IA
+          <Sparkles className="h-4 w-4" />
+          Configurar com IA
         </button>
 
         <button
           type="button"
           onClick={resetOnboarding}
-          className="h-14 rounded-2xl bg-[#0f172a] border border-white/10 text-white text-xs font-black flex items-center justify-center gap-2 active:scale-[0.98]"
+          className="flex h-12 items-center justify-center gap-2 rounded-2xl bg-white/[0.035] px-3 text-[9px] font-black uppercase tracking-wide text-slate-300 ring-1 ring-inset ring-white/[0.06] active:scale-[0.99]"
         >
-          <RotateCcw className="w-4 h-4" />
+          <RotateCcw className="h-4 w-4" />
           Ver onboarding
         </button>
       </div>
 
       <button
         type="button"
-        onClick={sair}
-        className="w-full h-14 rounded-2xl bg-red-500/10 border border-red-500/20 text-red-400 text-sm font-black flex items-center justify-center gap-2 active:scale-[0.98]"
+        onClick={logout}
+        className="mt-2.5 flex h-12 w-full items-center justify-center gap-2 rounded-2xl bg-red-500/[0.07] px-3 text-[9px] font-black uppercase tracking-wide text-red-300 ring-1 ring-inset ring-red-500/15 active:scale-[0.99]"
       >
-        <LogOut className="w-5 h-5" />
+        <LogOut className="h-4 w-4" />
         Sair da conta
       </button>
-    </div>
+    </main>
   );
 }
