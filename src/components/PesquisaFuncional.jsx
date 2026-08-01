@@ -1,4 +1,4 @@
-﻿import { Search, Star, ChevronRight, ChevronDown, Trophy, Users, User, Globe2, BarChart3 } from 'lucide-react';
+import { Search, Star, ChevronRight, ChevronDown, Trophy, Users, User, Globe2, BarChart3 } from 'lucide-react';
 import { useMemo, useState } from 'react';
 
 const EQUIPES = [

@@ -1,4 +1,4 @@
-﻿import React from 'react';
+import React from 'react';
 
 function pick(...values) {
   return values.find((v) => v !== undefined && v !== null && v !== '');

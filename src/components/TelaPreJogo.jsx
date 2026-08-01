@@ -8,7 +8,7 @@ import {
   Trophy,
 } from 'lucide-react';
 
-const NOMES_DIAS = ['DOM', 'SEG', 'TER', 'QUA', 'QUI', 'SEX', 'SÃB'];
+const NOMES_DIAS = ['DOM', 'SEG', 'TER', 'QUA', 'QUI', 'SEX', 'SÁB'];
 
 function inicioDoDia(valor = new Date()) {
   const data = new Date(valor);
@@ -109,10 +109,10 @@ function jogoPreJogo(jogo = {}) {
     status === 'scheduled' ||
     status.includes('not started') ||
     status.includes('nao iniciado') ||
-    status.includes('nÃ£o iniciado') ||
+    status.includes('não iniciado') ||
     status.includes('agendado') ||
     status.includes('pre-game') ||
-    status.includes('prÃ©-jogo');
+    status.includes('pré-jogo');
 
   if (data && data.getTime() >= inicioHoje.getTime()) return true;
   return statusAgendado;
@@ -222,8 +222,8 @@ function jogosDemonstracao() {
       probabilidades: { casa: 47, empate: 28, fora: 25 },
       estatisticas: baseEstatistica,
       classificacao: { casa_posicao: 4, fora_posicao: 7, casa_pontos: 68, fora_pontos: 59 },
-      h2h: { vitorias_casa: 4, empates: 2, vitorias_fora: 2, resumo: 'Chelsea leva vantagem nos Ãºltimos confrontos.' },
-      comentario: 'PrÃ©-jogo com tendÃªncia de ritmo alto e chances para os dois lados.',
+      h2h: { vitorias_casa: 4, empates: 2, vitorias_fora: 2, resumo: 'Chelsea leva vantagem nos últimos confrontos.' },
+      comentario: 'Pré-jogo com tendência de ritmo alto e chances para os dois lados.',
     },
     {
       id: 'pre-new-york-toronto',
@@ -239,7 +239,7 @@ function jogosDemonstracao() {
       confianca_ia: 81,
       odd_principal: 1.78,
       odds: { home: 1.78, draw: 3.6, away: 4.2 },
-      mercado_principal: 'VitÃ³ria New York City',
+      mercado_principal: 'Vitória New York City',
       probabilidades: { casa: 55, empate: 25, fora: 20 },
       estatisticas: { ...baseEstatistica, posse_casa: 59, posse_fora: 41 },
       classificacao: { casa_posicao: 5, fora_posicao: 11, casa_pontos: 36, fora_pontos: 25 },
@@ -258,7 +258,7 @@ function jogosDemonstracao() {
       confianca_ia: 89,
       odd_principal: 1.42,
       odds: { home: 1.42, draw: 4.4, away: 6.8 },
-      mercado_principal: 'VitÃ³ria Leverkusen',
+      mercado_principal: 'Vitória Leverkusen',
       probabilidades: { casa: 67, empate: 20, fora: 13 },
       estatisticas: { ...baseEstatistica, chutes_casa: 17, chutes_fora: 7 },
     },
@@ -302,7 +302,7 @@ function jogosDemonstracao() {
       id: 'pre-fortaleza-pereira',
       demo: true,
       league_name: 'Primera A',
-      league_country: 'ColÃ´mbia',
+      league_country: 'Colômbia',
       status: 'TBD',
       starting_at: criarData(2, 22, 0),
       home_team: 'Fortaleza',
@@ -487,11 +487,11 @@ export default function TelaPreJogo({
             <p className="text-[10px] font-black uppercase tracking-[0.2em] text-blue-400">
               Agenda de partidas
             </p>
-            <h2 className="text-2xl font-black text-white">PrÃ©-jogo</h2>
+            <h2 className="text-2xl font-black text-white">Pré-jogo</h2>
           </div>
         </div>
         <p className="mt-3 text-xs font-bold leading-relaxed text-slate-400">
-          CalendÃ¡rio dos prÃ³ximos jogos com horÃ¡rios, odds e anÃ¡lise antes da bola rolar.
+          Calendário dos próximos jogos com horários, odds e análise antes da bola rolar.
         </p>
       </section>
 
@@ -499,7 +499,7 @@ export default function TelaPreJogo({
         <div className="mb-4 flex items-center justify-between">
           <div>
             <div className="flex items-center gap-2 text-[10px] font-black uppercase tracking-widest text-blue-400">
-              <CalendarDays className="h-4 w-4" /> CalendÃ¡rio
+              <CalendarDays className="h-4 w-4" /> Calendário
             </div>
             <h3 className="mt-1 text-lg font-black text-white">Semana de jogos</h3>
           </div>
@@ -516,7 +516,7 @@ export default function TelaPreJogo({
               type="button"
               onClick={() => setInicioSemana((data) => adicionarDias(data, 7))}
               className="flex h-9 w-9 items-center justify-center rounded-xl border border-white/10 bg-[#050816] active:scale-95"
-              aria-label="PrÃ³xima semana"
+              aria-label="Próxima semana"
             >
               <ChevronRight className="h-4 w-4 text-slate-300" />
             </button>
@@ -572,7 +572,7 @@ export default function TelaPreJogo({
           <CalendarDays className="mx-auto mb-3 h-9 w-9 text-slate-600" />
           <h3 className="text-base font-black text-white">Nenhum jogo nesta data</h3>
           <p className="mt-1 text-xs font-bold text-slate-500">
-            Selecione outro dia no calendÃ¡rio para ver as prÃ³ximas partidas.
+            Selecione outro dia no calendário para ver as próximas partidas.
           </p>
         </div>
       ) : (
@@ -598,7 +598,7 @@ export default function TelaPreJogo({
                     </span>
                     <div className="min-w-0">
                       <h3 className="truncate text-[11px] font-black text-white sm:text-xs">{liga}</h3>
-                      <p className="truncate text-[8px] font-bold text-slate-500">ðŸŒ {paisLiga(primeiro)}</p>
+                      <p className="truncate text-[8px] font-bold text-slate-500">🌐 {paisLiga(primeiro)}</p>
                     </div>
                   </div>
                   <span className="text-[8px] font-black uppercase text-slate-600">

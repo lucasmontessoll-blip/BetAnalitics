@@ -1,4 +1,4 @@
-﻿import { Star } from 'lucide-react';
+import { Star } from 'lucide-react';
 
 function dataCurta(iso) {
   if (!iso) return '';

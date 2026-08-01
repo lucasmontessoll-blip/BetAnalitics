@@ -1,4 +1,4 @@
-﻿const API_PRODUCAO = String(
+const API_PRODUCAO = String(
   import.meta.env.VITE_API_BASE_URL || 'https://betanalitics-webservice.onrender.com'
 ).replace(/\/$/, '');
 

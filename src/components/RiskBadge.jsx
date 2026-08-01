@@ -1,4 +1,4 @@
-﻿import React from 'react';
+import React from 'react';
 import { AlertTriangle, ShieldCheck } from 'lucide-react';
 import {calcularNivelRisco} from '../utils/analiseRisco.js';
 

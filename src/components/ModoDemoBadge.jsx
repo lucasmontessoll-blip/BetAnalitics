@@ -1,4 +1,4 @@
-﻿import React from 'react';
+import React from 'react';
 import { FlaskConical, ChevronRight } from 'lucide-react';
 
 export default function ModoDemoBadge({ modoDemo = true, setViewMode }) {

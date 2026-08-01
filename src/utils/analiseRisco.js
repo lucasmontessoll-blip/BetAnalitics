@@ -1,4 +1,4 @@
-﻿export const calcularNivelRisco=(jogo)=>{
+export const calcularNivelRisco=(jogo)=>{
   const confianca=Number(jogo?.confianca_ia||0);
   const odd=Number(jogo?.odd_principal||0);
 

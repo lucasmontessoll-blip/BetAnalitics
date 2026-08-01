@@ -1,4 +1,4 @@
-﻿import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { WifiOff, RefreshCcw, Home, Database } from 'lucide-react';
 
 export default function SemConexaoPro({ setViewMode, telaCompleta = false }) {

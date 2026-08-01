@@ -1,4 +1,4 @@
-﻿import React, { useMemo } from 'react';
+import React, { useMemo } from 'react';
 import { Brain, Bell, Wallet, Crown, Star, ShieldCheck, TrendingUp, Target, ChevronRight, BarChart3, Landmark } from 'lucide-react';
 
 function normalizarJogo(jogo, index) {

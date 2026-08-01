@@ -1,4 +1,4 @@
-﻿import React from 'react';
+import React from 'react';
 import JogosPorPaisContinente from './JogosPorPaisContinente.jsx';
 import LegalCompliance from './LegalCompliance.jsx';
 

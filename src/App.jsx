@@ -762,7 +762,7 @@ const jogosTelaPrincipal = useMemo(() => {
                       {leagueName}
                     </h3>
                     <p className="mt-0.5 truncate text-[9px] font-bold uppercase tracking-wider text-slate-600">
-                      ðŸŒ {paisLiga}
+                      🌐 {paisLiga}
                     </p>
                   </div>
                 </div>
@@ -906,7 +906,7 @@ const jogosTelaPrincipal = useMemo(() => {
                               </span>
                             </>
                           ) : (
-                            <span className="text-sm font-black text-slate-700">â€”</span>
+                            <span className="text-sm font-black text-slate-700">—</span>
                           )}
                         </div>
 

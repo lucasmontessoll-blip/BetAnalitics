@@ -1,4 +1,4 @@
-﻿export const historicoAssertividade=[
+export const historicoAssertividade=[
   {dia:'Seg',acertos:8,erros:2,taxa:80},
   {dia:'Ter',acertos:10,erros:3,taxa:77},
   {dia:'Qua',acertos:9,erros:2,taxa:82},

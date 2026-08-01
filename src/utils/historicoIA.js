@@ -1,4 +1,4 @@
-﻿const CHAVE = 'betanalytics_historico_ia_v1';
+const CHAVE = 'betanalytics_historico_ia_v1';
 const CHAVE_BANCA = 'bet_banca_historico_v2';
 
 function texto(valor, fallback = '') {

@@ -1,4 +1,4 @@
-﻿import React from 'react';
+import React from 'react';
 import { Brain, TrendingUp, ShieldCheck, BarChart3, Target, AlertTriangle } from 'lucide-react';
 
 const fatores=[

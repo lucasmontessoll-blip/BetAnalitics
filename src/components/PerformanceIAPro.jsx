@@ -1,4 +1,4 @@
-﻿import React, { useMemo } from 'react';
+import React, { useMemo } from 'react';
 import { BarChart3, Brain, TrendingUp, Target, ShieldAlert, Bell, Trophy, Send } from 'lucide-react';
 
 const demo = [
