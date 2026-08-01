@@ -1,4 +1,4 @@
-﻿import express from 'express';
+import express from 'express';
 import cors from 'cors';
 import axios from 'axios';
 import { createClient } from '@supabase/supabase-js';
@@ -870,12 +870,51 @@ app.get('/api/pagamento/status/:id', async (req, res) => {
 
 // ===== BETANALYTICS_PRO_PAGAMENTO_REAL_FIM =====
 
-app.use(express.static(path.join(__dirname, 'public')));
-app.use(express.static(path.join(__dirname, 'dist')));
+/* BET_ETAPA_33_CACHE_RENDER_INICIO */
+const BET_DIST_DIR = path.join(__dirname, 'dist');
+const BET_PUBLIC_DIR = path.join(__dirname, 'public');
+
+app.use(
+  express.static(BET_PUBLIC_DIR, {
+    etag: true,
+    maxAge: '1h'
+  })
+);
+
+app.use(
+  express.static(BET_DIST_DIR, {
+    etag: true,
+    setHeaders(res, filePath) {
+      if (filePath.endsWith('index.html')) {
+        res.setHeader(
+          'Cache-Control',
+          'no-store, no-cache, must-revalidate, proxy-revalidate'
+        );
+        res.setHeader('Pragma', 'no-cache');
+        res.setHeader('Expires', '0');
+        return;
+      }
+
+      if (filePath.includes(path.sep + 'assets' + path.sep)) {
+        res.setHeader(
+          'Cache-Control',
+          'public, max-age=31536000, immutable'
+        );
+      }
+    }
+  })
+);
 
 app.get('*', (req, res) => {
-  res.sendFile(path.join(__dirname, 'dist', 'index.html'));
+  res.setHeader(
+    'Cache-Control',
+    'no-store, no-cache, must-revalidate, proxy-revalidate'
+  );
+  res.setHeader('Pragma', 'no-cache');
+  res.setHeader('Expires', '0');
+  res.sendFile(path.join(BET_DIST_DIR, 'index.html'));
 });
+/* BET_ETAPA_33_CACHE_RENDER_FIM */
 
 const PORT = process.env.PORT || 3000;
 
