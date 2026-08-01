@@ -1,4 +1,4 @@
-﻿import React, { useMemo } from 'react';
+import React, { useMemo } from 'react';
 import { User, Crown, Settings, Star, Bell, Wallet, BarChart3, Brain, Landmark, LogOut, ShieldCheck, ChevronRight } from 'lucide-react';
 
 function lerArray(chave) {

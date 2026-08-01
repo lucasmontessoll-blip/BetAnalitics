@@ -8,7 +8,7 @@ const JOGOS_DEMO_AO_VIVO = [
     id: 'demo-live-flamengo-palmeiras',
     demo: true,
     league_id: 71,
-    league_name: 'BrasileirÃ£o SÃ©rie A',
+    league_name: 'Brasileirão Série A',
     league_country: 'Brasil',
     status: 'Live',
     time_elapsed: "62'",
@@ -18,7 +18,7 @@ const JOGOS_DEMO_AO_VIVO = [
     scoreAway: 1,
     confianca_ia: 92,
     odd_principal: 1.79,
-    mercado_principal: 'VitÃ³ria Flamengo',
+    mercado_principal: 'Vitória Flamengo',
     estatisticas: {
       posseCasa: 58,
       posseFora: 42,
@@ -362,7 +362,7 @@ export default function TelaAoVivo({
           <Activity className="mx-auto mb-3 h-9 w-9 text-slate-600" />
           <h3 className="text-sm font-black text-white">Nenhum jogo ao vivo agora</h3>
           <p className="mt-1 text-xs font-semibold text-slate-500">
-            As partidas em andamento aparecerÃ£o automaticamente aqui.
+            As partidas em andamento aparecerão automaticamente aqui.
           </p>
         </div>
       ) : (

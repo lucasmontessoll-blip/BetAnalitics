@@ -60,7 +60,7 @@ export default function MenuRodape({
           style={{ touchAction: 'manipulation' }}
         >
           <Home className="h-5 w-5" />
-          <span className="mt-0.5 text-[8px] font-black uppercase">InÃ­cio</span>
+          <span className="mt-0.5 text-[8px] font-black uppercase">Início</span>
         </button>
 
         <button
@@ -102,7 +102,7 @@ export default function MenuRodape({
           style={{ touchAction: 'manipulation' }}
         >
           <CalendarDays className="h-5 w-5" />
-          <span className="mt-0.5 text-[8px] font-black uppercase">PrÃ©-jogo</span>
+          <span className="mt-0.5 text-[8px] font-black uppercase">Pré-jogo</span>
         </button>
 
         <button

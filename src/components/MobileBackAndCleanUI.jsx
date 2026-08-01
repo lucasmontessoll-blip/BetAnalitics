@@ -1,4 +1,4 @@
-﻿import { useEffect, useRef } from 'react';
+import { useEffect, useRef } from 'react';
 import { App as CapacitorApp } from '@capacitor/app';
 
 export default function MobileBackAndCleanUI({

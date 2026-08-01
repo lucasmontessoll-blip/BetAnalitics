@@ -1,4 +1,4 @@
-﻿import React, { useState } from 'react';
+import React, { useState } from 'react';
 import { Settings, Crown, Bell, Wallet, Moon, ShieldCheck, FileText, LifeBuoy, LogOut, Brain, FlaskConical, ChevronRight, RotateCcw } from 'lucide-react';
 
 function lerConfig() {

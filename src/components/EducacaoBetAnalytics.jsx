@@ -1,4 +1,4 @@
-﻿import React from 'react';
+import React from 'react';
 import { BookOpen, ShieldCheck } from 'lucide-react';
 import {educacaoConteudos} from '../data/educacaoConteudos.js';
 

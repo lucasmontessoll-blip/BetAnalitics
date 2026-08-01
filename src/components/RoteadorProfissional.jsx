@@ -1,4 +1,4 @@
-﻿import { useEffect, useRef } from 'react';
+import { useEffect, useRef } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { App as CapacitorApp } from '@capacitor/app';
 
@@ -57,7 +57,7 @@ export default function RoteadorProfissional({
       return '/pro';
     }
 
-    if (v === 'prejogo' || f === 'pre-jogo' || f === 'prÃ©-jogo') return '/prejogo';
+    if (v === 'prejogo' || f === 'pre-jogo' || f === 'pré-jogo') return '/prejogo';
     if (v === 'aovivo' || f === 'ao vivo') return '/aovivo';
     if (v === 'encerrado' || f === 'encerrado') return '/encerrado';
     if (v === 'radarpro' || v === 'radar') return '/radar';

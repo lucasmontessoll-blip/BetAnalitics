@@ -1,4 +1,4 @@
-﻿import { ChevronDown, Star } from 'lucide-react';
+import { ChevronDown, Star } from 'lucide-react';
 import { useMemo, useState } from 'react';
 
 const GRUPOS_FIXOS = [

@@ -1,4 +1,4 @@
-﻿import { mapApiFootballFixtureToJogo } from './apiFootballMapper.js';
+import { mapApiFootballFixtureToJogo } from './apiFootballMapper.js';
 
 const API_BASE = '';
 

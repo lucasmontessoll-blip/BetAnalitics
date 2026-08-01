@@ -1,4 +1,4 @@
-﻿import React from 'react';
+import React from 'react';
 import { Landmark, Star, ShieldCheck, ExternalLink, Gift, AlertTriangle, TrendingUp } from 'lucide-react';
 
 const casas = [

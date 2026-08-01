@@ -1,4 +1,4 @@
-﻿import React from 'react';
+import React from 'react';
 import { Wallet, Crown, TrendingUp } from 'lucide-react';
 
 export default function AtalhoGestaoBancaPerfil({

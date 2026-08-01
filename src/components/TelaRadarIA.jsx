@@ -1,1 +1,1 @@
-﻿export { default } from './CentralProCompleta.jsx';
+export { default } from './CentralProCompleta.jsx';

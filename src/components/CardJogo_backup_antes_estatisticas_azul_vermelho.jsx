@@ -1,4 +1,4 @@
-﻿import React from 'react';
+import React from 'react';
 import EstatisticasJogoPro from './EstatisticasJogoPro.jsx';
 
 function pick(...values) {

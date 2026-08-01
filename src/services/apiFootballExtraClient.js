@@ -1,4 +1,4 @@
-﻿const API_BASE = '';
+const API_BASE = '';
 
 async function requestJson(url, options = {}) {
   try {

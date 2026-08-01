@@ -8,7 +8,7 @@ const JOGOS_DEMO_ENCERRADOS = [
     id: 'demo-ft-flamengo-palmeiras',
     demo: true,
     league_id: 71,
-    league_name: 'BrasileirÃ£o SÃ©rie A',
+    league_name: 'Brasileirão Série A',
     league_country: 'Brasil',
     status: 'Finished',
     time_elapsed: 'FT',
@@ -18,8 +18,8 @@ const JOGOS_DEMO_ENCERRADOS = [
     scoreAway: 1,
     confianca_ia: 92,
     odd_principal: 1.82,
-    mercado_principal: 'VitÃ³ria Flamengo',
-    comentario: 'Flamengo foi mais eficiente, criou as chances mais perigosas e confirmou a vitÃ³ria por 2 a 1.',
+    mercado_principal: 'Vitória Flamengo',
+    comentario: 'Flamengo foi mais eficiente, criou as chances mais perigosas e confirmou a vitória por 2 a 1.',
     estatisticas: {
       posseCasa: 57,
       posseFora: 43,
@@ -39,8 +39,8 @@ const JOGOS_DEMO_ENCERRADOS = [
       cartoesFora: 3,
     },
     escalacoes: {
-      casa: ['Rossi', 'Varela', 'LÃ©o Pereira', 'LÃ©o Ortiz', 'Ayrton Lucas', 'Pulgar', 'De la Cruz', 'Arrascaeta'],
-      fora: ['Weverton', 'Mayke', 'GÃ³mez', 'Murilo', 'Piquerez', 'AnÃ­bal Moreno', 'Raphael Veiga', 'EstÃªvÃ£o'],
+      casa: ['Rossi', 'Varela', 'Léo Pereira', 'Léo Ortiz', 'Ayrton Lucas', 'Pulgar', 'De la Cruz', 'Arrascaeta'],
+      fora: ['Weverton', 'Mayke', 'Gómez', 'Murilo', 'Piquerez', 'Aníbal Moreno', 'Raphael Veiga', 'Estêvão'],
     },
     classificacao: {
       casa_posicao: 2,
@@ -49,7 +49,7 @@ const JOGOS_DEMO_ENCERRADOS = [
       fora_pontos: 34,
     },
     h2h: {
-      resumo: 'Ãšltimos 5 confrontos: Flamengo 2 vitÃ³rias, 2 empates e Palmeiras 1 vitÃ³ria.',
+      resumo: 'Últimos 5 confrontos: Flamengo 2 vitórias, 2 empates e Palmeiras 1 vitória.',
       vitorias_casa: 2,
       empates: 2,
       vitorias_fora: 1,
@@ -70,7 +70,7 @@ const JOGOS_DEMO_ENCERRADOS = [
     confianca_ia: 88,
     odd_principal: 2.10,
     mercado_principal: 'Ambos marcam',
-    comentario: 'Partida equilibrada e intensa. O Real Madrid decidiu nos momentos de maior eficiÃªncia ofensiva.',
+    comentario: 'Partida equilibrada e intensa. O Real Madrid decidiu nos momentos de maior eficiência ofensiva.',
     estatisticas: {
       posseCasa: 46,
       posseFora: 54,
@@ -92,7 +92,7 @@ const JOGOS_DEMO_ENCERRADOS = [
       fora_pontos: 16,
     },
     h2h: {
-      resumo: 'Confrontos recentes muito equilibrados, com vantagem mÃ­nima do Real Madrid.',
+      resumo: 'Confrontos recentes muito equilibrados, com vantagem mínima do Real Madrid.',
       vitorias_casa: 2,
       empates: 1,
       vitorias_fora: 2,
@@ -113,7 +113,7 @@ const JOGOS_DEMO_ENCERRADOS = [
     confianca_ia: 84,
     odd_principal: 1.95,
     mercado_principal: 'Mais de 1.5 gols',
-    comentario: 'Empate com domÃ­nio alternado. Liverpool pressionou mais no fim, mas o Arsenal sustentou o resultado.',
+    comentario: 'Empate com domínio alternado. Liverpool pressionou mais no fim, mas o Arsenal sustentou o resultado.',
     estatisticas: {
       posseCasa: 52,
       posseFora: 48,
@@ -135,7 +135,7 @@ const JOGOS_DEMO_ENCERRADOS = [
       fora_pontos: 41,
     },
     h2h: {
-      resumo: 'Nos Ãºltimos 5 jogos, cada time venceu uma vez e ocorreram 3 empates.',
+      resumo: 'Nos últimos 5 jogos, cada time venceu uma vez e ocorreram 3 empates.',
       vitorias_casa: 1,
       empates: 3,
       vitorias_fora: 1,

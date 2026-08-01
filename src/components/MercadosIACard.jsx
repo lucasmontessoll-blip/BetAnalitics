@@ -1,4 +1,4 @@
-﻿import { useMemo, useState } from 'react';
+import { useMemo, useState } from 'react';
 import { AlertTriangle, ChevronDown, ShieldCheck, Target, Zap } from 'lucide-react';
 import { analisarMercadosDoJogo } from '../utils/mercados.js';
 

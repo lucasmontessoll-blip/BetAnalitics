@@ -1,4 +1,4 @@
-﻿import React from 'react';
+import React from 'react';
 
 const TERMOS_KEY = 'bet_termos_privacidade_aceitos_v1';
 const USERS_KEY = 'bet_users';

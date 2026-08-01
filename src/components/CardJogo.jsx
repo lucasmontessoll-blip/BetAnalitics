@@ -403,11 +403,11 @@ function TeamPerformancePanel({ jogo, home, away }) {
             Desempenho dos times
           </p>
           <p className="mt-0.5 text-[9px] font-semibold text-white/30">
-            Ãndice calculado com placar e estatÃ­sticas disponÃ­veis
+            Índice calculado com placar e estatísticas disponíveis
           </p>
         </div>
         <span className="rounded-full border border-white/10 bg-white/[0.04] px-2 py-1 text-[8px] font-black text-white/45">
-          PÃ“S-JOGO
+          PÓS-JOGO
         </span>
       </div>
 
@@ -427,12 +427,12 @@ function DetailsPanel({ jogo, home, away }) {
     <div>
       {isFinished(jogo) && <TeamPerformancePanel jogo={jogo} home={home} away={away} />}
       <div className="grid grid-cols-2 gap-2">
-        <InfoLine label="Status" value={getStatus(jogo) || (isFinished(jogo) ? 'Fim de jogo' : 'PrÃ©-jogo')} />
+        <InfoLine label="Status" value={getStatus(jogo) || (isFinished(jogo) ? 'Fim de jogo' : 'Pré-jogo')} />
         <InfoLine label="Tempo" value={getMinute(jogo) || getDateTime(jogo) || '-'} />
         <InfoLine label="Mandante" value={home.name} />
         <InfoLine label="Visitante" value={away.name} />
         <InfoLine label="Odd principal" value={odd ? Number(odd).toFixed(2) : '-'} />
-        <InfoLine label="ConfianÃ§a IA" value={`${confidence}%`} />
+        <InfoLine label="Confiança IA" value={`${confidence}%`} />
       </div>
     </div>
   );
@@ -444,7 +444,7 @@ function LineupsPanel({ jogo, home, away }) {
 
   const renderList = (list) => {
     if (!Array.isArray(list) || list.length === 0) {
-      return <p className="text-xs text-white/45">EscalaÃ§Ã£o serÃ¡ carregada pela API.</p>;
+      return <p className="text-xs text-white/45">Escalação será carregada pela API.</p>;
     }
 
     return (
@@ -475,25 +475,25 @@ function LineupsPanel({ jogo, home, away }) {
 
 function PredictionPanel({ jogo }) {
   const confidence = asNumber(pick(jogo.confianca_ia, jogo.confiancaIA, jogo.ia?.confianca), 87);
-  const market = asText(jogo.mercado_principal, jogo.mercadoIA, jogo.ia?.mercado, 'Mercado principal serÃ¡ definido pela IA');
+  const market = asText(jogo.mercado_principal, jogo.mercadoIA, jogo.ia?.mercado, 'Mercado principal será definido pela IA');
   const ev = pick(jogo.ev, jogo.valor_esperado, jogo.ia?.ev);
 
   return (
     <div className="rounded-2xl bg-gradient-to-br from-yellow-400/10 to-blue-500/10 border border-yellow-400/20 p-3">
       <div className="flex items-center justify-between gap-3">
         <div>
-          <p className="text-[11px] text-yellow-300 font-black uppercase tracking-[0.16em]">PrevisÃ£o IA</p>
+          <p className="text-[11px] text-yellow-300 font-black uppercase tracking-[0.16em]">Previsão IA</p>
           <p className="text-sm text-white font-black mt-1">{market}</p>
         </div>
 
         <div className="text-right">
           <p className="text-2xl font-black text-yellow-300">{confidence}%</p>
-          <p className="text-[10px] text-white/45 font-bold">confianÃ§a</p>
+          <p className="text-[10px] text-white/45 font-bold">confiança</p>
         </div>
       </div>
 
       <p className="mt-3 text-xs text-white/65 leading-relaxed">
-        Quando a API estiver conectada, este bloco exibirÃ¡ forma, odds, pressÃ£o, estatÃ­sticas, histÃ³rico e leitura do mercado.
+        Quando a API estiver conectada, este bloco exibirá forma, odds, pressão, estatísticas, histórico e leitura do mercado.
       </p>
 
       {ev !== undefined && ev !== null && ev !== '' && (
@@ -526,8 +526,8 @@ function StandingsPanel({ jogo }) {
 
   return (
     <div className="grid grid-cols-2 gap-2">
-      <InfoLine label="Casa posiÃ§Ã£o" value={pick(table.casa_posicao, table.home?.rank, '-')} />
-      <InfoLine label="Fora posiÃ§Ã£o" value={pick(table.fora_posicao, table.away?.rank, '-')} />
+      <InfoLine label="Casa posição" value={pick(table.casa_posicao, table.home?.rank, '-')} />
+      <InfoLine label="Fora posição" value={pick(table.fora_posicao, table.away?.rank, '-')} />
       <InfoLine label="Casa pontos" value={pick(table.casa_pontos, table.home?.points, '-')} />
       <InfoLine label="Fora pontos" value={pick(table.fora_pontos, table.away?.points, '-')} />
     </div>
@@ -559,12 +559,12 @@ function CommentaryPanel({ jogo }) {
     jogo.commentary,
     jogo.narracao,
     jogo.analise,
-    'ComentÃ¡rio em tempo real serÃ¡ exibido quando a API enviar eventos, gols, cartÃµes e mudanÃ§as importantes.'
+    'Comentário em tempo real será exibido quando a API enviar eventos, gols, cartões e mudanças importantes.'
   );
 
   return (
     <div className="rounded-2xl bg-black/25 border border-white/10 p-3">
-      <p className="text-xs text-white/45 font-bold mb-2">ComentÃ¡rio</p>
+      <p className="text-xs text-white/45 font-bold mb-2">Comentário</p>
       <p className="text-sm text-white/75 leading-relaxed">{comment}</p>
     </div>
   );
@@ -588,7 +588,7 @@ export default function CardJogo({ jogo = {}, onClick, onSelect, selecionado = f
     ? 'Fim de jogo'
     : isLive(jogo)
       ? minute || 'Ao vivo'
-      : getStatus(jogo) || 'PrÃ©-jogo';
+      : getStatus(jogo) || 'Pré-jogo';
 
   function openCard() {
     if (typeof onClick === 'function') onClick(jogo);
@@ -623,12 +623,12 @@ export default function CardJogo({ jogo = {}, onClick, onSelect, selecionado = f
         <div className="flex items-center justify-between gap-3">
           <div className="flex items-center gap-2 min-w-0">
             <span className="w-5 h-5 rounded-full bg-yellow-400/15 border border-yellow-400/25 flex items-center justify-center text-[11px]">
-              ðŸ†
+              🏆
             </span>
 
             <p className="text-xs text-white/75 font-black truncate">
               {league}
-              {round ? <span className="text-white/35"> â€¢ {round}</span> : null}
+              {round ? <span className="text-white/35"> • {round}</span> : null}
             </p>
           </div>
 
@@ -698,7 +698,7 @@ export default function CardJogo({ jogo = {}, onClick, onSelect, selecionado = f
             ))
           ) : (
             <span className="text-[11px] text-white/35 font-bold">
-              Gols e eventos serÃ£o exibidos automaticamente pela API
+              Gols e eventos serão exibidos automaticamente pela API
             </span>
           )}
         </div>
@@ -706,13 +706,13 @@ export default function CardJogo({ jogo = {}, onClick, onSelect, selecionado = f
 
       <div className="px-3 pb-3">
         <div className="flex gap-2 overflow-x-auto no-scrollbar pb-1">
-          <TabButton active={tab === 'detalhes'} onClick={() => setTab('detalhes')}>â˜° Detalhes</TabButton>
-          <TabButton active={tab === 'escalacoes'} onClick={() => setTab('escalacoes')}>âš‘ EscalaÃ§Ãµes</TabButton>
-          <TabButton active={tab === 'ia'} onClick={() => setTab('ia')}>ðŸ¤– PrevisÃ£o IA</TabButton>
-          <TabButton active={tab === 'estatisticas'} onClick={() => setTab('estatisticas')}>ã€½ EstatÃ­sticas</TabButton>
-          <TabButton active={tab === 'classificacao'} onClick={() => setTab('classificacao')}>â™š ClassificaÃ§Ãµes</TabButton>
-          <TabButton active={tab === 'cd'} onClick={() => setTab('cd')}>âš” CD</TabButton>
-          <TabButton active={tab === 'comentario'} onClick={() => setTab('comentario')}>â˜· ComentÃ¡rio</TabButton>
+          <TabButton active={tab === 'detalhes'} onClick={() => setTab('detalhes')}>☰ Detalhes</TabButton>
+          <TabButton active={tab === 'escalacoes'} onClick={() => setTab('escalacoes')}>⚑ Escalações</TabButton>
+          <TabButton active={tab === 'ia'} onClick={() => setTab('ia')}>🤖 Previsão IA</TabButton>
+          <TabButton active={tab === 'estatisticas'} onClick={() => setTab('estatisticas')}>〽 Estatísticas</TabButton>
+          <TabButton active={tab === 'classificacao'} onClick={() => setTab('classificacao')}>♚ Classificações</TabButton>
+          <TabButton active={tab === 'cd'} onClick={() => setTab('cd')}>⚔ CD</TabButton>
+          <TabButton active={tab === 'comentario'} onClick={() => setTab('comentario')}>☷ Comentário</TabButton>
         </div>
 
         <div onClick={(e) => e.stopPropagation()} className="mt-2 rounded-3xl border border-white/10 bg-black/20 p-3">

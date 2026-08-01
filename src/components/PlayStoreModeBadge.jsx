@@ -1,4 +1,4 @@
-﻿import React from 'react';
+import React from 'react';
 import { ShieldCheck } from 'lucide-react';
 import {APP_MODE} from '../config/appMode.js';
 

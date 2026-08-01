@@ -1,4 +1,4 @@
-﻿export const APP_MODE={
+export const APP_MODE={
   PLAYSTORE:true,
   APP_NAME:'BetAnalytics PRO',
   SUPPORT_EMAIL:'betanlyticspro@gmail.com',

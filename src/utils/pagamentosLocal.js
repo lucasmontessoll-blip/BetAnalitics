@@ -1,4 +1,4 @@
-﻿const CHAVE_PAGAMENTOS = 'bet_pagamentos_v1';
+const CHAVE_PAGAMENTOS = 'bet_pagamentos_v1';
 
 function numero(valor, fallback = 0) {
   const n = Number(valor);
