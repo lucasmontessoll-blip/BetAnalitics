@@ -1,52 +1,94 @@
-import React, { useMemo } from 'react';
-import { Brain, Bell, Wallet, Crown, Star, ShieldCheck, TrendingUp, Target, ChevronRight, BarChart3, Landmark } from 'lucide-react';
+import React, {
+  useMemo,
+} from 'react';
 
-function normalizarJogo(jogo, index) {
-  return {
-    id: jogo?.id || 'demo-' + index,
-    casa: jogo?.home_team || jogo?.time_casa || 'Flamengo',
-    fora: jogo?.away_team || jogo?.time_fora || 'Palmeiras',
-    liga: jogo?.league_name || jogo?.liga || 'Brasileirao Serie A',
-    confianca: Number(jogo?.confianca_ia || jogo?.confianca || 86),
-    odd: Number(jogo?.odd_principal || jogo?.odd || 1.85),
-    mercado: jogo?.mercado_principal || jogo?.mercado || 'Mais de 1.5 gols',
-    raw: jogo,
-  };
-}
+import {
+  BarChart3,
+  Bell,
+  Brain,
+  ChevronRight,
+  Clock3,
+  Crown,
+  Database,
+  History,
+  Landmark,
+  RefreshCw,
+  ShieldCheck,
+  Star,
+  Target,
+  TrendingUp,
+  Wallet,
+} from 'lucide-react';
 
-const demos = [
-  { id: 'ia-demo-1', casa: 'Flamengo', fora: 'Palmeiras', liga: 'Brasileirao Serie A', confianca: 91, odd: 1.82, mercado: 'Mais de 1.5 gols' },
-  { id: 'ia-demo-2', casa: 'Liverpool', fora: 'Arsenal', liga: 'Premier League', confianca: 88, odd: 1.95, mercado: 'Ambos marcam' },
-  { id: 'ia-demo-3', casa: 'Real Madrid', fora: 'Barcelona', liga: 'LaLiga', confianca: 87, odd: 2.10, mercado: 'Mais de 2.5 gols' },
-];
+import {
+  useRadarOddsReal,
+} from '../hooks/useRadarOddsReal.js';
 
-function CardAcao({ icon: Icone, titulo, texto, cor, onClick }) {
+function CardAcao({
+  icon: Icone,
+  titulo,
+  texto,
+  cor,
+  onClick,
+}) {
   return (
     <button
       type="button"
       onClick={onClick}
-      className="bg-[#0f172a] border border-white/10 rounded-3xl p-4 text-left active:scale-[0.98]"
+      className="rounded-3xl border border-white/10 bg-[#0f172a] p-4 text-left active:scale-[0.98]"
     >
-      <div className={'w-10 h-10 rounded-2xl ' + cor + ' flex items-center justify-center mb-3'}>
-        <Icone className="w-5 h-5 text-white" />
+      <div
+        className={`${cor} mb-3 flex h-10 w-10 items-center justify-center rounded-2xl`}
+      >
+        <Icone className="h-5 w-5 text-white" />
       </div>
 
       <div className="text-sm font-black text-white">
         {titulo}
       </div>
 
-      <div className="text-[11px] text-slate-500 font-semibold mt-1 leading-relaxed">
+      <div className="mt-1 text-[11px] font-semibold leading-relaxed text-slate-500">
         {texto}
       </div>
     </button>
   );
 }
 
+function dataPartida(valor) {
+  if (!valor) {
+    return 'HorÃ¡rio indisponÃ­vel';
+  }
+
+  const data =
+    new Date(valor);
+
+  if (
+    Number.isNaN(
+      data.getTime()
+    )
+  ) {
+    return 'HorÃ¡rio indisponÃ­vel';
+  }
+
+  return data.toLocaleString(
+    'pt-BR',
+    {
+      dateStyle: 'short',
+      timeStyle: 'short',
+    }
+  );
+}
+
+function sinal(valor) {
+  return valor > 0
+    ? '+'
+    : '';
+}
+
 const perguntasRapidas = [
-  'Qual melhor oportunidade de hoje?',
-  'Explique o risco do jogo principal.',
-  'Como proteger minha banca hoje?',
-  'Mostre jogos com maior confianca IA.',
+  'Explique as probabilidades reais disponÃ­veis no radar.',
+  'Como interpretar EV sem inventar dados?',
+  'Explique a diferenÃ§a entre probabilidade e precisÃ£o histÃ³rica.',
 ];
 
 export default function CentralValorIA({
@@ -57,238 +99,467 @@ export default function CentralValorIA({
   setAiOpen,
   setAiQuery,
 }) {
-  const oportunidades = useMemo(() => {
-    const base = Array.isArray(jogos) && jogos.length ? jogos.map(normalizarJogo) : demos;
+  const {
+    oportunidades,
+    loading,
+    erro,
+    analisados,
+    recarregar,
+  } =
+    useRadarOddsReal(jogos);
 
-    return base
-      .sort((a, b) => b.confianca - a.confianca)
-      .slice(0, 5);
-  }, [jogos]);
+  const mediaProbabilidade =
+    useMemo(
+      () => {
+        if (
+          oportunidades.length === 0
+        ) {
+          return null;
+        }
 
-  const abrirPergunta = (pergunta) => {
-    setAiQuery?.(pergunta);
-    setAiOpen?.(true);
-  };
+        const total =
+          oportunidades.reduce(
+            (soma, item) =>
+              soma +
+              Number(
+                item.probabilidade ||
+                0
+              ),
+            0
+          );
+
+        return Number(
+          (
+            total /
+            oportunidades.length
+          ).toFixed(1)
+        );
+      },
+      [oportunidades]
+    );
+
+  const abrirPergunta =
+    (pergunta) => {
+      setAiQuery?.(pergunta);
+      setAiOpen?.(true);
+    };
 
   return (
-    <div className="px-4 animate-fade-in pb-28 w-full">
-      <div className="rounded-[2rem] bg-gradient-to-br from-blue-600 via-indigo-700 to-purple-800 p-5 border border-white/10 shadow-2xl overflow-hidden relative mb-5">
-        <div className="absolute -right-10 -top-10 w-40 h-40 bg-white/10 rounded-full blur-2xl"></div>
+    <div className="w-full animate-fade-in px-4 pb-28">
+
+      <div className="relative mb-5 overflow-hidden rounded-[2rem] border border-white/10 bg-gradient-to-br from-blue-600 via-indigo-700 to-purple-800 p-5 shadow-2xl">
+        <div className="absolute -right-10 -top-10 h-40 w-40 rounded-full bg-white/10 blur-2xl" />
 
         <div className="relative">
-          <div className="flex items-center gap-2 text-[10px] font-black uppercase tracking-[0.22em] text-blue-100 mb-3">
-            <Brain className="w-4 h-4" />
-            Central IA PRO
+
+          <div className="mb-3 flex items-center justify-between gap-3">
+
+            <div className="flex items-center gap-2 text-[10px] font-black uppercase tracking-[0.22em] text-blue-100">
+              <Brain className="h-4 w-4" />
+              Radar real
+            </div>
+
+            <button
+              type="button"
+              disabled={loading}
+              onClick={recarregar}
+              className="rounded-full bg-black/20 p-2 text-blue-100 ring-1 ring-inset ring-white/10 disabled:opacity-50"
+              aria-label="Atualizar Radar"
+            >
+              <RefreshCw
+                className={`h-4 w-4 ${
+                  loading
+                    ? 'animate-spin'
+                    : ''
+                }`}
+              />
+            </button>
+
           </div>
 
           <h2 className="text-2xl font-black leading-tight">
-            Radar inteligente de oportunidades
+            Odds e probabilidades sem valores simulados
           </h2>
 
-          <p className="text-xs text-blue-100/90 font-semibold mt-2 leading-relaxed">
-            Veja jogos com maior confianca, acesse alertas, controle sua banca e pergunte para a IA.
+          <p className="mt-2 text-xs font-semibold leading-relaxed text-blue-100/90">
+            O radar cruza a previsÃ£o disponÃ­vel para a partida com odds 1X2 fornecidas pela API. Quando uma das fontes nÃ£o existe, o jogo nÃ£o recebe nÃºmeros artificiais.
           </p>
 
-          <div className="grid grid-cols-3 gap-2 mt-5">
-            <div className="bg-black/20 rounded-2xl p-3 border border-white/10">
-              <div className="text-xl font-black">87%</div>
-              <div className="text-[9px] font-bold text-blue-100 uppercase">Precisao IA</div>
+          <div className="mt-5 grid grid-cols-3 gap-2">
+
+            <div className="rounded-2xl border border-white/10 bg-black/20 p-3">
+              <div className="text-xl font-black">
+                {mediaProbabilidade !== null
+                  ? `${mediaProbabilidade}%`
+                  : '-'}
+              </div>
+
+              <div className="text-[8px] font-bold uppercase text-blue-100">
+                Prob. mÃ©dia
+              </div>
             </div>
 
-            <div className="bg-black/20 rounded-2xl p-3 border border-white/10">
-              <div className="text-xl font-black">{oportunidades.length}</div>
-              <div className="text-[9px] font-bold text-blue-100 uppercase">Oportunidades</div>
+            <div className="rounded-2xl border border-white/10 bg-black/20 p-3">
+              <div className="text-xl font-black">
+                {oportunidades.length}
+              </div>
+
+              <div className="text-[8px] font-bold uppercase text-blue-100">
+                Com odds reais
+              </div>
             </div>
 
-            <div className="bg-black/20 rounded-2xl p-3 border border-white/10">
-              <div className="text-xl font-black">{userData?.is_vip ? 'PRO' : 'FREE'}</div>
-              <div className="text-[9px] font-bold text-blue-100 uppercase">Plano</div>
+            <div className="rounded-2xl border border-white/10 bg-black/20 p-3">
+              <div className="text-xl font-black">
+                {analisados}
+              </div>
+
+              <div className="text-[8px] font-bold uppercase text-blue-100">
+                Consultados
+              </div>
             </div>
+
           </div>
+
+          <div className="mt-3 flex items-center gap-2 text-[8px] font-bold text-blue-100/70">
+            <Database className="h-3.5 w-3.5" />
+            Fontes: API-Football /predictions + /odds
+          </div>
+
         </div>
       </div>
 
-      <div className="grid grid-cols-2 gap-3 mb-5">
+
+      <div className="mb-5 grid grid-cols-2 gap-3">
+
         <CardAcao
           icon={Wallet}
-          titulo="Gestao de Banca"
-          texto="Stake, ROI, lucro e controle de risco."
+          titulo="GestÃ£o de Banca"
+          texto="Stake, ROI e controle de risco."
           cor="bg-emerald-600"
-          onClick={() => setViewMode?.('banca-pro')}
+          onClick={() =>
+            setViewMode?.(
+              'banca-pro'
+            )
+          }
         />
 
         <CardAcao
           icon={Bell}
           titulo="Alertas IA"
-          texto="Oportunidades, odds e favoritos."
+          texto="Acompanhe alertas configurados."
           cor="bg-amber-600"
-          onClick={() => setViewMode?.('alertas-ia')}
+          onClick={() =>
+            setViewMode?.(
+              'alertas-ia'
+            )
+          }
         />
 
         <CardAcao
-          icon={ShieldCheck}
-          titulo="Como a IA calcula"
-          texto="Entenda criterios e confianca."
+          icon={History}
+          titulo="HistÃ³rico IA"
+          texto="Performance registrada na sua conta."
           cor="bg-blue-600"
-          onClick={() => setViewMode?.('como-ia')}
+          onClick={() =>
+            setViewMode?.(
+              'historico'
+            )
+          }
         />
 
         <CardAcao
           icon={BarChart3}
           titulo="Performance IA"
-          texto="Assertividade e mercados fortes."
+          texto="Indicadores de desempenho."
           cor="bg-emerald-600"
-          onClick={() => setViewMode?.('performance-ia')}
+          onClick={() =>
+            setViewMode?.(
+              'performance-ia'
+            )
+          }
         />
 
         <CardAcao
           icon={Landmark}
           titulo="Casas Parceiras"
-          texto="Afiliados, odds e ofertas."
+          texto="Acesse comparadores e parceiros."
           cor="bg-purple-600"
-          onClick={() => setViewMode?.('casas-parceiras')}
+          onClick={() =>
+            setViewMode?.(
+              'casas-parceiras'
+            )
+          }
         />
 
         <CardAcao
           icon={Crown}
-          titulo="Area VIP"
-          texto="Libere recursos profissionais."
+          titulo="Ãrea VIP"
+          texto="Recursos profissionais da conta."
           cor="bg-purple-600"
-          onClick={() => setViewMode?.('vip-pro')}
+          onClick={() =>
+            setViewMode?.(
+              'vip-pro'
+            )
+          }
         />
+
       </div>
 
-      <div className="bg-[#0f172a] border border-white/10 rounded-3xl p-4 mb-5">
-        <div className="flex items-center justify-between mb-3">
+
+      <div className="mb-5 rounded-3xl border border-white/10 bg-[#0f172a] p-4">
+
+        <div className="mb-4 flex items-center justify-between gap-3">
+
           <div>
-            <div className="text-[10px] text-slate-500 font-black uppercase tracking-widest">
-              Perguntas rapidas
+            <div className="text-[10px] font-black uppercase tracking-widest text-slate-500">
+              Mercado 1X2
             </div>
 
-            <div className="text-base text-white font-black">
-              Assistente IA
+            <div className="text-base font-black text-white">
+              Oportunidades com dados reais
             </div>
           </div>
 
-          <div className="w-10 h-10 rounded-2xl bg-blue-500/10 border border-blue-400/30 flex flex-col items-center justify-center">
-            <span className="text-lg leading-none">{'\u{1F916}'}</span>
-            <span className="text-[7px] font-black text-blue-100 leading-none mt-0.5">
-              IA
-            </span>
+          <TrendingUp className="h-5 w-5 text-emerald-400" />
+
+        </div>
+
+        {erro && (
+          <div className="mb-3 rounded-2xl border border-amber-500/20 bg-amber-500/[0.06] px-4 py-3 text-[10px] font-bold text-amber-300">
+            {erro}
           </div>
+        )}
+
+        {loading &&
+        oportunidades.length === 0 ? (
+
+          <div className="rounded-2xl border border-white/10 bg-[#050816] p-6 text-center">
+
+            <RefreshCw className="mx-auto h-6 w-6 animate-spin text-blue-400" />
+
+            <p className="mt-3 text-xs font-black text-white">
+              Consultando predictions e odds...
+            </p>
+
+            <p className="mt-1 text-[9px] font-semibold text-slate-500">
+              O radar consulta no mÃ¡ximo cinco partidas prÃ©-jogo por atualizaÃ§Ã£o.
+            </p>
+
+          </div>
+
+        ) : oportunidades.length === 0 ? (
+
+          <div className="rounded-2xl border border-white/10 bg-[#050816] p-6 text-center">
+
+            <Database className="mx-auto h-7 w-7 text-slate-600" />
+
+            <p className="mt-3 text-sm font-black text-white">
+              Nenhuma oportunidade real disponÃ­vel
+            </p>
+
+            <p className="mt-2 text-[10px] font-semibold leading-relaxed text-slate-500">
+              As partidas consultadas ainda nÃ£o possuem simultaneamente previsÃ£o e odd 1X2 vÃ¡lidas. O aplicativo nÃ£o preencherÃ¡ esses campos com nÃºmeros demonstrativos.
+            </p>
+
+          </div>
+
+        ) : (
+
+          <div className="space-y-3">
+
+            {oportunidades.map(
+              (jogo, index) => (
+                <button
+                  key={jogo.id}
+                  type="button"
+                  onClick={() =>
+                    setJogoSelecionado?.(
+                      jogo.raw
+                    )
+                  }
+                  className="w-full rounded-2xl border border-white/10 bg-[#050816] p-4 text-left active:scale-[0.99]"
+                >
+
+                  <div className="flex items-start justify-between gap-3">
+
+                    <div className="min-w-0">
+                      <div className="text-[9px] font-black uppercase text-slate-600">
+                        #{index + 1} Â· {jogo.liga}
+                      </div>
+
+                      <div className="mt-1 truncate text-sm font-black text-white">
+                        {jogo.casa} x {jogo.fora}
+                      </div>
+                    </div>
+
+                    <div className="shrink-0 rounded-full bg-blue-500/10 px-2.5 py-1 text-[9px] font-black text-blue-300 ring-1 ring-inset ring-blue-500/20">
+                      {jogo.probabilidade}%
+                    </div>
+
+                  </div>
+
+                  <div className="mt-3 grid grid-cols-3 divide-x divide-white/[0.06] rounded-2xl bg-white/[0.035] py-3">
+
+                    <div className="min-w-0 px-2 text-center">
+                      <div className="text-[7px] font-black uppercase text-slate-600">
+                        Mercado
+                      </div>
+
+                      <div className="mt-1 truncate text-[9px] font-black text-slate-300">
+                        {jogo.mercado}
+                      </div>
+                    </div>
+
+                    <div className="px-2 text-center">
+                      <div className="text-[7px] font-black uppercase text-slate-600">
+                        Melhor odd
+                      </div>
+
+                      <div className="mt-1 text-sm font-black text-yellow-300">
+                        {jogo.odd.toFixed(2)}
+                      </div>
+                    </div>
+
+                    <div className="px-2 text-center">
+                      <div className="text-[7px] font-black uppercase text-slate-600">
+                        EV
+                      </div>
+
+                      <div
+                        className={`mt-1 text-sm font-black ${
+                          jogo.ev >= 0
+                            ? 'text-emerald-300'
+                            : 'text-red-300'
+                        }`}
+                      >
+                        {sinal(jogo.ev)}
+                        {jogo.ev.toFixed(1)}%
+                      </div>
+                    </div>
+
+                  </div>
+
+                  <div className="mt-3 flex items-center justify-between gap-3 text-[8px] font-semibold text-slate-600">
+
+                    <span className="truncate">
+                      Bookmaker: {jogo.bookmaker}
+                    </span>
+
+                    <span className="flex shrink-0 items-center gap-1">
+                      <Clock3 className="h-3 w-3" />
+                      {dataPartida(
+                        jogo.partida_em
+                      )}
+                    </span>
+
+                  </div>
+
+                </button>
+              )
+            )}
+
+          </div>
+        )}
+
+      </div>
+
+
+      <div className="mb-5 rounded-3xl border border-white/10 bg-[#0f172a] p-4">
+
+        <div className="mb-3 flex items-center gap-2">
+          <ShieldCheck className="h-4 w-4 text-blue-400" />
+
+          <div className="text-sm font-black text-white">
+            Como ler este Radar
+          </div>
+        </div>
+
+        <p className="text-[10px] font-semibold leading-relaxed text-slate-500">
+          A probabilidade vem do endpoint de predictions. A odd Ã© a melhor cotaÃ§Ã£o 1X2 encontrada para o mesmo resultado previsto entre os bookmakers retornados pela fonte. O EV Ã© calculado diretamente desses dois valores e pode ser positivo ou negativo.
+        </p>
+
+      </div>
+
+
+      <div className="mb-5 rounded-3xl border border-white/10 bg-[#0f172a] p-4">
+
+        <div className="mb-3 text-[10px] font-black uppercase tracking-widest text-slate-500">
+          Perguntas rÃ¡pidas
         </div>
 
         <div className="grid gap-2">
-          {perguntasRapidas.map((pergunta) => (
-            <button
-              key={pergunta}
-              type="button"
-              onClick={() => abrirPergunta(pergunta)}
-              className="w-full bg-[#050816] border border-white/10 rounded-2xl px-4 py-3 text-left text-xs font-bold text-slate-300 flex items-center justify-between active:scale-[0.99]"
-            >
-              {pergunta}
-              <ChevronRight className="w-4 h-4 text-slate-600" />
-            </button>
-          ))}
-        </div>
-      </div>
 
-      <div className="bg-[#0f172a] border border-white/10 rounded-3xl p-4">
-        <div className="flex items-center justify-between gap-3 mb-4">
-          <div>
-            <div className="text-[10px] text-slate-500 font-black uppercase tracking-widest">
-              IA ao vivo
-            </div>
-
-            <div className="text-base text-white font-black">
-              Top oportunidades
-            </div>
-          </div>
-
-          <button
-            type="button"
-            onClick={() => setViewMode?.('Ranking')}
-            className="text-[10px] font-black text-blue-400 px-2"
-          >
-            VER RANKING
-          </button>
-        </div>
-
-        <div className="space-y-3">
-          {oportunidades.map((jogo, index) => {
-            const ev = Math.max(4, Math.round(((jogo.confianca / 100) * jogo.odd - 1) * 100));
-
-            return (
+          {perguntasRapidas.map(
+            (pergunta) => (
               <button
-                key={jogo.id}
+                key={pergunta}
                 type="button"
-                onClick={() => setJogoSelecionado?.(jogo.raw || jogo)}
-                className="w-full bg-[#050816] border border-white/10 rounded-2xl p-4 text-left active:scale-[0.99]"
+                onClick={() =>
+                  abrirPergunta(
+                    pergunta
+                  )
+                }
+                className="flex w-full items-center justify-between rounded-2xl border border-white/10 bg-[#050816] px-4 py-3 text-left text-xs font-bold text-slate-300 active:scale-[0.99]"
               >
-                <div className="flex items-center justify-between mb-2">
-                  <span className="text-[10px] text-slate-500 font-black uppercase">
-                    {jogo.liga}
-                  </span>
+                {pergunta}
 
-                  <span className="text-[10px] font-black text-emerald-400 bg-emerald-500/10 border border-emerald-500/20 px-2 py-1 rounded-full">
-                    EV +{ev}%
-                  </span>
-                </div>
-
-                <div className="text-sm font-black text-white">
-                  {index + 1}. {jogo.casa} x {jogo.fora}
-                </div>
-
-                <div className="flex items-center justify-between mt-3">
-                  <div className="text-[11px] text-slate-400 font-bold">
-                    {jogo.mercado} - Odd {jogo.odd.toFixed(2)}
-                  </div>
-
-                  <div className="text-xs font-black text-blue-400">
-                    {jogo.confianca}%
-                  </div>
-                </div>
-
-                <div className="mt-3 h-2 bg-white/5 rounded-full overflow-hidden">
-                  <div
-                    className="h-full bg-blue-500 rounded-full"
-                    style={{ width: Math.min(96, Math.max(20, jogo.confianca)) + '%' }}
-                  />
-                </div>
+                <ChevronRight className="h-4 w-4 shrink-0 text-slate-600" />
               </button>
-            );
-          })}
+            )
+          )}
+
         </div>
       </div>
 
-      <div className="grid grid-cols-3 gap-2 mt-5">
+
+      <div className="grid grid-cols-3 gap-2">
+
         <button
           type="button"
-          onClick={() => setViewMode?.('favoritos')}
-          className="bg-[#0f172a] border border-white/10 rounded-2xl p-3 text-xs font-black text-white flex flex-col items-center gap-2 active:scale-[0.98]"
+          onClick={() =>
+            setViewMode?.(
+              'favoritos'
+            )
+          }
+          className="flex flex-col items-center gap-2 rounded-2xl border border-white/10 bg-[#0f172a] p-3 text-xs font-black text-white active:scale-[0.98]"
         >
-          <Star className="w-5 h-5 text-yellow-400" />
+          <Star className="h-5 w-5 text-yellow-400" />
           Favoritos
         </button>
 
         <button
           type="button"
-          onClick={() => setViewMode?.('Ranking')}
-          className="bg-[#0f172a] border border-white/10 rounded-2xl p-3 text-xs font-black text-white flex flex-col items-center gap-2 active:scale-[0.98]"
+          onClick={() =>
+            setViewMode?.(
+              'historico'
+            )
+          }
+          className="flex flex-col items-center gap-2 rounded-2xl border border-white/10 bg-[#0f172a] p-3 text-xs font-black text-white active:scale-[0.98]"
         >
-          <TrendingUp className="w-5 h-5 text-emerald-400" />
-          Ranking
+          <History className="h-5 w-5 text-emerald-400" />
+          HistÃ³rico
         </button>
 
         <button
           type="button"
-          onClick={() => abrirPergunta('Analise os jogos de hoje.')}
-          className="bg-[#0f172a] border border-white/10 rounded-2xl p-3 text-xs font-black text-white flex flex-col items-center gap-2 active:scale-[0.98]"
+          onClick={() =>
+            abrirPergunta(
+              'Analise apenas os dados reais disponÃ­veis no Radar de hoje.'
+            )
+          }
+          className="flex flex-col items-center gap-2 rounded-2xl border border-white/10 bg-[#0f172a] p-3 text-xs font-black text-white active:scale-[0.98]"
         >
-          <Target className="w-5 h-5 text-blue-400" />
+          <Target className="h-5 w-5 text-blue-400" />
           Analisar
         </button>
+
       </div>
+
+      <div className="mt-4 text-center text-[8px] font-semibold text-slate-700">
+        Plano atual: {userData?.is_vip ? 'PRO' : 'FREE'}
+      </div>
+
     </div>
   );
 }
