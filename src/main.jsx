@@ -11,7 +11,16 @@ ReactDOM.createRoot(document.getElementById('root')).render(
     <ErrorBoundary>
       <HashRouter>
       <EntradaComercialGate>
-        <App />
+        {/* BET_GLOBAL_SUSPENSE */}
+        <React.Suspense
+          fallback={
+            <div className="min-h-screen bg-[#050816] text-white flex items-center justify-center font-black">
+              Carregando...
+            </div>
+          }
+        >
+          <App />
+        </React.Suspense>
       </EntradaComercialGate>
     </HashRouter>
     </ErrorBoundary>
