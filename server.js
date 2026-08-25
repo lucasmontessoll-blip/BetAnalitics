@@ -32,10 +32,23 @@ const BET_CORS_ORIGENS = new Set(
     .filter(Boolean)
 );
 
+/* BET_ETAPA_35C_CORS_NATIVO_INICIO */
+const BET_CORS_ORIGENS_NATIVAS = new Set([
+  'https://localhost',
+  'http://localhost',
+  'capacitor://localhost',
+  'ionic://localhost'
+]);
+
 function betCorsPermitido(origem) {
   if (!origem) return true;
-  return BET_CORS_ORIGENS.has(String(origem).replace(/\/$/, ''));
+  const normalizada = String(origem).replace(/\/$/, '');
+  return (
+    BET_CORS_ORIGENS.has(normalizada) ||
+    BET_CORS_ORIGENS_NATIVAS.has(normalizada)
+  );
 }
+/* BET_ETAPA_35C_CORS_NATIVO_FIM */
 
 app.use(
   cors({
