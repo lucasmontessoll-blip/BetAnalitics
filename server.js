@@ -444,6 +444,83 @@ app.get('/api/football/jogo/:fixtureId', async (req, res) => {
   }
 });
 
+/* BET_ETAPA_38B_RADAR_ODDS_REAL */
+app.get('/api/football/radar-odds', async (req, res) => {
+  try {
+    if (!API_FOOTBALL_KEY) {
+      return res.json({
+        ok: true,
+        fonte: 'api-football',
+        configurado: false,
+        count: 0,
+        itens: [],
+      });
+    }
+
+    const ids = [
+      ...new Set(
+        String(req.query.ids || '')
+          .split(',')
+          .map((id) => id.trim())
+          .filter((id) => /^\d+$/.test(id))
+      ),
+    ].slice(0, 5);
+
+    if (ids.length === 0) {
+      return res.json({
+        ok: true,
+        fonte: 'api-football',
+        configurado: true,
+        count: 0,
+        itens: [],
+      });
+    }
+
+    const itens = await Promise.all(
+      ids.map(async (fixtureId) => {
+        const [predictions, odds] = await Promise.allSettled([
+          apiFootballRequest('/predictions', { fixture: fixtureId }),
+          apiFootballRequest('/odds', { fixture: fixtureId }),
+        ]);
+
+        const prediction =
+          predictions.status === 'fulfilled'
+            ? predictions.value?.response?.[0] || null
+            : null;
+
+        const oddsResponse =
+          odds.status === 'fulfilled'
+            ? odds.value?.response || []
+            : [];
+
+        return {
+          fixture_id: Number(fixtureId),
+          predictions: prediction,
+          odds: oddsResponse,
+          predictions_disponiveis: Boolean(prediction),
+          odds_disponiveis: oddsResponse.length > 0,
+        };
+      })
+    );
+
+    return res.json({
+      ok: true,
+      fonte: 'api-football',
+      configurado: true,
+      count: itens.length,
+      itens,
+    });
+  }
+  catch (e) {
+    console.error('[API-Football radar odds]', e);
+
+    return res.status(e.status || 500).json({
+      ok: false,
+      fonte: 'api-football',
+      erro: e.message || 'Erro ao consultar radar de odds.',
+    });
+  }
+});
 app.get('/api/football/classificacao', async (req, res) => {
   try {
     // MODO_DEMO_SEM_CHAVE_CLASSIFICACAO
