@@ -1,4 +1,4 @@
-import React, { useMemo } from 'react';
+import React, { useEffect, useMemo } from 'react';
 
 import CardJogoBase from './CardJogoBase.jsx';
 
@@ -13,6 +13,10 @@ import {
 import {
   enriquecerJogoComAnaliseReal,
 } from '../utils/iaExplicavel.js';
+
+import {
+  salvarAnaliseIA,
+} from '../utils/historicoIA.js';
 
 /* BET_ETAPA_37B_CARD_DETALHADO */
 
@@ -489,6 +493,29 @@ export default function CardJogo(props) {
     [jogo, detalhes]
   );
 
+  useEffect(() => {
+    if (!carregarDetalhes) return;
+    if (!disponivel) return;
+    if (loading) return;
+    if (erro) return;
+    if (!detalhes) return;
+
+    if (
+      jogoFinal?.confianca_fonte !==
+      'api-football-predictions'
+    ) {
+      return;
+    }
+
+    void salvarAnaliseIA(jogoFinal);
+  }, [
+    carregarDetalhes,
+    disponivel,
+    loading,
+    erro,
+    detalhes,
+    jogoFinal,
+  ]);
   if (!carregarDetalhes || !disponivel) {
     return (
       <CardJogoBase

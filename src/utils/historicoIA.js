@@ -1,230 +1,307 @@
-const CHAVE = 'betanalytics_historico_ia_v1';
-const CHAVE_BANCA = 'bet_banca_historico_v2';
+import {
+  apiUrl,
+} from './apiBase.js';
 
-function texto(valor, fallback = '') {
-  return String(valor || fallback || '').trim();
+import {
+  sessaoAtual,
+} from '../services/authClient.js';
+
+const PREFIXO_CACHE =
+  'betanalytics_historico_ia_real_v1:';
+
+function texto(valor) {
+  const resultado = String(valor ?? '').trim();
+  return resultado || null;
 }
 
-function numero(valor, fallback = 0) {
+function numero(valor) {
+  if (valor === undefined || valor === null || valor === '') return null;
   const n = Number(valor);
-  return Number.isFinite(n) ? n : fallback;
+  return Number.isFinite(n) ? n : null;
 }
 
-function pegarIdJogo(jogo) {
-  const id =
-    jogo?.id ||
-    jogo?.fixture?.id ||
-    jogo?.id_jogo ||
-    `${jogo?.home_team || jogo?.time_casa || 'casa'}-${jogo?.away_team || jogo?.time_fora || 'fora'}`;
-
-  return texto(id, `jogo-${Date.now()}`);
+function cacheKey(userId) {
+  return PREFIXO_CACHE + String(userId || 'anon');
 }
 
-function carregarBancaLocal() {
+function carregarCache(userId) {
   try {
-    const raw = localStorage.getItem(CHAVE_BANCA);
+    const raw = localStorage.getItem(cacheKey(userId));
     const dados = JSON.parse(raw || '[]');
-
     return Array.isArray(dados) ? dados : [];
   } catch {
     return [];
   }
 }
 
-function salvarBancaLocal(lista) {
+function salvarCache(userId, lista) {
   try {
-    localStorage.setItem(CHAVE_BANCA, JSON.stringify(Array.isArray(lista) ? lista : []));
+    localStorage.setItem(
+      cacheKey(userId),
+      JSON.stringify(Array.isArray(lista) ? lista : [])
+    );
   } catch {
-    // Mantem o app funcionando mesmo se o navegador bloquear localStorage.
+    // Cache nunca deve quebrar o aplicativo.
   }
 }
 
-function sincronizarAnaliseNaBanca(item) {
-  if (!item?.id) return;
+async function contextoAuth() {
+  const sessao = await sessaoAtual();
+  const token = sessao?.access_token;
+  const userId = sessao?.user?.id;
 
-  const listaAtual = carregarBancaLocal();
-  const idBanca = `ia-${item.id}`;
+  if (!token || !userId) return null;
 
-  const semDuplicar = listaAtual.filter((entrada) => {
-    return entrada.id !== idBanca && entrada.id_origem_ia !== item.id;
-  });
-
-  if (item.status !== 'green' && item.status !== 'red') {
-    salvarBancaLocal(semDuplicar);
-    return;
-  }
-
-  const stake = numero(item.stake, 50);
-  const odd = numero(item.odd, 1.85);
-
-  const entradaBanca = {
-    id: idBanca,
-    id_origem_ia: item.id,
-    origem: 'historico_ia',
-    jogo: texto(item.jogo, 'Jogo IA'),
-    mercado: texto(item.mercado, 'Mercado IA'),
-    stake,
-    odd,
-    resultado: item.status,
-    criadoEm: item.atualizadoEm || item.criadoEm || new Date().toISOString()
+  return {
+    token,
+    userId,
   };
-
-  salvarBancaLocal([entradaBanca, ...semDuplicar].slice(0, 120));
 }
 
-export function carregarHistoricoIA() {
-  try {
-    const raw = localStorage.getItem(CHAVE);
-    const dados = JSON.parse(raw || '[]');
+function headers(token) {
+  return {
+    Accept: 'application/json',
+    'Content-Type': 'application/json',
+    Authorization: `Bearer ${token}`,
+  };
+}
 
-    if (Array.isArray(dados)) {
-      return dados;
-    }
+function idJogo(jogo = {}) {
+  return texto(
+    jogo?.api_football_id ??
+    jogo?.fixture?.id ??
+    jogo?.id_jogo ??
+    jogo?.id
+  );
+}
 
-    return [];
-  } catch {
-    return [];
+export function criarAnaliseIA(jogo = {}) {
+  const fonteConfianca = texto(jogo?.confianca_fonte);
+  const confianca = numero(
+    jogo?.confianca_ia ??
+    jogo?.confiancaIA
+  );
+
+  if (
+    fonteConfianca !== 'api-football-predictions' ||
+    confianca === null ||
+    confianca <= 0 ||
+    confianca > 100
+  ) {
+    return null;
   }
-}
 
-export function salvarHistoricoIA(lista) {
-  try {
-    const dados = Array.isArray(lista) ? lista : [];
-    localStorage.setItem(CHAVE, JSON.stringify(dados));
-  } catch {
-    // Mantem o app funcionando mesmo se o navegador bloquear localStorage.
-  }
-}
+  const jogoId = idJogo(jogo);
+  if (!jogoId) return null;
 
-export function criarAnaliseIA(jogo) {
   const casa = texto(
-    jogo?.home_team ||
-    jogo?.time_casa ||
-    jogo?.teams?.home?.name,
-    'Time Casa'
+    jogo?.home_team ??
+    jogo?.time_casa ??
+    jogo?.teams?.home?.name
   );
 
   const fora = texto(
-    jogo?.away_team ||
-    jogo?.time_fora ||
-    jogo?.teams?.away?.name,
-    'Time Fora'
+    jogo?.away_team ??
+    jogo?.time_fora ??
+    jogo?.teams?.away?.name
   );
 
-  const confianca =
-    numero(jogo?.confianca_ia, 0) ||
-    numero(jogo?.ia_confidence, 0) ||
-    numero(jogo?.confidence, 0) ||
-    87;
-
-  const odd =
-    numero(jogo?.odd_principal, 0) ||
-    numero(jogo?.odd, 0) ||
-    numero(jogo?.odds?.home, 0) ||
-    1.85;
-
-  const mercado = texto(
-    jogo?.mercado_principal ||
-    jogo?.mercado ||
-    jogo?.market,
-    'Mais de 1.5 gols'
-  );
-
-  const ev = Number((((confianca / 100) * odd - 1) * 100).toFixed(1));
-  const jogoId = pegarIdJogo(jogo);
+  const probabilidades = jogo?.probabilidades || {};
 
   return {
-    id: `${jogoId}-${Date.now()}`,
-    jogoId,
-    jogo: `${casa} x ${fora}`,
+    jogo_id: jogoId,
+    fixture_id: numero(
+      jogo?.api_football_id ??
+      jogo?.fixture?.id
+    ),
+    jogo: [casa, fora].filter(Boolean).join(' x '),
     casa,
     fora,
-    liga: texto(jogo?.league || jogo?.liga || jogo?.league_name, 'Liga PRO'),
-    mercado,
-    confianca: Math.round(Math.max(1, Math.min(99, confianca))),
-    odd: Number(odd),
-    ev,
-    status: 'pendente',
-    stake: 50,
-    lucro: 0,
-    criadoEm: new Date().toISOString()
+    liga: texto(
+      jogo?.league_name ??
+      jogo?.liga ??
+      jogo?.league?.name
+    ),
+    mercado: texto(
+      jogo?.mercado_principal ??
+      jogo?.explicacao_ia?.mercado
+    ),
+    confianca,
+    odd: numero(jogo?.odd_principal),
+    prob_casa: numero(
+      probabilidades?.casa ??
+      probabilidades?.home
+    ),
+    prob_empate: numero(
+      probabilidades?.empate ??
+      probabilidades?.draw
+    ),
+    prob_fora: numero(
+      probabilidades?.fora ??
+      probabilidades?.away
+    ),
+    fonte_confianca: fonteConfianca,
+    fonte_odds: texto(jogo?.odds_fonte),
+    partida_em:
+      jogo?.starting_at ??
+      jogo?.fixture?.date ??
+      null,
   };
 }
 
-export function salvarAnaliseIA(jogo) {
-  if (!jogo) {
-    return null;
-  }
-
-  const nova = criarAnaliseIA(jogo);
-  const atual = carregarHistoricoIA();
-
-  const jaExiste = atual.some((item) => {
-    const mesmoJogo = item.jogoId === nova.jogoId;
-    const tempoItem = new Date(item.criadoEm || 0).getTime();
-    const agora = Date.now();
-
-    return mesmoJogo && agora - tempoItem < 1000 * 60 * 10;
-  });
-
-  if (jaExiste) {
-    return null;
-  }
-
-  const lista = [nova, ...atual].slice(0, 80);
-  salvarHistoricoIA(lista);
-
-  return nova;
-}
-
-export function atualizarStatusAnaliseIA(id, status) {
-  const lista = carregarHistoricoIA();
-  let itemAtualizado = null;
-
-  const atualizada = lista.map((item) => {
-    if (item.id !== id) {
-      return item;
-    }
-
-    const odd = numero(item.odd, 1.85);
-    const stake = numero(item.stake, 50);
-
-    let lucro = 0;
-
-    if (status === 'green') {
-      lucro = Number(((stake * odd) - stake).toFixed(2));
-    }
-
-    if (status === 'red') {
-      lucro = -stake;
-    }
-
-    itemAtualizado = {
-      ...item,
-      status,
-      lucro,
-      atualizadoEm: new Date().toISOString()
-    };
-
-    return itemAtualizado;
-  });
-
-  salvarHistoricoIA(atualizada);
-
-  if (itemAtualizado) {
-    sincronizarAnaliseNaBanca(itemAtualizado);
-  }
-
-  return atualizada;
-}
-
-export function limparHistoricoIA() {
-  salvarHistoricoIA([]);
+export async function salvarAnaliseIA(jogo) {
+  const payload = criarAnaliseIA(jogo);
+  if (!payload) return null;
 
   try {
-    const banca = carregarBancaLocal().filter((entrada) => entrada.origem !== 'historico_ia');
-    salvarBancaLocal(banca);
-  } catch {
-    // Mantem o app funcionando.
+    const auth = await contextoAuth();
+    if (!auth) return null;
+
+    const resp = await fetch(
+      apiUrl('/api/historico-ia'),
+      {
+        method: 'POST',
+        headers: headers(auth.token),
+        body: JSON.stringify(payload),
+      }
+    );
+
+    const data = await resp.json().catch(() => null);
+
+    if (!resp.ok || !data?.ok) {
+      console.warn(
+        'Historico IA nao registrado:',
+        data?.erro || `HTTP ${resp.status}`
+      );
+      return null;
+    }
+
+    const item = data.item;
+
+    if (item?.id) {
+      const atual = carregarCache(auth.userId);
+      const semDuplicar = atual.filter(
+        (registro) => registro.id !== item.id
+      );
+
+      salvarCache(
+        auth.userId,
+        [item, ...semDuplicar].slice(0, 200)
+      );
+    }
+
+    return item || null;
+  } catch (e) {
+    console.warn(
+      'Historico IA indisponivel:',
+      e?.message || e
+    );
+    return null;
   }
+}
+
+export async function carregarHistoricoIA() {
+  let auth = null;
+
+  try {
+    auth = await contextoAuth();
+    if (!auth) return [];
+
+    const resp = await fetch(
+      apiUrl('/api/historico-ia'),
+      {
+        headers: headers(auth.token),
+      }
+    );
+
+    const data = await resp.json().catch(() => null);
+
+    if (!resp.ok || !data?.ok) {
+      throw new Error(
+        data?.erro || `HTTP ${resp.status}`
+      );
+    }
+
+    const lista = Array.isArray(data.itens)
+      ? data.itens
+      : [];
+
+    salvarCache(auth.userId, lista);
+    return lista;
+  } catch (e) {
+    console.warn(
+      'Falha ao carregar Historico IA:',
+      e?.message || e
+    );
+
+    return auth?.userId
+      ? carregarCache(auth.userId)
+      : [];
+  }
+}
+
+export async function atualizarStatusAnaliseIA(id, status) {
+  const auth = await contextoAuth();
+
+  if (!auth) {
+    throw new Error('Sessao ausente.');
+  }
+
+  const resp = await fetch(
+    apiUrl(
+      `/api/historico-ia/${encodeURIComponent(id)}`
+    ),
+    {
+      method: 'PATCH',
+      headers: headers(auth.token),
+      body: JSON.stringify({ status }),
+    }
+  );
+
+  const data = await resp.json().catch(() => null);
+
+  if (!resp.ok || !data?.ok) {
+    throw new Error(
+      data?.erro || 'Falha ao atualizar resultado.'
+    );
+  }
+
+  const atual = carregarCache(auth.userId);
+
+  const lista = atual.map(
+    (item) =>
+      item.id === data.item?.id
+        ? data.item
+        : item
+  );
+
+  salvarCache(auth.userId, lista);
+  return data.item;
+}
+
+export async function limparHistoricoIA() {
+  const auth = await contextoAuth();
+
+  if (!auth) {
+    throw new Error('Sessao ausente.');
+  }
+
+  const resp = await fetch(
+    apiUrl('/api/historico-ia'),
+    {
+      method: 'DELETE',
+      headers: headers(auth.token),
+    }
+  );
+
+  const data = await resp.json().catch(() => null);
+
+  if (!resp.ok || !data?.ok) {
+    throw new Error(
+      data?.erro || 'Falha ao limpar historico.'
+    );
+  }
+
+  salvarCache(auth.userId, []);
+  return true;
 }
