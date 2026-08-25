@@ -21,6 +21,7 @@ import {
   Users
 } from 'lucide-react';
 import EstatisticasJogoPro from './EstatisticasJogoPro.jsx';
+import ExplicacaoIAPro from './ExplicacaoIAPro.jsx';
 import {
   awayLogo,
   awayName,
@@ -272,56 +273,98 @@ function LineupsPanel({ jogo }) {
 }
 
 function PredictionPanel({ jogo }) {
-  const ia = confidence(jogo) || 87;
+  const ia = confidence(jogo);
+
+  const temConfianca =
+    ia > 0;
+
   const market = text(
     jogo.mercado_principal,
     jogo.mercadoIA,
-    jogo.ia?.mercado,
-    'Mercado principal em análise'
+    jogo.ia?.mercado
   );
-  const ev = nullableNumber(pick(jogo.ev, jogo.valor_esperado, jogo.ia?.ev));
+
+  const ev = nullableNumber(
+    pick(
+      jogo.ev,
+      jogo.valor_esperado,
+      jogo.ia?.ev
+    )
+  );
 
   return (
     <div>
       <SectionTitle
         eyebrow="Inteligência artificial"
-        title="Previsão da partida"
-        description="Leitura de forma, mercado, risco, histórico e contexto do confronto."
+        title="Previsão explicável"
+        description="Probabilidades exibidas somente quando existe uma fonte real de previsão para a partida."
         icon={Sparkles}
       />
 
-      <div className="overflow-hidden rounded-2xl bg-gradient-to-br from-blue-600/[0.16] via-white/[0.035] to-emerald-400/[0.08] p-5">
-        <div className="flex items-start justify-between gap-5">
-          <div>
-            <p className="text-[8px] font-black uppercase tracking-[0.18em] text-blue-300">
-              Melhor leitura encontrada
-            </p>
-            <h4 className="mt-2 text-base font-black leading-snug text-white">{market}</h4>
-            <p className="mt-2 max-w-md text-[10px] font-medium leading-relaxed text-slate-400">
-              A confiança combina desempenho recente, mando de campo, confronto direto,
-              produção ofensiva e comportamento das odds.
-            </p>
+      {temConfianca ? (
+        <div className="overflow-hidden rounded-2xl bg-gradient-to-br from-blue-600/[0.16] via-white/[0.035] to-emerald-400/[0.08] p-5">
+          <div className="flex items-start justify-between gap-5">
+
+            <div>
+              <p className="text-[8px] font-black uppercase tracking-[0.18em] text-blue-300">
+                Maior probabilidade encontrada
+              </p>
+
+              <h4 className="mt-2 text-base font-black leading-snug text-white">
+                {market || 'Mercado indicado pela previsão'}
+              </h4>
+
+              <p className="mt-2 max-w-md text-[10px] font-medium leading-relaxed text-slate-400">
+                O percentual abaixo não é um valor padrão do aplicativo. Ele é carregado da previsão disponível para esta partida.
+              </p>
+            </div>
+
+            <div className="shrink-0 text-right">
+              <p className="text-4xl font-black tracking-tight text-white">
+                {ia}%
+              </p>
+
+              <p className="mt-1 text-[8px] font-black uppercase tracking-wider text-slate-600">
+                probabilidade
+              </p>
+            </div>
+
           </div>
 
-          <div className="shrink-0 text-right">
-            <p className="text-4xl font-black tracking-tight text-white">{ia}%</p>
-            <p className="mt-1 text-[8px] font-black uppercase tracking-wider text-slate-600">
-              confiança
-            </p>
+          <div className="mt-5 h-1.5 overflow-hidden rounded-full bg-black/25">
+            <div
+              className="h-full rounded-full bg-gradient-to-r from-blue-500 to-emerald-400"
+              style={{
+                width: `${Math.max(
+                  0,
+                  Math.min(100, ia)
+                )}%`,
+              }}
+            />
           </div>
+
+          {ev !== null && (
+            <div className="mt-4 flex items-center gap-2 text-[10px] font-black text-emerald-300">
+              <TrendingUp className="h-4 w-4" />
+              Valor esperado informado: {ev.toFixed(1)}%
+            </div>
+          )}
         </div>
+      ) : (
+        <div className="rounded-2xl bg-white/[0.025] p-5 text-center ring-1 ring-inset ring-white/[0.055]">
+          <Sparkles className="mx-auto h-5 w-5 text-slate-700" />
 
-        <div className="mt-5 h-1.5 overflow-hidden rounded-full bg-black/25">
-          <div className="h-full rounded-full bg-gradient-to-r from-blue-500 to-emerald-400" style={{ width: `${ia}%` }} />
+          <p className="mt-3 text-[11px] font-black text-slate-300">
+            Previsão ainda não disponível
+          </p>
+
+          <p className="mt-1 text-[9px] font-medium leading-relaxed text-slate-600">
+            Nenhum percentual será criado artificialmente enquanto a fonte de previsão não fornecer dados.
+          </p>
         </div>
+      )}
 
-        {ev !== null && (
-          <div className="mt-4 flex items-center gap-2 text-[10px] font-black text-emerald-300">
-            <TrendingUp className="h-4 w-4" />
-            Valor esperado estimado: {ev.toFixed(1)}%
-          </div>
-        )}
-      </div>
+      <ExplicacaoIAPro jogo={jogo} />
     </div>
   );
 }

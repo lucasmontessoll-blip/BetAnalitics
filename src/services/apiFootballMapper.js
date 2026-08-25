@@ -41,12 +41,12 @@ function extrairOddPrincipal(odds = null) {
       odd_casa: valorNumero(home, null),
       odd_empate: valorNumero(draw, null),
       odd_fora: valorNumero(away, null),
-      odd_principal: valorNumero(home, null) || valorNumero(away, null) || valorNumero(draw, null) || 1.85,
+      odd_principal: valorNumero(home, null) || valorNumero(away, null) || valorNumero(draw, null),
       bookmaker: book?.name || null,
     };
   }
 
-  return { odd_casa: null, odd_empate: null, odd_fora: null, odd_principal: 1.85, bookmaker: null };
+  return { odd_casa: null, odd_empate: null, odd_fora: null, odd_principal: null, bookmaker: null };
 }
 
 export function mapApiFootballFixtureToJogo(item = {}) {
@@ -92,7 +92,7 @@ export function mapApiFootballFixtureToJogo(item = {}) {
     scoreAway,
     placar_casa: scoreHome,
     placar_fora: scoreAway,
-    confianca_ia: 88,
+    confianca_ia: null,
     odd_principal: odds.odd_principal,
     odd_casa: odds.odd_casa,
     odd_empate: odds.odd_empate,

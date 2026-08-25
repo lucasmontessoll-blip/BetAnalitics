@@ -409,12 +409,14 @@ app.get('/api/football/jogo/:fixtureId', async (req, res) => {
 
     const fixtureId = req.params.fixtureId;
 
-    const [fixture, statistics, events, lineups, players] = await Promise.allSettled([
+    const [fixture, statistics, events, lineups, players, predictions, odds] = await Promise.allSettled([
       apiFootballRequest('/fixtures', { id: fixtureId }),
       apiFootballRequest('/fixtures/statistics', { fixture: fixtureId }),
       apiFootballRequest('/fixtures/events', { fixture: fixtureId }),
       apiFootballRequest('/fixtures/lineups', { fixture: fixtureId }),
       apiFootballRequest('/fixtures/players', { fixture: fixtureId }),
+      apiFootballRequest('/predictions', { fixture: fixtureId }),
+      apiFootballRequest('/odds', { fixture: fixtureId }),
     ]);
 
     res.json({
@@ -425,11 +427,11 @@ app.get('/api/football/jogo/:fixtureId', async (req, res) => {
       events: events.status === 'fulfilled' ? events.value?.response || [] : [],
       lineups: lineups.status === 'fulfilled' ? lineups.value?.response || [] : [],
       players: players.status === 'fulfilled' ? players.value?.response || [] : [],
-      odds: [],
+      odds: odds.status === 'fulfilled' ? odds.value?.response || [] : [],
       oddsLive: [],
       injuries: [],
       h2h: [],
-      predictions: null,
+      predictions: predictions.status === 'fulfilled' ? predictions.value?.response?.[0] || null : null,
     });
   } catch (e) {
     console.error('[API-Football jogo]', e);

@@ -1,40 +1,259 @@
 import { useState } from 'react';
 import axios from 'axios';
 
-export function useIA(API_URL, jogos, setJogoSelecionado) {
-  const [aiOpen, setAiOpen] = useState(false);
-  const [aiQuery, setAiQuery] = useState('');
-  const [aiLoading, setAiLoading] = useState(false);
-  const [aiMessages, setAiMessages] = useState([{ role: 'assistant', text: "Ola! Sou o motor IA do BetAnalytics. Qual e a sua duvida?" }]);
+import {
+  apiUrl,
+} from '../utils/apiBase.js';
+
+export function useIA(
+  API_URL,
+  jogos,
+  setJogoSelecionado
+) {
+  const [aiOpen, setAiOpen] =
+    useState(false);
+
+  const [aiQuery, setAiQuery] =
+    useState('');
+
+  const [aiLoading, setAiLoading] =
+    useState(false);
+
+  const [aiMessages, setAiMessages] =
+    useState([
+      {
+        role: 'assistant',
+        text:
+          'Olá! Sou o motor IA do BetAnalytics. Qual é a sua dúvida?',
+      },
+    ]);
 
   const handleAskAI = async (e) => {
     e?.preventDefault();
-    if(!aiQuery.trim() || aiLoading) return;
-    setAiMessages(prev => [...prev, { role: 'user', text: aiQuery }]);
-    const perguntaAtual = aiQuery; 
-    setAiQuery(''); 
+
+    if (
+      !aiQuery.trim() ||
+      aiLoading
+    ) {
+      return;
+    }
+
+    const perguntaAtual =
+      aiQuery.trim();
+
+    setAiMessages(
+      (prev) => [
+        ...prev,
+        {
+          role: 'user',
+          text: perguntaAtual,
+        },
+      ]
+    );
+
+    setAiQuery('');
     setAiLoading(true);
+
     try {
-        const resumoJogos = jogos.map(j => `${j.home_team} vs ${j.away_team}`).join(", ");
-        const resposta = await axios.post(`${API_URL}/api/chat-ia`, { pergunta: perguntaAtual, dadosDaRodada: resumoJogos || "Sem jogos no momento" });
-        setAiMessages(prev => [...prev, { role: 'assistant', text: resposta.data.resposta }]);
-    } catch (error) { 
-        setAiMessages(prev => [...prev, { role: 'assistant', text: "Falha de comunicacao." }]); 
-    } finally { 
-        setAiLoading(false); 
+      const lista =
+        Array.isArray(jogos)
+          ? jogos
+          : [];
+
+      const resumoJogos =
+        lista
+          .slice(0, 20)
+          .map(
+            (jogo) =>
+              `${jogo.home_team} vs ${jogo.away_team}`
+          )
+          .join(', ');
+
+      const resposta =
+        await axios.post(
+          apiUrl('/api/chat-ia'),
+          {
+            pergunta:
+              perguntaAtual,
+
+            dadosDaRodada:
+              resumoJogos ||
+              'Sem jogos disponíveis no momento',
+          }
+        );
+
+      const texto =
+        String(
+          resposta?.data?.resposta ||
+          ''
+        ).trim();
+
+      if (!texto) {
+        throw new Error(
+          'Resposta vazia da IA.'
+        );
+      }
+
+      setAiMessages(
+        (prev) => [
+          ...prev,
+          {
+            role: 'assistant',
+            text: texto,
+          },
+        ]
+      );
+    }
+    catch (error) {
+      console.error(
+        'Falha no chat IA:',
+        error
+      );
+
+      setAiMessages(
+        (prev) => [
+          ...prev,
+          {
+            role: 'assistant',
+            text:
+              'Não foi possível consultar a IA agora. Tente novamente em alguns instantes.',
+          },
+        ]
+      );
+    }
+    finally {
+      setAiLoading(false);
     }
   };
 
-  const gerarExplicacaoIA = async (jogo) => {
-    setJogoSelecionado(prev => ({...prev, is_loading_explanation: true}));
-    const promptGemini = `Voce e um analista profissional.\nJogo: ${jogo.home_team} x ${jogo.away_team}\nConfianca: ${jogo.confianca_ia}%\nOdd: ${jogo.odd_principal}\nExplique:\n1 Motivos da entrada\n2 Riscos\n3 Melhor mercado\n4 Gestao recomendada\n5 Conclusao final\nResposta curta e estruturada em topicos.`;
-    try {
-        const resposta = await axios.post(`${API_URL}/api/chat-ia`, { pergunta: promptGemini, dadosDaRodada: jogo });
-        setJogoSelecionado(prev => ({...prev, explanation: resposta.data.resposta, is_loading_explanation: false}));
-    } catch (e) { 
-        setJogoSelecionado(prev => ({...prev, explanation: "Analise forte indica superioridade e EV+ no mercado.", is_loading_explanation: false})); 
-    }
-  };
+  const gerarExplicacaoIA =
+    async (jogo = {}) => {
 
-  return { aiOpen, setAiOpen, aiQuery, setAiQuery, aiLoading, aiMessages, handleAskAI, gerarExplicacaoIA };
+      setJogoSelecionado(
+        (prev) => ({
+          ...prev,
+          is_loading_explanation: true,
+        })
+      );
+
+      const confianca =
+        jogo?.confianca_ia ??
+        jogo?.confiancaIA ??
+        null;
+
+      const odd =
+        jogo?.odd_principal ??
+        null;
+
+      const fatores =
+        Array.isArray(
+          jogo?.explicacao_ia?.fatores
+        )
+          ? jogo.explicacao_ia.fatores
+          : [];
+
+      const contexto = {
+        jogo:
+          `${jogo?.home_team || 'Mandante'} x ${
+            jogo?.away_team || 'Visitante'
+          }`,
+
+        confianca,
+
+        odd,
+
+        mercado:
+          jogo?.mercado_principal ||
+          null,
+
+        probabilidades:
+          jogo?.probabilidades ||
+          null,
+
+        fatores,
+
+        fonte:
+          jogo?.confianca_fonte ||
+          null,
+      };
+
+      const prompt = `
+Você é um analista de futebol do BetAnalytics.
+
+Explique SOMENTE com base nos dados enviados abaixo.
+Não invente estatísticas, percentuais, odds, histórico ou lesões.
+Quando algum dado estiver ausente, diga que ele não está disponível.
+
+Dados:
+${JSON.stringify(contexto, null, 2)}
+
+Estruture em:
+1. Leitura principal
+2. Evidências disponíveis
+3. Riscos e limitações
+4. Mercado indicado, somente se existir nos dados
+5. Conclusão
+
+Se não houver dados suficientes, informe claramente que não existe base suficiente para uma conclusão confiável.
+`.trim();
+
+      try {
+        const resposta =
+          await axios.post(
+            apiUrl('/api/chat-ia'),
+            {
+              pergunta: prompt,
+              dadosDaRodada: contexto,
+            }
+          );
+
+        const texto =
+          String(
+            resposta?.data?.resposta ||
+            ''
+          ).trim();
+
+        if (!texto) {
+          throw new Error(
+            'Resposta vazia da IA.'
+          );
+        }
+
+        setJogoSelecionado(
+          (prev) => ({
+            ...prev,
+            explanation: texto,
+            is_loading_explanation: false,
+            explanation_error: '',
+          })
+        );
+      }
+      catch (error) {
+        console.error(
+          'Falha ao gerar explicacao IA:',
+          error
+        );
+
+        setJogoSelecionado(
+          (prev) => ({
+            ...prev,
+            explanation: '',
+            explanation_error:
+              'Não foi possível gerar a explicação agora.',
+            is_loading_explanation: false,
+          })
+        );
+      }
+    };
+
+  return {
+    aiOpen,
+    setAiOpen,
+    aiQuery,
+    setAiQuery,
+    aiLoading,
+    aiMessages,
+    handleAskAI,
+    gerarExplicacaoIA,
+  };
 }
