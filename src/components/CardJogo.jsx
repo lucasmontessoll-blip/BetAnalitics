@@ -10,6 +10,10 @@ import {
   useDetalhesJogo,
 } from '../hooks/useDetalhesJogo.js';
 
+import {
+  enriquecerJogoComAnaliseReal,
+} from '../utils/iaExplicavel.js';
+
 /* BET_ETAPA_37B_CARD_DETALHADO */
 
 function statusAplicacao(short = '', long = '') {
@@ -476,9 +480,11 @@ export default function CardJogo(props) {
   );
 
   const jogoFinal = useMemo(
-    () => mesclarDetalhes(
-      jogo,
-      detalhes
+    () => enriquecerJogoComAnaliseReal(
+      mesclarDetalhes(
+        jogo,
+        detalhes
+      )
     ),
     [jogo, detalhes]
   );
