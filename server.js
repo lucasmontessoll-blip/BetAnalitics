@@ -5,7 +5,9 @@ import { createClient } from '@supabase/supabase-js';
 import { GoogleGenerativeAI } from '@google/generative-ai';
 import path from 'path';
 import { fileURLToPath } from 'url';
-import 'dotenv/config'; // Garante a leitura do arquivo .env no backend
+import 'dotenv/config';
+import { instalarRotasAuth } from './server/authSupabase.js';
+import { instalarWebhookMercadoPago } from './server/paymentWebhook.js'; // Garante a leitura do arquivo .env no backend
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -66,6 +68,8 @@ app.use(
 
 // ===== BET_RENDER_PAGAMENTO_FIX_INICIO =====
 app.use(express.json({ limit: '2mb' }));
+instalarRotasAuth(app);
+instalarWebhookMercadoPago(app);
 
 function betMpToken() {
   return String(
@@ -826,6 +830,8 @@ app.post('/api/chat-ia', async (req, res) => {
 // ===== BETANALYTICS_PRO_PAGAMENTO_REAL_INICIO =====
 
 app.use(express.json({ limit: '2mb' }));
+instalarRotasAuth(app);
+instalarWebhookMercadoPago(app);
 
 function betOnlyDigits(v = '') {
   return String(v || '').replace(/\D/g, '');
