@@ -44,7 +44,6 @@ import HeaderApp from './components/HeaderApp.jsx';
 import AdminResumoPro from './components/AdminResumoPro.jsx';
 import AtalhoAdminPerfil from './components/AtalhoAdminPerfil.jsx';
 import RoteadorProfissional from './components/RoteadorProfissional.jsx';
-import { salvarAnaliseIA } from './utils/historicoIA.js';
 import { registrarPagamentoGerado, registrarPagamentoAprovado, atualizarPagamentoLocal } from './utils/pagamentosLocal.js';
 import { temAcessoPro, carregarUsuarioSessaoPro, usuarioDemoFree, rotaExigePro } from './utils/acessoPro.js';
 import { apiUrl } from './utils/apiBase.js';
@@ -213,15 +212,6 @@ const [userData, setUserData] = useState(null);
 const [viewMode, setViewMode] = useState('jogos');
 const [filterCentro, setFilterCentro] = useState('Todos');
 const [jogoSelecionado, setJogoSelecionado] = useState(null);
-
-  // bet-salvar-historico-ia-app
-  React.useEffect(() => {
-    if (!jogoSelecionado) return;
-    if (String(menuAtivo || '').toLowerCase() === 'assinar pro') return;
-
-    salvarAnaliseIA(jogoSelecionado);
-  }, [jogoSelecionado]);
-  // fim-bet-salvar-historico-ia-app
 const [form, setForm] = useState({ nome: '', email: '', cpf: '', senha: '', nascimento: '' });
 const [metodoPagamento, setMetodoPagamento] = useState('pix');
 const [pagamentoStatus, setPagamentoStatus] = useState({ loading: false, erro: '', sucesso: '', pix: null, id: null });
@@ -1753,12 +1743,3 @@ return (
 </div>
 );
 }
-
-
-
-
-
-
-
-
-
