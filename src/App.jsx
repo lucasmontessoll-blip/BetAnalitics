@@ -26,17 +26,9 @@ import AssinaturaPro from './components/AssinaturaPro.jsx';
 import MercadosIAResumo from './components/MercadosIAResumo.jsx';
 import OnboardingPro from './components/OnboardingPro.jsx';
 import CentralValorIA from './components/CentralValorIA.jsx';
-import GestaoBancaPro from './components/GestaoBancaPro.jsx';
-import AlertasIAPro from './components/AlertasIAPro.jsx';
 import { gerarClickIdAfiliado, montarUrlAfiliado } from './config/casasAfiliadas.js';
-import FavoritosPro from './components/FavoritosPro.jsx';
-import VipPro from './components/VipPro.jsx';
-import ConfiguracoesPro from './components/ConfiguracoesPro.jsx';
 import ModoDemoBadge from './components/ModoDemoBadge.jsx';
 import ModoDemoPro from './components/ModoDemoPro.jsx';
-import PerformanceIAPro from './components/PerformanceIAPro.jsx';
-import CasasParceirasPro from './components/CasasParceirasPro.jsx';
-import PerfilProCompleto from './components/PerfilProCompleto.jsx';
 import SemConexaoPro from './components/SemConexaoPro.jsx';
 import SplashLogoAnimado from './components/SplashLogoAnimado.jsx';
 import MobileBackAndCleanUI from './components/MobileBackAndCleanUI.jsx';
@@ -47,18 +39,16 @@ import CardJogo from './components/CardJogo.jsx';
 import TelaEncerrados from './components/TelaEncerrados.jsx';
 import TelaAoVivo from './components/TelaAoVivo.jsx';
 import TelaPreJogo from './components/TelaPreJogo.jsx';
-import TelaRadarIA from './components/TelaRadarIA.jsx';
 import TelaInicial from './components/TelaInicial.jsx';
 import HeaderApp from './components/HeaderApp.jsx';
 import AdminResumoPro from './components/AdminResumoPro.jsx';
 import AtalhoAdminPerfil from './components/AtalhoAdminPerfil.jsx';
-import AreaProAssinatura from './components/AreaProAssinatura.jsx';
 import RoteadorProfissional from './components/RoteadorProfissional.jsx';
-import HistoricoIAPro from './components/HistoricoIAPro.jsx';
 import { salvarAnaliseIA } from './utils/historicoIA.js';
 import { registrarPagamentoGerado, registrarPagamentoAprovado, atualizarPagamentoLocal } from './utils/pagamentosLocal.js';
 import { temAcessoPro, carregarUsuarioSessaoPro, usuarioDemoFree, rotaExigePro } from './utils/acessoPro.js';
 import { apiUrl } from './utils/apiBase.js';
+import { PerformanceIAPro, CasasParceirasPro, PerfilProCompleto, FavoritosPro, VipPro, ConfiguracoesPro, GestaoBancaPro, AlertasIAPro, HistoricoIAPro, TelaRadarIA, AreaProAssinatura } from './lazyViews.js';
 /* BET_ETAPA_35B_MODO_PRODUCAO_INICIO */
 const MODO_DEMONSTRACAO =
   String(import.meta.env.VITE_MODO_DEMO || 'false')
@@ -311,7 +301,8 @@ const jogos = useMemo(() => jogosApiFootball, [jogosApiFootball]);
 const loading = loadingApiFootball;
 const { aiOpen, setAiOpen, aiQuery, setAiQuery, aiLoading, aiMessages, handleAskAI, gerarExplicacaoIA } = useIA(API_URL, jogos, setJogoSelecionado);
 useEffect(() => {
-const timer = setTimeout(() => setShowSplash(false), 2000);return () => clearTimeout(timer);
+const timer = setTimeout(() => setShowSplash(false), 2000);
+return () => clearTimeout(timer);
 }, []);
 useEffect(() => {
 return () => {
@@ -1747,7 +1738,7 @@ return (
 </AnimatePresence>
 
 <div className="px-4 mt-6">
-  
+
 </div>
 
 <MenuRodape
