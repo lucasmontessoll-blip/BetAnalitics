@@ -40,6 +40,27 @@ export async function entrarAuth({ email, senha }) {
   return data;
 }
 
+export async function solicitarRecuperacaoSenha(email) {
+  if (!supabase) throw new Error('Supabase Auth não configurado.');
+
+  const emailLimpo = String(email || '').trim().toLowerCase();
+
+  if (!emailLimpo) {
+    throw new Error('Informe seu e-mail.');
+  }
+
+  const { data, error } = await supabase.auth.resetPasswordForEmail(
+    emailLimpo,
+    {
+      redirectTo:
+        'https://betanalitics-webservice.onrender.com/recuperar-senha'
+    }
+  );
+
+  if (error) throw error;
+  return data;
+}
+
 export async function sairAuth() {
   if (!supabase) return;
   await supabase.auth.signOut();

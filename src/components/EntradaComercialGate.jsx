@@ -3,6 +3,7 @@ import {
   cadastrarAuth,
   entrarAuth,
   perfilValidadoServidor,
+  solicitarRecuperacaoSenha,
   sairAuth,
   sessaoAtual
 } from '../services/authClient.js';
@@ -146,6 +147,35 @@ export default function EntradaComercialGate({ children }) {
     }
   }
 
+  async function recuperarSenha() {
+    setErro('');
+    setAviso('');
+
+    try {
+      const email = String(form.email || '').trim().toLowerCase();
+
+      if (!email) {
+        throw new Error(
+          'Informe seu e-mail acima para recuperar a senha.'
+        );
+      }
+
+      setCarregando(true);
+      await solicitarRecuperacaoSenha(email);
+
+      setAviso(
+        'Enviamos um link de recuperação. Verifique seu e-mail e a pasta de spam.'
+      );
+    } catch (err) {
+      setErro(
+        err?.message ||
+        'Não foi possível enviar o link de recuperação.'
+      );
+    } finally {
+      setCarregando(false);
+    }
+  }
+
   if (!termos) {
     return (
       <div className="min-h-screen bg-[#050816] text-white px-4 py-6 flex items-center justify-center">
@@ -232,6 +262,17 @@ export default function EntradaComercialGate({ children }) {
             <button disabled={carregando} className="w-full rounded-2xl bg-yellow-400 disabled:opacity-60 text-black font-black py-4">
               {carregando ? 'Aguarde...' : modo === 'cadastro' ? 'Criar cadastro' : 'Entrar'}
             </button>
+
+            {modo === 'login' && (
+              <button
+                type="button"
+                disabled={carregando}
+                onClick={recuperarSenha}
+                className="w-full rounded-2xl border border-white/10 bg-white/[0.05] disabled:opacity-60 text-white/80 font-black py-3"
+              >
+                Esqueci minha senha
+              </button>
+            )}
           </form>
         </div>
       </div>
