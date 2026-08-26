@@ -7,6 +7,7 @@ import path from 'path';
 import { fileURLToPath } from 'url';
 import 'dotenv/config';
 import { instalarRotasAuth } from './server/authSupabase.js';
+import { instalarRotasRecuperacaoSenha } from './server/passwordRecovery.js';
 import { instalarRotasHistoricoIA } from './server/historicoIA.js';
 import { instalarRotasPush } from './server/pushNotifications.js';
 import { instalarWebhookMercadoPago } from './server/paymentWebhook.js'; // Garante a leitura do arquivo .env no backend
@@ -71,6 +72,7 @@ app.use(
 // ===== BET_RENDER_PAGAMENTO_FIX_INICIO =====
 app.use(express.json({ limit: '2mb' }));
 instalarRotasAuth(app);
+instalarRotasRecuperacaoSenha(app);
 instalarRotasHistoricoIA(app);
 instalarRotasPush(app);
 instalarWebhookMercadoPago(app);
