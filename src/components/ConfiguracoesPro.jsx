@@ -22,7 +22,7 @@ import { temAcessoPro } from '../utils/acessoPro.js';
 /* BET_ETAPA_32D_CONFIGURACOES_PREMIUM */
 
 const DEFAULT_CONFIG = {
-  notificacoes: true,
+  notificacoes: false,
   tema: 'escuro',
   moeda: 'BRL',
   limiteDiario: 50,
@@ -35,9 +35,20 @@ function readConfig() {
       localStorage.getItem('bet_config_pro_v1') || 'null'
     );
 
-    return {
+    const merged = {
       ...DEFAULT_CONFIG,
       ...(stored && typeof stored === 'object' ? stored : {})
+    };
+
+    const consentimentoPush =
+      localStorage.getItem('bet_push_consent_v1') === 'granted';
+
+    return {
+      ...merged,
+      notificacoes: Boolean(
+        consentimentoPush &&
+        merged.notificacoes
+      )
     };
   } catch {
     return { ...DEFAULT_CONFIG };
@@ -115,6 +126,8 @@ export default function ConfiguracoesPro({
   userData = {},
   setViewMode,
   solicitarPermissaoNotificacao,
+  desativarNotificacao,
+  testarNotificacao,
   setAiOpen,
   setAiQuery,
   modoDemo = true
@@ -133,7 +146,16 @@ export default function ConfiguracoesPro({
     } catch {}
   }
 
-  function logout() {
+  async function logout() {
+    try {
+      if (
+        typeof desativarNotificacao ===
+        'function'
+      ) {
+        await desativarNotificacao();
+      }
+    } catch {}
+
     localStorage.removeItem('bet_sessao_ativa');
     localStorage.removeItem('bet_user_nome');
     localStorage.removeItem('bet_user_email');
@@ -157,12 +179,112 @@ export default function ConfiguracoesPro({
     }
   }
 
-  function toggleNotifications() {
-    const next = !config.notificacoes;
-    save({ notificacoes: next });
+  async function toggleNotifications() {
+    const next =
+      !config.notificacoes;
 
-    if (next && typeof solicitarPermissaoNotificacao === 'function') {
-      solicitarPermissaoNotificacao();
+    try {
+      if (next) {
+        if (
+          typeof solicitarPermissaoNotificacao !==
+          'function'
+        ) {
+          throw new Error(
+            'Servico de notificacoes indisponivel.'
+          );
+        }
+
+        const resultado =
+          await solicitarPermissaoNotificacao();
+
+        if (
+          resultado?.ok === false
+        ) {
+          throw new Error(
+            resultado?.mensagem ||
+            'Nao foi possivel ativar notificacoes.'
+          );
+        }
+
+        localStorage.setItem(
+          'bet_push_consent_v1',
+          'granted'
+        );
+
+        save({
+          notificacoes: true
+        });
+
+        alert(
+          resultado?.mensagem ||
+          'Notificacoes ativadas.'
+        );
+
+        return;
+      }
+
+      if (
+        typeof desativarNotificacao ===
+        'function'
+      ) {
+        await desativarNotificacao();
+      }
+
+      localStorage.removeItem(
+        'bet_push_consent_v1'
+      );
+
+      save({
+        notificacoes: false
+      });
+    }
+    catch (e) {
+      if (next) {
+        localStorage.removeItem(
+          'bet_push_consent_v1'
+        );
+
+        save({
+          notificacoes: false
+        });
+      }
+
+      alert(
+        e?.message ||
+        'Nao foi possivel alterar as notificacoes.'
+      );
+    }
+  }
+
+  async function testarPush() {
+    try {
+      if (!config.notificacoes) {
+        throw new Error(
+          'Ative as notificacoes antes de enviar o teste.'
+        );
+      }
+
+      if (
+        typeof testarNotificacao !==
+        'function'
+      ) {
+        throw new Error(
+          'Teste Push indisponivel.'
+        );
+      }
+
+      const resultado =
+        await testarNotificacao();
+
+      alert(
+        `Push enviado para ${resultado?.enviados || 0} dispositivo(s).`
+      );
+    }
+    catch (e) {
+      alert(
+        e?.message ||
+        'Nao foi possivel enviar a notificacao de teste.'
+      );
     }
   }
 
@@ -257,13 +379,27 @@ export default function ConfiguracoesPro({
           title="Notificações"
           description={
             config.notificacoes
-              ? 'Alertas IA ativados'
-              : 'Alertas IA desativados'
+              ? 'Push nativo autorizado neste dispositivo'
+              : 'Toque para autorizar Push no Android'
           }
           accent="text-amber-300"
           onClick={toggleNotifications}
           control={<Toggle active={config.notificacoes} />}
         />
+
+        {config.notificacoes && (
+          <>
+            <div className="border-t border-white/[0.055]" />
+            <SettingRow
+              icon={Bell}
+              title="Testar Push"
+              description="Enviar uma notificacao para este dispositivo"
+              accent="text-cyan-300"
+              onClick={testarPush}
+            />
+          </>
+        )}
+
         <div className="border-t border-white/[0.055]" />
         <SettingRow
           icon={Brain}

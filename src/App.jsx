@@ -47,6 +47,12 @@ import RoteadorProfissional from './components/RoteadorProfissional.jsx';
 import { registrarPagamentoGerado, registrarPagamentoAprovado, atualizarPagamentoLocal } from './utils/pagamentosLocal.js';
 import { temAcessoPro, carregarUsuarioSessaoPro, usuarioDemoFree, rotaExigePro } from './utils/acessoPro.js';
 import { apiUrl } from './utils/apiBase.js';
+import {
+  ativarPushNotifications,
+  desativarPushNotifications,
+  sincronizarPushAutorizado,
+  enviarPushTeste,
+} from './services/pushNotifications.js';
 import { PerformanceIAPro, CasasParceirasPro, PerfilProCompleto, FavoritosPro, VipPro, ConfiguracoesPro, GestaoBancaPro, AlertasIAPro, HistoricoIAPro, TelaRadarIA, AreaProAssinatura } from './lazyViews.js';
 /* BET_ETAPA_35B_MODO_PRODUCAO_INICIO */
 const MODO_DEMONSTRACAO =
@@ -959,7 +965,28 @@ style={{ touchAction: 'manipulation' }}
 };
 const FavVazio = ({ tipo }) => (<div className="min-h-[360px] flex flex-col items-center justify-center text-center px-6"><h3 className="text-base font-black text-white mb-2">E hora de adicionar alguns Favoritos</h3><p className="text-xs text-slate-400 font-semibold mb-6">Os {tipo} favoritos serao exibidos aqui para acesso rapido.</p><button onClick={() => setViewMode('Pesquisa')} className="w-28 h-24 rounded-2xl bg-blue-600/20 border border-blue-500/30 flex flex-col items-center justify-center text-blue-400 font-black gap-2 active:scale-95"><div className="w-9 h-9 rounded-full border-2 border-blue-400 flex items-center justify-center"><Plus className="w-5 h-5" /></div><span className="text-xs">Adicionar</span></button></div>);
 const FavCard = ({ item }) => (<div className="bg-[#0f172a] border border-white/10 rounded-2xl p-4 mb-3 flex items-center gap-3"><div className="w-11 h-11 rounded-2xl bg-[#050816] flex items-center justify-center text-xl border border-white/10">{item.emoji}</div><div className="flex-1 min-w-0"><div className="text-sm font-black text-white truncate">{item.nome || item.titulo}</div><div className="text-[10px] text-slate-500 font-bold uppercase">{item.sub || item.tipo}</div></div><button onClick={() => removerFavCatalogo(item.id)} className="text-[10px] font-black text-red-400 bg-red-500/10 border border-red-500/20 px-3 py-2 rounded-xl">Remover</button></div>);
-const solicitarPermissaoNotificacaoApp = async () => { try { if (!('Notification' in window)) { alert('Este dispositivo nao suporta notificacoes.'); return; } const permissao = await Notification.requestPermission(); if (permissao === 'granted') { alert('Alertas ativados com sucesso!'); } else { alert('Permissao de notificacoes nao liberada.'); } } catch (e) { console.error(e); alert('Nao foi possivel ativar as notificacoes agora.'); } };
+const solicitarPermissaoNotificacaoApp = async () => {
+  return ativarPushNotifications();
+};
+
+const desativarNotificacaoApp = async () => {
+  return desativarPushNotifications();
+};
+
+const testarNotificacaoApp = async () => {
+  return enviarPushTeste();
+};
+
+useEffect(() => {
+  void sincronizarPushAutorizado()
+    .catch((e) => {
+      console.warn(
+        '[Push sync autorizado]',
+        e
+      );
+    });
+}, [userData?.email]);
+
 const limparCpf = (valor = '') => String(valor).replace(/\D/g, '');
 const emailValido = (valor = '') => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(String(valor).trim());
 const validarContaObrigatoria = () => {
@@ -1647,6 +1674,8 @@ return (
   userData={userData}
   setViewMode={setViewMode}
   solicitarPermissaoNotificacao={solicitarPermissaoNotificacaoApp}
+  desativarNotificacao={desativarNotificacaoApp}
+  testarNotificacao={testarNotificacaoApp}
   setAiOpen={setAiOpen}
   setAiQuery={setAiQuery}
   modoDemo={MODO_DEMONSTRACAO}
