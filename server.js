@@ -8,6 +8,7 @@ import { fileURLToPath } from 'url';
 import 'dotenv/config';
 import { instalarRotasAuth } from './server/authSupabase.js';
 import { instalarRotasHistoricoIA } from './server/historicoIA.js';
+import { instalarRotasPush } from './server/pushNotifications.js';
 import { instalarWebhookMercadoPago } from './server/paymentWebhook.js'; // Garante a leitura do arquivo .env no backend
 
 const __filename = fileURLToPath(import.meta.url);
@@ -71,6 +72,7 @@ app.use(
 app.use(express.json({ limit: '2mb' }));
 instalarRotasAuth(app);
 instalarRotasHistoricoIA(app);
+instalarRotasPush(app);
 instalarWebhookMercadoPago(app);
 
 function betMpToken() {

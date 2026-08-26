@@ -55,3 +55,8 @@ tools/auditoria35a/
 ETAPA_*_TEMP/
 *_backup*
 *backup_antes*
+# BET_ETAPA_38C_FIREBASE_SERVICE_ACCOUNT
+firebase-service-account*.json
+serviceAccountKey*.json
+firebase-admin-key*.json
+firebase-service-account/
