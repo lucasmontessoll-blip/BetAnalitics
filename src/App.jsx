@@ -165,7 +165,7 @@ if (MP_PUBLIC_KEY) {
   initMercadoPago(MP_PUBLIC_KEY, { locale: 'pt-BR' });
 } else if (import.meta.env.DEV) {
   console.warn(
-    'VITE_MP_PUBLIC_KEY nÃ£o configurada. O checkout ficarÃ¡ indisponÃ­vel.'
+    'VITE_MP_PUBLIC_KEY não configurada. O checkout ficará indisponível.'
   );
 }
 /* BET_ETAPA_35B_MP_PUBLICA_FIM */
@@ -770,7 +770,7 @@ const jogosTelaPrincipal = useMemo(() => {
                       {leagueName}
                     </h3>
                     <p className="mt-0.5 truncate text-[9px] font-bold uppercase tracking-wider text-slate-600">
-                      ðŸŒ {paisLiga}
+                      🌐 {paisLiga}
                     </p>
                   </div>
                 </div>
@@ -914,7 +914,7 @@ const jogosTelaPrincipal = useMemo(() => {
                               </span>
                             </>
                           ) : (
-                            <span className="text-sm font-black text-slate-700">â€”</span>
+                            <span className="text-sm font-black text-slate-700">—</span>
                           )}
                         </div>
 
@@ -1407,7 +1407,7 @@ return (
     aria-label="Voltar"
     title="Voltar"
   >
-    â†
+    ←
   </button>
 )}
 
@@ -1792,7 +1792,7 @@ return (
   }}
   className="bet-retorno-painel-pro"
   data-bet-retorno-painel="true"
-  aria-label="Retornar ao inÃ­cio"
+  aria-label="Retornar ao início"
 >
   {'<'}
 </button>
