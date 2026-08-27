@@ -11,6 +11,7 @@ import { instalarRotasRecuperacaoSenha } from './server/passwordRecovery.js';
 import { instalarRotasHistoricoIA } from './server/historicoIA.js';
 import { instalarRotasPush } from './server/pushNotifications.js';
 import { instalarWebhookMercadoPago } from './server/paymentWebhook.js'; // Garante a leitura do arquivo .env no backend
+import { instalarRotasHistoricalEngine } from './server/historicalEngine.js';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -514,6 +515,10 @@ async function apiFootballRequest(pathname, params = {}) {
   return data;
 }
 
+instalarRotasHistoricalEngine(app, {
+  request: apiFootballRequest,
+  configurado: () => Boolean(API_FOOTBALL_KEY),
+});
 app.get('/api/football/health', (req, res) => {
   res.json({
     ok: true,

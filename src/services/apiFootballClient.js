@@ -292,3 +292,27 @@ export async function buscarLigasApiFootball({
 
   return payload?.ligas || [];
 }
+
+
+export async function buscarHistoricalEngineApiFootball(
+  fixtureId,
+  { signal } = {}
+) {
+  if (!fixtureId) {
+    return {
+      ok: false,
+      configurado: false,
+      status: 'sem_fixture',
+      engine: 'betanalytics-historical-v1',
+      probabilidades: null,
+      selecao: null,
+      qualidadeDados: 0,
+      fatores: [],
+    };
+  }
+
+  return requestJson(
+    `/api/football/historical/${encodeURIComponent(fixtureId)}`,
+    { signal }
+  );
+}
