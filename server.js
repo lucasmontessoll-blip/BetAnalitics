@@ -472,7 +472,7 @@ function apiFootballTTL(pathname, params = {}) {
 
 async function apiFootballRequest(pathname, params = {}) {
   if (!API_FOOTBALL_KEY) {
-    const err = new Error('API_FOOTBALL_KEY nÃ£o configurada no servidor.');
+    const err = new Error('API_FOOTBALL_KEY não configurada no servidor.');
     err.status = 500;
     throw err;
   }
@@ -724,7 +724,7 @@ app.get('/api/football/classificacao', async (req, res) => {
       standings: payload?.response || [],
     });
   } catch (e) {
-    res.status(e.status || 500).json({ ok: false, erro: e.message || 'Erro ao consultar classificaÃ§Ã£o.' });
+    res.status(e.status || 500).json({ ok: false, erro: e.message || 'Erro ao consultar classificação.' });
   }
 });
 
@@ -841,7 +841,7 @@ app.get('/api/football/pacote-completo/:fixtureId', async (req, res) => {
 
 
 // ============================================================================
-// Ã°Å¸â€â€˜ CHAVES DE ACESSO ESSENCIAIS (Supabase, Gemini, Mercado Pago, Sportradar)
+// ðŸ”‘ CHAVES DE ACESSO ESSENCIAIS (Supabase, Gemini, Mercado Pago, Sportradar)
 // ============================================================================
 /* BET_ETAPA_35B_SEGREDOS_ENV_INICIO */
 const SUPABASE_URL = String(
@@ -872,7 +872,7 @@ const SPORTRADAR_KEY = String(
 function betSupabaseFallback() {
   const indisponivel = {
     data: null,
-    error: new Error('Supabase nÃ£o configurado no servidor.')
+    error: new Error('Supabase não configurado no servidor.')
   };
 
   const consulta = new Proxy(
@@ -906,7 +906,7 @@ const genAI = GEMINI_API_KEY
 /* BET_ETAPA_35B_SEGREDOS_ENV_FIM */
 
 // ============================================================================
-// Ã°Å¸â€â€ž MOTOR DE SINCRONIZAÃƒâ€¡ÃƒÆ’O AUTOMÃƒÂTICA (Sportradar -> Supabase)
+// ðŸ”„ MOTOR DE SINCRONIZAÃ‡ÃƒO AUTOMÃTICA (Sportradar -> Supabase)
 
 /* BET_ETAPA_39A2_LEGADO_PRODUCAO_REMOVIDO
    Sincronizador Sportradar sintetico,
@@ -917,25 +917,25 @@ const genAI = GEMINI_API_KEY
 app.post('/api/chat-ia', async (req, res) => {
     const { pergunta, dadosDaRodada } = req.body;
     if (!genAI) {
-        return res.status(500).json({ resposta: "Erro: API do Gemini nÃƒÂ£o configurada." });
+        return res.status(500).json({ resposta: "Erro: API do Gemini nÃ£o configurada." });
     }
     try {
         const promptMestre = `
-        Tu ÃƒÂ©s o Analista-Chefe de InteligÃƒÂªncia Artificial do BetAnalytics PRO.
-        Ãƒâ€°s direto, profissional, falas com confianÃƒÂ§a e dÃƒÂ¡s dicas de apostas baseadas em EV+.
-        Responde ÃƒÂ  seguinte pergunta de forma curta usando no mÃƒÂ¡ximo 3 frases.
+        Tu Ã©s o Analista-Chefe de InteligÃªncia Artificial do BetAnalytics PRO.
+        Ã‰s direto, profissional, falas com confianÃ§a e dÃ¡s dicas de apostas baseadas em EV+.
+        Responde Ã  seguinte pergunta de forma curta usando no mÃ¡ximo 3 frases.
         Pergunta: "${pergunta}"
         `;
         const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
         const result = await model.generateContent(promptMestre);
         res.json({ resposta: result.response.text() });
     } catch (error) {
-        res.status(500).json({ resposta: "O radar IA estÃƒÂ¡ processando dados. Tente novamente em breve." });
+        res.status(500).json({ resposta: "O radar IA estÃ¡ processando dados. Tente novamente em breve." });
     }
 });
 
 // ============================================================================
-// Ã°Å¸Å’Â ARQUIVOS ESTÃƒÂTICOS FRONTEND
+// ðŸŒ ARQUIVOS ESTÃTICOS FRONTEND
 // ============================================================================
 
 /* BET_ETAPA_39A2_PAGAMENTO_DUPLICADO_REMOVIDO */
@@ -993,14 +993,14 @@ const PORT = process.env.PORT || 3000;
 
 
 app.listen(PORT, () => {
-    console.log(`Ã°Å¸Å¡â‚¬ Motor BetAnalytics PRO operacional na porta ${PORT}`);
+    console.log(`ðŸš€ Motor BetAnalytics PRO operacional na porta ${PORT}`);
 });
 
 /* BET_ETAPA_35B_HEALTH_PRODUCAO_INICIO */
 app.get('/api/producao/health', (_req, res) => {
   return res.status(200).json({
     ok: true,
-    servico: 'BetAnalytics ProduÃ§Ã£o',
+    servico: 'BetAnalytics Produção',
     ambiente: process.env.NODE_ENV || 'development',
     configuracao: {
       api_football: Boolean(API_FOOTBALL_KEY),
