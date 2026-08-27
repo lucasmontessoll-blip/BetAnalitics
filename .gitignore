@@ -60,3 +60,6 @@ firebase-service-account*.json
 serviceAccountKey*.json
 firebase-admin-key*.json
 firebase-service-account/
+*.jks
+*.keystore
+keystore.properties
