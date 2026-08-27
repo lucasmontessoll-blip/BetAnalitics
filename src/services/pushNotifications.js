@@ -3,6 +3,10 @@ import {
 } from '@capacitor/core';
 
 import {
+  PushNotifications,
+} from '@capacitor/push-notifications';
+
+import {
   sessaoAtual,
 } from './authClient.js';
 
@@ -18,15 +22,6 @@ const TOKEN_KEY =
 
 let listenersProntos =
   false;
-
-async function pluginPush() {
-  const modulo =
-    await import(
-      '@capacitor/push-notifications'
-    );
-
-  return modulo.PushNotifications;
-}
 
 async function sessaoAutenticada() {
   const sessao =
@@ -247,9 +242,6 @@ export async function ativarPushNotifications() {
 
   await sessaoAutenticada();
 
-  const PushNotifications =
-    await pluginPush();
-
   let permissao =
     await PushNotifications
       .checkPermissions();
@@ -339,9 +331,6 @@ export async function sincronizarPushAutorizado() {
     };
   }
 
-  const PushNotifications =
-    await pluginPush();
-
   const permissao =
     await PushNotifications
       .checkPermissions();
@@ -408,8 +397,6 @@ export async function desativarPushNotifications() {
     Capacitor.isNativePlatform()
   ) {
     try {
-      const PushNotifications =
-        await pluginPush();
 
       await PushNotifications
         .unregister();
