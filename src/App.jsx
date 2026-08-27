@@ -47,6 +47,7 @@ import RoteadorProfissional from './components/RoteadorProfissional.jsx';
 import { registrarPagamentoGerado, registrarPagamentoAprovado, atualizarPagamentoLocal } from './utils/pagamentosLocal.js';
 import { temAcessoPro, carregarUsuarioSessaoPro, usuarioDemoFree, rotaExigePro } from './utils/acessoPro.js';
 import { apiUrl } from './utils/apiBase.js';
+import { sessaoAtual, perfilValidadoServidor } from './services/authClient.js';
 import {
   ativarPushNotifications,
   desativarPushNotifications,
@@ -164,7 +165,7 @@ if (MP_PUBLIC_KEY) {
   initMercadoPago(MP_PUBLIC_KEY, { locale: 'pt-BR' });
 } else if (import.meta.env.DEV) {
   console.warn(
-    'VITE_MP_PUBLIC_KEY não configurada. O checkout ficará indisponível.'
+    'VITE_MP_PUBLIC_KEY nÃ£o configurada. O checkout ficarÃ¡ indisponÃ­vel.'
   );
 }
 /* BET_ETAPA_35B_MP_PUBLICA_FIM */
@@ -552,6 +553,9 @@ const JOGOS_ENCERRADOS_FIXOS_BET = useMemo(() => ([
 
 const jogosBaseComEncerradosBet = useMemo(() => {
   const reais = Array.isArray(jogos) ? jogos : [];
+  if (!MODO_DEMONSTRACAO) {
+    return reais;
+  }
   const idsReais = new Set(reais.map((j) => String(j?.id || j?.fixture?.id || '')));
 
   const extras = JOGOS_ENCERRADOS_FIXOS_BET.filter((j) => {
@@ -766,7 +770,7 @@ const jogosTelaPrincipal = useMemo(() => {
                       {leagueName}
                     </h3>
                     <p className="mt-0.5 truncate text-[9px] font-bold uppercase tracking-wider text-slate-600">
-                      🌐 {paisLiga}
+                      ðŸŒ {paisLiga}
                     </p>
                   </div>
                 </div>
@@ -910,7 +914,7 @@ const jogosTelaPrincipal = useMemo(() => {
                               </span>
                             </>
                           ) : (
-                            <span className="text-sm font-black text-slate-700">—</span>
+                            <span className="text-sm font-black text-slate-700">â€”</span>
                           )}
                         </div>
 
@@ -1017,45 +1021,135 @@ return null;
 }
 return { nome, email, cpf, senha, nascimento };
 };
-const ativarVipAposPagamento = (conta, pagamento = {}) => {
-const expira = new Date();
-expira.setDate(expira.getDate() + PLANO_PRO.dias);
-const usuario = {
-nome: conta.nome,
-email: conta.email,
-cpf: conta.cpf,
-is_vip: true,
-is_admin: conta.email.includes('admin'),
-vip_expira: expira.toISOString(),
-pagamento_id: pagamento.id || pagamento.payment_id || null,
-pagamento_status: pagamento.status || 'approved',
-metodo_pagamento: pagamento.metodo || metodoPagamento,
-};
-localStorage.setItem('bet_sessao_ativa', usuario.email);
-localStorage.setItem('bet_user_nome', usuario.nome);
-localStorage.setItem('bet_user_email', usuario.email);
-localStorage.setItem('bet_vip_expira', usuario.vip_expira);
-const usuarios = JSON.parse(localStorage.getItem('bet_users') || '[]').filter(u => u.email !== usuario.email);
-usuarios.push(usuario);
-localStorage.setItem('bet_users', JSON.stringify(usuarios));
+const confirmarVipServidor = async (conta, pagamento = {}) => {
+  const paymentId =
+    pagamento.id ||
+    pagamento.payment_id ||
+    null;
 
-// bet-pagamento-historico-aprovado
-registrarPagamentoAprovado(pagamento.id || pagamento.payment_id, {
-  nome: usuario.nome,
-  email: usuario.email,
-  metodo: usuario.metodo_pagamento,
-  valor: PLANO_PRO.valor,
-  descricao: PLANO_PRO.nome,
-  status: usuario.pagamento_status,
-  pagamento_id: usuario.pagamento_id
-});
-// fim-bet-pagamento-historico-aprovado
+  if (!paymentId) {
+    throw new Error(
+      'Pagamento aprovado sem identificador.'
+    );
+  }
 
-setUserData(usuario);
-setMenuAtivo('Todos os Jogos');
-setViewMode('perfil');
-setPagamentoStatus({ loading: false, erro: '', sucesso: ' Pagamento aprovado. VIP PRO liberado.', pix: null, id: pagamento.id || null });
-alert(' Pagamento aprovado. VIP PRO ativado com sucesso.');
+  const sessao =
+    await sessaoAtual();
+
+  const token =
+    sessao?.access_token;
+
+  if (!token) {
+    throw new Error(
+      'Entre na sua conta para liberar o PRO.'
+    );
+  }
+
+  const resp =
+    await fetch(
+      apiUrl(
+        `/api/pagamento/sincronizar/${encodeURIComponent(paymentId)}`
+      ),
+      {
+        method: 'POST',
+        headers: {
+          Accept: 'application/json',
+          Authorization: `Bearer ${token}`
+        }
+      }
+    );
+
+  const sincronizacao =
+    await resp.json()
+      .catch(() => null);
+
+  if (!resp.ok || !sincronizacao?.ok) {
+    throw new Error(
+      sincronizacao?.erro ||
+      'Pagamento aprovado, mas nao foi possivel validar o PRO.'
+    );
+  }
+
+  if (!sincronizacao?.aprovado) {
+    throw new Error(
+      'O Mercado Pago ainda nao confirmou este pagamento.'
+    );
+  }
+
+  const perfil =
+    await perfilValidadoServidor(sessao);
+
+  if (!perfil) {
+    throw new Error(
+      'Nao foi possivel atualizar o perfil PRO.'
+    );
+  }
+
+  if (
+    perfil.is_vip !== true &&
+    perfil.is_admin !== true
+  ) {
+    throw new Error(
+      'Pagamento confirmado, mas o PRO ainda nao foi liberado.'
+    );
+  }
+
+  try {
+    window.__BET_AUTH_PROFILE__ =
+      perfil;
+  }
+  catch {}
+
+  setUserData(perfil);
+
+  registrarPagamentoAprovado(
+    paymentId,
+    {
+      nome:
+        perfil.nome ||
+        conta?.nome ||
+        '',
+      email:
+        perfil.email ||
+        conta?.email ||
+        '',
+      metodo:
+        pagamento.metodo ||
+        metodoPagamento,
+      valor:
+        PLANO_PRO.valor,
+      descricao:
+        PLANO_PRO.nome,
+      status:
+        pagamento.status ||
+        'approved',
+      pagamento_id:
+        paymentId
+    }
+  );
+
+  setMenuAtivo(
+    'Todos os Jogos'
+  );
+
+  setViewMode(
+    'perfil'
+  );
+
+  setPagamentoStatus({
+    loading: false,
+    erro: '',
+    sucesso:
+      'Pagamento confirmado. PRO liberado pelo servidor.',
+    pix: null,
+    id: paymentId
+  });
+
+  alert(
+    'Pagamento confirmado. BetAnalytics PRO ativado.'
+  );
+
+  return perfil;
 };
 const consultarStatusPagamento = async (paymentId, conta) => {
 try {
@@ -1067,15 +1161,15 @@ if (!resp.ok) throw new Error(data?.erro || 'Nao foi possivel consultar o pagame
 atualizarPagamentoLocal(paymentId, {
   status: data.status || 'pending',
   status_detail: data.status_detail || data.statusDetail || '',
-  aprovado: Boolean(data.aprovado || data.status === 'approved' || data.status === 'processed'),
+  aprovado: Boolean(data.aprovado || data.status === 'approved'),
   ultimoRetorno: data
 });
 // fim-bet-pagamento-historico-status
 
-if (data.aprovado || data.status === 'approved' || data.status === 'processed') {
+if (data.aprovado || data.status === 'approved') {
 if (pollingPagamentoRef.current) clearInterval(pollingPagamentoRef.current);
 pollingPagamentoRef.current = null;
-ativarVipAposPagamento(conta, { id: paymentId, status: data.status, metodo: metodoPagamento });
+await confirmarVipServidor(conta, { id: paymentId, status: data.status, metodo: metodoPagamento });
 return;
 }
 setPagamentoStatus(s => ({ ...s, sucesso: `Aguardando pagamento... status: ${data.status || 'pendente'}` }));
@@ -1165,8 +1259,8 @@ registrarPagamentoGerado({
 });
 // fim-bet-pagamento-historico-cartao
 
-if (data.aprovado || data.status === 'approved' || data.status === 'processed') {
-ativarVipAposPagamento(conta, { id: data.id || data.payment_id, status: data.status, metodo: metodoPagamento });
+if (data.aprovado || data.status === 'approved') {
+await confirmarVipServidor(conta, { id: data.id || data.payment_id, status: data.status, metodo: metodoPagamento });
 return;
 }
 setPagamentoStatus({ loading: false, erro: data.mensagem || `Pagamento nao aprovado. Status: ${data.status || 'recusado'}`, sucesso: '', pix: null, id: data.id || null });
@@ -1313,7 +1407,7 @@ return (
     aria-label="Voltar"
     title="Voltar"
   >
-    ←
+    â†
   </button>
 )}
 
@@ -1698,7 +1792,7 @@ return (
   }}
   className="bet-retorno-painel-pro"
   data-bet-retorno-painel="true"
-  aria-label="Retornar ao início"
+  aria-label="Retornar ao inÃ­cio"
 >
   {'<'}
 </button>
