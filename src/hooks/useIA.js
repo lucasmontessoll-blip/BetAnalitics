@@ -5,6 +5,53 @@ import {
   apiUrl,
 } from '../utils/apiBase.js';
 
+import {
+  sessaoAtual,
+} from '../services/authClient.js';
+
+const axiosAuth =
+  axios.create();
+
+axiosAuth.interceptors.request.use(
+  async (config) => {
+
+    const sessao =
+      await sessaoAtual()
+        .catch(() => null);
+
+    const token =
+      String(
+        sessao?.access_token || ''
+      ).trim();
+
+    if (!token) {
+      return config;
+    }
+
+    const authorization =
+      `Bearer ${token}`;
+
+    if (
+      typeof config.headers?.set ===
+      'function'
+    ) {
+      config.headers.set(
+        'Authorization',
+        authorization
+      );
+    }
+    else {
+      config.headers = {
+        ...(config.headers || {}),
+        Authorization:
+          authorization,
+      };
+    }
+
+    return config;
+  }
+);
+
 export function useIA(
   API_URL,
   jogos,
@@ -70,7 +117,7 @@ export function useIA(
           .join(', ');
 
       const resposta =
-        await axios.post(
+        await axiosAuth.post(
           apiUrl('/api/chat-ia'),
           {
             pergunta:
@@ -199,7 +246,7 @@ Se não houver dados suficientes, informe claramente que não existe base sufici
 
       try {
         const resposta =
-          await axios.post(
+          await axiosAuth.post(
             apiUrl('/api/chat-ia'),
             {
               pergunta: prompt,

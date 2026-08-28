@@ -9,6 +9,10 @@ import {
   apiUrl,
 } from '../utils/apiBase.js';
 
+import {
+  sessaoAtual,
+} from '../services/authClient.js';
+
 function numero(valor) {
   if (
     valor === undefined ||
@@ -551,6 +555,15 @@ export function useRadarOddsReal(
       setErro('');
 
       try {
+        const sessao =
+          await sessaoAtual()
+            .catch(() => null);
+
+        const token =
+          String(
+            sessao?.access_token || ''
+          ).trim();
+
         const resp =
           await fetch(
             apiUrl(
@@ -563,6 +576,15 @@ export function useRadarOddsReal(
               headers: {
                 Accept:
                   'application/json',
+
+                ...(
+                  token
+                    ? {
+                        Authorization:
+                          `Bearer ${token}`,
+                      }
+                    : {}
+                ),
               },
             }
           );

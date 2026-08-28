@@ -1,9 +1,46 @@
 import { mapApiFootballFixtureToJogo } from './apiFootballMapper.js';
+import { sessaoAtual } from './authClient.js';
 import { apiUrl } from '../utils/apiBase.js';
 import { lerCacheJson, salvarCacheJson } from '../utils/cacheJson.js';
 
 const CACHE_FRESCO_MS = 15 * 1000;
 const CACHE_OFFLINE_MAX_MS = 6 * 60 * 60 * 1000;
+
+async function contextoAuthOpcional() {
+  try {
+    const sessao =
+      await sessaoAtual();
+
+    const token =
+      String(
+        sessao?.access_token || ''
+      ).trim();
+
+    const userId =
+      String(
+        sessao?.user?.id || ''
+      ).trim();
+
+    return {
+      userId:
+        userId || 'anon',
+
+      headers:
+        token
+          ? {
+              Authorization:
+                `Bearer ${token}`,
+            }
+          : {},
+    };
+  }
+  catch {
+    return {
+      userId: 'anon',
+      headers: {},
+    };
+  }
+}
 
 function resultadoVazio(erro = 'API-Football indisponivel no momento.') {
   return {
@@ -48,10 +85,35 @@ async function requestJson(path, options = {}) {
   const url = apiUrl(path);
 
   const metodo = String(options.method || 'GET').toUpperCase();
-  const usaCache = metodo === 'GET';
 
-  const cacheKey = `football:${url}`;
-  const cache = usaCache ? lerCacheJson(cacheKey) : null;
+  const cacheLocalPermitido =
+    !path.startsWith(
+      '/api/football/historical/'
+    ) &&
+    !path.startsWith(
+      '/api/football/jogo/'
+    ) &&
+    !path.startsWith(
+      '/api/football/pacote-completo/'
+    ) &&
+    !path.startsWith(
+      '/api/football/radar-odds'
+    );
+
+  const usaCache =
+    metodo === 'GET' &&
+    cacheLocalPermitido;
+
+  const auth =
+    await contextoAuthOpcional();
+
+  const cacheKey =
+    `football:${auth.userId}:${url}`;
+
+  const cache =
+    usaCache
+      ? lerCacheJson(cacheKey)
+      : null;
 
   // Cache muito recente: evita requisicoes duplicadas,
   // especialmente quando React StrictMode executa efeitos novamente.
@@ -67,6 +129,7 @@ async function requestJson(path, options = {}) {
       ...options,
       headers: {
         Accept: 'application/json',
+        ...auth.headers,
         ...(options.headers || {}),
       },
     });
@@ -81,8 +144,17 @@ async function requestJson(path, options = {}) {
 
       console.warn('API-Football indisponivel:', mensagem);
 
+      // Nunca reaproveita cache em falha de autenticacao/autorizacao.
+      const erroAuth =
+        resp.status === 401 ||
+        resp.status === 403;
+
       // Em falha temporaria, usa a ultima resposta real conhecida.
-      if (cache && cache.idadeMs <= CACHE_OFFLINE_MAX_MS) {
+      if (
+        !erroAuth &&
+        cache &&
+        cache.idadeMs <= CACHE_OFFLINE_MAX_MS
+      ) {
         return aplicarInfoCache(cache.dados, {
           stale: true,
           idadeMs: cache.idadeMs,
