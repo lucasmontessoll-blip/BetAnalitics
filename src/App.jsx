@@ -181,8 +181,6 @@ d.setMinutes(d.getMinutes() - d.getTimezoneOffset());
 return d.toISOString().split('T')[0];
 };
 const listaLigas = [{ name: 'Todos', id: null }, { name: 'Brasileirao', id: 71 }, { name: 'Champions', id: 2 }, { name: 'Premier League', id: 39 }];
-const crescimentoBancaGlobal = [{ dia: "Seg", banca: 1000 }, { dia: "Ter", banca: 1120 }, { dia: "Qua", banca: 1210 }, { dia: "Qui", banca: 1380 }, { dia: "Sex", banca: 1470 }, { dia: "Sab", banca: 1650 }, { dia: "Dom", banca: 1840 }];
-const desempenhoDiario = [{ dia: "Seg", acertos: 14, erros: 3 }, { dia: "Ter", acertos: 18, erros: 2 }, { dia: "Qua", acertos: 12, erros: 5 }, { dia: "Qui", acertos: 20, erros: 4 }, { dia: "Sex", acertos: 25, erros: 6 }, { dia: "Sab", acertos: 32, erros: 5 }, { dia: "Dom", acertos: 29, erros: 3 }];
 const BUSCA_Equipes = [
   { tipo: 'time', nome: 'Brasil', sub: 'Sele\u00e7\u00e3o Brasileira', emoji: '\u{1F1E7}\u{1F1F7}' },
   { tipo: 'time', nome: 'Fran\u00e7a', sub: 'Sele\u00e7\u00e3o Francesa', emoji: '\u{1F1EB}\u{1F1F7}' },
@@ -358,121 +356,6 @@ const validos = viewMode === 'copa' ? jogos.filter(j => isSelecao(j.home_team, j
 const selecoes = [...validos].filter(j => j.confianca_ia >= 80).sort((a, b) => b.confianca_ia - a.confianca_ia).slice(0, 3);
 return { selecoes, oddFinal: selecoes.reduce((acc, j) => acc * (j.odd_principal || 1), 1) };
 }, [jogos, viewMode]);
-const jogosDemoEncerrados = useMemo(() => ([
-  {
-    id: 'demo-encerrado-1',
-    demo: true,
-    league_id: 71,
-    league_name: 'Brasileirao',
-    league_country: 'Brazil',
-    status: 'Finished',
-    home_team: 'Flamengo',
-    away_team: 'Palmeiras',
-    scoreHome: 2,
-    scoreAway: 1,
-    placar_casa: 2,
-    placar_fora: 1,
-    confianca_ia: 92,
-    odd_principal: 1.82,
-    mercado_principal: 'Vitoria Flamengo',
-    time_elapsed: 'FT',
-  },
-  {
-    id: 'demo-encerrado-2',
-    demo: true,
-    league_id: 2,
-    league_name: 'Champions League',
-    league_country: 'World',
-    status: 'Finished',
-    home_team: 'Real Madrid',
-    away_team: 'Manchester City',
-    scoreHome: 3,
-    scoreAway: 2,
-    placar_casa: 3,
-    placar_fora: 2,
-    confianca_ia: 88,
-    odd_principal: 2.10,
-    mercado_principal: 'Ambos marcaram',
-    time_elapsed: 'FT',
-  },
-  {
-    id: 'demo-encerrado-3',
-    demo: true,
-    league_id: 39,
-    league_name: 'Premier League',
-    league_country: 'England',
-    status: 'Finished',
-    home_team: 'Liverpool',
-    away_team: 'Arsenal',
-    scoreHome: 1,
-    scoreAway: 1,
-    placar_casa: 1,
-    placar_fora: 1,
-    confianca_ia: 84,
-    odd_principal: 1.95,
-    mercado_principal: 'Mais de 1.5 gols',
-    time_elapsed: 'FT',
-  },
-]), []);
-
-const JOGOS_DEMO_ENCERRADOS_FINAL = useMemo(() => ([
-  {
-    id: 'encerrado-final-1',
-    demo: true,
-    league_id: 71,
-    league_name: 'Brasileirao Serie A',
-    league_country: 'Brasil',
-    status: 'Finished',
-    home_team: 'Flamengo',
-    away_team: 'Palmeiras',
-    scoreHome: 2,
-    scoreAway: 1,
-    placar_casa: 2,
-    placar_fora: 1,
-    confianca_ia: 92,
-    odd_principal: 1.82,
-    mercado_principal: 'Vitoria Flamengo',
-    time_elapsed: 'FT'
-  },
-  {
-    id: 'encerrado-final-2',
-    demo: true,
-    league_id: 2,
-    league_name: 'Champions League',
-    league_country: 'Europa',
-    status: 'Finished',
-    home_team: 'Real Madrid',
-    away_team: 'Manchester City',
-    scoreHome: 3,
-    scoreAway: 2,
-    placar_casa: 3,
-    placar_fora: 2,
-    confianca_ia: 88,
-    odd_principal: 2.10,
-    mercado_principal: 'Ambos marcam',
-    time_elapsed: 'FT'
-  },
-  {
-    id: 'encerrado-final-3',
-    demo: true,
-    league_id: 39,
-    league_name: 'Premier League',
-    league_country: 'Inglaterra',
-    status: 'Finished',
-    home_team: 'Liverpool',
-    away_team: 'Arsenal',
-    scoreHome: 1,
-    scoreAway: 1,
-    placar_casa: 1,
-    placar_fora: 1,
-    confianca_ia: 84,
-    odd_principal: 1.95,
-    mercado_principal: 'Mais de 1.5 gols',
-    time_elapsed: 'FT'
-  }
-]), []);
-
-
 function ehJogoEncerradoBet(jogo) {
   const texto = [
     jogo?.status,
