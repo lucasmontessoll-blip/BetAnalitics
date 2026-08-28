@@ -6,7 +6,10 @@ import { GoogleGenerativeAI } from '@google/generative-ai';
 import path from 'path';
 import { fileURLToPath } from 'url';
 import 'dotenv/config';
-import { instalarRotasAuth } from './server/authSupabase.js';
+import {
+  instalarRotasAuth,
+  autenticarRequest,
+} from './server/authSupabase.js';
 import { instalarRotasRecuperacaoSenha } from './server/passwordRecovery.js';
 import { instalarRotasHistoricoIA } from './server/historicoIA.js';
 import { instalarRotasPush } from './server/pushNotifications.js';
@@ -736,6 +739,7 @@ async function apiFootballRequest(pathname, params = {}) {
 instalarRotasHistoricalEngine(app, {
   request: apiFootballRequest,
   configurado: () => Boolean(API_FOOTBALL_KEY),
+  autenticar: autenticarRequest,
 });
 app.get('/api/football/health', (req, res) => {
   res.json({
@@ -788,7 +792,10 @@ app.get('/api/football/jogos', async (req, res) => {
   }
 });
 
-app.get('/api/football/jogo/:fixtureId', async (req, res) => {
+app.get(
+  '/api/football/jogo/:fixtureId',
+  autenticarRequest,
+  async (req, res) => {
   try {
     // MODO_DEMO_SEM_CHAVE_JOGO
     if (!API_FOOTBALL_KEY) {
@@ -845,7 +852,10 @@ app.get('/api/football/jogo/:fixtureId', async (req, res) => {
 });
 
 /* BET_ETAPA_38B_RADAR_ODDS_REAL */
-app.get('/api/football/radar-odds', async (req, res) => {
+app.get(
+  '/api/football/radar-odds',
+  autenticarRequest,
+  async (req, res) => {
   try {
     if (!API_FOOTBALL_KEY) {
       return res.json({
@@ -998,7 +1008,10 @@ app.get('/api/football/jogador/:playerId', async (req, res) => {
   }
 });
 
-app.get('/api/football/pacote-completo/:fixtureId', async (req, res) => {
+app.get(
+  '/api/football/pacote-completo/:fixtureId',
+  autenticarRequest,
+  async (req, res) => {
   try {
     // MODO_DEMO_SEM_CHAVE_PACOTE
     if (!API_FOOTBALL_KEY) {
@@ -1136,7 +1149,10 @@ const genAI = GEMINI_API_KEY
    Fonte oficial de jogos: API-Football.
 */
 // ============================================================================
-app.post('/api/chat-ia', async (req, res) => {
+app.post(
+  '/api/chat-ia',
+  autenticarRequest,
+  async (req, res) => {
     const { pergunta, dadosDaRodada } = req.body;
     if (!genAI) {
         return res.status(500).json({ resposta: "Erro: API do Gemini não configurada." });
