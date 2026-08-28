@@ -9,6 +9,148 @@ const PESOS = Object.freeze({
   mercado: 5,
 });
 
+const HISTORICAL_CACHE_TTL_MS = (() => {
+  const valor =
+    Number(
+      process.env.HISTORICAL_CACHE_TTL_MS
+    );
+
+  if (
+    Number.isFinite(valor) &&
+    valor >= 60000 &&
+    valor <= 3600000
+  ) {
+    return Math.floor(valor);
+  }
+
+  return 5 * 60 * 1000;
+})();
+
+const HISTORICAL_CACHE_MAX = (() => {
+  const valor =
+    Number(
+      process.env.HISTORICAL_CACHE_MAX
+    );
+
+  if (
+    Number.isFinite(valor) &&
+    valor >= 10 &&
+    valor <= 5000
+  ) {
+    return Math.floor(valor);
+  }
+
+  return 500;
+})();
+
+const historicalCache =
+  new Map();
+
+const historicalInflight =
+  new Map();
+
+function historicalCacheLimparExpirados() {
+  const agora =
+    Date.now();
+
+  for (
+    const [fixtureId, item]
+    of historicalCache.entries()
+  ) {
+    if (
+      !item ||
+      agora - item.createdAt >=
+        HISTORICAL_CACHE_TTL_MS
+    ) {
+      historicalCache.delete(
+        fixtureId
+      );
+    }
+  }
+}
+
+function historicalCacheGet(
+  fixtureId
+) {
+  const chave =
+    String(fixtureId);
+
+  const item =
+    historicalCache.get(chave);
+
+  if (!item) {
+    return null;
+  }
+
+  if (
+    Date.now() -
+      item.createdAt >=
+    HISTORICAL_CACHE_TTL_MS
+  ) {
+    historicalCache.delete(chave);
+    return null;
+  }
+
+  return item.data;
+}
+
+function historicalCacheSet(
+  fixtureId,
+  data
+) {
+  const chave =
+    String(fixtureId);
+
+  historicalCache.delete(chave);
+
+  historicalCache.set(
+    chave,
+    {
+      createdAt:
+        Date.now(),
+
+      data
+    }
+  );
+
+  while (
+    historicalCache.size >
+    HISTORICAL_CACHE_MAX
+  ) {
+    const maisAntiga =
+      historicalCache
+        .keys()
+        .next()
+        .value;
+
+    if (!maisAntiga) {
+      break;
+    }
+
+    historicalCache.delete(
+      maisAntiga
+    );
+  }
+}
+
+function historicalCacheStatus() {
+  historicalCacheLimparExpirados();
+
+  return {
+    ttl_ms:
+      HISTORICAL_CACHE_TTL_MS,
+
+    max_entries:
+      HISTORICAL_CACHE_MAX,
+
+    entries:
+      historicalCache.size,
+
+    inflight:
+      historicalInflight.size
+  };
+}
+
 const num = (v, f = null) => {
   if (v === null || v === undefined || v === '') return f;
   const n = Number(String(v).replace('%', '').replace(',', '.'));
@@ -200,17 +342,117 @@ export function instalarRotasHistoricalEngine(app, { request, configurado } = {}
   if (!app || typeof request !== 'function') throw new Error('Historical Engine: dependencias invalidas.');
 
   app.get('/api/football/historical/health', (_req, res) => {
-    const ativo = Boolean(configurado?.());
-    res.json({ ok: true, engine: 'betanalytics-historical-v1', configurado: ativo, status: ativo ? 'ativo' : 'aguardando_api' });
+    const ativo =
+      Boolean(
+        configurado?.()
+      );
+
+    res.json({
+      ok: true,
+      engine:
+        'betanalytics-historical-v1',
+      configurado:
+        ativo,
+      status:
+        ativo
+          ? 'ativo'
+          : 'aguardando_api',
+      cache:
+        historicalCacheStatus()
+    });
   });
 
   app.get('/api/football/historical/:fixtureId', async (req, res) => {
     try {
-      const fixtureId = String(req.params.fixtureId || '').trim();
-      if (!fixtureId) return res.status(400).json({ ok: false, erro: 'fixtureId obrigatorio.' });
-      if (!configurado?.()) return res.json(semApi(fixtureId));
+      const fixtureId =
+        String(
+          req.params.fixtureId || ''
+        ).trim();
 
-      const fp = await request('/fixtures', { id: fixtureId });
+      if (
+        !/^\d{1,20}$/.test(
+          fixtureId
+        )
+      ) {
+        return res
+          .status(400)
+          .json({
+            ok: false,
+            engine:
+              'betanalytics-historical-v1',
+            erro:
+              'fixtureId invalido.'
+          });
+      }
+
+      if (!configurado?.()) {
+        return res.json(
+          semApi(fixtureId)
+        );
+      }
+
+      const cachePronto =
+        historicalCacheGet(
+          fixtureId
+        );
+
+      if (cachePronto) {
+        return res.json({
+          ...cachePronto,
+
+          cache: {
+            hit: true,
+            compartilhado: false,
+            ttl_ms:
+              HISTORICAL_CACHE_TTL_MS
+          }
+        });
+      }
+
+      const emAndamento =
+        historicalInflight.get(
+          fixtureId
+        );
+
+      if (emAndamento) {
+        await emAndamento;
+
+        const compartilhado =
+          historicalCacheGet(
+            fixtureId
+          );
+
+        if (compartilhado) {
+          return res.json({
+            ...compartilhado,
+
+            cache: {
+              hit: true,
+              compartilhado: true,
+              ttl_ms:
+                HISTORICAL_CACHE_TTL_MS
+            }
+          });
+        }
+      }
+
+      let liberarInflight;
+
+      const trava =
+        new Promise(
+          (resolve) => {
+            liberarInflight =
+              resolve;
+          }
+        );
+
+      historicalInflight.set(
+        fixtureId,
+        trava
+      );
+
+      try {
+        const fp = await request('/fixtures', { id: fixtureId });
       const fixture = fp?.response?.[0];
       if (!fixture) return res.status(404).json({ ok: false, erro: 'Partida nao encontrada.' });
 
@@ -278,7 +520,7 @@ export function instalarRotasHistoricalEngine(app, { request, configurado } = {}
       if (pred && pick(pred)?.[0] !== lado) alertas.push('A prediction externa diverge da seleção BetAnalytics.');
       if (agg.qualidade < 70) alertas.push('Cobertura de dados abaixo de 70%; a confiança foi reduzida.');
 
-      res.json({
+      const resposta = {
         ok: true, configurado: true, status: 'ativo', engine: 'betanalytics-historical-v1',
         fixtureId, atualizadoEm: new Date().toISOString(),
         partida: { casa, fora, homeId, awayId, leagueId: league || null, season: season || null },
@@ -309,7 +551,37 @@ export function instalarRotasHistoricalEngine(app, { request, configurado } = {}
             away: Number(f.vetor.away.toFixed(1)),
           } : null,
         })),
+      };
+
+      historicalCacheSet(
+        fixtureId,
+        resposta
+      );
+
+      return res.json({
+        ...resposta,
+
+        cache: {
+          hit: false,
+          compartilhado: false,
+          ttl_ms:
+            HISTORICAL_CACHE_TTL_MS
+        }
       });
+      }
+      finally {
+        liberarInflight?.();
+
+        if (
+          historicalInflight.get(
+            fixtureId
+          ) === trava
+        ) {
+          historicalInflight.delete(
+            fixtureId
+          );
+        }
+      }
     } catch (e) {
       console.error('[Historical Engine]', e?.status || 500, e?.message || e);
       res.status(Number(e?.status) || 500).json({ ok: false, engine: 'betanalytics-historical-v1', erro: e?.message || 'Falha ao gerar analise historica.' });
