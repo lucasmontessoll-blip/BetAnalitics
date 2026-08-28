@@ -451,6 +451,127 @@ const API_FOOTBALL_BASE_URL = process.env.API_FOOTBALL_BASE_URL || 'https://v3.f
 const API_FOOTBALL_KEY = process.env.API_FOOTBALL_KEY || process.env.API_FOOTBALL_TOKEN || process.env.APIFOOTBALL_KEY;
 
 const apiFootballCache = new Map();
+const apiFootballInflight = new Map();
+
+function apiFootballInteiroPositivo(valor, fallback) {
+  const numero = Number(valor);
+
+  if (!Number.isFinite(numero) || numero <= 0) {
+    return fallback;
+  }
+
+  return Math.floor(numero);
+}
+
+const API_FOOTBALL_REQUESTS_PER_MINUTE =
+  apiFootballInteiroPositivo(
+    process.env.API_FOOTBALL_REQUESTS_PER_MINUTE,
+    10
+  );
+
+const API_FOOTBALL_DAILY_BUDGET =
+  apiFootballInteiroPositivo(
+    process.env.API_FOOTBALL_DAILY_BUDGET,
+    90
+  );
+
+let apiFootballMinuteInicio = Date.now();
+let apiFootballMinuteCount = 0;
+
+let apiFootballDayKey =
+  new Date().toISOString().slice(0, 10);
+
+let apiFootballDayCount = 0;
+
+function apiFootballAtualizarJanelas() {
+  const agora = Date.now();
+
+  if (
+    agora - apiFootballMinuteInicio >=
+    60 * 1000
+  ) {
+    apiFootballMinuteInicio = agora;
+    apiFootballMinuteCount = 0;
+  }
+
+  const hoje =
+    new Date(agora)
+      .toISOString()
+      .slice(0, 10);
+
+  if (hoje !== apiFootballDayKey) {
+    apiFootballDayKey = hoje;
+    apiFootballDayCount = 0;
+  }
+}
+
+function apiFootballConsumirQuota() {
+  apiFootballAtualizarJanelas();
+
+  if (
+    apiFootballMinuteCount >=
+    API_FOOTBALL_REQUESTS_PER_MINUTE
+  ) {
+    const erro =
+      new Error(
+        'Limite temporário de consultas à API-Football atingido.'
+      );
+
+    erro.status = 429;
+    erro.code = 'API_FOOTBALL_RATE_LIMIT';
+
+    throw erro;
+  }
+
+  if (
+    apiFootballDayCount >=
+    API_FOOTBALL_DAILY_BUDGET
+  ) {
+    const erro =
+      new Error(
+        'Orçamento diário de consultas à API-Football atingido.'
+      );
+
+    erro.status = 429;
+    erro.code = 'API_FOOTBALL_DAILY_BUDGET';
+
+    throw erro;
+  }
+
+  apiFootballMinuteCount += 1;
+  apiFootballDayCount += 1;
+}
+
+function apiFootballQuotaStatus() {
+  apiFootballAtualizarJanelas();
+
+  return {
+    requests_per_minute:
+      API_FOOTBALL_REQUESTS_PER_MINUTE,
+
+    requests_minute_used:
+      apiFootballMinuteCount,
+
+    daily_budget:
+      API_FOOTBALL_DAILY_BUDGET,
+
+    daily_used:
+      apiFootballDayCount,
+
+    daily_remaining:
+      Math.max(
+        0,
+        API_FOOTBALL_DAILY_BUDGET -
+          apiFootballDayCount
+      ),
+
+    cache_entries:
+      apiFootballCache.size,
+
+    inflight:
+      apiFootballInflight.size
+  };
+}
 
 function apiFootballCacheKey(pathname, params = {}) {
   const clean = Object.entries(params)
@@ -473,46 +594,143 @@ function apiFootballTTL(pathname, params = {}) {
 
 async function apiFootballRequest(pathname, params = {}) {
   if (!API_FOOTBALL_KEY) {
-    const err = new Error('API_FOOTBALL_KEY não configurada no servidor.');
+    const err =
+      new Error(
+        'API_FOOTBALL_KEY não configurada no servidor.'
+      );
+
     err.status = 500;
     throw err;
   }
 
-  const key = apiFootballCacheKey(pathname, params);
-  const cached = apiFootballCache.get(key);
-  const ttl = apiFootballTTL(pathname, params);
+  const key =
+    apiFootballCacheKey(
+      pathname,
+      params
+    );
 
-  if (cached && Date.now() - cached.createdAt < ttl) {
+  const cached =
+    apiFootballCache.get(key);
+
+  const ttl =
+    apiFootballTTL(
+      pathname,
+      params
+    );
+
+  if (
+    cached &&
+    Date.now() - cached.createdAt < ttl
+  ) {
     return cached.data;
   }
 
-  const url = new URL(`${API_FOOTBALL_BASE_URL}${pathname}`);
+  const emAndamento =
+    apiFootballInflight.get(key);
 
-  Object.entries(params).forEach(([k, v]) => {
-    if (v !== undefined && v !== null && v !== '') {
-      url.searchParams.set(k, String(v));
-    }
-  });
-
-  const resp = await fetch(url.toString(), {
-    method: 'GET',
-    headers: {
-      'x-apisports-key': API_FOOTBALL_KEY,
-      Accept: 'application/json',
-    },
-  });
-
-  const data = await resp.json().catch(() => null);
-
-  if (!resp.ok) {
-    const err = new Error(data?.message || data?.errors?.token || data?.errors?.requests || `Erro API-Football ${resp.status}`);
-    err.status = resp.status;
-    err.payload = data;
-    throw err;
+  if (emAndamento) {
+    return emAndamento;
   }
 
-  apiFootballCache.set(key, { createdAt: Date.now(), data });
-  return data;
+  const requisicao = (async () => {
+    apiFootballConsumirQuota();
+
+    const url =
+      new URL(
+        `${API_FOOTBALL_BASE_URL}${pathname}`
+      );
+
+    Object.entries(params)
+      .forEach(([k, v]) => {
+        if (
+          v !== undefined &&
+          v !== null &&
+          v !== ''
+        ) {
+          url.searchParams.set(
+            k,
+            String(v)
+          );
+        }
+      });
+
+    const resp =
+      await fetch(
+        url.toString(),
+        {
+          method: 'GET',
+
+          headers: {
+            'x-apisports-key':
+              API_FOOTBALL_KEY,
+
+            Accept:
+              'application/json'
+          }
+        }
+      );
+
+    const data =
+      await resp
+        .json()
+        .catch(() => null);
+
+    if (!resp.ok) {
+      const err =
+        new Error(
+          data?.message ||
+          data?.errors?.token ||
+          data?.errors?.requests ||
+          `Erro API-Football ${resp.status}`
+        );
+
+      err.status = resp.status;
+      err.payload = data;
+
+      throw err;
+    }
+
+    apiFootballCache.set(
+      key,
+      {
+        createdAt: Date.now(),
+        data
+      }
+    );
+
+    if (apiFootballCache.size > 2000) {
+      const maisAntiga =
+        apiFootballCache
+          .keys()
+          .next()
+          .value;
+
+      if (maisAntiga) {
+        apiFootballCache.delete(
+          maisAntiga
+        );
+      }
+    }
+
+    return data;
+  })();
+
+  apiFootballInflight.set(
+    key,
+    requisicao
+  );
+
+  try {
+    return await requisicao;
+  }
+  finally {
+    if (
+      apiFootballInflight.get(key) ===
+      requisicao
+    ) {
+      apiFootballInflight.delete(key);
+    }
+  }
 }
 
 instalarRotasHistoricalEngine(app, {
@@ -525,6 +743,7 @@ app.get('/api/football/health', (req, res) => {
     fonte: 'api-football',
     configurado: Boolean(API_FOOTBALL_KEY),
     baseUrl: API_FOOTBALL_BASE_URL,
+    protecao: apiFootballQuotaStatus(),
   });
 });
 
@@ -857,7 +1076,6 @@ const SUPABASE_URL = String(
 
 const SUPABASE_KEY = String(
   process.env.SUPABASE_SERVICE_ROLE_KEY ||
-  process.env.SUPABASE_KEY ||
   ''
 ).trim();
 
