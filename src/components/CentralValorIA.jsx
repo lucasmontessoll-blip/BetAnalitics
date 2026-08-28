@@ -56,7 +56,7 @@ function CardAcao({
 
 function dataPartida(valor) {
   if (!valor) {
-    return 'HorÃ¡rio indisponÃ­vel';
+    return 'Horário indisponível';
   }
 
   const data =
@@ -67,7 +67,7 @@ function dataPartida(valor) {
       data.getTime()
     )
   ) {
-    return 'HorÃ¡rio indisponÃ­vel';
+    return 'Horário indisponível';
   }
 
   return data.toLocaleString(
@@ -86,9 +86,9 @@ function sinal(valor) {
 }
 
 const perguntasRapidas = [
-  'Explique as probabilidades reais disponÃ­veis no radar.',
+  'Explique as probabilidades reais disponíveis no radar.',
   'Como interpretar EV sem inventar dados?',
-  'Explique a diferenÃ§a entre probabilidade e precisÃ£o histÃ³rica.',
+  'Explique a diferença entre probabilidade e precisão histórica.',
 ];
 
 export default function CentralValorIA({
@@ -182,7 +182,7 @@ export default function CentralValorIA({
           </h2>
 
           <p className="mt-2 text-xs font-semibold leading-relaxed text-blue-100/90">
-            O radar cruza a previsÃ£o disponÃ­vel para a partida com odds 1X2 fornecidas pela API. Quando uma das fontes nÃ£o existe, o jogo nÃ£o recebe nÃºmeros artificiais.
+            O radar cruza a previsão disponível para a partida com odds 1X2 fornecidas pela API. Quando uma das fontes não existe, o jogo não recebe números artificiais.
           </p>
 
           <div className="mt-5 grid grid-cols-3 gap-2">
@@ -195,7 +195,7 @@ export default function CentralValorIA({
               </div>
 
               <div className="text-[8px] font-bold uppercase text-blue-100">
-                Prob. mÃ©dia
+                Prob. média
               </div>
             </div>
 
@@ -234,7 +234,7 @@ export default function CentralValorIA({
 
         <CardAcao
           icon={Wallet}
-          titulo="GestÃ£o de Banca"
+          titulo="Gestão de Banca"
           texto="Stake, ROI e controle de risco."
           cor="bg-emerald-600"
           onClick={() =>
@@ -258,7 +258,7 @@ export default function CentralValorIA({
 
         <CardAcao
           icon={History}
-          titulo="HistÃ³rico IA"
+          titulo="Histórico IA"
           texto="Performance registrada na sua conta."
           cor="bg-blue-600"
           onClick={() =>
@@ -294,7 +294,7 @@ export default function CentralValorIA({
 
         <CardAcao
           icon={Crown}
-          titulo="Ãrea VIP"
+          titulo="Área VIP"
           texto="Recursos profissionais da conta."
           cor="bg-purple-600"
           onClick={() =>
@@ -343,7 +343,7 @@ export default function CentralValorIA({
             </p>
 
             <p className="mt-1 text-[9px] font-semibold text-slate-500">
-              O radar consulta no mÃ¡ximo cinco partidas prÃ©-jogo por atualizaÃ§Ã£o.
+              O radar consulta no máximo cinco partidas pré-jogo por atualização.
             </p>
 
           </div>
@@ -355,11 +355,11 @@ export default function CentralValorIA({
             <Database className="mx-auto h-7 w-7 text-slate-600" />
 
             <p className="mt-3 text-sm font-black text-white">
-              Nenhuma oportunidade real disponÃ­vel
+              Nenhuma oportunidade real disponível
             </p>
 
             <p className="mt-2 text-[10px] font-semibold leading-relaxed text-slate-500">
-              As partidas consultadas ainda nÃ£o possuem simultaneamente previsÃ£o e odd 1X2 vÃ¡lidas. O aplicativo nÃ£o preencherÃ¡ esses campos com nÃºmeros demonstrativos.
+              As partidas consultadas ainda não possuem simultaneamente previsão e odd 1X2 válidas. O aplicativo não preencherá esses campos com números demonstrativos.
             </p>
 
           </div>
@@ -385,7 +385,7 @@ export default function CentralValorIA({
 
                     <div className="min-w-0">
                       <div className="text-[9px] font-black uppercase text-slate-600">
-                        #{index + 1} Â· {jogo.liga}
+                        #{index + 1} · {jogo.liga}
                       </div>
 
                       <div className="mt-1 truncate text-sm font-black text-white">
@@ -476,7 +476,7 @@ export default function CentralValorIA({
         </div>
 
         <p className="text-[10px] font-semibold leading-relaxed text-slate-500">
-          A probabilidade vem do endpoint de predictions. A odd Ã© a melhor cotaÃ§Ã£o 1X2 encontrada para o mesmo resultado previsto entre os bookmakers retornados pela fonte. O EV Ã© calculado diretamente desses dois valores e pode ser positivo ou negativo.
+          A probabilidade vem do endpoint de predictions. A odd é a melhor cotação 1X2 encontrada para o mesmo resultado previsto entre os bookmakers retornados pela fonte. O EV é calculado diretamente desses dois valores e pode ser positivo ou negativo.
         </p>
 
       </div>
@@ -485,7 +485,7 @@ export default function CentralValorIA({
       <div className="mb-5 rounded-3xl border border-white/10 bg-[#0f172a] p-4">
 
         <div className="mb-3 text-[10px] font-black uppercase tracking-widest text-slate-500">
-          Perguntas rÃ¡pidas
+          Perguntas rápidas
         </div>
 
         <div className="grid gap-2">
@@ -538,14 +538,14 @@ export default function CentralValorIA({
           className="flex flex-col items-center gap-2 rounded-2xl border border-white/10 bg-[#0f172a] p-3 text-xs font-black text-white active:scale-[0.98]"
         >
           <History className="h-5 w-5 text-emerald-400" />
-          HistÃ³rico
+          Histórico
         </button>
 
         <button
           type="button"
           onClick={() =>
             abrirPergunta(
-              'Analise apenas os dados reais disponÃ­veis no Radar de hoje.'
+              'Analise apenas os dados reais disponíveis no Radar de hoje.'
             )
           }
           className="flex flex-col items-center gap-2 rounded-2xl border border-white/10 bg-[#0f172a] p-3 text-xs font-black text-white active:scale-[0.98]"

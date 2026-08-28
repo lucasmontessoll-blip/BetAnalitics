@@ -202,7 +202,7 @@ export default function HistoricoIAPro() {
         <div className="flex items-center justify-between gap-3">
           <span className="inline-flex items-center rounded-full border border-blue-400/20 bg-blue-500/10 px-3 py-1 text-[9px] font-black uppercase tracking-wide text-blue-300">
             <Activity className="mr-1 h-3 w-3" />
-            HistÃ³rico IA PRO
+            Histórico IA PRO
           </span>
 
           <button
@@ -210,7 +210,7 @@ export default function HistoricoIAPro() {
             disabled={loading}
             onClick={() => void carregar()}
             className="rounded-full bg-white/10 p-2 text-white disabled:opacity-50"
-            aria-label="Atualizar histÃ³rico"
+            aria-label="Atualizar histórico"
           >
             <RefreshCw
               className={`h-4 w-4 ${
@@ -225,13 +225,13 @@ export default function HistoricoIAPro() {
         </h1>
 
         <p className="mt-3 text-sm font-semibold leading-relaxed text-slate-300">
-          Somente previsÃµes recebidas de uma fonte validada entram neste histÃ³rico.
+          Somente previsões recebidas de uma fonte validada entram neste histórico.
         </p>
 
         <div className="mt-5 grid grid-cols-2 gap-3">
           <CardResumo
             icon={Trophy}
-            label="PrecisÃ£o"
+            label="Precisão"
             valor={
               resumo.precisao !== null
                 ? `${resumo.precisao}%`
@@ -266,7 +266,7 @@ export default function HistoricoIAPro() {
           <ShieldCheck className="mt-0.5 h-4 w-4 shrink-0 text-blue-300" />
 
           <p className="text-[9px] font-semibold leading-relaxed text-slate-400">
-            A precisÃ£o considera somente registros marcados como Green ou Red. Nesta etapa, o resultado Ã© confirmado manualmente; previsÃ£o, probabilidade e odd registradas vÃªm dos dados carregados para a partida.
+            A precisão considera somente registros marcados como Green ou Red. Nesta etapa, o resultado é confirmado manualmente; previsão, probabilidade e odd registradas vêm dos dados carregados para a partida.
           </p>
         </div>
 
@@ -281,7 +281,7 @@ export default function HistoricoIAPro() {
       <div className="mt-5 flex items-center justify-between gap-3">
         <div>
           <h2 className="text-lg font-black">
-            PrevisÃµes registradas
+            Previsões registradas
           </h2>
 
           <p className="text-xs font-bold text-slate-400">
@@ -306,7 +306,7 @@ export default function HistoricoIAPro() {
         <div className="mt-5 rounded-3xl border border-white/10 bg-[#0f172a] p-7 text-center">
           <RefreshCw className="mx-auto h-7 w-7 animate-spin text-blue-400" />
           <p className="mt-4 text-sm font-black">
-            Carregando seu histÃ³rico...
+            Carregando seu histórico...
           </p>
         </div>
       ) : lista.length === 0 ? (
@@ -314,11 +314,11 @@ export default function HistoricoIAPro() {
           <Database className="mx-auto h-9 w-9 text-slate-500" />
 
           <h3 className="mt-4 text-lg font-black">
-            Nenhuma previsÃ£o real registrada
+            Nenhuma previsão real registrada
           </h3>
 
           <p className="mt-2 text-sm font-semibold text-slate-400">
-            Abra uma partida que possua previsÃ£o disponÃ­vel. O registro serÃ¡ feito depois que os dados reais forem carregados.
+            Abra uma partida que possua previsão disponível. O registro será feito depois que os dados reais forem carregados.
           </p>
         </div>
       ) : (
@@ -340,7 +340,7 @@ export default function HistoricoIAPro() {
                     </h3>
 
                     <p className="mt-1 truncate text-[10px] font-bold text-slate-500">
-                      {item.liga || 'CompetiÃ§Ã£o'}
+                      {item.liga || 'Competição'}
                     </p>
                   </div>
 
