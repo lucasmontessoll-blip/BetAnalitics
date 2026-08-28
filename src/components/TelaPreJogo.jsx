@@ -14,6 +14,11 @@ import {
 
 /* BET_ETAPA_32A_TELA_PRE_JOGO */
 
+const DEMO_ATIVO =
+  String(import.meta.env.VITE_MODO_DEMO || 'false')
+    .trim()
+    .toLowerCase() === 'true';
+
 const DAY_NAMES = ['DOM', 'SEG', 'TER', 'QUA', 'QUI', 'SEX', 'SÁB'];
 
 function startOfDay(value = new Date()) {
@@ -146,7 +151,7 @@ export default function TelaPreJogo({
       .map(normalizeMatch)
       .sort((a, b) => (matchDate(a)?.getTime() ?? Number.MAX_SAFE_INTEGER) - (matchDate(b)?.getTime() ?? Number.MAX_SAFE_INTEGER));
 
-    return real.length > 0 ? real : demoMatches().map(normalizeMatch);
+    return real.length > 0 ? real : (DEMO_ATIVO ? demoMatches().map(normalizeMatch) : []);
   }, [jogos]);
 
   const availableDates = useMemo(() => (
