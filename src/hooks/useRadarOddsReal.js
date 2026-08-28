@@ -335,11 +335,11 @@ function mercadoSelecao(
     nomes(jogo);
 
   if (selecao === 'casa') {
-    return `VitÃ³ria ${times.casa}`;
+    return `Vitória ${times.casa}`;
   }
 
   if (selecao === 'fora') {
-    return `VitÃ³ria ${times.fora}`;
+    return `Vitória ${times.fora}`;
   }
 
   if (selecao === 'empate') {
@@ -414,7 +414,7 @@ function montarRadarItem(
       jogo?.league_name ??
       jogo?.liga ??
       jogo?.league?.name ??
-      'CompetiÃ§Ã£o',
+      'Competição',
 
     partida_em:
       jogo?.starting_at ??
@@ -649,7 +649,7 @@ export function useRadarOddsReal(
           setDados([]);
           setErro(
             e?.message ||
-            'Radar real indisponÃ­vel.'
+            'Radar real indisponível.'
           );
         }
       }
