@@ -338,8 +338,23 @@ function semApi(id) {
   };
 }
 
-export function instalarRotasHistoricalEngine(app, { request, configurado } = {}) {
-  if (!app || typeof request !== 'function') throw new Error('Historical Engine: dependencias invalidas.');
+export function instalarRotasHistoricalEngine(
+  app,
+  {
+    request,
+    configurado,
+    autenticar,
+  } = {}
+) {
+  if (
+    !app ||
+    typeof request !== 'function' ||
+    typeof autenticar !== 'function'
+  ) {
+    throw new Error(
+      'Historical Engine: dependencias invalidas.'
+    );
+  }
 
   app.get('/api/football/historical/health', (_req, res) => {
     const ativo =
@@ -362,7 +377,10 @@ export function instalarRotasHistoricalEngine(app, { request, configurado } = {}
     });
   });
 
-  app.get('/api/football/historical/:fixtureId', async (req, res) => {
+  app.get(
+    '/api/football/historical/:fixtureId',
+    autenticar,
+    async (req, res) => {
     try {
       const fixtureId =
         String(
