@@ -846,7 +846,7 @@ app.get('/api/football/pacote-completo/:fixtureId', async (req, res) => {
 
 
 // ============================================================================
-// ðŸ”‘ CHAVES DE ACESSO ESSENCIAIS (Supabase, Gemini, Mercado Pago, Sportradar)
+// CHAVES DE ACESSO ESSENCIAIS (Supabase, Gemini, Mercado Pago, Sportradar)
 // ============================================================================
 /* BET_ETAPA_35B_SEGREDOS_ENV_INICIO */
 const SUPABASE_URL = String(
@@ -858,7 +858,6 @@ const SUPABASE_URL = String(
 const SUPABASE_KEY = String(
   process.env.SUPABASE_SERVICE_ROLE_KEY ||
   process.env.SUPABASE_KEY ||
-  process.env.VITE_SUPABASE_KEY ||
   ''
 ).trim();
 
@@ -911,7 +910,7 @@ const genAI = GEMINI_API_KEY
 /* BET_ETAPA_35B_SEGREDOS_ENV_FIM */
 
 // ============================================================================
-// ðŸ”„ MOTOR DE SINCRONIZAÃ‡ÃƒO AUTOMÃTICA (Sportradar -> Supabase)
+// MOTOR LEGADO DE SINCRONIZACAO REMOVIDO
 
 /* BET_ETAPA_39A2_LEGADO_PRODUCAO_REMOVIDO
    Sincronizador Sportradar sintetico,
@@ -922,25 +921,25 @@ const genAI = GEMINI_API_KEY
 app.post('/api/chat-ia', async (req, res) => {
     const { pergunta, dadosDaRodada } = req.body;
     if (!genAI) {
-        return res.status(500).json({ resposta: "Erro: API do Gemini nÃ£o configurada." });
+        return res.status(500).json({ resposta: "Erro: API do Gemini não configurada." });
     }
     try {
         const promptMestre = `
-        Tu Ã©s o Analista-Chefe de InteligÃªncia Artificial do BetAnalytics PRO.
-        Ã‰s direto, profissional, falas com confianÃ§a e dÃ¡s dicas de apostas baseadas em EV+.
-        Responde Ã  seguinte pergunta de forma curta usando no mÃ¡ximo 3 frases.
+        Tu és o Analista-Chefe de Inteligência Artificial do BetAnalytics PRO.
+        És direto, profissional, falas com confiança e dás análises baseadas em EV+.
+        Responde à seguinte pergunta de forma curta usando no máximo 3 frases.
         Pergunta: "${pergunta}"
         `;
         const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
         const result = await model.generateContent(promptMestre);
         res.json({ resposta: result.response.text() });
     } catch (error) {
-        res.status(500).json({ resposta: "O radar IA estÃ¡ processando dados. Tente novamente em breve." });
+        res.status(500).json({ resposta: "O radar IA está processando dados. Tente novamente em breve." });
     }
 });
 
 // ============================================================================
-// ðŸŒ ARQUIVOS ESTÃTICOS FRONTEND
+// ARQUIVOS ESTATICOS FRONTEND
 // ============================================================================
 
 /* BET_ETAPA_39A2_PAGAMENTO_DUPLICADO_REMOVIDO */
@@ -981,26 +980,6 @@ app.use(
   })
 );
 
-app.get('*', (req, res) => {
-  res.setHeader(
-    'Cache-Control',
-    'no-store, no-cache, must-revalidate, proxy-revalidate'
-  );
-  res.setHeader('Pragma', 'no-cache');
-  res.setHeader('Expires', '0');
-  res.sendFile(path.join(BET_DIST_DIR, 'index.html'));
-});
-/* BET_ETAPA_33_CACHE_RENDER_FIM */
-
-const PORT = process.env.PORT || 3000;
-
-
-
-
-app.listen(PORT, () => {
-    console.log(`ðŸš€ Motor BetAnalytics PRO operacional na porta ${PORT}`);
-});
-
 /* BET_ETAPA_35B_HEALTH_PRODUCAO_INICIO */
 app.get('/api/producao/health', (_req, res) => {
   return res.status(200).json({
@@ -1019,3 +998,23 @@ app.get('/api/producao/health', (_req, res) => {
   });
 });
 /* BET_ETAPA_35B_HEALTH_PRODUCAO_FIM */
+
+app.get('*', (req, res) => {
+  res.setHeader(
+    'Cache-Control',
+    'no-store, no-cache, must-revalidate, proxy-revalidate'
+  );
+  res.setHeader('Pragma', 'no-cache');
+  res.setHeader('Expires', '0');
+  res.sendFile(path.join(BET_DIST_DIR, 'index.html'));
+});
+/* BET_ETAPA_33_CACHE_RENDER_FIM */
+
+const PORT = process.env.PORT || 3000;
+
+
+
+
+app.listen(PORT, () => {
+    console.log(`[BetAnalytics] Motor PRO operacional na porta ${PORT}`);
+});
