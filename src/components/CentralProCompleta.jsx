@@ -34,6 +34,11 @@ import {
 
 /* BET_ETAPA_32C_CENTRAL_PRO_PREMIUM */
 
+const DEMO_ATIVO =
+  String(import.meta.env.VITE_MODO_DEMO || 'false')
+    .trim()
+    .toLowerCase() === 'true';
+
 const JOGOS_DEMO = [
   {
     id: 'radar-demo-1',
@@ -359,7 +364,7 @@ function RadarHero({ vipAtivo, mediaIA, totalJogos, alertasPendentes }) {
             }`}
           >
             <Crown className="h-3 w-3" />
-            {vipAtivo ? 'VIP ATIVO' : 'MODO DEMO'}
+            {vipAtivo ? 'VIP ATIVO' : 'PLANO FREE'}
           </span>
         </div>
 
@@ -395,7 +400,7 @@ function HistoryPanel({ precision }) {
       />
 
       <div className="overflow-hidden rounded-[24px] bg-[#0b0e14] shadow-[0_15px_40px_rgba(0,0,0,0.24)] ring-1 ring-inset ring-white/[0.06]">
-        {HISTORICO.map((item, index) => {
+        {(DEMO_ATIVO ? HISTORICO : []).map((item, index) => {
           const green = item.status === 'GREEN';
 
           return (
@@ -461,7 +466,7 @@ function AlertsPanel({ read, onRead }) {
       />
 
       <div className="overflow-hidden rounded-[24px] bg-[#0b0e14] shadow-[0_15px_40px_rgba(0,0,0,0.24)] ring-1 ring-inset ring-white/[0.06]">
-        {ALERTAS.map((alerta, index) => {
+        {(DEMO_ATIVO ? ALERTAS : []).map((alerta, index) => {
           const Icon = alerta.tipo === 'ia' ? Zap : alerta.tipo === 'odd' ? TrendingUp : Star;
           const accent = alerta.tipo === 'ia'
             ? 'text-yellow-300 bg-yellow-400/10'
@@ -618,7 +623,7 @@ export default function CentralProCompleta({
   const vipAtivo = temAcessoPro(userData);
 
   const listaJogos = useMemo(() => {
-    const source = Array.isArray(jogos) && jogos.length > 0 ? jogos : JOGOS_DEMO;
+    const source = Array.isArray(jogos) && jogos.length > 0 ? jogos : (DEMO_ATIVO ? JOGOS_DEMO : []);
 
     return source
       .map(normalizeRadarMatch)
@@ -631,9 +636,10 @@ export default function CentralProCompleta({
       Math.max(1, listaJogos.length)
   );
 
-  const greens = HISTORICO.filter((item) => item.status === 'GREEN').length;
-  const precision = Math.round((greens / HISTORICO.length) * 100);
-  const alertsPending = alertsRead ? 0 : ALERTAS.length;
+  const historicoAtivo = DEMO_ATIVO ? HISTORICO : [];
+  const greens = historicoAtivo.filter((item) => item.status === 'GREEN').length;
+  const precision = historicoAtivo.length > 0 ? Math.round((greens / historicoAtivo.length) * 100) : 0;
+  const alertsPending = alertsRead ? 0 : (DEMO_ATIVO ? ALERTAS.length : 0);
 
   function openMatch(jogo) {
     if (!vipAtivo) {

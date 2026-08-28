@@ -12,6 +12,11 @@ import {
 
 /* BET_ETAPA_32A_TELA_ENCERRADOS */
 
+const DEMO_ATIVO =
+  String(import.meta.env.VITE_MODO_DEMO || 'false')
+    .trim()
+    .toLowerCase() === 'true';
+
 const DEMO = [
   {
     id: 'demo-ft-flamengo-palmeiras',
@@ -104,7 +109,7 @@ export default function TelaEncerrados({
 }) {
   const matches = useMemo(() => {
     const real = (Array.isArray(jogos) ? jogos : []).filter(isFinished).map(normalizeMatch);
-    return real.length > 0 ? real : DEMO.map(normalizeMatch);
+    return real.length > 0 ? real : (DEMO_ATIVO ? DEMO.map(normalizeMatch) : []);
   }, [jogos]);
 
   const groups = useMemo(() => groupByLeague(matches), [matches]);

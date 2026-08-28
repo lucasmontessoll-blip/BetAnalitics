@@ -12,6 +12,11 @@ import {
 
 /* BET_ETAPA_32A_TELA_AO_VIVO */
 
+const DEMO_ATIVO =
+  String(import.meta.env.VITE_MODO_DEMO || 'false')
+    .trim()
+    .toLowerCase() === 'true';
+
 const DEMO = [{
   id: 'demo-live-flamengo-palmeiras',
   demo: true,
@@ -72,7 +77,7 @@ export default function TelaAoVivo({
 }) {
   const matches = useMemo(() => {
     const real = (Array.isArray(jogos) ? jogos : []).filter(isLive).map(normalizeMatch);
-    return real.length > 0 ? real : DEMO.map(normalizeMatch);
+    return real.length > 0 ? real : (DEMO_ATIVO ? DEMO.map(normalizeMatch) : []);
   }, [jogos]);
 
   const groups = useMemo(() => groupByLeague(matches), [matches]);
