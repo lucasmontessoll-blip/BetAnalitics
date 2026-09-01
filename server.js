@@ -1164,12 +1164,60 @@ app.post(
         Responde à seguinte pergunta de forma curta usando no máximo 3 frases.
         Pergunta: "${pergunta}"
         `;
-        const result = await genAI.models.generateContent({
-            model: "gemini-3.7-flash",
-            contents: promptMestre
-        });
+        const modelosGemini = [
+            "gemini-3.7-flash",
+            "gemini-3.6-flash"
+        ];
+        const tentativasPorModelo = 2;
+        let result = null;
+        let ultimoErroGemini = null;
 
-        res.json({ resposta: result.text });
+        for (const modelo of modelosGemini) {
+            for (let tentativa = 1; tentativa <= tentativasPorModelo; tentativa += 1) {
+                try {
+                    result = await genAI.models.generateContent({
+                        model: modelo,
+                        contents: promptMestre
+                    });
+                    ultimoErroGemini = null;
+                    break;
+                } catch (erroGemini) {
+                    ultimoErroGemini = erroGemini;
+                    const statusGemini = Number(
+                        erroGemini?.status ??
+                        erroGemini?.statusCode ??
+                        erroGemini?.code ??
+                        erroGemini?.error?.code ??
+                        0
+                    );
+                    const transitorio =
+                        statusGemini === 408 ||
+                        statusGemini === 429 ||
+                        statusGemini >= 500;
+                    if (!transitorio) throw erroGemini;
+                    if (tentativa < tentativasPorModelo) {
+                        await new Promise((resolve) =>
+                            setTimeout(resolve, 1000 * tentativa)
+                        );
+                    }
+                }
+            }
+            if (result) break;
+        }
+
+        if (!result) {
+            throw ultimoErroGemini ||
+                new Error("Gemini temporariamente indisponivel.");
+        }
+
+        const respostaGemini =
+            String(result?.text || "").trim();
+
+        if (!respostaGemini) {
+            throw new Error("Gemini retornou resposta vazia.");
+        }
+
+        res.json({ resposta: respostaGemini });
     } catch (error) {
         res.status(500).json({ resposta: "O radar IA está processando dados. Tente novamente em breve." });
     }
