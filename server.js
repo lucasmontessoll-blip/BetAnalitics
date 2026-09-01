@@ -2,7 +2,7 @@ import express from 'express';
 import cors from 'cors';
 import axios from 'axios';
 import { createClient } from '@supabase/supabase-js';
-import { GoogleGenerativeAI } from '@google/generative-ai';
+import { GoogleGenAI } from '@google/genai';
 import path from 'path';
 import { fileURLToPath } from 'url';
 import 'dotenv/config';
@@ -1136,7 +1136,7 @@ const supabase =
     : betSupabaseFallback();
 
 const genAI = GEMINI_API_KEY
-  ? new GoogleGenerativeAI(GEMINI_API_KEY)
+  ? new GoogleGenAI({ apiKey: GEMINI_API_KEY })
   : null;
 /* BET_ETAPA_35B_SEGREDOS_ENV_FIM */
 
@@ -1164,9 +1164,12 @@ app.post(
         Responde à seguinte pergunta de forma curta usando no máximo 3 frases.
         Pergunta: "${pergunta}"
         `;
-        const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
-        const result = await model.generateContent(promptMestre);
-        res.json({ resposta: result.response.text() });
+        const result = await genAI.models.generateContent({
+            model: "gemini-3.7-flash",
+            contents: promptMestre
+        });
+
+        res.json({ resposta: result.text });
     } catch (error) {
         res.status(500).json({ resposta: "O radar IA está processando dados. Tente novamente em breve." });
     }
