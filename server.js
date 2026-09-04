@@ -25,6 +25,7 @@ import {
   cacheCompartilhadoGet,
   cacheCompartilhadoSet,
   cacheCompartilhadoStatus,
+  cacheCompartilhadoFechar,
 } from './server/sharedCache.js';
 import {
   consumirQuotaDistribuida,
@@ -40,19 +41,36 @@ import {
   configurarFilaGemini,
   executarGeminiEnfileirado,
   geminiQueueStatus,
-  probeFilaGemini
+  probeFilaGemini,
+  fecharFilaGemini
 } from './server/geminiQueue.js';
 import {
   observabilidadeMiddleware,
   observabilidadeResumo,
-  observabilidadeSnapshot
+  observabilidadeSnapshot,
+  fecharObservabilidade
 } from './server/observability.js';
+import {
+  runtimeBeginShutdown,
+  runtimeInstanceMiddleware,
+  runtimeInstanceStatus,
+  runtimeReadiness
+} from './server/runtimeInstance.js';
 import { instalarRotasHistoricalEngine } from './server/historicalEngine.js';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
 const app = express();
+
+/*
+ * Identifica anonimamente qual processo
+ * respondeu. Essencial para validar
+ * load balancing entre instancias.
+ */
+app.use(
+  runtimeInstanceMiddleware
+);
 
 /*
  * Observabilidade global:
@@ -2056,6 +2074,52 @@ app.use(
 
 /* BET_ETAPA_35B_HEALTH_PRODUCAO_INICIO */
 app.get(
+  '/api/producao/instance',
+  (_req, res) => {
+    return res
+      .status(200)
+      .json({
+        ok: true,
+
+        servico:
+          'BetAnalytics Instance',
+
+        instancia:
+          runtimeInstanceStatus(),
+
+        timestamp:
+          new Date()
+            .toISOString()
+      });
+  }
+);
+
+app.get(
+  '/api/producao/readiness',
+  (_req, res) => {
+    const readiness =
+      runtimeReadiness();
+
+    return res
+      .status(
+        readiness.ok
+          ? 200
+          : 503
+      )
+      .json({
+        ...readiness,
+
+        servico:
+          'BetAnalytics Readiness',
+
+        timestamp:
+          new Date()
+            .toISOString()
+      });
+  }
+);
+
+app.get(
   '/api/producao/rate-limit-health',
   async (_req, res) => {
     try {
@@ -2183,6 +2247,142 @@ const PORT = process.env.PORT || 3000;
 
 
 
-app.listen(PORT, () => {
-    console.log(`[BetAnalytics] Motor PRO operacional na porta ${PORT}`);
-});
+const httpServer =
+  app.listen(
+    PORT,
+    () => {
+      console.log(
+        `[BetAnalytics] Motor PRO operacional na porta ${PORT}`
+      );
+    }
+  );
+
+let shutdownPromise =
+  null;
+
+function gracefulShutdownMs() {
+  const valor =
+    Number(
+      process.env
+        .GRACEFUL_SHUTDOWN_MS
+    );
+
+  if (
+    Number.isFinite(valor) &&
+    valor >= 5000 &&
+    valor <= 120000
+  ) {
+    return Math.floor(
+      valor
+    );
+  }
+
+  return 30000;
+}
+
+async function encerrarServidor(
+  signal
+) {
+  if (shutdownPromise) {
+    return shutdownPromise;
+  }
+
+  shutdownPromise =
+    (async () => {
+      runtimeBeginShutdown(
+        signal
+      );
+
+      console.log(
+        `[BetAnalytics] Encerramento gracioso iniciado: ${signal}`
+      );
+
+      const limiteMs =
+        gracefulShutdownMs();
+
+      const forceTimer =
+        setTimeout(
+          () => {
+            console.error(
+              '[BetAnalytics] Timeout no encerramento gracioso.'
+            );
+
+            process.exit(1);
+          },
+          limiteMs
+        );
+
+      forceTimer.unref?.();
+
+      try {
+        await new Promise(
+          (resolve) => {
+            httpServer.close(
+              () => resolve()
+            );
+
+            try {
+              httpServer
+                .closeIdleConnections
+                ?.();
+            }
+            catch {
+            }
+          }
+        );
+
+        await Promise.allSettled([
+          fecharFilaGemini(),
+          cacheCompartilhadoFechar()
+        ]);
+
+        fecharObservabilidade();
+
+        clearTimeout(
+          forceTimer
+        );
+
+        console.log(
+          '[BetAnalytics] Encerramento gracioso concluido.'
+        );
+
+        process.exitCode =
+          0;
+      }
+      catch (error) {
+        clearTimeout(
+          forceTimer
+        );
+
+        console.error(
+          '[BetAnalytics] Falha durante encerramento gracioso.',
+          error?.code ||
+          error?.name ||
+          'SHUTDOWN_ERROR'
+        );
+
+        process.exitCode =
+          1;
+      }
+    })();
+
+  return shutdownPromise;
+}
+
+process.once(
+  'SIGTERM',
+  () => {
+    void encerrarServidor(
+      'SIGTERM'
+    );
+  }
+);
+
+process.once(
+  'SIGINT',
+  () => {
+    void encerrarServidor(
+      'SIGINT'
+    );
+  }
+);
