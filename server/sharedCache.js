@@ -1,36 +1,27 @@
-﻿import { createClient } from 'redis';
+﻿import {
+  redisInfraClient,
+  redisInfraConfigured,
+  redisInfraKey,
+  redisInfraStatus,
+  redisInfraClose
+} from './redisInfra.js';
 
 const memoria = new Map();
 
-let redisClient = null;
-let redisConnectPromise = null;
-let redisRetryDepois = 0;
-let redisUltimoErro = '';
-
-function inteiroPositivo(valor, fallback) {
+function inteiroPositivo(
+  valor,
+  fallback
+) {
   const numero = Number(valor);
 
-  if (!Number.isFinite(numero) || numero <= 0) {
+  if (
+    !Number.isFinite(numero) ||
+    numero <= 0
+  ) {
     return fallback;
   }
 
   return Math.floor(numero);
-}
-
-function redisUrl() {
-  return String(
-    process.env.REDIS_URL || ''
-  ).trim();
-}
-
-function redisPrefixo() {
-  return String(
-    process.env.REDIS_PREFIX ||
-    'betanalytics'
-  )
-    .trim()
-    .replace(/:+$/g, '') ||
-    'betanalytics';
 }
 
 function memoriaMaximo() {
@@ -41,67 +32,63 @@ function memoriaMaximo() {
 }
 
 function normalizarTtl(ttlMs) {
-  const ttl =
+  return Math.min(
     inteiroPositivo(
       ttlMs,
       60000
-    );
-
-  return Math.min(
-    ttl,
+    ),
     24 * 60 * 60 * 1000
   );
 }
 
-function chaveCompleta(chave) {
-  const limpa =
-    String(chave || '').trim();
-
-  if (!limpa) {
-    throw new Error(
-      'Cache: chave vazia.'
-    );
-  }
-
-  return `${redisPrefixo()}:${limpa}`;
-}
-
-function codigoErro(erro) {
-  return String(
-    erro?.code ||
-    erro?.name ||
-    'REDIS_ERROR'
-  ).slice(0, 80);
-}
-
-function memoriaLimparExpirados() {
+function limparMemoriaExpirada() {
   const agora = Date.now();
 
   for (
-    const [chave, item]
+    const [key, item]
     of memoria.entries()
   ) {
     if (
       !item ||
-      item.expiraEm <= agora
+      item.expiresAt <= agora
     ) {
-      memoria.delete(chave);
+      memoria.delete(key);
     }
   }
 }
 
-function memoriaGet(chave) {
+function limitarMemoria() {
+  const maximo =
+    memoriaMaximo();
+
+  while (
+    memoria.size > maximo
+  ) {
+    const primeira =
+      memoria.keys().next().value;
+
+    if (!primeira) {
+      break;
+    }
+
+    memoria.delete(primeira);
+  }
+}
+
+function memoriaGet(key) {
+  limparMemoriaExpirada();
+
   const item =
-    memoria.get(chave);
+    memoria.get(key);
 
   if (!item) {
     return null;
   }
 
   if (
-    item.expiraEm <= Date.now()
+    item.expiresAt <= Date.now()
   ) {
-    memoria.delete(chave);
+    memoria.delete(key);
     return null;
   }
 
@@ -109,149 +96,70 @@ function memoriaGet(chave) {
 }
 
 function memoriaSet(
-  chave,
+  key,
   valor,
-  ttlMs
+  ttl
 ) {
-  memoria.delete(chave);
-
   memoria.set(
-    chave,
+    key,
     {
       valor,
-      expiraEm:
-        Date.now() + ttlMs
+      expiresAt:
+        Date.now() + ttl
     }
   );
 
-  while (
-    memoria.size >
-    memoriaMaximo()
-  ) {
-    const maisAntiga =
-      memoria
-        .keys()
-        .next()
-        .value;
-
-    if (!maisAntiga) {
-      break;
-    }
-
-    memoria.delete(
-      maisAntiga
-    );
-  }
+  limitarMemoria();
 }
 
-async function obterRedis() {
-  const url =
-    redisUrl();
-
-  if (!url) {
-    return null;
-  }
-
-  if (
-    redisClient?.isReady
-  ) {
-    return redisClient;
-  }
-
-  if (
-    Date.now() <
-    redisRetryDepois
-  ) {
-    return null;
-  }
-
-  if (!redisClient) {
-    redisClient =
-      createClient({
-        url,
-        socket: {
-          connectTimeout: 3000,
-          reconnectStrategy: false
-        }
-      });
-
-    redisClient.on(
-      'error',
-      (erro) => {
-        redisUltimoErro =
-          codigoErro(erro);
-      }
-    );
-  }
-
-  if (!redisConnectPromise) {
-    redisConnectPromise =
-      redisClient
-        .connect()
-        .then(() => {
-          redisUltimoErro = '';
-          redisRetryDepois = 0;
-
-          return redisClient;
-        })
-        .catch((erro) => {
-          redisUltimoErro =
-            codigoErro(erro);
-
-          redisRetryDepois =
-            Date.now() + 30000;
-
-          try {
-            redisClient?.destroy?.();
-          }
-          catch {
-          }
-
-          redisClient = null;
-
-          return null;
-        })
-        .finally(() => {
-          redisConnectPromise = null;
-        });
-  }
-
-  return redisConnectPromise;
+function redisCacheKey(key) {
+  return redisInfraKey(
+    'cache',
+    key
+  );
 }
 
 export async function cacheCompartilhadoGet(
   chave
 ) {
-  const completa =
-    chaveCompleta(chave);
+  const key =
+    String(chave || '').trim();
 
-  const client =
-    await obterRedis();
+  if (!key) {
+    return null;
+  }
 
-  if (
-    client?.isReady
-  ) {
+  const redis =
+    await redisInfraClient();
+
+  if (redis) {
     try {
-      const bruto =
-        await client.get(
-          completa
+      const raw =
+        await redis.get(
+          redisCacheKey(key)
         );
 
-      if (bruto === null) {
+      /*
+       * Redis respondeu normalmente
+       * e nao possui essa chave.
+       * Nao usa copia local potencialmente
+       * antiga nesse caso.
+       */
+      if (raw === null) {
         return null;
       }
 
-      return JSON.parse(bruto);
+      return JSON.parse(raw);
     }
-    catch (erro) {
-      redisUltimoErro =
-        codigoErro(erro);
+    catch {
+      /*
+       * Redis falhou de verdade:
+       * memoria local vira fallback.
+       */
     }
   }
 
-  return memoriaGet(
-    completa
-  );
+  return memoriaGet(key);
 }
 
 export async function cacheCompartilhadoSet(
@@ -259,39 +167,32 @@ export async function cacheCompartilhadoSet(
   valor,
   ttlMs = 60000
 ) {
-  if (
-    valor === undefined
-  ) {
-    throw new Error(
-      'Cache: valor undefined.'
-    );
-  }
+  const key =
+    String(chave || '').trim();
 
-  const completa =
-    chaveCompleta(chave);
+  if (!key) {
+    return {
+      ok: false,
+      backend: 'nenhum'
+    };
+  }
 
   const ttl =
     normalizarTtl(ttlMs);
 
-  /*
-   * Mantemos uma cópia local para permitir
-   * fallback caso o Redis fique indisponível.
-   */
   memoriaSet(
-    completa,
+    key,
     valor,
     ttl
   );
 
-  const client =
-    await obterRedis();
+  const redis =
+    await redisInfraClient();
 
-  if (
-    client?.isReady
-  ) {
+  if (redis) {
     try {
-      await client.set(
-        completa,
+      await redis.set(
+        redisCacheKey(key),
         JSON.stringify(valor),
         {
           PX: ttl
@@ -303,9 +204,7 @@ export async function cacheCompartilhadoSet(
         backend: 'redis'
       };
     }
-    catch (erro) {
-      redisUltimoErro =
-        codigoErro(erro);
+    catch {
     }
   }
 
@@ -318,27 +217,25 @@ export async function cacheCompartilhadoSet(
 export async function cacheCompartilhadoDelete(
   chave
 ) {
-  const completa =
-    chaveCompleta(chave);
+  const key =
+    String(chave || '').trim();
 
-  memoria.delete(
-    completa
-  );
+  if (!key) {
+    return false;
+  }
 
-  const client =
-    await obterRedis();
+  memoria.delete(key);
 
-  if (
-    client?.isReady
-  ) {
+  const redis =
+    await redisInfraClient();
+
+  if (redis) {
     try {
-      await client.del(
-        completa
+      await redis.del(
+        redisCacheKey(key)
       );
     }
-    catch (erro) {
-      redisUltimoErro =
-        codigoErro(erro);
+    catch {
     }
   }
 
@@ -346,56 +243,34 @@ export async function cacheCompartilhadoDelete(
 }
 
 export function cacheCompartilhadoStatus() {
-  memoriaLimparExpirados();
+  limparMemoriaExpirada();
+
+  const redis =
+    redisInfraStatus();
 
   return {
     redis_configurado:
-      Boolean(redisUrl()),
+      redisInfraConfigured(),
 
     redis_conectado:
-      Boolean(
-        redisClient?.isReady
-      ),
+      redis.conectado,
 
-    fallback_memoria:
-      true,
+    redis_cooldown:
+      redis.cooldown,
+
+    ultimo_erro_codigo:
+      redis.ultimo_erro_codigo,
 
     memoria_entries:
       memoria.size,
 
-    memoria_max:
-      memoriaMaximo(),
-
-    retry_em_cooldown:
-      Date.now() <
-      redisRetryDepois,
-
-    ultimo_erro_codigo:
-      redisUltimoErro || null
+    fallback_memoria:
+      true
   };
 }
 
 export async function cacheCompartilhadoFechar() {
-  if (!redisClient) {
-    return;
-  }
+  memoria.clear();
 
-  try {
-    if (
-      redisClient.isOpen
-    ) {
-      await redisClient.quit();
-    }
-  }
-  catch {
-    try {
-      redisClient?.destroy?.();
-    }
-    catch {
-    }
-  }
-  finally {
-    redisClient = null;
-    redisConnectPromise = null;
-  }
+  await redisInfraClose();
 }
