@@ -29,6 +29,12 @@ import {
   trafficGuardProbe,
   trafficGuardStatus
 } from './server/trafficGuard.js';
+import {
+  configurarFilaGemini,
+  executarGeminiEnfileirado,
+  geminiQueueStatus,
+  probeFilaGemini
+} from './server/geminiQueue.js';
 import { instalarRotasHistoricalEngine } from './server/historicalEngine.js';
 
 const __filename = fileURLToPath(import.meta.url);
@@ -1385,80 +1391,261 @@ const genAI = GEMINI_API_KEY
    Fonte oficial de jogos: API-Football.
 */
 // ============================================================================
+async function processarGeminiDireto(
+  pergunta
+) {
+  if (!genAI) {
+    const erro =
+      new Error(
+        'API do Gemini não configurada.'
+      );
+
+    erro.status = 503;
+    throw erro;
+  }
+
+  const promptMestre =
+    `
+Tu és o Analista-Chefe de Inteligência Artificial do BetAnalytics PRO.
+És direto, profissional, falas com confiança e dás análises baseadas em EV+.
+Responde à seguinte pergunta de forma curta usando no máximo 3 frases.
+Pergunta: "${pergunta}"
+    `;
+
+  const modelosGemini = [
+    'gemini-3.7-flash',
+    'gemini-3.6-flash'
+  ];
+
+  const tentativasPorModelo =
+    2;
+
+  let result =
+    null;
+
+  let ultimoErroGemini =
+    null;
+
+  for (
+    const modelo
+    of modelosGemini
+  ) {
+    for (
+      let tentativa = 1;
+      tentativa <=
+        tentativasPorModelo;
+      tentativa += 1
+    ) {
+      try {
+        result =
+          await genAI.models
+            .generateContent({
+              model:
+                modelo,
+
+              contents:
+                promptMestre
+            });
+
+        ultimoErroGemini =
+          null;
+
+        break;
+      }
+      catch (erroGemini) {
+        ultimoErroGemini =
+          erroGemini;
+
+        const statusGemini =
+          Number(
+            erroGemini?.status ??
+            erroGemini?.statusCode ??
+            erroGemini?.code ??
+            erroGemini?.error?.code ??
+            0
+          );
+
+        const transitorio =
+          statusGemini === 408 ||
+          statusGemini === 429 ||
+          statusGemini >= 500;
+
+        if (!transitorio) {
+          throw erroGemini;
+        }
+
+        if (
+          tentativa <
+          tentativasPorModelo
+        ) {
+          await new Promise(
+            (resolve) =>
+              setTimeout(
+                resolve,
+                1000 * tentativa
+              )
+          );
+        }
+      }
+    }
+
+    if (result) {
+      break;
+    }
+  }
+
+  if (!result) {
+    throw (
+      ultimoErroGemini ||
+      new Error(
+        'Gemini temporariamente indisponivel.'
+      )
+    );
+  }
+
+  const respostaGemini =
+    String(
+      result?.text ||
+      ''
+    ).trim();
+
+  if (!respostaGemini) {
+    throw new Error(
+      'Gemini retornou resposta vazia.'
+    );
+  }
+
+  return respostaGemini;
+}
+
+configurarFilaGemini({
+  processar:
+    async ({
+      pergunta
+    } = {}) => {
+      const resposta =
+        await processarGeminiDireto(
+          String(
+            pergunta ||
+            ''
+          )
+        );
+
+      return {
+        resposta
+      };
+    }
+});
+
+app.get(
+  '/api/ia/queue/health',
+  async (_req, res) => {
+    try {
+      const probe =
+        await probeFilaGemini();
+
+      return res
+        .status(
+          probe.ok
+            ? 200
+            : 503
+        )
+        .json({
+          ok:
+            probe.ok,
+
+          servico:
+            'BetAnalytics Gemini Queue',
+
+          ...probe,
+
+          configuracao:
+            geminiQueueStatus()
+        });
+    }
+    catch (e) {
+      return res
+        .status(503)
+        .json({
+          ok: false,
+
+          servico:
+            'BetAnalytics Gemini Queue',
+
+          backend:
+            'indisponivel',
+
+          erro_code:
+            e?.code ||
+            'QUEUE_UNAVAILABLE'
+        });
+    }
+  }
+);
+
 app.post(
   '/api/chat-ia',
   autenticarRequest,
   limitarChatIA,
   async (req, res) => {
-    const { pergunta, dadosDaRodada } = req.body;
+    const pergunta =
+      String(
+        req.body?.pergunta ||
+        ''
+      )
+        .trim()
+        .slice(
+          0,
+          4000
+        );
+
+    if (!pergunta) {
+      return res
+        .status(400)
+        .json({
+          resposta:
+            'Informe uma pergunta para a IA.'
+        });
+    }
+
     if (!genAI) {
-        return res.status(500).json({ resposta: "Erro: API do Gemini não configurada." });
+      return res
+        .status(503)
+        .json({
+          resposta:
+            'Erro: API do Gemini não configurada.'
+        });
     }
+
     try {
-        const promptMestre = `
-        Tu és o Analista-Chefe de Inteligência Artificial do BetAnalytics PRO.
-        És direto, profissional, falas com confiança e dás análises baseadas em EV+.
-        Responde à seguinte pergunta de forma curta usando no máximo 3 frases.
-        Pergunta: "${pergunta}"
-        `;
-        const modelosGemini = [
-            "gemini-3.7-flash",
-            "gemini-3.6-flash"
-        ];
-        const tentativasPorModelo = 2;
-        let result = null;
-        let ultimoErroGemini = null;
+      const resultado =
+        await executarGeminiEnfileirado({
+          pergunta
+        });
 
-        for (const modelo of modelosGemini) {
-            for (let tentativa = 1; tentativa <= tentativasPorModelo; tentativa += 1) {
-                try {
-                    result = await genAI.models.generateContent({
-                        model: modelo,
-                        contents: promptMestre
-                    });
-                    ultimoErroGemini = null;
-                    break;
-                } catch (erroGemini) {
-                    ultimoErroGemini = erroGemini;
-                    const statusGemini = Number(
-                        erroGemini?.status ??
-                        erroGemini?.statusCode ??
-                        erroGemini?.code ??
-                        erroGemini?.error?.code ??
-                        0
-                    );
-                    const transitorio =
-                        statusGemini === 408 ||
-                        statusGemini === 429 ||
-                        statusGemini >= 500;
-                    if (!transitorio) throw erroGemini;
-                    if (tentativa < tentativasPorModelo) {
-                        await new Promise((resolve) =>
-                            setTimeout(resolve, 1000 * tentativa)
-                        );
-                    }
-                }
-            }
-            if (result) break;
-        }
-
-        if (!result) {
-            throw ultimoErroGemini ||
-                new Error("Gemini temporariamente indisponivel.");
-        }
-
-        const respostaGemini =
-            String(result?.text || "").trim();
-
-        if (!respostaGemini) {
-            throw new Error("Gemini retornou resposta vazia.");
-        }
-
-        res.json({ resposta: respostaGemini });
-    } catch (error) {
-        res.status(500).json({ resposta: "O radar IA está processando dados. Tente novamente em breve." });
+      return res.json({
+        resposta:
+          resultado.resposta
+      });
     }
-});
+    catch (error) {
+      const status =
+        Number(
+          error?.status
+        ) ||
+        500;
+
+      return res
+        .status(status)
+        .json({
+          resposta:
+            status === 503
+              ? 'A IA está com muitas solicitações. Tente novamente em instantes.'
+              : 'O radar IA está processando dados. Tente novamente em breve.'
+        });
+    }
+  }
+);
 
 // ============================================================================
 // ARQUIVOS ESTATICOS FRONTEND
