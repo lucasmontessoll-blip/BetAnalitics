@@ -3,6 +3,32 @@ import {
   supabaseAdmin,
 } from './authSupabase.js';
 
+const ANALISE_SELECT =
+  [
+    'id',
+    'user_id',
+    'jogo_id',
+    'fixture_id',
+    'jogo',
+    'casa',
+    'fora',
+    'liga',
+    'mercado',
+    'confianca',
+    'odd',
+    'prob_casa',
+    'prob_empate',
+    'prob_fora',
+    'fonte_confianca',
+    'fonte_odds',
+    'status',
+    'partida_em',
+    'criado_em',
+    'atualizado_em',
+    'resultado_casa',
+    'resultado_fora',
+  ].join(',');
+
 function texto(valor, limite = 300) {
   const resultado = String(valor ?? '').trim();
   return resultado ? resultado.slice(0, limite) : null;
@@ -22,7 +48,7 @@ function inteiro(valor) {
 async function buscarRegistroUsuario(userId, jogoId) {
   const { data, error } = await supabaseAdmin
     .from('analises_ia')
-    .select('*')
+    .select(ANALISE_SELECT)
     .eq('user_id', userId)
     .eq('jogo_id', jogoId)
     .maybeSingle();
@@ -36,7 +62,7 @@ export function instalarRotasHistoricoIA(app) {
     try {
       const { data, error } = await supabaseAdmin
         .from('analises_ia')
-        .select('*')
+        .select(ANALISE_SELECT)
         .eq('user_id', req.betUser.id)
         .order('criado_em', { ascending: false })
         .limit(200);
@@ -84,19 +110,6 @@ export function instalarRotasHistoricoIA(app) {
         });
       }
 
-      const existente = await buscarRegistroUsuario(
-        req.betUser.id,
-        jogoId
-      );
-
-      if (existente) {
-        return res.json({
-          ok: true,
-          criado: false,
-          item: existente,
-        });
-      }
-
       const registro = {
         user_id: req.betUser.id,
         jogo_id: jogoId,
@@ -122,7 +135,7 @@ export function instalarRotasHistoricoIA(app) {
       const { data, error } = await supabaseAdmin
         .from('analises_ia')
         .insert(registro)
-        .select('*')
+        .select(ANALISE_SELECT)
         .single();
 
       if (error) {
@@ -182,7 +195,7 @@ export function instalarRotasHistoricoIA(app) {
         .update(atualizacao)
         .eq('id', id)
         .eq('user_id', req.betUser.id)
-        .select('*')
+        .select(ANALISE_SELECT)
         .maybeSingle();
 
       if (error) throw error;
