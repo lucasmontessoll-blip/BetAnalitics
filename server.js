@@ -18,7 +18,12 @@ import {
   cacheCompartilhadoGet,
   cacheCompartilhadoSet,
   cacheCompartilhadoStatus,
-} from './server/sharedCache.js'; // Garante a leitura do arquivo .env no backend
+} from './server/sharedCache.js';
+import {
+  consumirQuotaDistribuida,
+  executarSingleFlightDistribuido,
+  coordenacaoDistribuidaStatus
+} from './server/distributedCoordination.js'; // Garante a leitura do arquivo .env no backend
 import { instalarRotasHistoricalEngine } from './server/historicalEngine.js';
 
 const __filename = fileURLToPath(import.meta.url);
@@ -556,25 +561,49 @@ function apiFootballQuotaStatus() {
   const cache =
     cacheCompartilhadoStatus();
 
+  const coordenacao =
+    coordenacaoDistribuidaStatus();
+
+  const minuteUsed =
+    coordenacao.redis_conectado
+      ? coordenacao.quota_minute_used
+      : apiFootballMinuteCount;
+
+  const dailyUsed =
+    coordenacao.redis_conectado
+      ? coordenacao.quota_daily_used
+      : apiFootballDayCount;
+
   return {
     requests_per_minute:
       API_FOOTBALL_REQUESTS_PER_MINUTE,
 
     requests_minute_used:
-      apiFootballMinuteCount,
+      minuteUsed,
 
     daily_budget:
       API_FOOTBALL_DAILY_BUDGET,
 
     daily_used:
-      apiFootballDayCount,
+      dailyUsed,
 
     daily_remaining:
       Math.max(
         0,
         API_FOOTBALL_DAILY_BUDGET -
-          apiFootballDayCount
+          dailyUsed
       ),
+
+    quota_scope:
+      coordenacao.redis_conectado
+        ? 'global'
+        : 'local',
+
+    quota_backend:
+      coordenacao.quota_backend,
+
+    lock_backend:
+      coordenacao.lock_backend,
 
     cache_entries:
       cache.memoria_entries,
@@ -587,8 +616,14 @@ function apiFootballQuotaStatus() {
     redis_configurado:
       cache.redis_configurado,
 
+    redis_conectado:
+      cache.redis_conectado,
+
     inflight:
-      apiFootballInflight.size
+      apiFootballInflight.size,
+
+    distributed_inflight_local:
+      coordenacao.local_inflight
   };
 }
 
@@ -611,11 +646,14 @@ function apiFootballTTL(pathname, params = {}) {
   return 45000;
 }
 
-async function apiFootballRequest(pathname, params = {}) {
+async function apiFootballRequest(
+  pathname,
+  params = {}
+) {
   if (!API_FOOTBALL_KEY) {
     const err =
       new Error(
-        'API_FOOTBALL_KEY não configurada no servidor.'
+        'API_FOOTBALL_KEY nao configurada no servidor.'
       );
 
     err.status = 500;
@@ -628,6 +666,9 @@ async function apiFootballRequest(pathname, params = {}) {
       params
     );
 
+  const cacheKey =
+    `api-football:${key}`;
+
   const ttl =
     apiFootballTTL(
       pathname,
@@ -636,7 +677,7 @@ async function apiFootballRequest(pathname, params = {}) {
 
   const cached =
     await cacheCompartilhadoGet(
-      `api-football:${key}`
+      cacheKey
     );
 
   if (
@@ -656,72 +697,155 @@ async function apiFootballRequest(pathname, params = {}) {
     return emAndamento;
   }
 
-  const requisicao = (async () => {
-    apiFootballConsumirQuota();
+  const requisicao =
+    executarSingleFlightDistribuido({
+      key: cacheKey,
 
-    const url =
-      new URL(
-        `${API_FOOTBALL_BASE_URL}${pathname}`
-      );
+      lockTtlMs: 30000,
+      waitTimeoutMs: 15000,
+      pollMs: 100,
 
-    Object.entries(params)
-      .forEach(([k, v]) => {
-        if (
-          v !== undefined &&
-          v !== null &&
-          v !== ''
-        ) {
-          url.searchParams.set(
-            k,
-            String(v)
-          );
-        }
-      });
+      readResult:
+        async () => {
+          const compartilhado =
+            await cacheCompartilhadoGet(
+              cacheKey
+            );
 
-    const resp =
-      await fetch(
-        url.toString(),
-        {
-          method: 'GET',
-
-          headers: {
-            'x-apisports-key':
-              API_FOOTBALL_KEY,
-
-            Accept:
-              'application/json'
+          if (
+            compartilhado &&
+            Object.prototype.hasOwnProperty.call(
+              compartilhado,
+              'data'
+            )
+          ) {
+            return {
+              found: true,
+              value:
+                compartilhado.data
+            };
           }
+
+          return {
+            found: false
+          };
+        },
+
+      task:
+        async () => {
+          /*
+           * Double-check depois do lock.
+           */
+          const depoisDoLock =
+            await cacheCompartilhadoGet(
+              cacheKey
+            );
+
+          if (
+            depoisDoLock &&
+            Object.prototype.hasOwnProperty.call(
+              depoisDoLock,
+              'data'
+            )
+          ) {
+            return depoisDoLock.data;
+          }
+
+          const quota =
+            await consumirQuotaDistribuida({
+              namespace:
+                'api-football',
+
+              minuteLimit:
+                API_FOOTBALL_REQUESTS_PER_MINUTE,
+
+              dailyLimit:
+                API_FOOTBALL_DAILY_BUDGET
+            });
+
+          /*
+           * Mantem observabilidade
+           * compativel com o health antigo.
+           */
+          apiFootballAtualizarJanelas();
+
+          apiFootballMinuteCount =
+            quota.minute_used;
+
+          apiFootballDayCount =
+            quota.daily_used;
+
+          const url =
+            new URL(
+              `${API_FOOTBALL_BASE_URL}${pathname}`
+            );
+
+          Object.entries(params)
+            .forEach(
+              ([k, v]) => {
+                if (
+                  v !== undefined &&
+                  v !== null &&
+                  v !== ''
+                ) {
+                  url.searchParams.set(
+                    k,
+                    String(v)
+                  );
+                }
+              }
+            );
+
+          const resp =
+            await fetch(
+              url.toString(),
+              {
+                method: 'GET',
+
+                headers: {
+                  'x-apisports-key':
+                    API_FOOTBALL_KEY,
+
+                  Accept:
+                    'application/json'
+                }
+              }
+            );
+
+          const data =
+            await resp
+              .json()
+              .catch(
+                () => null
+              );
+
+          if (!resp.ok) {
+            const err =
+              new Error(
+                data?.message ||
+                data?.errors?.token ||
+                data?.errors?.requests ||
+                `Erro API-Football ${resp.status}`
+              );
+
+            err.status =
+              resp.status;
+
+            err.payload =
+              data;
+
+            throw err;
+          }
+
+          await cacheCompartilhadoSet(
+            cacheKey,
+            { data },
+            ttl
+          );
+
+          return data;
         }
-      );
-
-    const data =
-      await resp
-        .json()
-        .catch(() => null);
-
-    if (!resp.ok) {
-      const err =
-        new Error(
-          data?.message ||
-          data?.errors?.token ||
-          data?.errors?.requests ||
-          `Erro API-Football ${resp.status}`
-        );
-
-      err.status = resp.status;
-      err.payload = data;
-
-      throw err;
-    }
-
-    await cacheCompartilhadoSet(
-      `api-football:${key}`,
-      { data },
-      ttl
-    );
-
-    return data;
-  })();
+    });
 
   apiFootballInflight.set(
     key,
@@ -740,6 +864,7 @@ async function apiFootballRequest(pathname, params = {}) {
     }
   }
 }
+
 
 instalarRotasHistoricalEngine(app, {
   request: apiFootballRequest,
