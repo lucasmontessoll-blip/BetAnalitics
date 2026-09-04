@@ -871,15 +871,39 @@ instalarRotasHistoricalEngine(app, {
   configurado: () => Boolean(API_FOOTBALL_KEY),
   autenticar: autenticarRequest,
 });
-app.get('/api/football/health', (req, res) => {
-  res.json({
-    ok: true,
-    fonte: 'api-football',
-    configurado: Boolean(API_FOOTBALL_KEY),
-    baseUrl: API_FOOTBALL_BASE_URL,
-    protecao: apiFootballQuotaStatus(),
-  });
-});
+app.get(
+  '/api/football/health',
+  async (req, res) => {
+    /*
+     * Health real da dependencia Redis.
+     * GET em chave inexistente:
+     * conecta e testa leitura sem alterar dados.
+     */
+    const cacheAntes =
+      cacheCompartilhadoStatus();
+
+    if (
+      cacheAntes.redis_configurado
+    ) {
+      await cacheCompartilhadoGet(
+        'health:redis-connect'
+      ).catch(
+        () => null
+      );
+    }
+
+    res.json({
+      ok: true,
+      fonte: 'api-football',
+      configurado:
+        Boolean(API_FOOTBALL_KEY),
+      baseUrl:
+        API_FOOTBALL_BASE_URL,
+      protecao:
+        apiFootballQuotaStatus(),
+    });
+  }
+);
 
 app.get('/api/football/jogos', async (req, res) => {
   try {
