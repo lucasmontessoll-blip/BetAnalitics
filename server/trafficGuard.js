@@ -472,6 +472,41 @@ export function criarRateLimitDistribuido({
   };
 }
 
+export async function trafficGuardProbe() {
+  const resultado =
+    await consumir({
+      namespace:
+        'infra-probe',
+
+      identidade:
+        'betanalytics-infra-probe',
+
+      limit:
+        1000000,
+
+      windowMs:
+        60000
+    });
+
+  const redis =
+    redisInfraStatus();
+
+  return {
+    ok:
+      resultado.backend ===
+      'redis',
+
+    backend:
+      resultado.backend,
+
+    redis_configurado:
+      redis.configurado,
+
+    redis_conectado:
+      redis.conectado
+  };
+}
+
 export function trafficGuardStatus() {
   const redis =
     redisInfraStatus();
