@@ -119,22 +119,60 @@ const autenticarHistoricalLimitado =
 /* BET_ETAPA_35B_CORS_PRODUCAO_INICIO */
 const BET_CORS_ORIGENS_PADRAO = [
   process.env.RENDER_EXTERNAL_URL,
+
   'https://betanalitics-webservice.onrender.com',
+
+  /*
+   * Frontend oficial de producao.
+   */
+  'https://betanalytics-pro-app.vercel.app',
+
+  /*
+   * Desenvolvimento / aplicativo nativo.
+   */
   'http://localhost:5173',
   'http://localhost',
   'capacitor://localhost'
 ].filter(Boolean);
 
-const BET_CORS_ORIGENS = new Set(
+const BET_CORS_ORIGENS_ENV =
   String(
     process.env.CORS_ALLOWED_ORIGINS ||
     process.env.ALLOWED_ORIGINS ||
-    BET_CORS_ORIGENS_PADRAO.join(',')
+    ''
   )
     .split(',')
-    .map((origem) => origem.trim().replace(/\/$/, ''))
-    .filter(Boolean)
-);
+    .map(
+      (origem) =>
+        origem
+          .trim()
+          .replace(/\/$/, '')
+    )
+    .filter(Boolean);
+
+/*
+ * As origens configuradas no Render sao
+ * ADICIONADAS as origens essenciais.
+ *
+ * Antes, uma env CORS_ALLOWED_ORIGINS
+ * substituia completamente os defaults,
+ * podendo remover sem querer o frontend
+ * oficial.
+ */
+const BET_CORS_ORIGENS =
+  new Set(
+    [
+      ...BET_CORS_ORIGENS_PADRAO,
+      ...BET_CORS_ORIGENS_ENV
+    ]
+      .map(
+        (origem) =>
+          String(origem)
+            .trim()
+            .replace(/\/$/, '')
+      )
+      .filter(Boolean)
+  );
 
 /* BET_ETAPA_35C_CORS_NATIVO_INICIO */
 const BET_CORS_ORIGENS_NATIVAS = new Set([
