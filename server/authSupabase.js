@@ -22,21 +22,136 @@ function bearer(req) {
 export async function autenticarRequest(req, res, next) {
   try {
     if (!supabaseAdmin) {
-      return res.status(503).json({ ok: false, erro: 'Supabase backend não configurado.' });
+      return res.status(503).json({
+        ok: false,
+        erro:
+          'Supabase backend não configurado.'
+      });
     }
 
-    const token = bearer(req);
-    if (!token) return res.status(401).json({ ok: false, erro: 'Sessão ausente.' });
+    const token =
+      bearer(req);
 
-    const { data, error } = await supabaseAdmin.auth.getUser(token);
-    if (error || !data?.user) {
-      return res.status(401).json({ ok: false, erro: 'Sessão inválida ou expirada.' });
+    if (!token) {
+      return res.status(401).json({
+        ok: false,
+        erro:
+          'Sessão ausente.'
+      });
     }
 
-    req.betUser = data.user;
-    next();
-  } catch (e) {
-    return res.status(401).json({ ok: false, erro: e?.message || 'Falha de autenticação.' });
+    /*
+     * Preferimos getClaims:
+     *
+     * - valida assinatura e expiração;
+     * - usa JWKS cacheado quando o projeto
+     *   utiliza chave assimétrica;
+     * - evita getUser remoto em cada request;
+     * - em projetos legados/simétricos,
+     *   o próprio Supabase faz validação remota.
+     */
+    if (
+      typeof supabaseAdmin.auth
+        ?.getClaims === 'function'
+    ) {
+      const {
+        data,
+        error
+      } =
+        await supabaseAdmin.auth
+          .getClaims(token);
+
+      const claims =
+        data?.claims;
+
+      if (
+        error ||
+        !claims?.sub
+      ) {
+        return res.status(401).json({
+          ok: false,
+          erro:
+            'Sessão inválida ou expirada.'
+        });
+      }
+
+      req.betUser = {
+        id:
+          String(
+            claims.sub
+          ),
+
+        email:
+          String(
+            claims.email ||
+            ''
+          ),
+
+        phone:
+          String(
+            claims.phone ||
+            ''
+          ),
+
+        role:
+          String(
+            claims.role ||
+            'authenticated'
+          ),
+
+        user_metadata:
+          claims.user_metadata &&
+          typeof claims.user_metadata ===
+            'object'
+            ? claims.user_metadata
+            : {},
+
+        app_metadata:
+          claims.app_metadata &&
+          typeof claims.app_metadata ===
+            'object'
+            ? claims.app_metadata
+            : {}
+      };
+
+      return next();
+    }
+
+    /*
+     * Fallback defensivo caso uma versão
+     * antiga do SDK não possua getClaims.
+     */
+    const {
+      data,
+      error
+    } =
+      await supabaseAdmin.auth
+        .getUser(token);
+
+    if (
+      error ||
+      !data?.user
+    ) {
+      return res.status(401).json({
+        ok: false,
+        erro:
+          'Sessão inválida ou expirada.'
+      });
+    }
+
+    req.betUser =
+      data.user;
+
+    return next();
+  }
+  catch (e) {
+    return res.status(401).json({
+      ok: false,
+
+      erro:
+        e?.message ||
+        'Falha de autenticação.'
+    });
   }
 }
 
@@ -85,7 +200,22 @@ export async function exigirAdmin(req, res, next) {
 
 export function instalarRotasAuth(app) {
   app.get('/api/auth/health', (_req, res) => {
-    res.json({ ok: true, configurado: Boolean(supabaseAdmin) });
+    res.json({
+      ok: true,
+
+      configurado:
+        Boolean(
+          supabaseAdmin
+        ),
+
+      validacao_jwt:
+        typeof supabaseAdmin
+          ?.auth
+          ?.getClaims ===
+          'function'
+          ? 'getClaims'
+          : 'getUser-fallback'
+    });
   });
 
   app.get('/api/auth/me', autenticarRequest, async (req, res) => {
