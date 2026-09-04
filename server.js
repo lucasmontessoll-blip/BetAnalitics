@@ -41,12 +41,25 @@ import {
   geminiQueueStatus,
   probeFilaGemini
 } from './server/geminiQueue.js';
+import {
+  observabilidadeMiddleware,
+  observabilidadeResumo,
+  observabilidadeSnapshot
+} from './server/observability.js';
 import { instalarRotasHistoricalEngine } from './server/historicalEngine.js';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
 const app = express();
+
+/*
+ * Observabilidade global:
+ * nao registra IP, token, body ou query string.
+ */
+app.use(
+  observabilidadeMiddleware
+);
 
 const limitarHistorical =
   criarRateLimitDistribuido({
@@ -2087,6 +2100,47 @@ app.get(
   }
 );
 
+app.get(
+  '/api/producao/metrics',
+  (_req, res) => {
+    return res
+      .status(200)
+      .json({
+        ok: true,
+
+        servico:
+          'BetAnalytics Observabilidade',
+
+        observabilidade:
+          observabilidadeSnapshot(),
+
+        infraestrutura: {
+          cache:
+            cacheCompartilhadoStatus(),
+
+          coordenacao:
+            coordenacaoDistribuidaStatus(),
+
+          trafego:
+            trafficGuardStatus(),
+
+          fila_ia:
+            geminiQueueStatus(),
+
+          pagamentos:
+            pagamentoIdempotenciaStatus(),
+
+          api_football:
+            apiFootballQuotaStatus()
+        },
+
+        timestamp:
+          new Date()
+            .toISOString()
+      });
+  }
+);
+
 app.get('/api/producao/health', (_req, res) => {
   return res.status(200).json({
     ok: true,
@@ -2099,6 +2153,9 @@ app.get('/api/producao/health', (_req, res) => {
       gemini: Boolean(GEMINI_API_KEY),
       sportradar: Boolean(SPORTRADAR_KEY)
     },
+    observabilidade:
+      observabilidadeResumo(),
+
     trafego:
       trafficGuardStatus(),
 
