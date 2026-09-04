@@ -2,7 +2,6 @@ import express from 'express';
 import cors from 'cors';
 import axios from 'axios';
 import { createClient } from '@supabase/supabase-js';
-import { GoogleGenAI } from '@google/genai';
 import path from 'path';
 import { fileURLToPath } from 'url';
 import 'dotenv/config';
@@ -44,6 +43,10 @@ import {
   probeFilaGemini,
   fecharFilaGemini
 } from './server/geminiQueue.js';
+import {
+  geminiConfigurado,
+  processarGeminiJob
+} from './server/geminiProcessor.js';
 import {
   observabilidadeMiddleware,
   observabilidadeResumo,
@@ -1760,9 +1763,6 @@ const supabase =
     ? createClient(SUPABASE_URL, SUPABASE_KEY)
     : betSupabaseFallback();
 
-const genAI = GEMINI_API_KEY
-  ? new GoogleGenAI({ apiKey: GEMINI_API_KEY })
-  : null;
 /* BET_ETAPA_35B_SEGREDOS_ENV_FIM */
 
 // ============================================================================
@@ -1774,150 +1774,14 @@ const genAI = GEMINI_API_KEY
    Fonte oficial de jogos: API-Football.
 */
 // ============================================================================
-async function processarGeminiDireto(
-  pergunta
-) {
-  if (!genAI) {
-    const erro =
-      new Error(
-        'API do Gemini não configurada.'
-      );
-
-    erro.status = 503;
-    throw erro;
-  }
-
-  const promptMestre =
-    `
-Tu és o Analista-Chefe de Inteligência Artificial do BetAnalytics PRO.
-És direto, profissional, falas com confiança e dás análises baseadas em EV+.
-Responde à seguinte pergunta de forma curta usando no máximo 3 frases.
-Pergunta: "${pergunta}"
-    `;
-
-  const modelosGemini = [
-    'gemini-3.7-flash',
-    'gemini-3.6-flash'
-  ];
-
-  const tentativasPorModelo =
-    2;
-
-  let result =
-    null;
-
-  let ultimoErroGemini =
-    null;
-
-  for (
-    const modelo
-    of modelosGemini
-  ) {
-    for (
-      let tentativa = 1;
-      tentativa <=
-        tentativasPorModelo;
-      tentativa += 1
-    ) {
-      try {
-        result =
-          await genAI.models
-            .generateContent({
-              model:
-                modelo,
-
-              contents:
-                promptMestre
-            });
-
-        ultimoErroGemini =
-          null;
-
-        break;
-      }
-      catch (erroGemini) {
-        ultimoErroGemini =
-          erroGemini;
-
-        const statusGemini =
-          Number(
-            erroGemini?.status ??
-            erroGemini?.statusCode ??
-            erroGemini?.code ??
-            erroGemini?.error?.code ??
-            0
-          );
-
-        const transitorio =
-          statusGemini === 408 ||
-          statusGemini === 429 ||
-          statusGemini >= 500;
-
-        if (!transitorio) {
-          throw erroGemini;
-        }
-
-        if (
-          tentativa <
-          tentativasPorModelo
-        ) {
-          await new Promise(
-            (resolve) =>
-              setTimeout(
-                resolve,
-                1000 * tentativa
-              )
-          );
-        }
-      }
-    }
-
-    if (result) {
-      break;
-    }
-  }
-
-  if (!result) {
-    throw (
-      ultimoErroGemini ||
-      new Error(
-        'Gemini temporariamente indisponivel.'
-      )
-    );
-  }
-
-  const respostaGemini =
-    String(
-      result?.text ||
-      ''
-    ).trim();
-
-  if (!respostaGemini) {
-    throw new Error(
-      'Gemini retornou resposta vazia.'
-    );
-  }
-
-  return respostaGemini;
-}
-
 configurarFilaGemini({
   processar:
-    async ({
-      pergunta
-    } = {}) => {
-      const resposta =
-        await processarGeminiDireto(
-          String(
-            pergunta ||
-            ''
-          )
-        );
+    processarGeminiJob,
 
-      return {
-        resposta
-      };
-    }
+  role:
+    process.env
+      .GEMINI_QUEUE_ROLE ||
+    'embedded'
 });
 
 app.get(
@@ -1991,7 +1855,7 @@ app.post(
         });
     }
 
-    if (!genAI) {
+    if (!geminiConfigurado()) {
       return res
         .status(503)
         .json({
