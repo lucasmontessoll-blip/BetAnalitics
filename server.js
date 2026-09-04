@@ -9,6 +9,7 @@ import 'dotenv/config';
 import {
   instalarRotasAuth,
   autenticarRequest,
+  exigirAdmin,
 } from './server/authSupabase.js';
 import { instalarRotasRecuperacaoSenha } from './server/passwordRecovery.js';
 import { instalarRotasHistoricoIA } from './server/historicoIA.js';
@@ -2102,6 +2103,7 @@ app.get(
 
 app.get(
   '/api/producao/metrics',
+  exigirAdmin,
   (_req, res) => {
     return res
       .status(200)
