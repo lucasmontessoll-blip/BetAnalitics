@@ -15,6 +15,12 @@ import { instalarRotasHistoricoIA } from './server/historicoIA.js';
 import { instalarRotasPush } from './server/pushNotifications.js';
 import { instalarWebhookMercadoPago } from './server/paymentWebhook.js';
 import {
+  executarPagamentoIdempotente,
+  pagamentoIdempotenciaStatus,
+  prepararIdempotenciaPagamento
+} from './server/paymentIdempotency.js';
+
+import {
   cacheCompartilhadoGet,
   cacheCompartilhadoSet,
   cacheCompartilhadoStatus,
@@ -154,7 +160,7 @@ app.use(
       callback(null, betCorsPermitido(origem));
     },
     methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
-    allowedHeaders: ['Content-Type', 'Authorization'],
+    allowedHeaders: ['Content-Type', 'Authorization', 'Idempotency-Key'],
     credentials: false,
     optionsSuccessStatus: 204
   })
@@ -200,10 +206,6 @@ function betDescricao(valor) {
   return String(valor || 'Plano PRO BetAnalytics').trim();
 }
 
-function betIdempotency() {
-  return `betanalytics-${Date.now()}-${Math.random().toString(16).slice(2)}`;
-}
-
 app.get('/api/pagamento/health', (req, res) => {
   return res.status(200).json({
     ok: true,
@@ -211,6 +213,7 @@ app.get('/api/pagamento/health', (req, res) => {
     mercado_pago_configurado: Boolean(betMpToken()),
     plano_valor: betNumero(process.env.PLANO_PRO_VALOR, 29.90),
     ambiente: process.env.NODE_ENV || 'development',
+    idempotencia: pagamentoIdempotenciaStatus(),
     timestamp: new Date().toISOString()
   });
 });
@@ -265,48 +268,212 @@ app.post('/api/pagamento/pix', async (req, res) => {
       }
     };
 
-    const resposta = await fetch('https://api.mercadopago.com/v1/payments', {
-      method: 'POST',
-      headers: {
-        Authorization: `Bearer ${token}`,
-        'Content-Type': 'application/json',
-        'X-Idempotency-Key': betIdempotency()
-      },
-      body: JSON.stringify(payload)
-    });
+    const idempotencia =
+      prepararIdempotenciaPagamento(
+        req,
+        {
+          metodo:
+            'pix',
 
-    const data = await resposta.json().catch(() => ({}));
+          dados: {
+            valor:
+              Number(
+                valor.toFixed(2)
+              ),
 
-    if (!resposta.ok) {
-      return res.status(resposta.status || 500).json({
-        ok: false,
-        erro: data?.message || data?.error || 'Erro ao gerar PIX no Mercado Pago.',
-        detalhe: data
+            email,
+            cpf,
+            descricao
+          }
+        }
+      );
+
+    const resultadoPagamento =
+      await executarPagamentoIdempotente({
+        metodo:
+          'pix',
+
+        chaveCliente:
+          idempotencia
+            .chaveCliente,
+
+        fingerprint:
+          idempotencia
+            .fingerprint,
+
+        executar:
+          async ({
+            mercadoPagoKey
+          }) => {
+            const resposta =
+              await fetch(
+                'https://api.mercadopago.com/v1/payments',
+                {
+                  method:
+                    'POST',
+
+                  headers: {
+                    Authorization:
+                      `Bearer ${token}`,
+
+                    'Content-Type':
+                      'application/json',
+
+                    'X-Idempotency-Key':
+                      mercadoPagoKey
+                  },
+
+                  body:
+                    JSON.stringify(
+                      payload
+                    ),
+
+                  signal:
+                    AbortSignal.timeout(
+                      20000
+                    )
+                }
+              );
+
+            const data =
+              await resposta
+                .json()
+                .catch(
+                  () => ({})
+                );
+
+            if (!resposta.ok) {
+              return {
+                status:
+                  resposta.status ||
+                  500,
+
+                cacheable:
+                  false,
+
+                body: {
+                  ok: false,
+
+                  erro:
+                    data?.message ||
+                    data?.error ||
+                    'Erro ao gerar PIX no Mercado Pago.',
+
+                  detalhe:
+                    data
+                }
+              };
+            }
+
+            const tx =
+              data
+                ?.point_of_interaction
+                ?.transaction_data ||
+              data
+                ?.transaction_data ||
+              {};
+
+            return {
+              status:
+                201,
+
+              cacheable:
+                true,
+
+              body: {
+                ok: true,
+
+                id:
+                  data.id,
+
+                payment_id:
+                  data.id,
+
+                status:
+                  data.status ||
+                  'pending',
+
+                status_detail:
+                  data.status_detail ||
+                  '',
+
+                qr_code:
+                  tx.qr_code ||
+                  data.qr_code ||
+                  '',
+
+                qr_code_base64:
+                  tx.qr_code_base64 ||
+                  data.qr_code_base64 ||
+                  '',
+
+                ticket_url:
+                  tx.ticket_url ||
+                  data.ticket_url ||
+                  '',
+
+                valor,
+                metodo:
+                  'pix'
+              }
+            };
+          }
       });
-    }
 
-    const tx =
-      data?.point_of_interaction?.transaction_data ||
-      data?.transaction_data ||
-      {};
+    return res
+      .status(
+        resultadoPagamento.status
+      )
+      .json({
+        ...resultadoPagamento.body,
 
-    return res.status(201).json({
-      ok: true,
-      id: data.id,
-      payment_id: data.id,
-      status: data.status || 'pending',
-      status_detail: data.status_detail || '',
-      qr_code: tx.qr_code || data.qr_code || '',
-      qr_code_base64: tx.qr_code_base64 || data.qr_code_base64 || '',
-      ticket_url: tx.ticket_url || data.ticket_url || '',
-      valor,
-      metodo: 'pix'
-    });
-  } catch (err) {
-    return res.status(500).json({
-      ok: false,
-      erro: err?.message || 'Erro interno ao gerar PIX.'
-    });
+        idempotencia_replay:
+          Boolean(
+            resultadoPagamento.replay
+          ),
+
+        idempotencia_modo:
+          idempotencia.modo
+      });
+  }
+  catch (err) {
+    const timeout =
+      err?.name ===
+        'TimeoutError' ||
+      err?.name ===
+        'AbortError';
+
+    const status =
+      Number(
+        err?.status
+      ) ||
+      (
+        timeout
+          ? 503
+          : 500
+      );
+
+    return res
+      .status(status)
+      .json({
+        ok: false,
+
+        erro:
+          status === 409
+            ? 'Esta tentativa de pagamento foi reutilizada com dados diferentes.'
+            : status === 503
+              ? 'Pagamento temporariamente indisponivel. Tente novamente mantendo a mesma tentativa.'
+              : err?.message ||
+                'Erro interno ao gerar PIX.',
+
+        code:
+          err?.code ||
+          (
+            timeout
+              ? 'PAYMENT_TIMEOUT'
+              : undefined
+          )
+      });
   }
 });
 
@@ -418,66 +585,212 @@ app.post('/api/pagamento/cartao', async (req, res) => {
       payload.issuer_id = issuerId;
     }
 
-    const resposta =
-      await fetch(
-        'https://api.mercadopago.com/v1/payments',
+    const idempotencia =
+      prepararIdempotenciaPagamento(
+        req,
         {
-          method: 'POST',
-          headers: {
-            Authorization:
-              `Bearer ${accessToken}`,
-            'Content-Type':
-              'application/json',
-            'X-Idempotency-Key':
-              betIdempotency()
-          },
-          body:
-            JSON.stringify(payload)
+          metodo:
+            'cartao',
+
+          dados: {
+            valor:
+              Number(
+                valor.toFixed(2)
+              ),
+
+            email,
+            cpf,
+
+            card_token:
+              cardToken,
+
+            payment_method_id:
+              paymentMethodId,
+
+            issuer_id:
+              issuerId,
+
+            installments
+          }
         }
       );
 
-    const data =
-      await resposta.json()
-        .catch(() => ({}));
+    const resultadoPagamento =
+      await executarPagamentoIdempotente({
+        metodo:
+          'cartao',
 
-    if (!resposta.ok) {
-      return res
-        .status(resposta.status || 500)
-        .json({
-          ok: false,
-          erro:
-            data?.message ||
-            data?.error ||
-            'Pagamento recusado.',
-          detalhe: data
-        });
-    }
+        chaveCliente:
+          idempotencia
+            .chaveCliente,
 
-    return res.status(201).json({
-      ok: true,
-      id: data.id,
-      payment_id: data.id,
-      status:
-        data.status || 'pending',
-      status_detail:
-        data.status_detail || '',
-      aprovado:
-        data.status === 'approved',
-      metodo:
-        data.payment_method_id || '',
-      valor:
-        data.transaction_amount || valor
-    });
+        fingerprint:
+          idempotencia
+            .fingerprint,
+
+        executar:
+          async ({
+            mercadoPagoKey
+          }) => {
+            const resposta =
+              await fetch(
+                'https://api.mercadopago.com/v1/payments',
+                {
+                  method:
+                    'POST',
+
+                  headers: {
+                    Authorization:
+                      `Bearer ${accessToken}`,
+
+                    'Content-Type':
+                      'application/json',
+
+                    'X-Idempotency-Key':
+                      mercadoPagoKey
+                  },
+
+                  body:
+                    JSON.stringify(
+                      payload
+                    ),
+
+                  signal:
+                    AbortSignal.timeout(
+                      20000
+                    )
+                }
+              );
+
+            const data =
+              await resposta
+                .json()
+                .catch(
+                  () => ({})
+                );
+
+            if (!resposta.ok) {
+              return {
+                status:
+                  resposta.status ||
+                  500,
+
+                cacheable:
+                  false,
+
+                body: {
+                  ok: false,
+
+                  erro:
+                    data?.message ||
+                    data?.error ||
+                    'Pagamento recusado.',
+
+                  detalhe:
+                    data
+                }
+              };
+            }
+
+            return {
+              status:
+                201,
+
+              cacheable:
+                true,
+
+              body: {
+                ok: true,
+
+                id:
+                  data.id,
+
+                payment_id:
+                  data.id,
+
+                status:
+                  data.status ||
+                  'pending',
+
+                status_detail:
+                  data.status_detail ||
+                  '',
+
+                aprovado:
+                  data.status ===
+                  'approved',
+
+                metodo:
+                  data
+                    .payment_method_id ||
+                  '',
+
+                valor:
+                  data
+                    .transaction_amount ||
+                  valor
+              }
+            };
+          }
+      });
+
+    return res
+      .status(
+        resultadoPagamento.status
+      )
+      .json({
+        ...resultadoPagamento.body,
+
+        idempotencia_replay:
+          Boolean(
+            resultadoPagamento.replay
+          ),
+
+        idempotencia_modo:
+          idempotencia.modo
+      });
   }
   catch (err) {
-    return res.status(500).json({
-      ok: false,
-      erro:
-        err?.message ||
-        'Erro interno no pagamento.'
-    });
+    const timeout =
+      err?.name ===
+        'TimeoutError' ||
+      err?.name ===
+        'AbortError';
+
+    const status =
+      Number(
+        err?.status
+      ) ||
+      (
+        timeout
+          ? 503
+          : 500
+      );
+
+    return res
+      .status(status)
+      .json({
+        ok: false,
+
+        erro:
+          status === 409
+            ? 'Esta tentativa de pagamento foi reutilizada com dados diferentes.'
+            : status === 503
+              ? 'Pagamento temporariamente indisponivel. Tente novamente mantendo a mesma tentativa.'
+              : err?.message ||
+                'Erro interno no pagamento.',
+
+        code:
+          err?.code ||
+          (
+            timeout
+              ? 'PAYMENT_TIMEOUT'
+              : undefined
+          )
+      });
   }
 });
+
 app.get('/api/pagamento/status/:id', async (req, res) => {
   try {
     const token = betMpToken();

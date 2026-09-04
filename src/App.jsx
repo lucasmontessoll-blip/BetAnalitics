@@ -45,6 +45,10 @@ import AdminResumoPro from './components/AdminResumoPro.jsx';
 import AtalhoAdminPerfil from './components/AtalhoAdminPerfil.jsx';
 import RoteadorProfissional from './components/RoteadorProfissional.jsx';
 import { registrarPagamentoGerado, registrarPagamentoAprovado, atualizarPagamentoLocal } from './utils/pagamentosLocal.js';
+import {
+  encerrarTentativaPagamento,
+  obterTentativaPagamento
+} from './utils/paymentIdempotency.js';
 import { temAcessoPro, carregarUsuarioSessaoPro, usuarioDemoFree, rotaExigePro } from './utils/acessoPro.js';
 import { apiUrl } from './utils/apiBase.js';
 import { sessaoAtual, perfilValidadoServidor } from './services/authClient.js';
@@ -1052,6 +1056,7 @@ atualizarPagamentoLocal(paymentId, {
 if (data.aprovado || data.status === 'approved') {
 if (pollingPagamentoRef.current) clearInterval(pollingPagamentoRef.current);
 pollingPagamentoRef.current = null;
+encerrarTentativaPagamento('pix');
 await confirmarVipServidor(conta, { id: paymentId, status: data.status, metodo: metodoPagamento });
 return;
 }
@@ -1068,7 +1073,10 @@ if (pollingPagamentoRef.current) clearInterval(pollingPagamentoRef.current);
 setPagamentoStatus({ loading: true, erro: '', sucesso: 'Gerando QR Code PIX...', pix: null, id: null });
 const resp = await fetch(apiUrl('/api/pagamento/pix'), {
 method: 'POST',
-headers: { 'Content-Type': 'application/json' },
+headers: {
+'Content-Type': 'application/json',
+'Idempotency-Key': obterTentativaPagamento('pix'),
+},
 body: JSON.stringify({
 nome: conta.nome,
 email: conta.email,
@@ -1078,7 +1086,17 @@ descricao: PLANO_PRO.nome,
 })
 });
 const data = await resp.json();
-if (!resp.ok) throw new Error(data?.erro || 'Erro ao gerar PIX.');
+
+if (!resp.ok) {
+if (resp.status < 500) {
+encerrarTentativaPagamento('pix');
+}
+
+throw new Error(
+data?.erro ||
+'Erro ao gerar PIX.'
+);
+}
 
 // bet-pagamento-historico-pix
 registrarPagamentoGerado({
@@ -1113,7 +1131,10 @@ const paymentMethodId = dadosCartao?.paymentMethodId || dadosCartao?.payment_met
 if (!token || !paymentMethodId) throw new Error('Preencha todos os dados do cartao antes de concluir.');
 const resp = await fetch(apiUrl('/api/pagamento/cartao'), {
 method: 'POST',
-headers: { 'Content-Type': 'application/json' },
+headers: {
+'Content-Type': 'application/json',
+'Idempotency-Key': obterTentativaPagamento('cartao'),
+},
 body: JSON.stringify({
 nome: conta.nome,
 email: conta.email,
@@ -1130,7 +1151,17 @@ identificationNumber: limparCpf(dadosCartao?.identificationNumber || conta.cpf),
 })
 });
 const data = await resp.json();
-if (!resp.ok) throw new Error(data?.erro || 'Pagamento recusado.');
+
+if (!resp.ok) {
+if (resp.status < 500) {
+encerrarTentativaPagamento('cartao');
+}
+
+throw new Error(
+data?.erro ||
+'Pagamento recusado.'
+);
+}
 
 // bet-pagamento-historico-cartao
 registrarPagamentoGerado({
@@ -1143,9 +1174,18 @@ registrarPagamentoGerado({
 // fim-bet-pagamento-historico-cartao
 
 if (data.aprovado || data.status === 'approved') {
+encerrarTentativaPagamento('cartao');
 await confirmarVipServidor(conta, { id: data.id || data.payment_id, status: data.status, metodo: metodoPagamento });
 return;
 }
+if (
+['rejected', 'cancelled'].includes(
+String(data.status || '').toLowerCase()
+)
+) {
+encerrarTentativaPagamento('cartao');
+}
+
 setPagamentoStatus({ loading: false, erro: data.mensagem || `Pagamento nao aprovado. Status: ${data.status || 'recusado'}`, sucesso: '', pix: null, id: data.id || null });
 } catch (err) {
 setPagamentoStatus({ loading: false, erro: err.message || 'Erro ao processar cartao.', sucesso: '', pix: null, id: null });
