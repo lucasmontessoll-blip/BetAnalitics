@@ -26,6 +26,7 @@ import {
 } from './server/distributedCoordination.js'; // Garante a leitura do arquivo .env no backend
 import {
   criarRateLimitDistribuido,
+  trafficGuardProbe,
   trafficGuardStatus
 } from './server/trafficGuard.js';
 import { instalarRotasHistoricalEngine } from './server/historicalEngine.js';
@@ -1502,6 +1503,52 @@ app.use(
 );
 
 /* BET_ETAPA_35B_HEALTH_PRODUCAO_INICIO */
+app.get(
+  '/api/producao/rate-limit-health',
+  async (_req, res) => {
+    try {
+      const probe =
+        await trafficGuardProbe();
+
+      return res
+        .status(
+          probe.ok
+            ? 200
+            : 503
+        )
+        .json({
+          ok:
+            probe.ok,
+
+          servico:
+            'BetAnalytics Traffic Guard',
+
+          backend:
+            probe.backend,
+
+          redis_configurado:
+            probe.redis_configurado,
+
+          redis_conectado:
+            probe.redis_conectado
+        });
+    }
+    catch {
+      return res
+        .status(503)
+        .json({
+          ok: false,
+
+          servico:
+            'BetAnalytics Traffic Guard',
+
+          backend:
+            'indisponivel'
+        });
+    }
+  }
+);
+
 app.get('/api/producao/health', (_req, res) => {
   return res.status(200).json({
     ok: true,
