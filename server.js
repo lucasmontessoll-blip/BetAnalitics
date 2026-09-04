@@ -24,12 +24,84 @@ import {
   executarSingleFlightDistribuido,
   coordenacaoDistribuidaStatus
 } from './server/distributedCoordination.js'; // Garante a leitura do arquivo .env no backend
+import {
+  criarRateLimitDistribuido,
+  trafficGuardStatus
+} from './server/trafficGuard.js';
 import { instalarRotasHistoricalEngine } from './server/historicalEngine.js';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
 const app = express();
+
+const limitarHistorical =
+  criarRateLimitDistribuido({
+    namespace:
+      'historical-user',
+
+    limit:
+      process.env
+        .RATE_LIMIT_HISTORICAL_PER_MINUTE ||
+      20,
+
+    windowMs:
+      60000
+  });
+
+const limitarPacoteCompleto =
+  criarRateLimitDistribuido({
+    namespace:
+      'pacote-completo-user',
+
+    limit:
+      process.env
+        .RATE_LIMIT_PACOTE_PER_MINUTE ||
+      30,
+
+    windowMs:
+      60000
+  });
+
+const limitarChatIA =
+  criarRateLimitDistribuido({
+    namespace:
+      'chat-ia-user',
+
+    limit:
+      process.env
+        .RATE_LIMIT_CHAT_IA_PER_MINUTE ||
+      10,
+
+    windowMs:
+      60000
+  });
+
+function autenticarComRateLimit(
+  limiter
+) {
+  return function autenticarLimitado(
+    req,
+    res,
+    next
+  ) {
+    return autenticarRequest(
+      req,
+      res,
+      () =>
+        limiter(
+          req,
+          res,
+          next
+        )
+    );
+  };
+}
+
+const autenticarHistoricalLimitado =
+  autenticarComRateLimit(
+    limitarHistorical
+  );
 
 /* BET_ETAPA_35B_CORS_PRODUCAO_INICIO */
 const BET_CORS_ORIGENS_PADRAO = [
@@ -867,9 +939,17 @@ async function apiFootballRequest(
 
 
 instalarRotasHistoricalEngine(app, {
-  request: apiFootballRequest,
-  configurado: () => Boolean(API_FOOTBALL_KEY),
-  autenticar: autenticarRequest,
+  request:
+    apiFootballRequest,
+
+  configurado:
+    () =>
+      Boolean(
+        API_FOOTBALL_KEY
+      ),
+
+  autenticar:
+    autenticarHistoricalLimitado,
 });
 app.get(
   '/api/football/health',
@@ -1165,6 +1245,7 @@ app.get('/api/football/jogador/:playerId', async (req, res) => {
 app.get(
   '/api/football/pacote-completo/:fixtureId',
   autenticarRequest,
+  limitarPacoteCompleto,
   async (req, res) => {
   try {
     // MODO_DEMO_SEM_CHAVE_PACOTE
@@ -1306,6 +1387,7 @@ const genAI = GEMINI_API_KEY
 app.post(
   '/api/chat-ia',
   autenticarRequest,
+  limitarChatIA,
   async (req, res) => {
     const { pergunta, dadosDaRodada } = req.body;
     if (!genAI) {
@@ -1432,6 +1514,9 @@ app.get('/api/producao/health', (_req, res) => {
       gemini: Boolean(GEMINI_API_KEY),
       sportradar: Boolean(SPORTRADAR_KEY)
     },
+    trafego:
+      trafficGuardStatus(),
+
     cors_origens_configuradas: BET_CORS_ORIGENS.size,
     timestamp: new Date().toISOString()
   });
