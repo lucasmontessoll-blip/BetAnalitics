@@ -1,3 +1,14 @@
+import {
+  cacheCompartilhadoGet,
+  cacheCompartilhadoSet,
+  cacheCompartilhadoStatus
+} from './sharedCache.js';
+
+import {
+  executarSingleFlightDistribuido,
+  coordenacaoDistribuidaStatus
+} from './distributedCoordination.js';
+
 const PESOS = Object.freeze({
   forma: 22,
   casaFora: 18,
@@ -26,128 +37,88 @@ const HISTORICAL_CACHE_TTL_MS = (() => {
   return 5 * 60 * 1000;
 })();
 
-const HISTORICAL_CACHE_MAX = (() => {
-  const valor =
-    Number(
-      process.env.HISTORICAL_CACHE_MAX
-    );
-
-  if (
-    Number.isFinite(valor) &&
-    valor >= 10 &&
-    valor <= 5000
-  ) {
-    return Math.floor(valor);
-  }
-
-  return 500;
-})();
-
-const historicalCache =
-  new Map();
-
 const historicalInflight =
   new Map();
 
-function historicalCacheLimparExpirados() {
-  const agora =
-    Date.now();
-
-  for (
-    const [fixtureId, item]
-    of historicalCache.entries()
-  ) {
-    if (
-      !item ||
-      agora - item.createdAt >=
-        HISTORICAL_CACHE_TTL_MS
-    ) {
-      historicalCache.delete(
-        fixtureId
-      );
-    }
-  }
-}
-
-function historicalCacheGet(
+function historicalCacheKey(
   fixtureId
 ) {
-  const chave =
-    String(fixtureId);
+  return (
+    'historical:' +
+    String(fixtureId)
+  );
+}
 
+async function historicalCacheGet(
+  fixtureId
+) {
   const item =
-    historicalCache.get(chave);
-
-  if (!item) {
-    return null;
-  }
+    await cacheCompartilhadoGet(
+      historicalCacheKey(
+        fixtureId
+      )
+    );
 
   if (
-    Date.now() -
-      item.createdAt >=
-    HISTORICAL_CACHE_TTL_MS
+    !item ||
+    !Object.prototype.hasOwnProperty.call(
+      item,
+      'data'
+    )
   ) {
-    historicalCache.delete(chave);
     return null;
   }
 
   return item.data;
 }
 
-function historicalCacheSet(
+async function historicalCacheSet(
   fixtureId,
   data
 ) {
-  const chave =
-    String(fixtureId);
-
-  historicalCache.delete(chave);
-
-  historicalCache.set(
-    chave,
+  await cacheCompartilhadoSet(
+    historicalCacheKey(
+      fixtureId
+    ),
     {
-      createdAt:
-        Date.now(),
-
       data
-    }
+    },
+    HISTORICAL_CACHE_TTL_MS
   );
-
-  while (
-    historicalCache.size >
-    HISTORICAL_CACHE_MAX
-  ) {
-    const maisAntiga =
-      historicalCache
-        .keys()
-        .next()
-        .value;
-
-    if (!maisAntiga) {
-      break;
-    }
-
-    historicalCache.delete(
-      maisAntiga
-    );
-  }
 }
 
 function historicalCacheStatus() {
-  historicalCacheLimparExpirados();
+  const cache =
+    cacheCompartilhadoStatus();
+
+  const coordenacao =
+    coordenacaoDistribuidaStatus();
 
   return {
     ttl_ms:
       HISTORICAL_CACHE_TTL_MS,
 
-    max_entries:
-      HISTORICAL_CACHE_MAX,
+    scope:
+      cache.redis_conectado
+        ? 'global'
+        : 'local',
 
-    entries:
-      historicalCache.size,
+    backend:
+      cache.redis_conectado
+        ? 'redis'
+        : 'memoria',
+
+    redis_configurado:
+      cache.redis_configurado,
+
+    redis_conectado:
+      cache.redis_conectado,
 
     inflight:
-      historicalInflight.size
+      historicalInflight.size,
+
+    distributed_inflight_local:
+      coordenacao.local_inflight
   };
 }
 
@@ -410,7 +381,7 @@ export function instalarRotasHistoricalEngine(
       }
 
       const cachePronto =
-        historicalCacheGet(
+        await historicalCacheGet(
           fixtureId
         );
 
@@ -436,7 +407,7 @@ export function instalarRotasHistoricalEngine(
         await emAndamento;
 
         const compartilhado =
-          historicalCacheGet(
+          await historicalCacheGet(
             fixtureId
           );
 
@@ -470,9 +441,80 @@ export function instalarRotasHistoricalEngine(
       );
 
       try {
+        const resultadoDistribuido =
+          await executarSingleFlightDistribuido({
+            key:
+              historicalCacheKey(
+                fixtureId
+              ),
+
+            lockTtlMs:
+              180000,
+
+            waitTimeoutMs:
+              60000,
+
+            pollMs:
+              100,
+
+            readResult:
+              async () => {
+                const pronto =
+                  await historicalCacheGet(
+                    fixtureId
+                  );
+
+                if (pronto) {
+                  return {
+                    found: true,
+
+                    value: {
+                      origem:
+                        'shared',
+
+                      data:
+                        pronto
+                    }
+                  };
+                }
+
+                return {
+                  found: false
+                };
+              },
+
+            task:
+              async () => {
+                /*
+                 * Double-check depois de
+                 * adquirir o lock global.
+                 */
+                const depoisDoLock =
+                  await historicalCacheGet(
+                    fixtureId
+                  );
+
+                if (depoisDoLock) {
+                  return {
+                    origem:
+                      'shared',
+
+                    data:
+                      depoisDoLock
+                  };
+                }
+
         const fp = await request('/fixtures', { id: fixtureId });
       const fixture = fp?.response?.[0];
-      if (!fixture) return res.status(404).json({ ok: false, erro: 'Partida nao encontrada.' });
+      if (!fixture) {
+        const erro =
+          new Error(
+            'Partida nao encontrada.'
+          );
+
+        erro.status = 404;
+        throw erro;
+      }
 
       const homeId = fixture?.teams?.home?.id, awayId = fixture?.teams?.away?.id;
       const casa = fixture?.teams?.home?.name || 'Mandante', fora = fixture?.teams?.away?.name || 'Visitante';
@@ -571,21 +613,58 @@ export function instalarRotasHistoricalEngine(
         })),
       };
 
-      historicalCacheSet(
+      await historicalCacheSet(
         fixtureId,
         resposta
       );
 
-      return res.json({
-        ...resposta,
+      return {
+        origem:
+          'computed',
 
-        cache: {
-          hit: false,
-          compartilhado: false,
-          ttl_ms:
-            HISTORICAL_CACHE_TTL_MS
+        data:
+          resposta
+      };
+            }
+          });
+
+        const respostaFinal =
+          resultadoDistribuido?.data;
+
+        if (!respostaFinal) {
+          const erro =
+            new Error(
+              'Historical Engine retornou resultado vazio.'
+            );
+
+          erro.status = 500;
+          throw erro;
         }
-      });
+
+        const veioCompartilhado =
+          resultadoDistribuido?.origem ===
+          'shared';
+
+        return res.json({
+          ...respostaFinal,
+
+          cache: {
+            hit:
+              veioCompartilhado,
+
+            compartilhado:
+              veioCompartilhado,
+
+            scope:
+              cacheCompartilhadoStatus()
+                .redis_conectado
+                ? 'global'
+                : 'local',
+
+            ttl_ms:
+              HISTORICAL_CACHE_TTL_MS
+          }
+        });
       }
       finally {
         liberarInflight?.();
