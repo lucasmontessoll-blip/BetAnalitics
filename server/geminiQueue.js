@@ -10,8 +10,18 @@ import IORedis
 const QUEUE_NAME =
   'betanalytics-gemini-chat';
 
+const ROLES_VALIDOS =
+  new Set([
+    'embedded',
+    'producer',
+    'worker'
+  ]);
+
 let processarGemini =
   null;
+
+let queueRole =
+  'embedded';
 
 let queue =
   null;
@@ -66,6 +76,36 @@ function inteiroPositivo(
   );
 }
 
+function normalizarRole(
+  valor
+) {
+  const role =
+    String(
+      valor ||
+      'embedded'
+    )
+      .trim()
+      .toLowerCase();
+
+  if (
+    !ROLES_VALIDOS.has(
+      role
+    )
+  ) {
+    const erro =
+      new Error(
+        'Role da fila Gemini invalida.'
+      );
+
+    erro.code =
+      'GEMINI_QUEUE_ROLE_INVALID';
+
+    throw erro;
+  }
+
+  return role;
+}
+
 function redisUrl() {
   return env(
     'REDIS_URL'
@@ -76,6 +116,97 @@ function redisConfigurado() {
   return Boolean(
     redisUrl()
   );
+}
+
+function usaProducer() {
+  return (
+    queueRole ===
+      'embedded' ||
+    queueRole ===
+      'producer'
+  );
+}
+
+function usaWorker() {
+  return (
+    queueRole ===
+      'embedded' ||
+    queueRole ===
+      'worker'
+  );
+}
+
+function conexoesPrevistasRole(
+  role
+) {
+  if (
+    role ===
+    'embedded'
+  ) {
+    return 3;
+  }
+
+  if (
+    role ===
+    'producer'
+  ) {
+    return 2;
+  }
+
+  if (
+    role ===
+    'worker'
+  ) {
+    return 1;
+  }
+
+  return 0;
+}
+
+function conexaoAtiva(
+  conexao
+) {
+  return Boolean(
+    conexao &&
+    (
+      conexao.status ===
+        'ready' ||
+      conexao.status ===
+        'connecting' ||
+      conexao.status ===
+        'connect'
+    )
+  );
+}
+
+function conexoesAtivas() {
+  return [
+    queueConnection,
+    eventsConnection,
+    workerConnection
+  ]
+    .filter(
+      conexaoAtiva
+    )
+    .length;
+}
+
+function backendRole() {
+  if (
+    queueRole ===
+    'producer'
+  ) {
+    return 'redis-bullmq-producer';
+  }
+
+  if (
+    queueRole ===
+    'worker'
+  ) {
+    return 'redis-bullmq-worker';
+  }
+
+  return 'redis-bullmq';
 }
 
 function erroFila(
@@ -137,15 +268,43 @@ async function conectar(
   }
 }
 
+function recursosProntos() {
+  const producerPronto =
+    !usaProducer() ||
+    (
+      Boolean(queue) &&
+      Boolean(queueEvents)
+    );
+
+  const workerPronto =
+    !usaWorker() ||
+    Boolean(worker);
+
+  return (
+    producerPronto &&
+    workerPronto
+  );
+}
+
 async function inicializarFila() {
-  if (!redisConfigurado()) {
-    return false;
+  if (
+    !redisConfigurado()
+  ) {
+    if (
+      queueRole ===
+      'embedded'
+    ) {
+      return false;
+    }
+
+    throw erroFila(
+      'Redis obrigatorio para role distribuido da fila Gemini.',
+      'GEMINI_QUEUE_REDIS_REQUIRED'
+    );
   }
 
   if (
-    queue &&
-    queueEvents &&
-    worker
+    recursosProntos()
   ) {
     return true;
   }
@@ -157,144 +316,189 @@ async function inicializarFila() {
   initPromise =
     (async () => {
       try {
-        queueConnection =
-          criarConexao();
+        if (
+          usaProducer()
+        ) {
+          if (
+            !queueConnection
+          ) {
+            queueConnection =
+              criarConexao();
+          }
 
-        eventsConnection =
-          criarConexao();
+          if (
+            !eventsConnection
+          ) {
+            eventsConnection =
+              criarConexao();
+          }
 
-        workerConnection =
-          criarConexao();
+          await Promise.all([
+            conectar(
+              queueConnection
+            ),
 
-        await Promise.all([
-          conectar(
-            queueConnection
-          ),
+            conectar(
+              eventsConnection
+            )
+          ]);
 
-          conectar(
-            eventsConnection
-          ),
+          if (!queue) {
+            queue =
+              new Queue(
+                QUEUE_NAME,
+                {
+                  connection:
+                    queueConnection,
 
-          conectar(
-            workerConnection
-          )
-        ]);
+                  defaultJobOptions: {
+                    removeOnComplete: {
+                      age: 300,
+                      count: 100
+                    },
 
-        queue =
-          new Queue(
-            QUEUE_NAME,
-            {
-              connection:
-                queueConnection,
-
-              defaultJobOptions: {
-                removeOnComplete: {
-                  age: 300,
-                  count: 100
-                },
-
-                removeOnFail: {
-                  age: 900,
-                  count: 200
+                    removeOnFail: {
+                      age: 900,
+                      count: 200
+                    }
+                  }
                 }
-              }
-            }
-          );
-
-        queueEvents =
-          new QueueEvents(
-            QUEUE_NAME,
-            {
-              connection:
-                eventsConnection
-            }
-          );
-
-        worker =
-          new Worker(
-            QUEUE_NAME,
-
-            async (job) => {
-              if (
-                job.name ===
-                'probe'
-              ) {
-                return {
-                  ok: true,
-                  tipo:
-                    'probe'
-                };
-              }
-
-              if (
-                job.name !==
-                'chat'
-              ) {
-                throw new Error(
-                  'Tipo de job Gemini invalido.'
-                );
-              }
-
-              if (
-                typeof processarGemini !==
-                'function'
-              ) {
-                throw new Error(
-                  'Processador Gemini nao configurado.'
-                );
-              }
-
-              return processarGemini(
-                job.data || {}
-              );
-            },
-
-            {
-              connection:
-                workerConnection,
-
-              concurrency:
-                inteiroPositivo(
-                  process.env
-                    .GEMINI_QUEUE_CONCURRENCY,
-                  3
-                ),
-
-              limiter: {
-                max:
-                  inteiroPositivo(
-                    process.env
-                      .GEMINI_QUEUE_RATE_MAX,
-                    10
-                  ),
-
-                duration:
-                  1000
-              }
-            }
-          );
-
-        worker.on(
-          'error',
-          (error) => {
-            ultimoErro =
-              String(
-                error?.code ||
-                error?.name ||
-                'WORKER_ERROR'
               );
           }
+
+          if (!queueEvents) {
+            queueEvents =
+              new QueueEvents(
+                QUEUE_NAME,
+                {
+                  connection:
+                    eventsConnection
+                }
+              );
+          }
+        }
+
+        if (
+          usaWorker()
+        ) {
+          if (
+            typeof processarGemini !==
+            'function'
+          ) {
+            throw new Error(
+              'Processador Gemini nao configurado para worker.'
+            );
+          }
+
+          if (
+            !workerConnection
+          ) {
+            workerConnection =
+              criarConexao();
+          }
+
+          await conectar(
+            workerConnection
+          );
+
+          if (!worker) {
+            worker =
+              new Worker(
+                QUEUE_NAME,
+
+                async (job) => {
+                  if (
+                    job.name ===
+                    'probe'
+                  ) {
+                    return {
+                      ok: true,
+                      tipo:
+                        'probe'
+                    };
+                  }
+
+                  if (
+                    job.name !==
+                    'chat'
+                  ) {
+                    throw new Error(
+                      'Tipo de job Gemini invalido.'
+                    );
+                  }
+
+                  return processarGemini(
+                    job.data || {}
+                  );
+                },
+
+                {
+                  connection:
+                    workerConnection,
+
+                  concurrency:
+                    inteiroPositivo(
+                      process.env
+                        .GEMINI_QUEUE_CONCURRENCY,
+                      3
+                    ),
+
+                  limiter: {
+                    max:
+                      inteiroPositivo(
+                        process.env
+                          .GEMINI_QUEUE_RATE_MAX,
+                        10
+                      ),
+
+                    duration:
+                      1000
+                  }
+                }
+              );
+
+            worker.on(
+              'error',
+              (error) => {
+                ultimoErro =
+                  String(
+                    error?.code ||
+                    error?.name ||
+                    'WORKER_ERROR'
+                  );
+              }
+            );
+          }
+        }
+
+        const aguardas =
+          [];
+
+        if (queue) {
+          aguardas.push(
+            queue.waitUntilReady()
+          );
+        }
+
+        if (queueEvents) {
+          aguardas.push(
+            queueEvents
+              .waitUntilReady()
+          );
+        }
+
+        if (worker) {
+          aguardas.push(
+            worker.waitUntilReady()
+          );
+        }
+
+        await Promise.all(
+          aguardas
         );
 
-        await Promise.all([
-          queue.waitUntilReady(),
-          queueEvents
-            .waitUntilReady(),
-          worker.waitUntilReady()
-        ]);
-
         ultimoBackend =
-          'redis-bullmq';
+          backendRole();
 
         ultimoErro =
           null;
@@ -326,39 +530,111 @@ async function inicializarFila() {
 }
 
 export function configurarFilaGemini({
-  processar
+  processar,
+  role =
+    process.env
+      .GEMINI_QUEUE_ROLE ||
+    'embedded'
 } = {}) {
+  const novoRole =
+    normalizarRole(
+      role
+    );
+
   if (
-    typeof processar !==
+    (
+      queue ||
+      queueEvents ||
+      worker
+    ) &&
+    novoRole !==
+      queueRole
+  ) {
+    const erro =
+      new Error(
+        'Nao e permitido trocar role da fila depois da inicializacao.'
+      );
+
+    erro.code =
+      'GEMINI_QUEUE_ROLE_ALREADY_ACTIVE';
+
+    throw erro;
+  }
+
+  if (
+    typeof processar ===
     'function'
+  ) {
+    processarGemini =
+      processar;
+  }
+
+  if (
+    (
+      novoRole ===
+        'embedded' ||
+      novoRole ===
+        'worker'
+    ) &&
+    typeof processarGemini !==
+      'function'
   ) {
     throw new Error(
       'Fila Gemini: processador invalido.'
     );
   }
 
-  processarGemini =
-    processar;
+  queueRole =
+    novoRole;
+
+  return geminiQueueStatus();
+}
+
+export async function inicializarFilaGemini() {
+  await inicializarFila();
+
+  return geminiQueueStatus();
 }
 
 export async function executarGeminiEnfileirado(
   payload = {}
 ) {
   if (
-    typeof processarGemini !==
-    'function'
+    queueRole ===
+    'worker'
   ) {
-    throw new Error(
-      'Fila Gemini nao configurada.'
+    throw erroFila(
+      'Processo worker nao aceita submissao HTTP.',
+      'GEMINI_QUEUE_WORKER_ONLY'
     );
   }
 
   /*
-   * Desenvolvimento/local:
-   * sem REDIS_URL, preserva funcionamento
-   * direto para nao exigir Redis local.
+   * Compatibilidade local:
+   * embedded sem Redis continua direto.
    */
-  if (!redisConfigurado()) {
+  if (
+    !redisConfigurado()
+  ) {
+    if (
+      queueRole !==
+      'embedded'
+    ) {
+      throw erroFila(
+        'Redis obrigatorio para producer Gemini.',
+        'GEMINI_QUEUE_REDIS_REQUIRED'
+      );
+    }
+
+    if (
+      typeof processarGemini !==
+      'function'
+    ) {
+      throw new Error(
+        'Fila Gemini nao configurada.'
+      );
+    }
+
     ultimoBackend =
       'direto-local';
 
@@ -382,7 +658,7 @@ export async function executarGeminiEnfileirado(
     !queueEvents
   ) {
     throw erroFila(
-      'Fila da IA nao inicializada.'
+      'Producer da fila Gemini nao inicializado.'
     );
   }
 
@@ -410,14 +686,14 @@ export async function executarGeminiEnfileirado(
       );
 
     ultimoBackend =
-      'redis-bullmq';
+      backendRole();
 
     ultimoErro =
       null;
 
     return {
       backend:
-        'redis-bullmq',
+        ultimoBackend,
 
       ...(resultado || {})
     };
@@ -438,21 +714,64 @@ export async function executarGeminiEnfileirado(
 }
 
 export async function probeFilaGemini() {
-  if (!redisConfigurado()) {
+  if (
+    !redisConfigurado()
+  ) {
     return {
       ok: false,
+
       backend:
-        'direto-local',
+        queueRole ===
+          'embedded'
+          ? 'direto-local'
+          : 'redis-ausente',
+
       redis_configurado:
         false,
+
+      role:
+        queueRole,
+
       fila_pronta:
         false,
+
       worker_pronto:
         false
     };
   }
 
   await inicializarFila();
+
+  /*
+   * Worker-only nao possui Queue para
+   * publicar um job de probe.
+   */
+  if (
+    queueRole ===
+    'worker'
+  ) {
+    const ok =
+      Boolean(worker);
+
+    return {
+      ok,
+
+      backend:
+        backendRole(),
+
+      redis_configurado:
+        true,
+
+      role:
+        queueRole,
+
+      fila_pronta:
+        false,
+
+      worker_pronto:
+        Boolean(worker)
+    };
+  }
 
   const job =
     await queue.add(
@@ -480,7 +799,7 @@ export async function probeFilaGemini() {
 
   ultimoBackend =
     ok
-      ? 'redis-bullmq'
+      ? backendRole()
       : 'redis-indisponivel';
 
   return {
@@ -492,11 +811,119 @@ export async function probeFilaGemini() {
     redis_configurado:
       true,
 
+    role:
+      queueRole,
+
     fila_pronta:
       Boolean(queue),
 
     worker_pronto:
-      Boolean(worker)
+      queueRole ===
+        'embedded'
+        ? Boolean(worker)
+        : null
+  };
+}
+
+export function geminiQueueConnectionBudget({
+  webInstances = 1,
+  workerInstances = 1,
+  architecture =
+    'separated'
+} = {}) {
+  const webs =
+    Math.max(
+      0,
+      inteiroPositivo(
+        webInstances,
+        1
+      )
+    );
+
+  const workers =
+    Math.max(
+      0,
+      inteiroPositivo(
+        workerInstances,
+        1
+      )
+    );
+
+  const modo =
+    String(
+      architecture ||
+      'separated'
+    )
+      .trim()
+      .toLowerCase();
+
+  if (
+    modo ===
+    'embedded'
+  ) {
+    const bullmqWeb =
+      webs * 3;
+
+    const sharedRedisWeb =
+      webs;
+
+    return {
+      architecture:
+        'embedded',
+
+      web_instances:
+        webs,
+
+      worker_instances:
+        0,
+
+      bullmq_web:
+        bullmqWeb,
+
+      bullmq_worker:
+        0,
+
+      redis_shared_web_estimado:
+        sharedRedisWeb,
+
+      total_estimado:
+        bullmqWeb +
+        sharedRedisWeb
+    };
+  }
+
+  const bullmqWeb =
+    webs * 2;
+
+  const bullmqWorker =
+    workers;
+
+  const sharedRedisWeb =
+    webs;
+
+  return {
+    architecture:
+      'separated',
+
+    web_instances:
+      webs,
+
+    worker_instances:
+      workers,
+
+    bullmq_web:
+      bullmqWeb,
+
+    bullmq_worker:
+      bullmqWorker,
+
+    redis_shared_web_estimado:
+      sharedRedisWeb,
+
+    total_estimado:
+      bullmqWeb +
+      bullmqWorker +
+      sharedRedisWeb
   };
 }
 
@@ -505,14 +932,34 @@ export function geminiQueueStatus() {
     backend:
       ultimoBackend,
 
+    role:
+      queueRole,
+
     redis_configurado:
       redisConfigurado(),
 
     fila_pronta:
       Boolean(queue),
 
+    events_pronto:
+      Boolean(queueEvents),
+
     worker_pronto:
       Boolean(worker),
+
+    producer_habilitado:
+      usaProducer(),
+
+    worker_habilitado:
+      usaWorker(),
+
+    conexoes_redis_previstas:
+      conexoesPrevistasRole(
+        queueRole
+      ),
+
+    conexoes_redis_ativas:
+      conexoesAtivas(),
 
     concorrencia:
       inteiroPositivo(
@@ -584,5 +1031,8 @@ export async function fecharFilaGemini() {
     null;
 
   queueConnection =
+    null;
+
+  initPromise =
     null;
 }
