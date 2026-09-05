@@ -284,13 +284,15 @@ export default function PerfilProCompleto({
             accent="bg-emerald-400/10 text-emerald-300"
             onClick={() => setViewMode?.('performance-ia')}
           />
-          <QuickAction
+          {import.meta.env.MODE !== 'play' && (
+            <QuickAction
             icon={Landmark}
             title="Parceiros"
             description="Casas e integrações disponíveis."
             accent="bg-violet-500/10 text-violet-300"
             onClick={() => setViewMode?.('casas-parceiras')}
           />
+          )}
         </div>
       </section>
 

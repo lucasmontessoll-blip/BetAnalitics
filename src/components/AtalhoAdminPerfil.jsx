@@ -7,7 +7,7 @@ export default function AtalhoAdminPerfil({
   setMenuAtivo,
   setJogoSelecionado,
 }) {
-  if (viewMode !== 'perfil') return null;
+  if (import.meta.env.MODE === 'play' || viewMode !== 'perfil') return null;
 
   return (
     <div className="px-4 mt-4 mb-4 w-full">

@@ -19,6 +19,19 @@ function playConsumptionOnly(mode) {
         String(id || '').replace(/\\/g, '/');
 
       if (
+        mode === 'play' &&
+        normalized.endsWith('/src/lazyViews.js')
+      ) {
+        return {
+          code: code.replace(
+            "() => import('./components/CasasParceirasPro.jsx')",
+            "() => Promise.resolve({ default: () => null })"
+          ),
+          map: null
+        };
+      }
+
+      if (
         mode !== 'play' ||
         !normalized.endsWith('/src/App.jsx')
       ) {
