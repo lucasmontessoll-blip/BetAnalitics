@@ -25,7 +25,7 @@ export default function Perfil({userData,form,solicitarPermissaoNotificacao,setV
     {titulo:'Plano PRO',descricao:isVip?'Gerenciar assinatura ativa':'Ver benefícios e assinar',icon:Crown,cor:'text-amber-400',borda:'border-amber-500/20',acao:abrirPlanoPro},
     {titulo:'Termos e Privacidade',descricao:'Política, +18, responsabilidade e condições de uso',icon:FileText,cor:'text-slate-300',borda:'border-white/10',acao:()=>setViewMode?.('termos')},
     {titulo:'Educação',descricao:'Odds, EV+, gestão de banca e jogo responsável',icon:BookOpen,cor:'text-emerald-400',borda:'border-emerald-500/20',acao:()=>setViewMode?.('educacao')},
-    {titulo:'Suporte',descricao:'Fale com o suporte do BetAnalytics PRO',icon:LifeBuoy,cor:'text-cyan-400',borda:'border-cyan-500/20',acao:()=>{window.location.href='mailto:betanlyticspro@gmail.com';}},
+    {titulo:'Suporte',descricao:'Fale com o suporte do BetAnalyticsPRO',icon:LifeBuoy,cor:'text-cyan-400',borda:'border-cyan-500/20',acao:()=>{window.location.href='mailto:betanlyticspro@gmail.com';}},
     {titulo:'Histórico de Assertividade',descricao:'Acompanhar desempenho e acertos da IA',icon:TrendingUp,cor:'text-purple-400',borda:'border-purple-500/20',acao:()=>setViewMode?.('historico')}
   ];
 
@@ -84,7 +84,7 @@ export default function Perfil({userData,form,solicitarPermissaoNotificacao,setV
         <ChevronRight className="w-5 h-5 text-red-400/40 flex-shrink-0"/>
       </button>
 
-      <div className="mt-6 text-center"><p className="text-[10px] text-slate-600 font-bold leading-relaxed">BetAnalytics PRO é uma plataforma de análise esportiva. Não somos casa de aposta, não aceitamos depósitos e não garantimos lucro.</p></div>
+      <div className="mt-6 text-center"><p className="text-[10px] text-slate-600 font-bold leading-relaxed">BetAnalyticsPRO é uma plataforma de análise esportiva. Não somos casa de aposta, não aceitamos depósitos e não garantimos lucro.</p></div>
     </div>
   );
 }

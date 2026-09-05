@@ -154,7 +154,7 @@ function escudoTime(urlLogo, nomeTime) {
     ? urlLogo
     : gerarEscudoAutomatico(nomeTime);
 }
-const PLANO_PRO = { nome: 'BetAnalytics PRO Mensal', valor: 29.90, dias: 30 };
+const PLANO_PRO = { nome: 'BetAnalyticsPRO Mensal', valor: 29.90, dias: 30 };
 let supabase = { from: () => ({ select: () => Promise.resolve({ data: [], error: null }), insert: () => Promise.resolve({ data: null, error: null }) }) };
 try {
 const url = import.meta.env.VITE_SUPABASE_URL;
@@ -1038,7 +1038,7 @@ const confirmarVipServidor = async (conta, pagamento = {}) => {
   });
 
   alert(
-    'Pagamento confirmado. BetAnalytics PRO ativado.'
+    'Pagamento confirmado. BetAnalyticsPRO ativado.'
   );
 
   return perfil;

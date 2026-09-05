@@ -77,7 +77,7 @@ def salvar_no_banco(jogos):
     print(f"✅ GOOOOOL! {len(jogos)} jogos salvos no banco de dados com escudos!")
 
 def iniciar_robo():
-    print("🤖 Robô BetAnalytics PRO (API-Football) Iniciado!")
+    print("🤖 Robô BetAnalyticsPRO (API-Football) Iniciado!")
     print(f"💰 Custo Mensal Estimado: 2.160 requisições (Limite: 7.500)")
     
     while True:

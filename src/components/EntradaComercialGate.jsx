@@ -214,7 +214,7 @@ export default function EntradaComercialGate({ children }) {
       <div className="min-h-screen bg-[#050816] text-white px-4 py-6 flex items-center justify-center">
         <div className="w-full max-w-md rounded-[32px] border border-white/10 bg-white/[0.06] shadow-2xl overflow-hidden">
           <div className="p-5 border-b border-white/10">
-            <p className="text-xs text-yellow-300 font-black uppercase tracking-[0.22em]">BetAnalytics PRO</p>
+            <p className="text-xs text-yellow-300 font-black uppercase tracking-[0.22em]">BetAnalyticsPRO</p>
             <h1 className="mt-1 text-2xl font-black">Cadastro ou login</h1>
 
             <div className="grid grid-cols-2 gap-2 mt-5 bg-black/25 rounded-2xl p-1 border border-white/10">

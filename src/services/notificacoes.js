@@ -9,7 +9,7 @@ export async function solicitarPermissaoNotificacao() {
   const permission = await Notification.requestPermission();
   
   if (permission === 'granted') {
-    new Notification('BetAnalytics Pro', {
+    new Notification('BetAnalyticsPRO', {
       body: 'Radar de Value Bets ativado com sucesso! ',
       icon: '/icon-192.png' // Icone correto da PWA
     });

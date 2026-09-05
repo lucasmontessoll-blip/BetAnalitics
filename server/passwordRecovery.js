@@ -11,7 +11,7 @@ const RECOVERY_HTML = String.raw`<!doctype html>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
   <meta name="color-scheme" content="dark">
-  <title>BetAnalytics PRO - Recuperar senha</title>
+  <title>BetAnalyticsPRO - Recuperar senha</title>
   <style>
     :root {
       font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
@@ -136,7 +136,7 @@ const RECOVERY_HTML = String.raw`<!doctype html>
 </head>
 <body>
   <main class="card">
-    <p class="brand">BetAnalytics PRO</p>
+    <p class="brand">BetAnalyticsPRO</p>
     <h1>Defina sua nova senha</h1>
     <p class="sub" id="descricao">
       Validando seu link seguro de recuperação...

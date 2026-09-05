@@ -15,7 +15,7 @@ export default function ComoIACalcula(){
       <div className="bg-gradient-to-br from-blue-600 to-purple-700 rounded-3xl p-6 mb-5 relative overflow-hidden">
         <Brain className="absolute -right-5 -top-5 w-32 h-32 text-white/10"/>
         <h2 className="text-2xl font-black text-white relative z-10">Como a IA calcula?</h2>
-        <p className="text-sm text-blue-100 font-bold mt-2 relative z-10">Entenda os criterios usados pelo BetAnalytics PRO para gerar analises esportivas.</p>
+        <p className="text-sm text-blue-100 font-bold mt-2 relative z-10">Entenda os criterios usados pelo BetAnalyticsPRO para gerar analises esportivas.</p>
       </div>
 
       <div className="space-y-3">

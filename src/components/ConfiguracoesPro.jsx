@@ -278,7 +278,7 @@ export default function ConfiguracoesPro({
   function askAI() {
     if (typeof setAiQuery === 'function') {
       setAiQuery(
-        'Me ajude a configurar o BetAnalytics PRO de forma conservadora e segura.'
+        'Me ajude a configurar o BetAnalyticsPRO de forma conservadora e segura.'
       );
     }
 

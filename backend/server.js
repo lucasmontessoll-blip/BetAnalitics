@@ -92,7 +92,7 @@ function admin(req, res, next) {
 
 app.get('/api/health', (req, res) => {
   ok(res, {
-    name: 'BetAnalytics PRO API',
+    name: 'BetAnalyticsPRO API',
     status: 'online',
     time: new Date().toISOString()
   });
@@ -311,7 +311,7 @@ app.post('/api/pagamentos/criar-pix', auth, async (req, res) => {
 
     const body = {
       transaction_amount: valor,
-      description: `Assinatura BetAnalytics PRO - ${plano}`,
+      description: `Assinatura BetAnalyticsPRO - ${plano}`,
       payment_method_id: 'pix',
       payer: {
         email: req.usuario.email,
@@ -554,7 +554,7 @@ app.post('/api/pagamento/pix', async (req, res) => {
     const conta = validarContaPagamento(req.body);
     if (conta.erro) return res.status(400).json({ erro: conta.erro });
 
-    const descricao = String(req.body.descricao || 'BetAnalytics PRO Mensal');
+    const descricao = String(req.body.descricao || 'BetAnalyticsPRO Mensal');
 
     const payment = await mercadoPagoFetch('/v1/payments', {
       method: 'POST',
@@ -610,7 +610,7 @@ app.post('/api/pagamento/cartao', async (req, res) => {
     const body = {
       transaction_amount: Number(conta.valor),
       token,
-      description: String(req.body.descricao || 'BetAnalytics PRO Mensal'),
+      description: String(req.body.descricao || 'BetAnalyticsPRO Mensal'),
       installments,
       payment_method_id: paymentMethodId,
       payer: {
@@ -676,5 +676,5 @@ app.get('/api/pagamento/status/:id', async (req, res) => {
 });
 
 app.listen(PORT, () => {
-  console.log(`✅ BetAnalytics PRO API online na porta ${PORT}`);
+  console.log(`✅ BetAnalyticsPRO API online na porta ${PORT}`);
 });

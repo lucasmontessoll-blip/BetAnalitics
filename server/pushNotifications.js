@@ -213,7 +213,7 @@ async function enviarFCMToken(
               notification: {
                 title:
                   texto(titulo, 120) ||
-                  'BetAnalytics PRO',
+                  'BetAnalyticsPRO',
 
                 body:
                   texto(corpo, 300) ||
@@ -307,7 +307,7 @@ export async function enviarPushParaUsuario(
   userId,
   {
     titulo =
-      'BetAnalytics PRO',
+      'BetAnalyticsPRO',
 
     corpo =
       'Voce tem uma nova atualizacao.',
@@ -632,7 +632,7 @@ export function instalarRotasPush(
             req.betUser.id,
             {
               titulo:
-                'BetAnalytics PRO',
+                'BetAnalyticsPRO',
 
               corpo:
                 'Push nativo configurado com sucesso.',

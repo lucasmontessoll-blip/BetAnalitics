@@ -367,7 +367,7 @@ function validarPagamentoPro(
 
   /*
    * Somente pagamentos criados
-   * como plano BetAnalytics PRO
+   * como plano BetAnalyticsPRO
    * podem liberar entitlement.
    */
   if (
@@ -377,7 +377,7 @@ function validarPagamentoPro(
       PLANO_METADATA
   ) {
     throw erroHttp(
-      'Pagamento aprovado nao pertence ao plano BetAnalytics PRO.',
+      'Pagamento aprovado nao pertence ao plano BetAnalyticsPRO.',
       409
     );
   }

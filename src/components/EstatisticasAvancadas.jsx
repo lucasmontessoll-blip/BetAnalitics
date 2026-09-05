@@ -61,7 +61,7 @@ export default function EstatisticasAvancadas({ apostas, isPro, onUnlockPro }) {
     
     doc.setTextColor(255, 255, 255);
     doc.setFontSize(22);
-    doc.text("BetAnalytics PRO - Relatorio", 20, 25);
+    doc.text("BetAnalyticsPRO - Relatorio", 20, 25);
     
     doc.setTextColor(0, 0, 0);
     doc.setFontSize(14);

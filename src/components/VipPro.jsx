@@ -43,7 +43,7 @@ export default function VipPro({ userData, setViewMode, setAiOpen, setAiQuery })
         <div className="relative">
           <div className="flex items-center gap-2 text-[10px] font-black uppercase tracking-[0.24em] text-yellow-100 mb-3">
             <Crown className="w-4 h-4" />
-            BetAnalytics PRO
+            BetAnalyticsPRO
           </div>
 
           <h1 className="text-3xl font-black leading-tight text-white">

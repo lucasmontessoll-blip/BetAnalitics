@@ -216,7 +216,7 @@ export default function AreaProAssinatura({
           </div>
 
           <h1 className="mt-5 text-[27px] font-black leading-[1.08] tracking-[-0.035em] text-white sm:text-3xl">
-            BetAnalytics PRO
+            BetAnalyticsPRO
           </h1>
           <p className="mt-3 max-w-xl text-[11px] font-medium leading-5 text-slate-400">
             Libere o Radar IA, análises avançadas, gestão de banca e alertas em uma experiência completa.

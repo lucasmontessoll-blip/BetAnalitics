@@ -26,7 +26,7 @@ export default function EducacaoBetAnalytics(){
           <h3 className="text-xs font-black uppercase text-blue-400">Uso responsavel</h3>
         </div>
         <p className="text-[11px] text-slate-400 leading-relaxed">
-          Este conteudo e educativo. O BetAnalytics PRO nao garante lucro, nao realiza apostas e nao substitui responsabilidade pessoal.
+          Este conteudo e educativo. O BetAnalyticsPRO nao garante lucro, nao realiza apostas e nao substitui responsabilidade pessoal.
         </p>
       </div>
     </div>

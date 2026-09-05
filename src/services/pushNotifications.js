@@ -205,7 +205,7 @@ async function prepararCanal(
           'Alertas BetAnalytics',
 
         description:
-          'Alertas do BetAnalytics PRO',
+          'Alertas do BetAnalyticsPRO',
 
         importance:
           5,

@@ -9,7 +9,7 @@ export default function Onboarding({ onComplete }) {
         <Crown className="w-24 h-24 text-blue-500 mb-8 drop-shadow-[0_0_30px_rgba(37,99,235,0.6)]" />
 
         <h1 className="text-3xl font-black mb-4 text-white text-center tracking-tight">
-          Bem-vindo ao <br/><span className="text-blue-500">BetAnalytics PRO</span>
+          Bem-vindo ao <br/><span className="text-blue-500">BetAnalyticsPRO</span>
         </h1>
 
         <p className="text-center text-slate-400 mb-10 font-bold text-sm leading-relaxed max-w-xs">

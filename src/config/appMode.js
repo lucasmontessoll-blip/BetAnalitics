@@ -1,6 +1,6 @@
 export const APP_MODE={
   PLAYSTORE:true,
-  APP_NAME:'BetAnalytics PRO',
+  APP_NAME:'BetAnalyticsPRO',
   SUPPORT_EMAIL:'betanlyticspro@gmail.com',
   LEGAL:{
     MIN_AGE:18,

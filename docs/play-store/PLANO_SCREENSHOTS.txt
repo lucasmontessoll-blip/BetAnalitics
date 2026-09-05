@@ -1,5 +1,5 @@
 PLANO DE SCREENSHOTS E ASSETS — GOOGLE PLAY
-BetAnalytics PRO
+BetAnalyticsPRO
 Atualização técnica: 05/09/2026
 
 OBJETIVO
@@ -18,7 +18,7 @@ ORDEM PROPOSTA
 Tela: Home / Todos os jogos.
 Mostrar: central de partidas, jogos ao vivo em destaque e lista organizada por status.
 Evitar: dados fictícios apresentados como reais.
-Texto alternativo: Central de partidas do BetAnalytics PRO com jogos ao vivo e partidas organizadas por status.
+Texto alternativo: Central de partidas do BetAnalyticsPRO com jogos ao vivo e partidas organizadas por status.
 
 02_DETALHES_PARTIDA.png
 Tela: Painel de jogo.
@@ -36,7 +36,7 @@ Texto alternativo: Tela pré-jogo com partidas programadas e dados esportivos di
 Tela: Radar IA.
 Mostrar: cabeçalho do radar, explicação dos dados e indicadores quando disponíveis.
 Evitar: capturar marcas de bookmakers, links externos, preços ou qualquer CTA de aposta.
-Texto alternativo: Radar IA do BetAnalytics PRO com probabilidades e indicadores baseados em dados disponíveis.
+Texto alternativo: Radar IA do BetAnalyticsPRO com probabilidades e indicadores baseados em dados disponíveis.
 
 05_GESTAO_BANCA.png
 Tela: Gestão de banca.
@@ -66,7 +66,7 @@ OUTROS ASSETS DA FICHA
 - 512 x 512 px.
 - PNG de 32 bits com alfa.
 - Até 1024 KB.
-- Usar a identidade final do BetAnalytics PRO, sem preço, ranking ou selo da Google Play.
+- Usar a identidade final do BetAnalyticsPRO, sem preço, ranking ou selo da Google Play.
 
 RECURSO GRÁFICO
 - 1024 x 500 px.

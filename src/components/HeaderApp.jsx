@@ -21,7 +21,7 @@ export default function HeaderApp({
         <div className="flex flex-col items-start justify-center min-w-0">
           <img
             src="/logo-topo.png"
-            alt="BetAnalytics PRO"
+            alt="BetAnalyticsPRO"
             className="h-12 sm:h-14 w-auto max-w-[210px] object-contain select-none"
             draggable="false"
             style={{

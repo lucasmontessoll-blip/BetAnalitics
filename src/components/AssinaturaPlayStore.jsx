@@ -30,7 +30,7 @@ export default function AssinaturaPlayStore({
 
               <div>
                 <h1 className="text-2xl font-black">
-                  BetAnalytics PRO
+                  BetAnalyticsPRO
                 </h1>
 
                 <p className="mt-1 text-xs font-semibold text-slate-500">

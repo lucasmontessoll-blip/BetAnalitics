@@ -60,7 +60,7 @@ export default function SplashLogoAnimado() {
       <div className="relative z-10 w-full max-w-[370px] px-8 flex flex-col items-center">
         <img
           src="/logo-topo.png"
-          alt="BetAnalytics PRO"
+          alt="BetAnalyticsPRO"
           className="logo-splash-clean w-full max-w-[320px] h-auto object-contain select-none"
           draggable="false"
           style={{

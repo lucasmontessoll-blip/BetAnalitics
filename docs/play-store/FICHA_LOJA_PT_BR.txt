@@ -1,15 +1,15 @@
 FICHA DA GOOGLE PLAY STORE — PT-BR
-BetAnalytics PRO
+BetAnalyticsPRO
 Atualização técnica: 05/09/2026
 
 [NOME_DO_APP]
-BetAnalytics PRO
+BetAnalyticsPRO
 
 [DESCRICAO_BREVE]
 Partidas, estatísticas e análises esportivas com inteligência artificial.
 
 [DESCRICAO_COMPLETA]
-BetAnalytics PRO é uma plataforma de acompanhamento e análise esportiva para organizar informações de partidas em um único lugar.
+BetAnalyticsPRO é uma plataforma de acompanhamento e análise esportiva para organizar informações de partidas em um único lugar.
 
 Acompanhe jogos pré-jogo, ao vivo e encerrados, com placares, status e detalhes conforme a disponibilidade da fonte de dados.
 
@@ -23,7 +23,7 @@ Principais recursos:
 
 A inteligência artificial auxilia na interpretação das informações esportivas. As análises são informativas, podem conter incertezas e não constituem promessa de resultado ou garantia de lucro.
 
-BetAnalytics PRO não é uma casa de apostas. O aplicativo não aceita apostas, depósitos ou saques. A versão distribuída pelo Google Play não oferece compra, checkout ou meios de pagamento dentro do app. Usuários que já possuam acesso PRO vinculado à conta podem utilizar os recursos disponíveis após o login.
+BetAnalyticsPRO não é uma casa de apostas. O aplicativo não aceita apostas, depósitos ou saques. A versão distribuída pelo Google Play não oferece compra, checkout ou meios de pagamento dentro do app. Usuários que já possuam acesso PRO vinculado à conta podem utilizar os recursos disponíveis após o login.
 
 Uso destinado a maiores de 18 anos. Apostas envolvem risco financeiro. Use informações esportivas de forma responsável.
 

@@ -3,7 +3,7 @@ import { ShieldCheck, Brain, Bell, ChevronRight } from 'lucide-react';
 
 const telas = [
   {
-    titulo: 'Bem-vindo ao BetAnalytics PRO',
+    titulo: 'Bem-vindo ao BetAnalyticsPRO',
     subtitulo: 'Um painel inteligente para acompanhar jogos, oportunidades, banca e analises com IA.',
     icone: Brain,
   },
@@ -41,7 +41,7 @@ export default function OnboardingPro({ onFinish }) {
         </div>
 
         <div className="text-[10px] font-black tracking-[0.28em] uppercase text-blue-300 mb-3">
-          BetAnalytics PRO
+          BetAnalyticsPRO
         </div>
 
         <h1 className="text-3xl font-black leading-tight mb-4">
