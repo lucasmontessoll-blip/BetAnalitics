@@ -18,6 +18,11 @@ import {
 } from 'lucide-react';
 
 import { temAcessoPro } from '../utils/acessoPro.js';
+import {
+  excluirContaAuth,
+  sairAuth,
+  sessaoAtual
+} from '../services/authClient.js';
 
 /* BET_ETAPA_32D_CONFIGURACOES_PREMIUM */
 
@@ -133,6 +138,7 @@ export default function ConfiguracoesPro({
   modoDemo = true
 }) {
   const [config, setConfig] = useState(readConfig);
+  const [excluindoConta, setExcluindoConta] = useState(false);
   const vipActive = temAcessoPro(userData);
   const plan = userData?.plano || userData?.plan || (vipActive ? 'PRO' : 'Free');
   const email = userData?.email || localStorage.getItem('bet_user_email') || 'Usuário demo';
@@ -160,6 +166,108 @@ export default function ConfiguracoesPro({
     localStorage.removeItem('bet_user_nome');
     localStorage.removeItem('bet_user_email');
     window.location.reload();
+  }
+
+  async function excluirContaDefinitivamente() {
+    if (excluindoConta) {
+      return;
+    }
+
+    try {
+      const session =
+        await sessaoAtual();
+
+      if (!session?.access_token) {
+        alert(
+          'Você precisa estar autenticado para excluir sua conta.'
+        );
+        return;
+      }
+
+      const continuar =
+        window.confirm(
+          'Esta ação é permanente. Seu acesso e os dados associados à conta serão removidos. Deseja continuar?'
+        );
+
+      if (!continuar) {
+        return;
+      }
+
+      const confirmacao =
+        window.prompt(
+          'Para confirmar a exclusão definitiva, digite exatamente:\n\nEXCLUIR MINHA CONTA'
+        );
+
+      if (confirmacao === null) {
+        return;
+      }
+
+      if (
+        String(confirmacao)
+          .trim()
+          .toUpperCase() !==
+        'EXCLUIR MINHA CONTA'
+      ) {
+        alert(
+          'A frase de confirmação está incorreta. Nenhuma alteração foi feita.'
+        );
+        return;
+      }
+
+      setExcluindoConta(true);
+
+      const resultado =
+        await excluirContaAuth(
+          confirmacao
+        );
+
+      if (!resultado?.conta_excluida) {
+        throw new Error(
+          'O servidor não confirmou a exclusão da conta.'
+        );
+      }
+
+      try {
+        await sairAuth();
+      } catch {}
+
+      try {
+        localStorage.removeItem(
+          'bet_sessao_ativa'
+        );
+        localStorage.removeItem(
+          'bet_user_nome'
+        );
+        localStorage.removeItem(
+          'bet_user_email'
+        );
+        localStorage.removeItem(
+          'bet_push_consent_v1'
+        );
+        localStorage.removeItem(
+          'bet_config_pro_v1'
+        );
+        localStorage.removeItem(
+          'bet_onboarding_pro_v1'
+        );
+      } catch {}
+
+      alert(
+        'Sua conta foi excluída com sucesso.'
+      );
+
+      window.location.href =
+        '/';
+    }
+    catch (e) {
+      alert(
+        e?.message ||
+        'Não foi possível excluir sua conta. Tente novamente ou contate o suporte.'
+      );
+    }
+    finally {
+      setExcluindoConta(false);
+    }
   }
 
   function resetOnboarding() {
@@ -453,12 +561,15 @@ export default function ConfiguracoesPro({
         <SettingRow
           icon={FileText}
           title="Excluir conta e dados"
-          description="Solicite a exclusão da sua conta e informações associadas"
+          description={
+            excluindoConta
+              ? 'Excluindo conta...'
+              : 'Exclusão permanente com confirmação de segurança'
+          }
           accent="text-red-300"
-          onClick={() => {
-            window.location.href =
-              '/excluir-conta.html';
-          }}
+          onClick={
+            excluirContaDefinitivamente
+          }
         />
         <div className="border-t border-white/[0.055]" />
         <SettingRow
