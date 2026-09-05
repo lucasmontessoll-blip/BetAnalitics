@@ -54,6 +54,10 @@ import {
   fecharObservabilidade
 } from './server/observability.js';
 import {
+  instalarHttpTransportObservability,
+  httpTransportStatus
+} from './server/httpTransportObservability.js';
+import {
   runtimeBeginShutdown,
   runtimeInstanceMiddleware,
   runtimeInstanceStatus,
@@ -2086,6 +2090,9 @@ app.get('/api/producao/health', (_req, res) => {
     observabilidade:
       observabilidadeResumo(),
 
+    transporte:
+      httpTransportStatus(),
+
     trafego:
       trafficGuardStatus(),
 
@@ -2120,6 +2127,10 @@ const httpServer =
       );
     }
   );
+
+instalarHttpTransportObservability(
+  httpServer
+);
 
 let shutdownPromise =
   null;
