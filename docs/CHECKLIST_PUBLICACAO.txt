@@ -21,5 +21,5 @@ ANTES DE PUBLICAR NA PLAY STORE:
 [ ] APK/AAB release gerado
 [ ] Assinatura do Android configurada
 [ ] Teste final em celular real
-[ ] Screenshots da loja preparados
+[x] Screenshots da loja preparados
 [x] Descrição da loja preparada
