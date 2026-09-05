@@ -1,9 +1,9 @@
-﻿CHECKLIST DE PUBLICAÇÃO - BetAnalytics PRO
+CHECKLIST DE PUBLICAÇÃO - BetAnalytics PRO
 
 ANTES DE VENDER/APRESENTAR:
 [ ] Nome final definido
-[ ] Ícone final definido
-[ ] Splash screen definido
+[x] Ícone final definido
+[x] Splash screen definido
 [ ] APK de demonstração gerado
 [ ] Testado em celular real
 [ ] Modo Demonstração claro dentro do app
