@@ -1,0 +1,83 @@
+PLANO DE SCREENSHOTS E ASSETS — GOOGLE PLAY
+BetAnalytics PRO
+Atualização técnica: 05/09/2026
+
+OBJETIVO
+Preparar uma ficha fiel à versão Google Play consumption-only, sem telas de checkout, preços, links de compra, afiliados ou elementos que façam parecer que o app aceita apostas.
+
+SCREENSHOTS DE SMARTPHONE
+Formato recomendado para este projeto:
+- Retrato 9:16.
+- 1080 x 1920 px.
+- PNG ou JPEG sem transparência.
+- Preparar 6 capturas reais da versão Google Play.
+- As três primeiras devem priorizar a interface real e os principais recursos.
+
+ORDEM PROPOSTA
+01_HOME_JOGOS.png
+Tela: Home / Todos os jogos.
+Mostrar: central de partidas, jogos ao vivo em destaque e lista organizada por status.
+Evitar: dados fictícios apresentados como reais.
+Texto alternativo: Central de partidas do BetAnalytics PRO com jogos ao vivo e partidas organizadas por status.
+
+02_DETALHES_PARTIDA.png
+Tela: Painel de jogo.
+Mostrar: informações, placar, status e estatísticas disponíveis da partida.
+Evitar: promessas de resultado ou lucro.
+Texto alternativo: Detalhes de uma partida com status, placar e informações esportivas organizadas.
+
+03_PRE_JOGO.png
+Tela: Pré-jogo.
+Mostrar: partidas programadas e informações disponíveis antes do início.
+Evitar: linguagem de garantia ou recomendação financeira.
+Texto alternativo: Tela pré-jogo com partidas programadas e dados esportivos disponíveis.
+
+04_RADAR_IA.png
+Tela: Radar IA.
+Mostrar: cabeçalho do radar, explicação dos dados e indicadores quando disponíveis.
+Evitar: capturar marcas de bookmakers, links externos, preços ou qualquer CTA de aposta.
+Texto alternativo: Radar IA do BetAnalytics PRO com probabilidades e indicadores baseados em dados disponíveis.
+
+05_GESTAO_BANCA.png
+Tela: Gestão de banca.
+Mostrar: organização de stake, exposição e ROI como ferramenta de controle.
+Evitar: alegações de ganho garantido.
+Texto alternativo: Painel de gestão de banca com indicadores de stake, exposição e ROI.
+
+06_HISTORICO_PERFORMANCE.png
+Tela: Histórico IA ou Performance IA.
+Mostrar: indicadores e registros vinculados à conta.
+Evitar: apresentar desempenho como garantia futura.
+Texto alternativo: Histórico e indicadores de análises esportivas vinculados à conta do usuário.
+
+TELAS QUE NÃO DEVEM ENTRAR NA FICHA PLAY
+- Checkout.
+- PIX.
+- Cartão de crédito ou débito.
+- QR Code de pagamento.
+- Preços de plano.
+- Link externo para compra.
+- Casas Parceiras ou afiliados.
+- Qualquer tela com chamada para apostar.
+- Conteúdo demonstrativo apresentado como se fosse dado real.
+
+OUTROS ASSETS DA FICHA
+ÍCONE DA LOJA
+- 512 x 512 px.
+- PNG de 32 bits com alfa.
+- Até 1024 KB.
+- Usar a identidade final do BetAnalytics PRO, sem preço, ranking ou selo da Google Play.
+
+RECURSO GRÁFICO
+- 1024 x 500 px.
+- JPEG ou PNG de 24 bits sem alfa.
+- Sem preço, promoção, ranking ou selo da Google Play.
+- Composição centrada e coerente com a identidade visual do app.
+
+VALIDAÇÃO ANTES DO UPLOAD
+- Conferir que todas as imagens representam a versão atual do app.
+- Conferir que nenhuma captura mostra pagamento ou compra.
+- Conferir que não há dados pessoais, notificações ou informações sensíveis.
+- Conferir que nomes/logos de terceiros desnecessários não aparecem.
+- Conferir ortografia e legibilidade.
+- Não marcar "Screenshots da loja preparados" no checklist até os arquivos reais existirem e forem revisados.

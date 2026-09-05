@@ -1,0 +1,46 @@
+FICHA DA GOOGLE PLAY STORE — PT-BR
+BetAnalytics PRO
+Atualização técnica: 05/09/2026
+
+[NOME_DO_APP]
+BetAnalytics PRO
+
+[DESCRICAO_BREVE]
+Partidas, estatísticas e análises esportivas com inteligência artificial.
+
+[DESCRICAO_COMPLETA]
+BetAnalytics PRO é uma plataforma de acompanhamento e análise esportiva para organizar informações de partidas em um único lugar.
+
+Acompanhe jogos pré-jogo, ao vivo e encerrados, com placares, status e detalhes conforme a disponibilidade da fonte de dados.
+
+Principais recursos:
+- Central de partidas com destaque para jogos ao vivo.
+- Informações e estatísticas de partidas.
+- Radar IA com probabilidades e indicadores calculados a partir dos dados disponíveis, sem preencher números artificiais quando uma fonte não está disponível.
+- Gestão de banca para organização de stake, exposição e ROI.
+- Histórico e indicadores de análises vinculados à conta.
+- Favoritos e alertas para acompanhar partidas e informações relevantes.
+
+A inteligência artificial auxilia na interpretação das informações esportivas. As análises são informativas, podem conter incertezas e não constituem promessa de resultado ou garantia de lucro.
+
+BetAnalytics PRO não é uma casa de apostas. O aplicativo não aceita apostas, depósitos ou saques. A versão distribuída pelo Google Play não oferece compra, checkout ou meios de pagamento dentro do app. Usuários que já possuam acesso PRO vinculado à conta podem utilizar os recursos disponíveis após o login.
+
+Uso destinado a maiores de 18 anos. Apostas envolvem risco financeiro. Use informações esportivas de forma responsável.
+
+Política de Privacidade:
+https://betanalytics-pro-app.vercel.app/privacidade.html
+
+Exclusão de conta:
+https://betanalytics-pro-app.vercel.app/excluir-conta.html
+
+Suporte:
+betanlyticspro@gmail.com
+
+[OBSERVACOES_DE_PUBLICACAO]
+- Nome: 16 de 30 caracteres.
+- Descrição breve: 73 de 80 caracteres.
+- Descrição completa: 1549 de 4000 caracteres.
+- Não incluir preço, desconto, ranking, prêmio ou chamada para instalação.
+- Não apresentar o app como casa de apostas.
+- Manter a versão Google Play sem checkout ou meios de pagamento dentro do app.
+- Política de Privacidade e exclusão de conta devem permanecer públicas e ativas.
