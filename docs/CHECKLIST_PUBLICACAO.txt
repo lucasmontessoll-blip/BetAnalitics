@@ -18,8 +18,8 @@ ANTES DE PUBLICAR NA PLAY STORE:
 [ ] API-Football real configurada
 [ ] Links afiliados reais configurados, se for usar
 [ ] Pagamento real testado
-[ ] APK/AAB release gerado
-[ ] Assinatura do Android configurada
+[x] APK/AAB release gerado
+[x] Assinatura do Android configurada
 [ ] Teste final em celular real
 [x] Screenshots da loja preparados
 [x] Descrição da loja preparada
