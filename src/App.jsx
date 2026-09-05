@@ -242,6 +242,7 @@ const [favCatalogo, setFavCatalogo] = useState(() => { try { return JSON.parse(l
 const metaMensal = 2000;
 const { favoritos, toggleFavorito } = useFavoritos();
 const registrarCliqueAfiliado = useCallback(async (casa, jogo = null, origem = 'comparador_odds') => {
+  if (DISTRIBUICAO_PLAY_STORE) return { clickId: '', urlDestino: '' };
   const clickId = gerarClickIdAfiliado(casa?.id || 'casa');
   const urlDestino = montarUrlAfiliado(casa, clickId);
   const registro = {
@@ -269,6 +270,7 @@ const registrarCliqueAfiliado = useCallback(async (casa, jogo = null, origem = '
   return { clickId, urlDestino };
 }, [userData]);
 const abrirCasaAfiliada = useCallback(async (casa, jogo = null, origem = 'comparador_odds') => {
+  if (DISTRIBUICAO_PLAY_STORE) return;
   const { urlDestino } = await registrarCliqueAfiliado(casa, jogo, origem);
   if (!urlDestino) {
     alert(`Configure o link afiliado da casa ${casa?.nome || ''} no App.jsx.`);
@@ -1477,7 +1479,7 @@ DISTRIBUICAO_PLAY_STORE ? (
 />
 )}
 
-{viewMode === 'admin' && (
+{!DISTRIBUICAO_PLAY_STORE && viewMode === 'admin' && (
 <AdminResumoPro
   setViewMode={setViewMode}
   userData={userData}
@@ -1680,7 +1682,7 @@ return (
   setAiQuery={setAiQuery}
 />
 )}
-{viewMode === 'casas-parceiras' && (
+{!DISTRIBUICAO_PLAY_STORE && viewMode === 'casas-parceiras' && (
 <CasasParceirasPro setViewMode={setViewMode} />
 )}
 {viewMode === 'sem-conexao' && (
