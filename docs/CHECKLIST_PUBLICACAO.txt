@@ -5,7 +5,7 @@ ANTES DE VENDER/APRESENTAR:
 [x] Ícone final definido
 [x] Splash screen definido
 [ ] APK de demonstração gerado
-[ ] Testado em celular real
+[x] Testado em celular real
 [ ] Modo Demonstração claro dentro do app
 [x] Política de Privacidade criada
 [x] Termos de Uso criados
