@@ -1,12 +1,79 @@
+import path from 'node:path';
+import { fileURLToPath } from 'node:url';
 import { defineConfig } from 'vite';
 import react from '@vitejs/plugin-react';
 import tailwindcss from '@tailwindcss/vite';
 
-export default defineConfig({
+const __dirname =
+  path.dirname(
+    fileURLToPath(import.meta.url)
+  );
+
+function playConsumptionOnly(mode) {
+  return {
+    name: 'betanalytics-play-consumption-only',
+    enforce: 'pre',
+
+    transform(code, id) {
+      const normalized =
+        String(id || '').replace(/\\/g, '/');
+
+      if (
+        mode !== 'play' ||
+        !normalized.endsWith('/src/App.jsx')
+      ) {
+        return null;
+      }
+
+      const transformed =
+        code
+          .replace(
+            "import { initMercadoPago } from '@mercadopago/sdk-react';",
+            "const initMercadoPago = () => {};"
+          )
+          .replaceAll(
+            '/api/pagamento/pix',
+            '/api/playstore/disabled/pix'
+          )
+          .replaceAll(
+            '/api/pagamento/cartao',
+            '/api/playstore/disabled/cartao'
+          )
+          .replaceAll(
+            '/api/pagamento/status/',
+            '/api/playstore/disabled/status/'
+          )
+          .replaceAll(
+            'https://sdk.mercadopago.com/js/v2',
+            'about:blank'
+          );
+
+      return {
+        code: transformed,
+        map: null
+      };
+    }
+  };
+}
+
+export default defineConfig(({ mode }) => ({
   plugins: [
+    playConsumptionOnly(mode),
     react(),
     tailwindcss()
   ],
+
+  resolve: {
+    alias: {
+      '@bet-assinatura':
+        path.resolve(
+          __dirname,
+          mode === 'play'
+            ? 'src/components/AssinaturaPlayStore.jsx'
+            : 'src/components/AssinaturaPro.jsx'
+        )
+    }
+  },
 
   server: {
     host: '0.0.0.0',
@@ -70,4 +137,4 @@ export default defineConfig({
       }
     }
   }
-});
+}));
