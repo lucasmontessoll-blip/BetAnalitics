@@ -39,7 +39,3 @@ export const HistoricoIAPro = React.lazy(
 export const TelaRadarIA = React.lazy(
   () => import('./components/TelaRadarIA.jsx')
 );
-
-export const AreaProAssinatura = React.lazy(
-  () => import('./components/AreaProAssinatura.jsx')
-);

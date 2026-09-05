@@ -8,7 +8,8 @@
     "build": "vite build",
     "preview": "vite preview",
     "start": "node server.js",
-    "start:gemini-worker": "node server/geminiWorker.js"
+    "start:gemini-worker": "node server/geminiWorker.js",
+    "build:play": "vite build --mode play"
   },
   "dependencies": {
     "@capacitor/android": "^8.4.1",

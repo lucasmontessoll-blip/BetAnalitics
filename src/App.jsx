@@ -22,7 +22,7 @@ import JogosPorPaisContinente from './components/JogosPorPaisContinente.jsx';
 import Perfil from './components/Perfil.jsx';
 import PainelJogo from './components/PainelJogo.jsx';
 import ComparadorOdds from './components/ComparadorOdds.jsx';
-import AssinaturaPro from './components/AssinaturaPro.jsx';
+import AssinaturaPro from '@bet-assinatura';
 import MercadosIAResumo from './components/MercadosIAResumo.jsx';
 import OnboardingPro from './components/OnboardingPro.jsx';
 import CentralValorIA from './components/CentralValorIA.jsx';
@@ -58,7 +58,10 @@ import {
   sincronizarPushAutorizado,
   enviarPushTeste,
 } from './services/pushNotifications.js';
-import { PerformanceIAPro, CasasParceirasPro, PerfilProCompleto, FavoritosPro, VipPro, ConfiguracoesPro, GestaoBancaPro, AlertasIAPro, HistoricoIAPro, TelaRadarIA, AreaProAssinatura } from './lazyViews.js';
+import { PerformanceIAPro, CasasParceirasPro, PerfilProCompleto, FavoritosPro, VipPro, ConfiguracoesPro, GestaoBancaPro, AlertasIAPro, HistoricoIAPro, TelaRadarIA } from './lazyViews.js';
+const DISTRIBUICAO_PLAY_STORE =
+  import.meta.env.MODE === 'play';
+
 /* BET_ETAPA_35B_MODO_PRODUCAO_INICIO */
 const MODO_DEMONSTRACAO =
   String(import.meta.env.VITE_MODO_DEMO || 'false')
@@ -165,7 +168,7 @@ const MP_PUBLIC_KEY = String(
   import.meta.env.VITE_MP_PUBLIC_KEY || ''
 ).trim();
 
-if (MP_PUBLIC_KEY) {
+if (!DISTRIBUICAO_PLAY_STORE && MP_PUBLIC_KEY) {
   initMercadoPago(MP_PUBLIC_KEY, { locale: 'pt-BR' });
 } else if (import.meta.env.DEV) {
   console.warn(
@@ -1207,6 +1210,7 @@ script.onerror = () => reject(new Error('Nao foi possivel carregar o Mercado Pag
 document.body.appendChild(script);
 });
 useEffect(() => {
+if (DISTRIBUICAO_PLAY_STORE) return;
 if (menuAtivo !== 'assinar pro') return;
 if (metodoPagamento !== 'credito' && metodoPagamento !== 'debito') return;
 let cancelado = false;
@@ -1344,6 +1348,11 @@ return (
 <ModoDemoBadge modoDemo={MODO_DEMONSTRACAO} setViewMode={setViewMode} />
 <SemConexaoPro setViewMode={setViewMode} />
 {menuAtivo === 'assinar pro' && (
+DISTRIBUICAO_PLAY_STORE ? (
+<AssinaturaPro
+  onVoltar={() => { setMenuAtivo('Todos os Jogos'); setViewMode('jogos'); setJogoSelecionado(null); }}
+/>
+) : (
 <AssinaturaPro
   form={form}
   setForm={setForm}
@@ -1356,6 +1365,7 @@ return (
   limparCpf={limparCpf}
   onVoltar={() => { setMenuAtivo('Todos os Jogos'); setViewMode('jogos'); setJogoSelecionado(null); }}
 />
+)
 )}
 {menuAtivo !== 'assinar pro' && !jogoSelecionado && (<div className="animate-fade-in pt-4 w-full">
 {viewMode === 'copa' && (
@@ -1403,15 +1413,6 @@ return (
     </div>
   </div>
 )}
-{menuAtivo === 'assinar pro' && (
-<AreaProAssinatura
-  userData={userData}
-  setMenuAtivo={setMenuAtivo}
-  setViewMode={setViewMode}
-  iniciarPagamento={typeof iniciarPagamento === 'function' ? iniciarPagamento : undefined}
-/>
-)}
-
 {viewMode === 'radarpro' && (
 <TelaRadarIA
   jogos={jogos}
