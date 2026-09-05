@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { ShieldCheck, AlertTriangle, FileText, X, ExternalLink } from 'lucide-react';
 
-const DATA_ATUALIZACAO = '26/06/2026';
+const DATA_ATUALIZACAO = '05/09/2026';
 const EMAIL_SUPORTE = 'betanlyticspro@gmail.com';
 
 const secoesLegais = [
@@ -11,13 +11,17 @@ const secoesLegais = [
     texto: `
 O BetAnalytics PRO respeita a privacidade dos usuarios.
 
-Podemos coletar dados como nome, e-mail, status VIP, dados tecnicos do dispositivo, dados de uso, identificadores de publicidade e informacoes necessarias para funcionamento do app.
+Podemos coletar dados fornecidos no cadastro, como nome, e-mail, telefone, CPF e data de nascimento, alem de dados de perfil e acesso, historico de analises de IA, tokens de notificacao, dados tecnicos do dispositivo, dados de uso e informacoes necessarias para funcionamento do app.
 
 Esses dados podem ser usados para criar conta, liberar acesso, melhorar o app, exibir anuncios, medir desempenho, prevenir fraudes e cumprir obrigacoes legais.
 
 O BetAnalytics PRO nao vende dados pessoais sensiveis do usuario. Dados podem ser compartilhados apenas com provedores necessarios, como banco de dados, hospedagem, pagamentos, anuncios e ferramentas de analise.
 
-O usuario pode solicitar acesso, correcao ou exclusao de dados pelo e-mail: ${EMAIL_SUPORTE}.
+Ao excluir a conta, dados de perfil, autenticacao, historico de analises de IA e tokens de notificacao associados a conta sao removidos conforme o fluxo tecnico do aplicativo.
+
+Registros transacionais de pagamento podem ser mantidos quando necessario para cumprimento de obrigacoes legais ou regulatorias, seguranca, prevencao a fraude, contestacoes, auditoria ou exercicio regular de direitos. Encerrada a necessidade legitima de retencao, esses dados devem ser eliminados ou anonimizados conforme aplicavel.
+
+O usuario pode solicitar acesso, correcao ou exclusao de dados pelo e-mail: ${EMAIL_SUPORTE}. A Politica de Privacidade publica esta disponivel em /privacidade.html.
 `
   },
   {
@@ -265,6 +269,16 @@ function ModalLegal({ secaoAtiva, setSecaoAtiva, setAberto }) {
           <div className="mt-4 text-[10px] text-slate-600">
             Suporte: betanlyticspro@gmail.com
           </div>
+
+          <a
+            href="/privacidade.html"
+            target="_blank"
+            rel="noreferrer"
+            className="mt-3 inline-flex items-center gap-1.5 text-[10px] font-black text-blue-400 underline"
+          >
+            <ExternalLink className="h-3 w-3" />
+            Abrir Politica de Privacidade publica
+          </a>
         </div>
       </div>
     </div>
