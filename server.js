@@ -10,6 +10,7 @@ import {
   autenticarRequest,
   exigirAdmin,
 } from './server/authSupabase.js';
+import { instalarRotasExclusaoConta } from './server/accountDeletion.js';
 import { instalarRotasRecuperacaoSenha } from './server/passwordRecovery.js';
 import { instalarRotasHistoricoIA } from './server/historicoIA.js';
 import { instalarRotasPush } from './server/pushNotifications.js';
@@ -248,6 +249,7 @@ app.use(
 // ===== BET_RENDER_PAGAMENTO_FIX_INICIO =====
 app.use(express.json({ limit: '2mb' }));
 instalarRotasAuth(app);
+instalarRotasExclusaoConta(app);
 instalarRotasRecuperacaoSenha(app);
 instalarRotasHistoricoIA(app);
 instalarRotasPush(app);
