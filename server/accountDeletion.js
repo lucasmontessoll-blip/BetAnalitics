@@ -68,6 +68,10 @@ export function instalarRotasExclusaoConta(
           true,
         pagamentos_excluidos_explicitamente:
           false,
+        registros_transacionais_podem_ser_retidos:
+          true,
+        politica_retencao_publica:
+          'https://betanalytics-pro-app.vercel.app/privacidade.html#retencao-e-exclusao',
       });
     }
   );
@@ -227,6 +231,10 @@ export function instalarRotasExclusaoConta(
             true,
           dados_aplicacao_excluidos:
             true,
+          registros_transacionais_podem_ser_retidos:
+            true,
+          politica_retencao:
+            'https://betanalytics-pro-app.vercel.app/privacidade.html#retencao-e-exclusao',
           sessao_deve_ser_encerrada:
             true,
         });
