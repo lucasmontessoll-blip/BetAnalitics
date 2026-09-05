@@ -441,6 +441,65 @@ function validarPagamentoPro(
   };
 }
 
+function payloadPagamentoMinimo(
+  data
+) {
+  return {
+    id:
+      String(
+        data?.id || ''
+      ),
+
+    status:
+      data?.status ||
+      'unknown',
+
+    status_detail:
+      data?.status_detail ||
+      '',
+
+    external_reference:
+      data?.external_reference ||
+      '',
+
+    currency_id:
+      data?.currency_id ||
+      '',
+
+    payment_method_id:
+      data?.payment_method_id ||
+      '',
+
+    payment_type_id:
+      data?.payment_type_id ||
+      '',
+
+    transaction_amount:
+      Number(
+        data?.transaction_amount ||
+        0
+      ),
+
+    date_created:
+      data?.date_created ||
+      null,
+
+    date_approved:
+      data?.date_approved ||
+      null,
+
+    date_last_updated:
+      data?.date_last_updated ||
+      null,
+
+    metadata: {
+      betanalytics_plan:
+        data?.metadata
+          ?.betanalytics_plan ||
+        ''
+    }
+  };
+}
 async function salvarPagamento(
   data
 ) {
@@ -498,7 +557,7 @@ async function salvarPagamento(
             '',
 
           payload:
-            data,
+            payloadPagamentoMinimo(data),
 
           atualizado_em:
             new Date()

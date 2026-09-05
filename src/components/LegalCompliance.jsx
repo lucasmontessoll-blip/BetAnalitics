@@ -3,6 +3,7 @@ import { ShieldCheck, AlertTriangle, FileText, X, ExternalLink } from 'lucide-re
 
 const DATA_ATUALIZACAO = '05/09/2026';
 const EMAIL_SUPORTE = 'betanlyticspro@gmail.com';
+const DISTRIBUICAO_PLAY_STORE = import.meta.env.MODE === 'play';
 
 const secoesLegais = [
   {
@@ -13,9 +14,9 @@ O BetAnalytics PRO respeita a privacidade dos usuarios.
 
 Podemos coletar dados fornecidos no cadastro, como nome, e-mail, telefone, CPF e data de nascimento, alem de dados de perfil e acesso, historico de analises de IA, tokens de notificacao, dados tecnicos do dispositivo, dados de uso e informacoes necessarias para funcionamento do app.
 
-Esses dados podem ser usados para criar conta, liberar acesso, melhorar o app, exibir anuncios, medir desempenho, prevenir fraudes e cumprir obrigacoes legais.
+Esses dados podem ser usados para criar conta, liberar acesso, melhorar o app, exibir anuncios quando esse recurso estiver habilitado, medir desempenho, prevenir fraudes e cumprir obrigacoes legais.
 
-O BetAnalytics PRO nao vende dados pessoais sensiveis do usuario. Dados podem ser compartilhados apenas com provedores necessarios, como banco de dados, hospedagem, pagamentos, anuncios e ferramentas de analise.
+O BetAnalytics PRO nao vende dados pessoais sensiveis do usuario. Dados podem ser compartilhados apenas com provedores necessarios as funcionalidades efetivamente habilitadas, como banco de dados, hospedagem, pagamentos e, quando aplicavel, anuncios e ferramentas de analise.
 
 Ao excluir a conta, dados de perfil, autenticacao, historico de analises de IA e tokens de notificacao associados a conta sao removidos conforme o fluxo tecnico do aplicativo.
 
@@ -31,6 +32,8 @@ O usuario pode solicitar acesso, correcao ou exclusao de dados pelo e-mail: ${EM
 O BetAnalytics PRO e uma plataforma de analise esportiva, estatistica e informacao.
 
 O aplicativo nao e casa de aposta, nao aceita apostas, nao recebe depositos, nao processa saques, nao vende bilhetes e nao garante lucro.
+
+Na versao distribuida pela Google Play, o aplicativo permite o consumo de acesso PRO ja vinculado a conta e nao oferece compra, checkout ou pagamento dentro do app.
 
 Ao usar o app, o usuario declara que entende que todas as analises sao apenas informativas e que qualquer decisao tomada com base nelas e de responsabilidade exclusiva do proprio usuario.
 
@@ -50,6 +53,7 @@ Use as informacoes com responsabilidade. Nunca use dinheiro destinado a despesas
 Caso perceba perda de controle, comportamento compulsivo ou dificuldade de parar, procure ajuda especializada.
 `
   },
+  ...(!DISTRIBUICAO_PLAY_STORE ? [
   {
     id: 'parceiros',
     titulo: 'Casas Parceiras e Links Externos',
@@ -74,6 +78,7 @@ Essas redes podem usar identificadores de publicidade, dados tecnicos e informac
 O usuario pode controlar anuncios personalizados nas configuracoes do dispositivo ou nas opcoes fornecidas pelas plataformas de publicidade.
 `
   }
+  ] : [])
 ];
 
 export default function LegalCompliance({ modo = 'painel' }) {
@@ -278,6 +283,15 @@ function ModalLegal({ secaoAtiva, setSecaoAtiva, setAberto }) {
           >
             <ExternalLink className="h-3 w-3" />
             Abrir Politica de Privacidade publica
+          </a>
+          <a
+            href="/termos.html"
+            target="_blank"
+            rel="noreferrer"
+            className="mt-3 ml-3 inline-flex items-center gap-1.5 text-[10px] font-black text-blue-400 underline"
+          >
+            <ExternalLink className="h-3 w-3" />
+            Abrir Termos de Uso publicos
           </a>
         </div>
       </div>
