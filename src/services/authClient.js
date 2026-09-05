@@ -69,6 +69,64 @@ export async function sairAuth() {
   } catch {}
 }
 
+export async function excluirContaAuth(confirmacao) {
+  if (!supabase) {
+    throw new Error('Supabase Auth não configurado.');
+  }
+
+  const session =
+    await sessaoAtual();
+
+  const token =
+    session?.access_token;
+
+  if (!token) {
+    throw new Error(
+      'Sessão ausente. Entre novamente antes de excluir sua conta.'
+    );
+  }
+
+  const resp =
+    await fetch(
+      apiUrl('/api/auth/conta'),
+      {
+        method: 'DELETE',
+        headers: {
+          Accept: 'application/json',
+          'Content-Type': 'application/json',
+          Authorization:
+            `Bearer ${token}`
+        },
+        body: JSON.stringify({
+          confirmacao:
+            String(confirmacao || '')
+              .trim()
+        })
+      }
+    );
+
+  const data =
+    await resp
+      .json()
+      .catch(() => null);
+
+  if (!resp.ok || !data?.ok) {
+    const erro =
+      new Error(
+        data?.erro ||
+        'Não foi possível excluir a conta.'
+      );
+
+    erro.code =
+      data?.code ||
+      '';
+
+    throw erro;
+  }
+
+  return data;
+}
+
 export async function perfilValidadoServidor(session = null) {
   const atual = session || await sessaoAtual();
   const token = atual?.access_token;
