@@ -22,4 +22,4 @@ ANTES DE PUBLICAR NA PLAY STORE:
 [ ] Assinatura do Android configurada
 [ ] Teste final em celular real
 [ ] Screenshots da loja preparados
-[ ] Descrição da loja preparada
+[x] Descrição da loja preparada
