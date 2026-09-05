@@ -11,10 +11,10 @@ ANTES DE VENDER/APRESENTAR:
 [x] Termos de Uso criados
 
 ANTES DE PUBLICAR NA PLAY STORE:
-[ ] Política de Privacidade revisada
-[ ] Termos de Uso revisados
-[ ] Aviso legal revisado
-[ ] Jogo responsável revisado
+[x] Política de Privacidade revisada
+[x] Termos de Uso revisados
+[x] Aviso legal revisado
+[x] Jogo responsável revisado
 [ ] API-Football real configurada
 [ ] Links afiliados reais configurados, se for usar
 [ ] Pagamento real testado
