@@ -451,6 +451,17 @@ export default function ConfiguracoesPro({
         />
         <div className="border-t border-white/[0.055]" />
         <SettingRow
+          icon={FileText}
+          title="Excluir conta e dados"
+          description="Solicite a exclusão da sua conta e informações associadas"
+          accent="text-red-300"
+          onClick={() => {
+            window.location.href =
+              '/excluir-conta.html';
+          }}
+        />
+        <div className="border-t border-white/[0.055]" />
+        <SettingRow
           icon={LifeBuoy}
           title="Suporte"
           description="betanlyticspro@gmail.com"
