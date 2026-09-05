@@ -1,4 +1,5 @@
 import path from 'node:path';
+import { rmSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
 import { defineConfig } from 'vite';
 import react from '@vitejs/plugin-react';
@@ -69,9 +70,35 @@ function playConsumptionOnly(mode) {
   };
 }
 
+function playRemoveLegacyLegal(mode) {
+  return {
+    name: 'betanalytics-play-remove-legacy-legal',
+
+    writeBundle(outputOptions) {
+      if (mode !== 'play') {
+        return;
+      }
+
+      const outDir = path.resolve(
+        outputOptions.dir || 'dist'
+      );
+
+      rmSync(
+        path.join(outDir, 'politica-privacidade.html'),
+        { force: true }
+      );
+
+      rmSync(
+        path.join(outDir, 'termos-uso.html'),
+        { force: true }
+      );
+    }
+  };
+}
 export default defineConfig(({ mode }) => ({
   plugins: [
     playConsumptionOnly(mode),
+    playRemoveLegacyLegal(mode),
     react(),
     tailwindcss()
   ],
