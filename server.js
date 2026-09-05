@@ -1792,6 +1792,7 @@ configurarFilaGemini({
 
 app.get(
   '/api/ia/queue/health',
+  exigirAdmin,
   async (_req, res) => {
     try {
       const probe =
