@@ -2128,6 +2128,58 @@ const httpServer =
     }
   );
 
+/*
+ * Render / Node HTTP connection hardening.
+ *
+ * Mantemos conexoes proxy -> Node reutilizaveis
+ * por mais tempo para reduzir resets sob concorrencia.
+ */
+function betHttpTimeoutMs(
+  nome,
+  fallback
+) {
+  const valor =
+    Number(
+      process.env[nome]
+    );
+
+  if (
+    Number.isFinite(valor) &&
+    valor >= 5000 &&
+    valor <= 300000
+  ) {
+    return Math.floor(
+      valor
+    );
+  }
+
+  return fallback;
+}
+
+const betKeepAliveTimeoutMs =
+  betHttpTimeoutMs(
+    'HTTP_KEEP_ALIVE_TIMEOUT_MS',
+    120000
+  );
+
+const betHeadersTimeoutBaseMs =
+  betHttpTimeoutMs(
+    'HTTP_HEADERS_TIMEOUT_MS',
+    125000
+  );
+
+const betHeadersTimeoutMs =
+  Math.max(
+    betHeadersTimeoutBaseMs,
+    betKeepAliveTimeoutMs + 1000
+  );
+
+httpServer.keepAliveTimeout =
+  betKeepAliveTimeoutMs;
+
+httpServer.headersTimeout =
+  betHeadersTimeoutMs;
+
 instalarHttpTransportObservability(
   httpServer
 );
