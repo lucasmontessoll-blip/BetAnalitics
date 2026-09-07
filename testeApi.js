@@ -1,9 +1,10 @@
+import 'dotenv/config';
 import axios from "axios";
 
 const api = axios.create({
   baseURL: "https://v3.football.api-sports.io",
   headers: {
-    "x-apisports-key": "4fdbad40c44545a9ae3460ecb45b4c44"
+    "x-apisports-key": process.env.API_FOOTBALL_KEY || ""
   }
 });
 

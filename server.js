@@ -1402,10 +1402,22 @@ app.get('/api/football/jogos', async (req, res) => {
     const league = req.query.league || undefined;
     const season = req.query.season || new Date(date).getFullYear();
     const live = req.query.live === 'all' || req.query.live === 'true';
+    const scope = String(req.query.scope || '').trim().toLowerCase();
+    const temporadaCompleta = scope === 'season';
+
+    if (temporadaCompleta && (!league || !req.query.season)) {
+      return res.status(400).json({
+        ok: false,
+        fonte: 'api-football',
+        erro: 'league e season sao obrigatorios para scope=season.'
+      });
+    }
 
     const params = live
       ? { live: 'all', league }
-      : { date, league, season };
+      : temporadaCompleta
+        ? { league, season }
+        : { date, league, season };
 
     const payload = await apiFootballRequest('/fixtures', params);
 

@@ -1,14 +1,4 @@
 // Ficheiro: src/services/api.js
-import axios from "axios";
-
-// Instancia base para a API Football
-const api = axios.create({
-  baseURL: "https://v3.football.api-sports.io",
-  headers: {
-    "x-apisports-key": import.meta.env.VITE_API_FOOTBALL_KEY || "4fdbad40c44545a9ae3460ecb45b4c44"
-  }
-});
-
 export const buscarEstatisticasJogo = async (fixtureId) => {
   try {
     // Em producao real:

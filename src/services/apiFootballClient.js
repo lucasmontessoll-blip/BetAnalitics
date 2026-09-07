@@ -228,6 +228,29 @@ export async function buscarJogosApiFootball({
     : [];
 }
 
+export async function buscarJogosTemporadaApiFootball({
+  leagueId,
+  season,
+  signal,
+} = {}) {
+  if (!leagueId || !season) return [];
+
+  const params = new URLSearchParams();
+
+  params.set('league', String(leagueId));
+  params.set('season', String(season));
+  params.set('scope', 'season');
+
+  const payload = await requestJson(
+    `/api/football/jogos?${params.toString()}`,
+    { signal }
+  );
+
+  const lista = payload?.jogos || payload?.response || [];
+
+  return Array.isArray(lista) ? lista : [];
+}
+
 export async function buscarDetalhesJogoApiFootball(
   fixtureId,
   { signal } = {}
