@@ -853,7 +853,7 @@ export default function EstatisticasJogoPro({ jogo = {}, casa = {}, fora = {} })
 
       <div className="rounded-2xl border border-blue-400/10 bg-blue-400/[0.05] px-3 py-3">
         <p className="text-[9px] font-semibold leading-relaxed text-white/35">
-          Estrutura preparada para API-Football, Sportradar ou outro provedor. Valores demonstrativos são substituídos automaticamente quando o jogo recebe estatísticas reais.
+          Estrutura preparada para API-Football. Valores demonstrativos são substituídos automaticamente quando o jogo recebe estatísticas reais.
         </p>
       </div>
     </div>

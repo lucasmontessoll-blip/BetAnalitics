@@ -19,7 +19,6 @@ Environment > Add Environment Variable
 
 - API_FOOTBALL_BASE_URL=https://v3.football.api-sports.io
 - PLANO_PRO_VALOR=29.90
-- SPORTRADAR_KEY
 - VITE_API_URL
 
 ## Segurança obrigatória

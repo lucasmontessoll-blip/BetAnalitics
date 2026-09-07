@@ -1724,7 +1724,7 @@ app.get(
 
 
 // ============================================================================
-// CHAVES DE ACESSO ESSENCIAIS (Supabase, Gemini, Mercado Pago, Sportradar)
+// CHAVES DE ACESSO ESSENCIAIS (Supabase, Gemini, Mercado Pago)
 // ============================================================================
 /* BET_ETAPA_35B_SEGREDOS_ENV_INICIO */
 const SUPABASE_URL = String(
@@ -1744,11 +1744,6 @@ const GEMINI_API_KEY = String(
 ).trim();
 
 const MP_ACCESS_TOKEN = betMpToken();
-
-const SPORTRADAR_KEY = String(
-  process.env.SPORTRADAR_KEY ||
-  ''
-).trim();
 
 function betSupabaseFallback() {
   const indisponivel = {
@@ -1787,7 +1782,7 @@ const supabase =
 // MOTOR LEGADO DE SINCRONIZACAO REMOVIDO
 
 /* BET_ETAPA_39A2_LEGADO_PRODUCAO_REMOVIDO
-   Sincronizador Sportradar sintetico,
+   Sincronizador esportivo sintetico,
    /api/processar-pagamento e /api/webhook antigos removidos.
    Fonte oficial de jogos: API-Football.
 */
@@ -2099,8 +2094,7 @@ app.get('/api/producao/health', (_req, res) => {
       api_football: Boolean(API_FOOTBALL_KEY),
       mercado_pago: Boolean(betMpToken()),
       supabase: Boolean(SUPABASE_URL && SUPABASE_KEY),
-      gemini: Boolean(GEMINI_API_KEY),
-      sportradar: Boolean(SPORTRADAR_KEY)
+      gemini: Boolean(GEMINI_API_KEY)
     },
     observabilidade:
       observabilidadeResumo(),
