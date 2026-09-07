@@ -1658,7 +1658,7 @@ return (
 />
 )}
 
-{viewMode === 'banca-pro' && (<div className="px-4 animate-fade-in pb-28 w-full"><HeaderNav title="Gestao de Banca PRO" onBack={() => setViewMode('radar')} /><GestaoBancaPro /></div>)}
+{viewMode === 'banca-pro' && (<div className="px-4 animate-fade-in pb-28 w-full"><HeaderNav title="Gestão de Banca PRO" onBack={() => setViewMode('radar')} /><GestaoBancaPro /></div>)}
 {viewMode === 'alertas-ia' && (<div className="px-4 animate-fade-in pb-28 w-full"><HeaderNav title="Alertas IA" onBack={() => setViewMode('radar')} /><AlertasIAPro jogos={jogos} setViewMode={setViewMode} setAiOpen={setAiOpen} setAiQuery={setAiQuery} /></div>)}
 
 {viewMode === 'vip-pro' && (

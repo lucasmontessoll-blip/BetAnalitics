@@ -103,6 +103,9 @@ export default function PerformanceIAPro({ setViewMode, setAiOpen, setAiQuery })
         <div>
           <div className="text-xl font-black text-white">Performance IA</div>
           <div className="text-[11px] text-slate-500 font-bold">Assertividade, mercados e value bets</div>
+          <div className="mt-2 inline-flex rounded-full bg-amber-400/10 px-2.5 py-1 text-[8px] font-black uppercase tracking-[0.14em] text-amber-300 ring-1 ring-inset ring-amber-400/20">
+            DEMO · dados demonstrativos
+          </div>
         </div>
       </div>
 

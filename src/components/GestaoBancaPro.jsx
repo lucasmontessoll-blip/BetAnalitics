@@ -170,6 +170,11 @@ export default function GestaoBancaPro() {
     localStorage.setItem(HISTORY_KEY, JSON.stringify(list));
   }
 
+  const contemDadosDemo = useMemo(
+    () => history.some((item) => item?.origem === 'demo'),
+    [history]
+  );
+
   const summary = useMemo(() => {
     let profit = 0;
     let totalStake = 0;
@@ -288,6 +293,11 @@ export default function GestaoBancaPro() {
           <p className="mt-5 text-[8px] font-black uppercase tracking-[0.18em] text-slate-600">
             Saldo atual
           </p>
+          {contemDadosDemo && (
+            <span className="mt-2 inline-flex rounded-full bg-amber-400/10 px-2 py-1 text-[7px] font-black uppercase tracking-[0.14em] text-amber-300 ring-1 ring-inset ring-amber-400/15">
+              DEMO · dados demonstrativos
+            </span>
+          )}
           <h1 className="mt-1 text-4xl font-black tracking-tight text-white">
             {money(summary.currentBalance)}
           </h1>
