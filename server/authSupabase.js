@@ -160,14 +160,14 @@ export async function obterPerfil(user) {
 
   let { data } = await supabaseAdmin
     .from('usuarios')
-    .select('*')
+    .select('user_id,email,nome,is_vip,is_admin,plano,vip_expira,criado_em,atualizado_em')
     .eq('user_id', user.id)
     .maybeSingle();
 
   if (!data && user.email) {
     const fallback = await supabaseAdmin
       .from('usuarios')
-      .select('*')
+      .select('user_id,email,nome,is_vip,is_admin,plano,vip_expira,criado_em,atualizado_em')
       .eq('email', user.email.toLowerCase())
       .maybeSingle();
 
@@ -178,7 +178,7 @@ export async function obterPerfil(user) {
         .from('usuarios')
         .update({ user_id: user.id })
         .eq('email', user.email.toLowerCase())
-        .select('*')
+        .select('user_id,email,nome,is_vip,is_admin,plano,vip_expira,criado_em,atualizado_em')
         .maybeSingle();
       data = atualizado.data || data;
     }
@@ -202,19 +202,7 @@ export function instalarRotasAuth(app) {
   app.get('/api/auth/health', (_req, res) => {
     res.json({
       ok: true,
-
-      configurado:
-        Boolean(
-          supabaseAdmin
-        ),
-
-      validacao_jwt:
-        typeof supabaseAdmin
-          ?.auth
-          ?.getClaims ===
-          'function'
-          ? 'getClaims'
-          : 'getUser-fallback'
+      servico: 'BetAnalytics Auth'
     });
   });
 
@@ -231,13 +219,14 @@ export function instalarRotasAuth(app) {
       return res.json({
         ok: true,
         perfil: {
-          ...(perfil || {}),
           user_id: req.betUser.id,
           email: req.betUser.email || perfil?.email || '',
           nome: perfil?.nome || req.betUser.user_metadata?.nome || req.betUser.email || 'Usuário',
+          is_admin: Boolean(perfil?.is_admin),
           is_vip: vipAtivo,
           vip: vipAtivo,
           plano: vipAtivo ? 'PRO' : 'Free',
+          vip_expira: perfil?.vip_expira || null,
           vip_status: vipAtivo ? 'ativo' : 'bloqueado'
         }
       });

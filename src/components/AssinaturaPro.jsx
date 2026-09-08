@@ -1,4 +1,4 @@
-import { Calendar, ChevronRight, CreditCard, Crown, DollarSign, Lock, User, Zap } from 'lucide-react';
+import { ChevronRight, CreditCard, Crown, DollarSign, User, Zap } from 'lucide-react';
 
 export default function AssinaturaPro({
   form,
@@ -18,14 +18,13 @@ export default function AssinaturaPro({
 <div className="bg-[#0f172a] border border-yellow-500/20 rounded-3xl p-6 text-white shadow-[0_0_40px_rgba(234,179,8,0.08)] mt-4 relative overflow-hidden">
 <div className="absolute top-0 right-0 w-64 h-64 bg-yellow-500/10 rounded-full blur-[80px] -mr-20 -mt-20 pointer-events-none"></div>
 <h2 className="text-2xl font-black mb-2 flex items-center gap-2 relative z-10"><Crown className="w-6 h-6 text-yellow-400" />BetAnalytics<span className="text-transparent bg-clip-text bg-gradient-to-r from-yellow-400 to-yellow-600">PRO</span></h2>
-<p className="text-sm font-bold mb-6 text-slate-400 relative z-10">Registe-se e desbloqueie o Radar IA, Value Bets e analises avancadas em tempo real.</p>
+<p className="text-sm font-bold mb-6 text-slate-400 relative z-10">Confirme seus dados para processar a assinatura do BetAnalyticsPRO.</p>
 <div className="bg-[#050816]/60 rounded-2xl p-5 mb-5 border border-white/5 relative z-10">
-<h3 className="text-xs font-black uppercase mb-4 flex items-center gap-2 text-slate-300"><User className="w-4 h-4 text-yellow-500" /> Criar Conta / Login</h3>
+<h3 className="text-xs font-black uppercase mb-4 flex items-center gap-2 text-slate-300"><User className="w-4 h-4 text-yellow-500" /> Dados do pagamento</h3>
 <div className="space-y-3">
 <input type="text" value={form.nome || ''} onChange={(e) => setForm({ ...form, nome: e.target.value })} placeholder="Nome Completo" className="w-full bg-[#050816] border border-white/10 rounded-xl px-4 py-3 text-white placeholder:text-slate-500 text-sm outline-none focus:border-yellow-500 transition-colors" />
 <input type="email" value={form.email || ''} onChange={(e) => setForm({ ...form, email: e.target.value })} placeholder="Email (Login)" className="w-full bg-[#050816] border border-white/10 rounded-xl px-4 py-3 text-white placeholder:text-slate-500 text-sm outline-none focus:border-yellow-500 transition-colors" />
-<div className="relative"><Lock className="w-4 h-4 absolute left-4 top-3.5 text-slate-500" /><input type="password" value={form.senha || ''} onChange={(e) => setForm({ ...form, senha: e.target.value })} placeholder="Senha (minimo 6 caracteres)" className="w-full bg-[#050816] border border-white/10 rounded-xl px-4 py-3 pl-10 text-white placeholder:text-slate-500 text-sm outline-none focus:border-yellow-500 transition-colors" /></div>
-<div className="flex gap-3"><div className="w-1/2 relative"><User className="w-4 h-4 absolute left-3 top-3.5 text-slate-500" /><input type="text" value={form.cpf || ''} onChange={(e) => setForm({ ...form, cpf: e.target.value })} placeholder="CPF" className="w-full bg-[#050816] border border-white/10 rounded-xl px-3 py-3 pl-9 text-white placeholder:text-slate-500 text-xs outline-none focus:border-yellow-500 transition-colors" /></div><div className="w-1/2 relative"><Calendar className="w-4 h-4 absolute left-3 top-3.5 text-slate-500" /><input type="date" value={form.nascimento || ''} onChange={(e) => setForm({ ...form, nascimento: e.target.value })} className="w-full bg-[#050816] border border-white/10 rounded-xl px-3 py-3 pl-9 text-white placeholder:text-slate-500 text-xs outline-none focus:border-yellow-500 transition-colors" /></div></div>
+<div className="relative"><User className="w-4 h-4 absolute left-3 top-3.5 text-slate-500" /><input type="text" value={form.cpf || ''} onChange={(e) => setForm({ ...form, cpf: e.target.value })} placeholder="CPF" className="w-full bg-[#050816] border border-white/10 rounded-xl px-3 py-3 pl-9 text-white placeholder:text-slate-500 text-xs outline-none focus:border-yellow-500 transition-colors" /></div>
 </div>
 </div>
 <div className="bg-[#050816]/60 rounded-2xl p-5 mb-6 border border-white/5 relative z-10">

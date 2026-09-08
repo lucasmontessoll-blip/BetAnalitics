@@ -167,6 +167,16 @@ export function instalarRotasExclusaoConta(
           userId
         );
 
+        await excluirPorUserId(
+          'cliques_afiliados',
+          userId
+        );
+
+        await excluirPorUserId(
+          'conversoes_afiliados',
+          userId
+        );
+
         const {
           error:
             erroPerfil

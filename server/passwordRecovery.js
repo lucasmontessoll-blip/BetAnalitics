@@ -341,20 +341,52 @@ export function instalarRotasRecuperacaoSenha(app) {
       if (error || !data?.user) {
         return res.status(401).json({
           ok: false,
-          erro: 'Link de recuperação inválido ou expirado.'
+          erro: 'Link de recuperaÃ§Ã£o invÃ¡lido ou expirado.'
         });
       }
 
-      const { error: updateError } =
-        await supabaseAdmin.auth.admin.updateUserById(
-          data.user.id,
-          { password: senha }
-        );
+      const supabaseUrl =
+        String(process.env.SUPABASE_URL || '').trim();
 
-      if (updateError) {
-        return res.status(400).json({
+      const publicKey =
+        String(
+          process.env.SUPABASE_KEY ||
+          process.env.VITE_SUPABASE_KEY ||
+          ''
+        ).trim();
+
+      if (!supabaseUrl || !publicKey) {
+        return res.status(503).json({
           ok: false,
-          erro: updateError.message || 'Não foi possível atualizar a senha.'
+          erro: 'ServiÃ§o de autenticaÃ§Ã£o indisponÃ­vel.'
+        });
+      }
+
+      const updateResponse = await fetch(
+        supabaseUrl.replace(//$/, '') + '/auth/v1/user',
+        {
+          method: 'PUT',
+          headers: {
+            apikey: publicKey,
+            Authorization: 'Bearer ' + token,
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify({ password: senha })
+        }
+      );
+
+      const updateData =
+        await updateResponse.json().catch(() => ({}));
+
+      if (!updateResponse.ok) {
+        return res.status(
+          updateResponse.status === 401 ? 401 : 400
+        ).json({
+          ok: false,
+          erro:
+            updateData?.msg ||
+            updateData?.message ||
+            'NÃ£o foi possÃ­vel atualizar a senha.'
         });
       }
 

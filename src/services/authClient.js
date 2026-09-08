@@ -8,7 +8,7 @@ export async function sessaoAtual() {
   return data?.session || null;
 }
 
-export async function cadastrarAuth({ nome, email, senha, cpf, nascimento, telefone }) {
+export async function cadastrarAuth({ nome, email, senha, cpf }) {
   if (!supabase) throw new Error('Supabase Auth não configurado.');
 
   const { data, error } = await supabase.auth.signUp({
@@ -17,9 +17,7 @@ export async function cadastrarAuth({ nome, email, senha, cpf, nascimento, telef
     options: {
       data: {
         nome: String(nome || '').trim(),
-        cpf: String(cpf || '').replace(/\D/g, ''),
-        nascimento: nascimento || null,
-        telefone: String(telefone || '').trim()
+        cpf: String(cpf || '').replace(/\D/g, '')
       }
     }
   });

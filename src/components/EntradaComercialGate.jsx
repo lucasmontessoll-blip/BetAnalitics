@@ -30,8 +30,6 @@ export default function EntradaComercialGate({ children }) {
     senha: '',
     confirmar: '',
     cpf: '',
-    nascimento: '',
-    telefone: '',
     maior18: false
   });
 
@@ -109,7 +107,7 @@ export default function EntradaComercialGate({ children }) {
     try {
       if (!form.nome.trim()) throw new Error('Informe seu nome.');
       if (!form.email.trim()) throw new Error('Informe seu e-mail.');
-      if (form.senha.length < 6) throw new Error('A senha precisa ter pelo menos 6 caracteres.');
+      if (form.senha.length < 8) throw new Error('A senha precisa ter pelo menos 8 caracteres.');
       if (form.senha !== form.confirmar) throw new Error('As senhas não conferem.');
       if (!form.maior18) throw new Error('Confirme que você tem 18 anos ou mais.');
 
@@ -239,11 +237,7 @@ export default function EntradaComercialGate({ children }) {
 
             {modo === 'cadastro' && (
               <>
-                <div className="grid grid-cols-2 gap-3">
-                  <input placeholder="CPF" value={form.cpf} onChange={(e) => atualizar('cpf', e.target.value)} className={campoClasse()} />
-                  <input type="date" value={form.nascimento} onChange={(e) => atualizar('nascimento', e.target.value)} className={campoClasse()} />
-                </div>
-                <input placeholder="WhatsApp" value={form.telefone} onChange={(e) => atualizar('telefone', e.target.value)} className={campoClasse()} />
+                <input placeholder="CPF" value={form.cpf} onChange={(e) => atualizar('cpf', e.target.value)} className={campoClasse()} />
               </>
             )}
 

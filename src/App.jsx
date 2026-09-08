@@ -8,7 +8,6 @@ import EducacaoBetAnalytics from './components/EducacaoBetAnalytics.jsx';
 import HistoricoAssertividade from './components/HistoricoAssertividade.jsx';
 import { motion, AnimatePresence } from 'framer-motion';
 import { initMercadoPago } from '@mercadopago/sdk-react';
-import { createClient } from '@supabase/supabase-js';
 import { Home, Radio, Trophy, Crown, Star, ChevronRight, X, User, Zap, TrendingUp, Send, DollarSign, Target, Globe, CreditCard, Lock, Calendar, Search, Plus, CheckCircle2 } from 'lucide-react';
 import { calcularKelly } from './utils/math.js';
 import { calcularStake } from './utils/risk.js';
@@ -52,6 +51,7 @@ import {
 import { temAcessoPro, carregarUsuarioSessaoPro, usuarioDemoFree, rotaExigePro } from './utils/acessoPro.js';
 import { apiUrl } from './utils/apiBase.js';
 import { sessaoAtual, perfilValidadoServidor } from './services/authClient.js';
+import { supabase } from './services/supabaseClient.js';
 import {
   ativarPushNotifications,
   desativarPushNotifications,
@@ -155,14 +155,6 @@ function escudoTime(urlLogo, nomeTime) {
     : gerarEscudoAutomatico(nomeTime);
 }
 const PLANO_PRO = { nome: 'BetAnalyticsPRO Mensal', valor: 29.90, dias: 30 };
-let supabase = { from: () => ({ select: () => Promise.resolve({ data: [], error: null }), insert: () => Promise.resolve({ data: null, error: null }) }) };
-try {
-const url = import.meta.env.VITE_SUPABASE_URL;
-const key = import.meta.env.VITE_SUPABASE_KEY;
-if (url && key && url.startsWith('http')) supabase = createClient(url, key);
-} catch (e) {
-console.error("Erro Supabase:", e);
-}
 /* BET_ETAPA_35B_MP_PUBLICA_INICIO */
 const MP_PUBLIC_KEY = String(
   import.meta.env.VITE_MP_PUBLIC_KEY || ''
@@ -224,7 +216,7 @@ const [userData, setUserData] = useState(null);
 const [viewMode, setViewMode] = useState('jogos');
 const [filterCentro, setFilterCentro] = useState('Todos');
 const [jogoSelecionado, setJogoSelecionado] = useState(null);
-const [form, setForm] = useState({ nome: '', email: '', cpf: '', senha: '', nascimento: '' });
+const [form, setForm] = useState({ nome: '', email: '', cpf: '' });
 const [metodoPagamento, setMetodoPagamento] = useState('pix');
 const [pagamentoStatus, setPagamentoStatus] = useState({ loading: false, erro: '', sucesso: '', pix: null, id: null });
 const cardFormMercadoPagoRef = useRef(null);
@@ -249,18 +241,23 @@ const registrarCliqueAfiliado = useCallback(async (casa, jogo = null, origem = '
     click_id: clickId,
     casa_id: casa?.id || '',
     casa_nome: casa?.nome || '',
-    usuario_email: userData?.email || localStorage.getItem('bet_user_email') || '',
-    usuario_nome: userData?.nome || localStorage.getItem('bet_user_nome') || '',
     jogo_id: jogo?.id || null,
     time_casa: jogo?.home_team || jogo?.time_casa || null,
     time_fora: jogo?.away_team || jogo?.time_fora || null,
     liga: jogo?.league_name || jogo?.liga || null,
     origem,
     url_destino: urlDestino,
-    user_agent: navigator.userAgent || '',
   };
   try {
-    localStorage.setItem('bet_ultimo_click_afiliado', JSON.stringify(registro));
+    localStorage.setItem(
+      'bet_ultimo_click_afiliado',
+      JSON.stringify({
+        click_id: clickId,
+        casa_id: casa?.id || '',
+        jogo_id: jogo?.id || null,
+        origem
+      })
+    );
   } catch (e) {}
   try {
     await supabase.from('cliques_afiliados').insert(registro);
@@ -325,6 +322,16 @@ useEffect(() => {
   }
   // fim-bet-pro-real-sessao-v2
 }, []);
+
+useEffect(() => {
+  if (!userData) return;
+
+  setForm((atual) => ({
+    ...atual,
+    nome: atual.nome || userData?.nome || '',
+    email: atual.email || userData?.email || ''
+  }));
+}, [userData?.email, userData?.nome]);
 
 const proAtivo = temAcessoPro(userData);
 
@@ -889,8 +896,6 @@ const validarContaObrigatoria = () => {
 const nome = String(form?.nome || '').trim();
 const email = String(form?.email || '').trim().toLowerCase();
 const cpf = limparCpf(form?.cpf || '');
-const senha = String(form?.senha || '').trim();
-const nascimento = String(form?.nascimento || '').trim();
 if (!nome || nome.length < 3) {
 setPagamentoStatus(s => ({ ...s, erro: 'Informe seu nome completo antes de assinar.', sucesso: '' }));
 return null;
@@ -903,16 +908,21 @@ if (cpf.length !== 11) {
 setPagamentoStatus(s => ({ ...s, erro: 'Informe um CPF valido com 11 numeros.', sucesso: '' }));
 return null;
 }
-if (!senha || senha.length < 6) {
-setPagamentoStatus(s => ({ ...s, erro: 'Crie uma senha com pelo menos 6 caracteres.', sucesso: '' }));
-return null;
-}
-if (!nascimento) {
-setPagamentoStatus(s => ({ ...s, erro: 'Informe sua data de nascimento.', sucesso: '' }));
-return null;
-}
-return { nome, email, cpf, senha, nascimento };
+return { nome, email, cpf };
 };
+const tokenPagamentoObrigatorio = async () => {
+  const sessao = await sessaoAtual();
+  const token = sessao?.access_token;
+
+  if (!token) {
+    throw new Error(
+      'Sua sessÃ£o expirou. Entre novamente antes de continuar.'
+    );
+  }
+
+  return token;
+};
+
 const confirmarVipServidor = async (conta, pagamento = {}) => {
   const paymentId =
     pagamento.id ||
@@ -1045,7 +1055,16 @@ const confirmarVipServidor = async (conta, pagamento = {}) => {
 };
 const consultarStatusPagamento = async (paymentId, conta) => {
 try {
-const resp = await fetch(apiUrl(`/api/pagamento/status/${paymentId}`));
+const tokenSessao = await tokenPagamentoObrigatorio();
+const resp = await fetch(
+  apiUrl(`/api/pagamento/status/${encodeURIComponent(paymentId)}`),
+  {
+    headers: {
+      Accept: 'application/json',
+      Authorization: `Bearer ${tokenSessao}`
+    }
+  }
+);
 const data = await resp.json();
 if (!resp.ok) throw new Error(data?.erro || 'Nao foi possivel consultar o pagamento.');
 
@@ -1076,11 +1095,13 @@ if (!conta) return;
 try {
 if (pollingPagamentoRef.current) clearInterval(pollingPagamentoRef.current);
 setPagamentoStatus({ loading: true, erro: '', sucesso: 'Gerando QR Code PIX...', pix: null, id: null });
+const tokenSessao = await tokenPagamentoObrigatorio();
 const resp = await fetch(apiUrl('/api/pagamento/pix'), {
 method: 'POST',
 headers: {
 'Content-Type': 'application/json',
 'Idempotency-Key': obterTentativaPagamento('pix'),
+'Authorization': `Bearer ${tokenSessao}`,
 },
 body: JSON.stringify({
 nome: conta.nome,
@@ -1134,11 +1155,13 @@ setPagamentoStatus({ loading: true, erro: '', sucesso: 'Processando cartao com s
 const token = dadosCartao?.token;
 const paymentMethodId = dadosCartao?.paymentMethodId || dadosCartao?.payment_method_id;
 if (!token || !paymentMethodId) throw new Error('Preencha todos os dados do cartao antes de concluir.');
+const tokenSessao = await tokenPagamentoObrigatorio();
 const resp = await fetch(apiUrl('/api/pagamento/cartao'), {
 method: 'POST',
 headers: {
 'Content-Type': 'application/json',
 'Idempotency-Key': obterTentativaPagamento('cartao'),
+'Authorization': `Bearer ${tokenSessao}`,
 },
 body: JSON.stringify({
 nome: conta.nome,

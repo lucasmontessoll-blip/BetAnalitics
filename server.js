@@ -88,6 +88,19 @@ app.use(
   observabilidadeMiddleware
 );
 
+app.disable('x-powered-by');
+
+app.use((req, res, next) => {
+  res.setHeader('X-Content-Type-Options', 'nosniff');
+  res.setHeader('X-Frame-Options', 'DENY');
+  res.setHeader('Referrer-Policy', 'strict-origin-when-cross-origin');
+  res.setHeader(
+    'Permissions-Policy',
+    'camera=(), microphone=(), geolocation=()'
+  );
+  next();
+});
+
 const limitarHistorical =
   criarRateLimitDistribuido({
     namespace:
@@ -128,6 +141,24 @@ const limitarChatIA =
 
     windowMs:
       60000
+  });
+
+const limitarPagamentoCriacao =
+  criarRateLimitDistribuido({
+    namespace: 'payment-create-user',
+    limit:
+      process.env.RATE_LIMIT_PAYMENT_CREATE_PER_MINUTE ||
+      6,
+    windowMs: 60000
+  });
+
+const limitarPagamentoStatus =
+  criarRateLimitDistribuido({
+    namespace: 'payment-status-user',
+    limit:
+      process.env.RATE_LIMIT_PAYMENT_STATUS_PER_MINUTE ||
+      30,
+    windowMs: 60000
   });
 
 function autenticarComRateLimit(
@@ -278,26 +309,22 @@ function betNome(valor) {
 }
 
 function betEmail(valor) {
-  return String(valor || 'cliente@betanalytics.pro').trim().toLowerCase();
+  return String(valor || '').trim().toLowerCase();
 }
 
 function betDescricao(valor) {
   return String(valor || 'Plano PRO BetAnalytics').trim();
 }
 
-app.get('/api/pagamento/health', (req, res) => {
+app.get('/api/pagamento/health', (_req, res) => {
   return res.status(200).json({
     ok: true,
     servico: 'BetAnalytics Pagamento',
-    mercado_pago_configurado: Boolean(betMpToken()),
-    plano_valor: betNumero(process.env.PLANO_PRO_VALOR, 29.90),
-    ambiente: process.env.NODE_ENV || 'development',
-    idempotencia: pagamentoIdempotenciaStatus(),
     timestamp: new Date().toISOString()
   });
 });
 
-app.post('/api/pagamento/pix', async (req, res) => {
+app.post('/api/pagamento/pix', autenticarRequest, limitarPagamentoCriacao, async (req, res) => {
   try {
     const token = betMpToken();
 
@@ -311,8 +338,20 @@ app.post('/api/pagamento/pix', async (req, res) => {
     const body = req.body || {};
     const valor = betNumero(process.env.PLANO_PRO_VALOR, 29.90);
     const nome = betNome(body.nome);
-    const email = betEmail(body.email);
+    const email = betEmail(req.betUser?.email);
+    const emailInformado = betEmail(body.email);
     const cpf = betCpf(body.cpf);
+
+    if (
+      !email ||
+      !emailInformado ||
+      email !== emailInformado
+    ) {
+      return res.status(403).json({
+        ok: false,
+        erro: 'E-mail do pagamento nÃ£o corresponde Ã  sessÃ£o autenticada.'
+      });
+    }
     const descricao = betDescricao(process.env.PLANO_PRO_DESCRICAO || 'Plano PRO BetAnalytics');
 
     if (!email.includes('@')) {
@@ -556,7 +595,7 @@ app.post('/api/pagamento/pix', async (req, res) => {
   }
 });
 
-app.post('/api/pagamento/cartao', async (req, res) => {
+app.post('/api/pagamento/cartao', autenticarRequest, limitarPagamentoCriacao, async (req, res) => {
   try {
     const accessToken = betMpToken();
 
@@ -576,8 +615,20 @@ app.post('/api/pagamento/cartao', async (req, res) => {
       );
 
     const nome = betNome(body.nome);
-    const email = betEmail(body.email);
+    const email = betEmail(req.betUser?.email);
+    const emailInformado = betEmail(body.email);
     const cpf = betCpf(body.cpf);
+
+    if (
+      !email ||
+      !emailInformado ||
+      email !== emailInformado
+    ) {
+      return res.status(403).json({
+        ok: false,
+        erro: 'E-mail do pagamento nÃ£o corresponde Ã  sessÃ£o autenticada.'
+      });
+    }
 
     const cardToken =
       String(body.token || '').trim();
@@ -870,7 +921,7 @@ app.post('/api/pagamento/cartao', async (req, res) => {
   }
 });
 
-app.get('/api/pagamento/status/:id', async (req, res) => {
+app.get('/api/pagamento/status/:id', autenticarRequest, limitarPagamentoStatus, async (req, res) => {
   try {
     const token = betMpToken();
 
@@ -890,7 +941,7 @@ app.get('/api/pagamento/status/:id', async (req, res) => {
       });
     }
 
-    const resposta = await fetch(`https://api.mercadopago.com/v1/payments/${id}`, {
+    const resposta = await fetch(`https://api.mercadopago.com/v1/payments/${encodeURIComponent(id)}`, {
       method: 'GET',
       headers: {
         Authorization: `Bearer ${token}`,
@@ -901,10 +952,26 @@ app.get('/api/pagamento/status/:id', async (req, res) => {
     const data = await resposta.json().catch(() => ({}));
 
     if (!resposta.ok) {
-      return res.status(resposta.status || 500).json({
+      return res.status(404).json({
         ok: false,
-        erro: data?.message || data?.error || 'Erro ao consultar pagamento.',
-        detalhe: data
+        erro: 'Pagamento nÃ£o encontrado.'
+      });
+    }
+
+    const emailSessao =
+      betEmail(req.betUser?.email);
+
+    const emailPagamento =
+      betEmail(data?.payer?.email);
+
+    if (
+      !emailSessao ||
+      !emailPagamento ||
+      emailSessao !== emailPagamento
+    ) {
+      return res.status(404).json({
+        ok: false,
+        erro: 'Pagamento nÃ£o encontrado.'
       });
     }
 
@@ -2088,24 +2155,7 @@ app.get(
 app.get('/api/producao/health', (_req, res) => {
   return res.status(200).json({
     ok: true,
-    servico: 'BetAnalytics Produção',
-    ambiente: process.env.NODE_ENV || 'development',
-    configuracao: {
-      api_football: Boolean(API_FOOTBALL_KEY),
-      mercado_pago: Boolean(betMpToken()),
-      supabase: Boolean(SUPABASE_URL && SUPABASE_KEY),
-      gemini: Boolean(GEMINI_API_KEY)
-    },
-    observabilidade:
-      observabilidadeResumo(),
-
-    transporte:
-      httpTransportStatus(),
-
-    trafego:
-      trafficGuardStatus(),
-
-    cors_origens_configuradas: BET_CORS_ORIGENS.size,
+    servico: 'BetAnalytics ProduÃ§Ã£o',
     timestamp: new Date().toISOString()
   });
 });

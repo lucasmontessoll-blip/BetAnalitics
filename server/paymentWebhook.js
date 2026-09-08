@@ -372,7 +372,7 @@ function validarPagamentoPro(
    */
   if (
     referencia !==
-      PLANO_REFERENCIA &&
+      PLANO_REFERENCIA ||
     metadataPlano !==
       PLANO_METADATA
   ) {
@@ -698,24 +698,7 @@ export function instalarWebhookMercadoPago(
     (_req, res) => {
       return res.json({
         ok: true,
-
-        webhook_secret_configurado:
-          Boolean(
-            segredoWebhook()
-          ),
-
-        mercado_pago_configurado:
-          Boolean(
-            tokenMP()
-          ),
-
-        supabase_configurado:
-          Boolean(
-            supabaseAdmin
-          ),
-
-        anti_replay:
-          true
+        servico: 'BetAnalytics Webhook'
       });
     }
   );
