@@ -1,4 +1,4 @@
-﻿import { supabaseAdmin } from './authSupabase.js';
+import { supabaseAdmin } from './authSupabase.js';
 
 function bearer(req) {
   const value = String(req.headers.authorization || '');
@@ -363,7 +363,7 @@ export function instalarRotasRecuperacaoSenha(app) {
       }
 
       const updateResponse = await fetch(
-        supabaseUrl.replace(//$/, '') + '/auth/v1/user',
+        supabaseUrl.replace(/\/$/, '') + '/auth/v1/user',
         {
           method: 'PUT',
           headers: {
