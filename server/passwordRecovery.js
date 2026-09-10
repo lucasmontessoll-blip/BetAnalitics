@@ -341,7 +341,7 @@ export function instalarRotasRecuperacaoSenha(app) {
       if (error || !data?.user) {
         return res.status(401).json({
           ok: false,
-          erro: 'Link de recuperaÃ§Ã£o invÃ¡lido ou expirado.'
+          erro: 'Link de recuperação inválido ou expirado.'
         });
       }
 
@@ -358,7 +358,7 @@ export function instalarRotasRecuperacaoSenha(app) {
       if (!supabaseUrl || !publicKey) {
         return res.status(503).json({
           ok: false,
-          erro: 'ServiÃ§o de autenticaÃ§Ã£o indisponÃ­vel.'
+          erro: 'Serviço de autenticação indisponível.'
         });
       }
 
@@ -386,7 +386,7 @@ export function instalarRotasRecuperacaoSenha(app) {
           erro:
             updateData?.msg ||
             updateData?.message ||
-            'NÃ£o foi possÃ­vel atualizar a senha.'
+            'Não foi possível atualizar a senha.'
         });
       }
 

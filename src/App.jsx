@@ -916,7 +916,7 @@ const tokenPagamentoObrigatorio = async () => {
 
   if (!token) {
     throw new Error(
-      'Sua sessÃ£o expirou. Entre novamente antes de continuar.'
+      'Sua sessão expirou. Entre novamente antes de continuar.'
     );
   }
 

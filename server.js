@@ -349,7 +349,7 @@ app.post('/api/pagamento/pix', autenticarRequest, limitarPagamentoCriacao, async
     ) {
       return res.status(403).json({
         ok: false,
-        erro: 'E-mail do pagamento nÃ£o corresponde Ã  sessÃ£o autenticada.'
+        erro: 'E-mail do pagamento não corresponde à sessão autenticada.'
       });
     }
     const descricao = betDescricao(process.env.PLANO_PRO_DESCRICAO || 'Plano PRO BetAnalytics');
@@ -626,7 +626,7 @@ app.post('/api/pagamento/cartao', autenticarRequest, limitarPagamentoCriacao, as
     ) {
       return res.status(403).json({
         ok: false,
-        erro: 'E-mail do pagamento nÃ£o corresponde Ã  sessÃ£o autenticada.'
+        erro: 'E-mail do pagamento não corresponde à sessão autenticada.'
       });
     }
 
@@ -954,7 +954,7 @@ app.get('/api/pagamento/status/:id', autenticarRequest, limitarPagamentoStatus, 
     if (!resposta.ok) {
       return res.status(404).json({
         ok: false,
-        erro: 'Pagamento nÃ£o encontrado.'
+        erro: 'Pagamento não encontrado.'
       });
     }
 
@@ -971,7 +971,7 @@ app.get('/api/pagamento/status/:id', autenticarRequest, limitarPagamentoStatus, 
     ) {
       return res.status(404).json({
         ok: false,
-        erro: 'Pagamento nÃ£o encontrado.'
+        erro: 'Pagamento não encontrado.'
       });
     }
 
@@ -2155,7 +2155,7 @@ app.get(
 app.get('/api/producao/health', (_req, res) => {
   return res.status(200).json({
     ok: true,
-    servico: 'BetAnalytics ProduÃ§Ã£o',
+    servico: 'BetAnalytics Produção',
     timestamp: new Date().toISOString()
   });
 });
