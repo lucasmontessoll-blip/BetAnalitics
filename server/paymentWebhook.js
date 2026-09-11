@@ -128,6 +128,128 @@ function hashHexValido(valor) {
   );
 }
 
+/*
+ * Mercado Pago inclui "ts" no x-signature.
+ *
+ * A documentacao oficial mostra timestamps
+ * tanto em segundos (10 digitos) quanto em
+ * milissegundos (13 digitos).
+ *
+ * A janela abaixo e hardening local e
+ * configuravel. Nao altera o HMAC oficial.
+ */
+function inteiroEnvLimitado(
+  nome,
+  fallback,
+  minimo,
+  maximo
+) {
+  const texto =
+    env(nome);
+
+  if (!texto) {
+    return fallback;
+  }
+
+  const numero =
+    Number(texto);
+
+  if (!Number.isFinite(numero)) {
+    return fallback;
+  }
+
+  const inteiro =
+    Math.trunc(numero);
+
+  if (
+    inteiro < minimo ||
+    inteiro > maximo
+  ) {
+    return fallback;
+  }
+
+  return inteiro;
+}
+
+function timestampWebhookMs(
+  ts
+) {
+  const texto =
+    String(ts || '').trim();
+
+  if (/^\d{10}$/.test(texto)) {
+    return Number(texto) * 1000;
+  }
+
+  if (/^\d{13}$/.test(texto)) {
+    return Number(texto);
+  }
+
+  throw erroHttp(
+    'Timestamp do webhook invalido.',
+    401
+  );
+}
+
+function validarFrescorTimestampWebhook(
+  ts
+) {
+  const timestampMs =
+    timestampWebhookMs(ts);
+
+  if (
+    !Number.isSafeInteger(
+      timestampMs
+    )
+  ) {
+    throw erroHttp(
+      'Timestamp do webhook invalido.',
+      401
+    );
+  }
+
+  const maxAgeSeconds =
+    inteiroEnvLimitado(
+      'MP_WEBHOOK_MAX_AGE_SECONDS',
+      3600,
+      60,
+      86400
+    );
+
+  const futureSkewSeconds =
+    inteiroEnvLimitado(
+      'MP_WEBHOOK_FUTURE_SKEW_SECONDS',
+      300,
+      0,
+      3600
+    );
+
+  const idadeMs =
+    Date.now() - timestampMs;
+
+  if (
+    idadeMs >
+      maxAgeSeconds * 1000
+  ) {
+    throw erroHttp(
+      'Webhook expirado.',
+      401
+    );
+  }
+
+  if (
+    idadeMs <
+      -futureSkewSeconds * 1000
+  ) {
+    throw erroHttp(
+      'Timestamp do webhook esta no futuro.',
+      401
+    );
+  }
+
+  return true;
+}
+
 function validarAssinaturaWebhook(
   req
 ) {
@@ -244,6 +366,10 @@ function validarAssinaturaWebhook(
       401
     );
   }
+
+  validarFrescorTimestampWebhook(
+    ts
+  );
 
   /*
    * O ID assinado e o ID presente
