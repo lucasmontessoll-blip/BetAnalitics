@@ -63,3 +63,6 @@ firebase-service-account/
 *.jks
 *.keystore
 keystore.properties
+
+# Vercel local project metadata
+.vercel/
