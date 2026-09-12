@@ -1,5 +1,11 @@
 {
   "$schema": "https://openapi.vercel.sh/vercel.json",
+  "build": {
+    "env": {
+      "VITE_SUPABASE_URL": "https://pztznppbmonhrrzfbnvh.supabase.co",
+      "VITE_SUPABASE_KEY": "sb_publishable_t05Q0_lLCvde6xebzMv90w_6VbXNWqE"
+    }
+  },
   "rewrites": [
     {
       "source": "/api/:path*",
