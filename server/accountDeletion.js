@@ -157,66 +157,11 @@ export function instalarRotasExclusaoConta(
             });
         }
 
-        await excluirPorUserId(
-          'analises_ia',
-          userId
+        const { error: erroDados } = await supabaseAdmin.rpc(
+          'bet_delete_app_data_r48', { p_user_id: userId }
         );
-
-        await excluirPorUserId(
-          'push_tokens',
-          userId
-        );
-
-        await excluirPorUserId(
-          'cliques_afiliados',
-          userId
-        );
-
-        await excluirPorUserId(
-          'conversoes_afiliados',
-          userId
-        );
-
-        const {
-          error:
-            erroPerfil
-        } =
-          await supabaseAdmin
-            .from('usuarios')
-            .delete()
-            .eq(
-              'user_id',
-              userId
-            );
-
-        if (erroPerfil) {
-          throw new Error(
-            'Falha ao excluir perfil: ' +
-            erroPerfil.message
-          );
-        }
-
-        if (email) {
-          const {
-            error:
-              erroPerfilLegado
-          } =
-            await supabaseAdmin
-              .from('usuarios')
-              .delete()
-              .eq(
-                'email',
-                email
-              );
-
-          if (erroPerfilLegado) {
-            throw new Error(
-              'Falha ao excluir perfil legado: ' +
-              erroPerfilLegado.message
-            );
-          }
-        }
-
+        if (erroDados) throw new Error('Falha na limpeza atomica dos dados.');
+        // Se deleteUser falhar, o usuario pode repetir: a limpeza e idempotente.
         const {
           error:
             erroAuth

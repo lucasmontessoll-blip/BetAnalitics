@@ -1,4 +1,5 @@
 import crypto from 'crypto';
+import { fetchJsonComTimeout } from './upstreamResult.js';
 
 import {
   autenticarRequest,
@@ -423,8 +424,8 @@ async function consultarPagamento(
     );
   }
 
-  const resp =
-    await fetch(
+  const { response: resp, data } =
+    await fetchJsonComTimeout(
       `https://api.mercadopago.com/v1/payments/${encodeURIComponent(paymentId)}`,
       {
         headers: {
@@ -435,11 +436,6 @@ async function consultarPagamento(
         }
       }
     );
-
-  const data =
-    await resp
-      .json()
-      .catch(() => ({}));
 
   if (!resp.ok) {
     throw erroHttp(

@@ -1,237 +1,68 @@
 import { createClient } from '@supabase/supabase-js';
+import { criarGuardaPro, perfilTemPro } from './accessPolicy.js';
+const url = String(process.env.SUPABASE_URL || '').trim();
+const key = String(process.env.SUPABASE_SERVICE_ROLE_KEY || '').trim();
+export const supabaseAdmin = url && key ? createClient(url, key, {
+  auth: { persistSession: false, autoRefreshToken: false }
+}) : null;
 
-function env(name) {
-  return String(process.env[name] || '').trim();
-}
-
-const supabaseUrl = env('SUPABASE_URL');
-const serviceKey = env('SUPABASE_SERVICE_ROLE_KEY');
-
-export const supabaseAdmin =
-  supabaseUrl && serviceKey
-    ? createClient(supabaseUrl, serviceKey, {
-        auth: { persistSession: false, autoRefreshToken: false }
-      })
-    : null;
-
-function bearer(req) {
-  const value = String(req.headers.authorization || '');
-  return value.startsWith('Bearer ') ? value.slice(7).trim() : '';
-}
-
-export async function autenticarRequest(req, res, next) {
-  try {
-    if (!supabaseAdmin) {
-      return res.status(503).json({
-        ok: false,
-        erro:
-          'Supabase backend não configurado.'
-      });
-    }
-
-    const token =
-      bearer(req);
-
-    if (!token) {
-      return res.status(401).json({
-        ok: false,
-        erro:
-          'Sessão ausente.'
-      });
-    }
-
-    /*
-     * Preferimos getClaims:
-     *
-     * - valida assinatura e expiração;
-     * - usa JWKS cacheado quando o projeto
-     *   utiliza chave assimétrica;
-     * - evita getUser remoto em cada request;
-     * - em projetos legados/simétricos,
-     *   o próprio Supabase faz validação remota.
-     */
-    if (
-      typeof supabaseAdmin.auth
-        ?.getClaims === 'function'
-    ) {
-      const {
-        data,
-        error
-      } =
-        await supabaseAdmin.auth
-          .getClaims(token);
-
-      const claims =
-        data?.claims;
-
-      if (
-        error ||
-        !claims?.sub
-      ) {
-        return res.status(401).json({
-          ok: false,
-          erro:
-            'Sessão inválida ou expirada.'
-        });
+export function criarAutenticador(client) {
+  return async function autenticar(req, res, next) {
+    if (!client) return res.status(503).json({ ok: false, code: 'AUTH_UNAVAILABLE' });
+    const token = /^Bearer\s+(\S+)$/i.exec(String(req.headers.authorization || ''))?.[1];
+    if (!token) return res.status(401).json({ ok: false, code: 'AUTH_REQUIRED', erro: 'Sessao ausente.' });
+    try {
+      const { data, error } = await client.auth.getClaims(token);
+      const claims = data?.claims;
+      if (error || !claims?.sub || !claims?.session_id || claims.role !== 'authenticated') {
+        return res.status(401).json({ ok: false, code: 'INVALID_SESSION' });
       }
-
-      req.betUser = {
-        id:
-          String(
-            claims.sub
-          ),
-
-        email:
-          String(
-            claims.email ||
-            ''
-          ),
-
-        phone:
-          String(
-            claims.phone ||
-            ''
-          ),
-
-        role:
-          String(
-            claims.role ||
-            'authenticated'
-          ),
-
-        user_metadata:
-          claims.user_metadata &&
-          typeof claims.user_metadata ===
-            'object'
-            ? claims.user_metadata
-            : {},
-
-        app_metadata:
-          claims.app_metadata &&
-          typeof claims.app_metadata ===
-            'object'
-            ? claims.app_metadata
-            : {}
-      };
-
-      return next();
-    }
-
-    /*
-     * Fallback defensivo caso uma versão
-     * antiga do SDK não possua getClaims.
-     */
-    const {
-      data,
-      error
-    } =
-      await supabaseAdmin.auth
-        .getUser(token);
-
-    if (
-      error ||
-      !data?.user
-    ) {
-      return res.status(401).json({
-        ok: false,
-        erro:
-          'Sessão inválida ou expirada.'
+      const session = await client.rpc('bet_session_active_r48', {
+        p_user_id: claims.sub, p_session_id: claims.session_id
       });
-    }
-
-    req.betUser =
-      data.user;
-
-    return next();
-  }
-  catch (e) {
-    return res.status(401).json({
-      ok: false,
-
-      erro:
-        e?.message ||
-        'Falha de autenticação.'
-    });
-  }
+      if (session.error) return res.status(503).json({ ok: false, code: 'SESSION_CHECK_UNAVAILABLE' });
+      if (session.data !== true) return res.status(401).json({ ok: false, code: 'SESSION_REVOKED' });
+      req.betUser = {
+        id: claims.sub, email: String(claims.email || ''), phone: String(claims.phone || ''),
+        role: claims.role, user_metadata: claims.user_metadata || {}, app_metadata: claims.app_metadata || {}
+      };
+      return next();
+    } catch { return res.status(503).json({ ok: false, code: 'AUTH_CHECK_UNAVAILABLE' }); }
+  };
 }
-
+export const autenticarRequest = criarAutenticador(supabaseAdmin);
 export async function obterPerfil(user) {
-  if (!supabaseAdmin || !user) return null;
-
-  let { data } = await supabaseAdmin
-    .from('usuarios')
+  if (!supabaseAdmin || !user?.id) return null;
+  const { data, error } = await supabaseAdmin.from('usuarios')
     .select('user_id,email,nome,is_vip,is_admin,plano,vip_expira,criado_em,atualizado_em')
-    .eq('user_id', user.id)
-    .maybeSingle();
-
-  if (!data && user.email) {
-    const fallback = await supabaseAdmin
-      .from('usuarios')
-      .select('user_id,email,nome,is_vip,is_admin,plano,vip_expira,criado_em,atualizado_em')
-      .eq('email', user.email.toLowerCase())
-      .maybeSingle();
-
-    data = fallback.data || null;
-
-    if (data && !data.user_id) {
-      const atualizado = await supabaseAdmin
-        .from('usuarios')
-        .update({ user_id: user.id })
-        .eq('email', user.email.toLowerCase())
-        .select('user_id,email,nome,is_vip,is_admin,plano,vip_expira,criado_em,atualizado_em')
-        .maybeSingle();
-      data = atualizado.data || data;
-    }
-  }
-
+    .eq('user_id', user.id).maybeSingle();
+  if (error) throw new Error('Perfil indisponivel.');
   return data;
 }
-
-export async function exigirAdmin(req, res, next) {
+export const exigirPro = criarGuardaPro(obterPerfil);
+export function exigirAdmin(req, res, next) {
   return autenticarRequest(req, res, async () => {
-    const perfil = await obterPerfil(req.betUser);
-    if (!perfil?.is_admin) {
-      return res.status(403).json({ ok: false, erro: 'Acesso administrativo negado.' });
-    }
-    req.betPerfil = perfil;
-    next();
+    try {
+      const perfil = await obterPerfil(req.betUser);
+      if (perfil?.is_admin !== true) return res.status(403).json({ ok: false, code: 'ADMIN_REQUIRED' });
+      req.betPerfil = perfil;
+      return next();
+    } catch { return res.status(503).json({ ok: false, code: 'PROFILE_UNAVAILABLE' }); }
   });
 }
-
 export function instalarRotasAuth(app) {
-  app.get('/api/auth/health', (_req, res) => {
-    res.json({
-      ok: true,
-      servico: 'BetAnalytics Auth'
-    });
-  });
-
+  app.get('/api/auth/health', (_req, res) => res.json({ ok: true, servico: 'BetAnalytics Auth' }));
   app.get('/api/auth/me', autenticarRequest, async (req, res) => {
     try {
       const perfil = await obterPerfil(req.betUser);
-
-      const vipExpira = perfil?.vip_expira ? new Date(perfil.vip_expira).getTime() : 0;
-      const vipAtivo = Boolean(
-        perfil?.is_admin ||
-        (perfil?.is_vip && vipExpira > Date.now())
-      );
-
-      return res.json({
-        ok: true,
-        perfil: {
-          user_id: req.betUser.id,
-          email: req.betUser.email || perfil?.email || '',
-          nome: perfil?.nome || req.betUser.user_metadata?.nome || req.betUser.email || 'Usuário',
-          is_admin: Boolean(perfil?.is_admin),
-          is_vip: vipAtivo,
-          vip: vipAtivo,
-          plano: vipAtivo ? 'PRO' : 'Free',
-          vip_expira: perfil?.vip_expira || null,
-          vip_status: vipAtivo ? 'ativo' : 'bloqueado'
-        }
-      });
-    } catch (e) {
-      return res.status(500).json({ ok: false, erro: e?.message || 'Falha ao carregar perfil.' });
-    }
+      const vip = perfilTemPro(perfil);
+      return res.json({ ok: true, perfil: {
+        user_id: req.betUser.id, email: req.betUser.email,
+        nome: perfil?.nome || req.betUser.user_metadata?.nome || req.betUser.email || 'Usuario',
+        is_admin: perfil?.is_admin === true, is_vip: vip, vip,
+        plano: vip ? 'PRO' : 'Free', vip_expira: perfil?.vip_expira || null,
+        vip_status: vip ? 'ativo' : 'bloqueado'
+      } });
+    } catch { return res.status(503).json({ ok: false, code: 'PROFILE_UNAVAILABLE' }); }
   });
 }

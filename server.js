@@ -9,6 +9,7 @@ import {
   instalarRotasAuth,
   autenticarRequest,
   exigirAdmin,
+  exigirPro,
 } from './server/authSupabase.js';
 import { instalarRotasExclusaoConta } from './server/accountDeletion.js';
 import { instalarRotasRecuperacaoSenha } from './server/passwordRecovery.js';
@@ -65,6 +66,7 @@ import {
   runtimeReadiness
 } from './server/runtimeInstance.js';
 import { instalarRotasHistoricalEngine } from './server/historicalEngine.js';
+import { resumoDependencias } from './server/upstreamResult.js';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -173,11 +175,7 @@ function autenticarComRateLimit(
       req,
       res,
       () =>
-        limiter(
-          req,
-          res,
-          next
-        )
+        exigirPro(req, res, () => limiter(req, res, next))
     );
   };
 }
@@ -1540,8 +1538,10 @@ app.get(
       apiFootballRequest('/odds', { fixture: fixtureId }),
     ]);
 
+    if (fixture.status === 'rejected') return res.status(502).json({ ok: false, code: 'FIXTURE_UNAVAILABLE' });
     res.json({
       ok: true,
+      ...resumoDependencias({ fixture, statistics, events, lineups, players, predictions, odds }),
       fonte: 'api-football',
       fixture: fixture.status === 'fulfilled' ? fixture.value?.response?.[0] || null : null,
       statistics: statistics.status === 'fulfilled' ? statistics.value?.response || [] : [],
@@ -1567,6 +1567,7 @@ app.get(
 app.get(
   '/api/football/radar-odds',
   autenticarRequest,
+  exigirPro,
   async (req, res) => {
   try {
     if (!API_FOOTBALL_KEY) {
@@ -1723,6 +1724,7 @@ app.get('/api/football/jogador/:playerId', async (req, res) => {
 app.get(
   '/api/football/pacote-completo/:fixtureId',
   autenticarRequest,
+  exigirPro,
   limitarPacoteCompleto,
   async (req, res) => {
   try {
@@ -1769,8 +1771,10 @@ app.get(
       injuries, predictions, odds, oddsLive, h2h,
     ] = await Promise.allSettled(calls);
 
+    if (fixture.status === 'rejected') return res.status(502).json({ ok: false, code: 'FIXTURE_UNAVAILABLE' });
     res.json({
       ok: true,
+      ...resumoDependencias({ fixture, statistics, events, lineups, players, injuries, predictions, odds, oddsLive, h2h }),
       fonte: 'api-football',
       fixture: fixture.status === 'fulfilled' ? fixture.value?.response?.[0] || null : null,
       statistics: statistics.status === 'fulfilled' ? statistics.value?.response || [] : [],
@@ -1914,6 +1918,7 @@ app.get(
 app.post(
   '/api/chat-ia',
   autenticarRequest,
+  exigirPro,
   limitarChatIA,
   async (req, res) => {
     const pergunta =

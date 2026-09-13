@@ -1,5 +1,6 @@
 import {
   autenticarRequest,
+  exigirPro,
   supabaseAdmin,
 } from './authSupabase.js';
 
@@ -58,7 +59,7 @@ async function buscarRegistroUsuario(userId, jogoId) {
 }
 
 export function instalarRotasHistoricoIA(app) {
-  app.get('/api/historico-ia', autenticarRequest, async (req, res) => {
+  app.get('/api/historico-ia', autenticarRequest, exigirPro, async (req, res) => {
     try {
       const { data, error } = await supabaseAdmin
         .from('analises_ia')
@@ -82,7 +83,7 @@ export function instalarRotasHistoricoIA(app) {
     }
   });
 
-  app.post('/api/historico-ia', autenticarRequest, async (req, res) => {
+  app.post('/api/historico-ia', autenticarRequest, exigirPro, async (req, res) => {
     try {
       const body = req.body || {};
       const jogoId = texto(body.jogo_id, 180);
@@ -169,7 +170,7 @@ export function instalarRotasHistoricoIA(app) {
     }
   });
 
-  app.patch('/api/historico-ia/:id', autenticarRequest, async (req, res) => {
+  app.patch('/api/historico-ia/:id', autenticarRequest, exigirPro, async (req, res) => {
     try {
       const id = String(req.params.id || '').trim();
       const status = String(req.body?.status || '')
