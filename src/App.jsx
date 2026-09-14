@@ -1511,7 +1511,7 @@ DISTRIBUICAO_PLAY_STORE ? (
 />
 )}
 
-{!DISTRIBUICAO_PLAY_STORE && viewMode === 'admin' && (
+{viewMode === 'admin' && userData?.is_admin === true && (
 <AdminResumoPro
   setViewMode={setViewMode}
   userData={userData}

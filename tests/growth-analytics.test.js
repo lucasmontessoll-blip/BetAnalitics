@@ -8,6 +8,8 @@ const sql = [
   '../supabase/migrations/20260914012739_r51_analytics_advisor_hardening.sql'
 ].map((path) => fs.readFileSync(new URL(path, import.meta.url), 'utf8')).join('\n');
 const server = fs.readFileSync(new URL('../server/growthAnalytics.js', import.meta.url), 'utf8');
+const app = fs.readFileSync(new URL('../src/App.jsx', import.meta.url), 'utf8');
+const adminShortcut = fs.readFileSync(new URL('../src/components/AtalhoAdminPerfil.jsx', import.meta.url), 'utf8');
 
 test('R51 analytics is RLS protected and service-only', () => {
   assert.match(sql, /enable row level security/i);
@@ -26,4 +28,11 @@ test('event validator allowlists names and properties', () => {
   const event = validarEventoAnalytics({ event_name:'page_view', anonymous_id:crypto.randomUUID(), session_id:crypto.randomUUID(), properties:{ location:'/inicio', email:'discard', token:'discard' } });
   assert.deepEqual(event.properties, { location:'/inicio' });
   assert.throws(() => validarEventoAnalytics({ event_name:'arbitrary_event' }), /Evento invalido/);
+});
+
+test('R52 exposes admin UI on mobile only to a server-validated admin', () => {
+  assert.match(app, /viewMode === 'admin' && userData\?\.is_admin === true/);
+  assert.doesNotMatch(app, /!DISTRIBUICAO_PLAY_STORE && viewMode === 'admin'/);
+  assert.match(adminShortcut, /userData\?\.is_admin !== true/);
+  assert.doesNotMatch(adminShortcut, /import\.meta\.env\.MODE === 'play'/);
 });
