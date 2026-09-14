@@ -1,19 +1,22 @@
 import React from 'react';
 import { ShieldCheck, Crown } from 'lucide-react';
+import { registrarEvento } from '../services/growthAnalytics.js';
 
 export default function AtalhoAdminPerfil({
   viewMode,
   setViewMode,
   setMenuAtivo,
   setJogoSelecionado,
+  userData,
 }) {
-  if (import.meta.env.MODE === 'play' || viewMode !== 'perfil') return null;
+  if (import.meta.env.MODE === 'play' || viewMode !== 'perfil' || userData?.is_admin !== true) return null;
 
   return (
     <div className="px-4 mt-4 mb-4 w-full">
       <button
         type="button"
         onClick={() => {
+          registrarEvento('cta_click', { action: 'open_admin', location: 'profile' });
           setMenuAtivo('Todos os Jogos');
           setViewMode('admin');
           setJogoSelecionado(null);

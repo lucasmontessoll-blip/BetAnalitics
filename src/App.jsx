@@ -52,6 +52,7 @@ import { temAcessoPro, carregarUsuarioSessaoPro, usuarioDemoFree, rotaExigePro }
 import { apiUrl } from './utils/apiBase.js';
 import { sessaoAtual, perfilValidadoServidor } from './services/authClient.js';
 import { supabase } from './services/supabaseClient.js';
+import { registrarEvento } from './services/growthAnalytics.js';
 import {
   ativarPushNotifications,
   desativarPushNotifications,
@@ -214,6 +215,12 @@ const [ligaAtivaId, setLigaAtivaId] = useState(null);
 const [menuAtivo, setMenuAtivo] = useState('Todos os Jogos');
 const [userData, setUserData] = useState(null);
 const [viewMode, setViewMode] = useState('jogos');
+
+useEffect(() => {
+  if (!userData || viewMode === 'admin') return;
+  const recursoPro = rotaExigePro(viewMode);
+  registrarEvento(recursoPro ? 'feature_pro_used' : 'feature_free_used', { feature: viewMode }, true);
+}, [viewMode, userData?.user_id]);
 const [filterCentro, setFilterCentro] = useState('Todos');
 const [jogoSelecionado, setJogoSelecionado] = useState(null);
 const [form, setForm] = useState({ nome: '', email: '', cpf: '' });
@@ -273,6 +280,7 @@ const abrirCasaAfiliada = useCallback(async (casa, jogo = null, origem = 'compar
     alert(`Configure o link afiliado da casa ${casa?.nome || ''} no App.jsx.`);
     return;
   }
+  registrarEvento('cta_click', { action: 'affiliate_link', location: origem, label: casa?.nome || 'casa' });
   window.open(urlDestino, '_blank', 'noopener,noreferrer');
 }, [registrarCliqueAfiliado]);
 const { jogos: jogosApiFootball, loading: loadingApiFootball, erro: erroApiFootball, atualizar: atualizarApiFootball } = useApiFootball({
@@ -1368,6 +1376,7 @@ return (
   setViewMode={setViewMode}
   setMenuAtivo={setMenuAtivo}
   setJogoSelecionado={setJogoSelecionado}
+  userData={userData}
 />
 <CalendarioSemanaJogos viewMode={viewMode} />
 <ModoDemoBadge modoDemo={MODO_DEMONSTRACAO} setViewMode={setViewMode} />

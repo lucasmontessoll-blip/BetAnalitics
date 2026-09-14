@@ -8,6 +8,7 @@ import {
   sessaoAtual
 } from '../services/authClient.js';
 import { supabase } from '../services/supabaseClient.js';
+import { registrarEvento } from '../services/growthAnalytics.js';
 
 const TERMOS_KEY = 'bet_termos_privacidade_aceitos_v1';
 
@@ -32,6 +33,10 @@ export default function EntradaComercialGate({ children }) {
     cpf: '',
     maior18: false
   });
+
+  React.useEffect(() => {
+    registrarEvento('page_view', { location: window.location.pathname });
+  }, []);
 
   function atualizar(campo, valor) {
     setForm((s) => ({ ...s, [campo]: valor }));
@@ -105,6 +110,7 @@ export default function EntradaComercialGate({ children }) {
     setAviso('');
 
     try {
+      registrarEvento('signup_started', { location: 'auth_gate' });
       if (!form.nome.trim()) throw new Error('Informe seu nome.');
       if (!form.email.trim()) throw new Error('Informe seu e-mail.');
       if (form.senha.length < 8) throw new Error('A senha precisa ter pelo menos 8 caracteres.');

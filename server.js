@@ -15,6 +15,7 @@ import { instalarRotasExclusaoConta } from './server/accountDeletion.js';
 import { instalarRotasRecuperacaoSenha } from './server/passwordRecovery.js';
 import { instalarRotasHistoricoIA } from './server/historicoIA.js';
 import { instalarRotasPush } from './server/pushNotifications.js';
+import { instalarRotasGrowthAnalytics } from './server/growthAnalytics.js';
 import { instalarWebhookMercadoPago } from './server/paymentWebhook.js';
 import {
   executarPagamentoIdempotente,
@@ -282,6 +283,7 @@ instalarRotasExclusaoConta(app);
 instalarRotasRecuperacaoSenha(app);
 instalarRotasHistoricoIA(app);
 instalarRotasPush(app);
+instalarRotasGrowthAnalytics(app);
 instalarWebhookMercadoPago(app);
 
 function betMpToken() {

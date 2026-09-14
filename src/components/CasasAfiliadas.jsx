@@ -1,6 +1,7 @@
 import React from 'react';
 import { ExternalLink, ShieldCheck } from 'lucide-react';
 import { casasAfiliadas } from '../config/casasAfiliadas.js';
+import { registrarEvento } from '../services/growthAnalytics.js';
 
 export default function CasasAfiliadas() {
   const abrirCasa = (casa) => {
@@ -10,7 +11,8 @@ export default function CasasAfiliadas() {
     }
 
     // Abre em nova aba para nao fechar o seu aplicativo
-    window.open(casa.link, '_blank');
+    registrarEvento('cta_click', { action: 'affiliate_link', location: 'affiliate_cards', label: casa.nome });
+    window.open(casa.link, '_blank', 'noopener,noreferrer');
   };
 
   return (

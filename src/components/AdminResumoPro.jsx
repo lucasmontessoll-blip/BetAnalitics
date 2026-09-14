@@ -1,365 +1,67 @@
-import React, { useMemo, useState } from 'react';
-import {
-  Activity,
-  ArrowLeft,
-  Bot,
-  CheckCircle2,
-  Clock,
-  CreditCard,
-  Crown,
-  DollarSign,
-  RefreshCw,
-  ShieldCheck,
-  TrendingUp,
-  Users,
-  Wallet,
-  XCircle
-} from 'lucide-react';
+import React, { useCallback, useEffect, useMemo, useState } from 'react';
+import { ArrowLeft, BarChart3, CreditCard, Eye, MousePointerClick, RefreshCw, RotateCcw, UserPlus, Users, Wallet } from 'lucide-react';
+import { Area, AreaChart, Bar, BarChart, CartesianGrid, ResponsiveContainer, Tooltip, XAxis, YAxis } from 'recharts';
+import { carregarDashboard, salvarCusto } from '../services/growthAnalytics.js';
 
-const PLANO_MENSAL = 29.9;
+const PERIODOS = [7, 30, 90];
+const NOMES = { page_view: 'Visualização', cta_click: 'Clique', signup_started: 'Cadastro iniciado', feature_free_used: 'Recurso gratuito', feature_pro_used: 'Recurso PRO', subscription_cancelled: 'Cancelamento' };
+const dinheiro = (v) => Number(v || 0).toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
+const numero = (v) => Number(v || 0).toLocaleString('pt-BR');
 
-function dinheiro(valor) {
-  return Number(valor || 0).toLocaleString('pt-BR', {
-    style: 'currency',
-    currency: 'BRL'
-  });
+function periodo(dias) {
+  const to = new Date();
+  const from = new Date(to.getTime() - (dias - 1) * 86400000);
+  from.setHours(0, 0, 0, 0);
+  return { from: from.toISOString(), to: to.toISOString() };
 }
 
-function numero(valor, fallback = 0) {
-  const n = Number(valor);
-  return Number.isFinite(n) ? n : fallback;
+function Card({ titulo, valor, detalhe, icon: Icon, cor = 'text-blue-300' }) {
+  return <article className="rounded-3xl border border-white/10 bg-[#0f172a] p-4 shadow-lg"><div className="flex items-center justify-between gap-3"><p className="text-[10px] font-black uppercase tracking-widest text-slate-400">{titulo}</p><Icon className={`h-5 w-5 ${cor}`} aria-hidden="true" /></div><p className="mt-3 text-2xl font-black">{valor}</p><p className="mt-1 text-[11px] font-bold text-slate-500">{detalhe}</p></article>;
 }
 
-function lerArray(chave) {
-  try {
-    const dados = JSON.parse(localStorage.getItem(chave) || '[]');
-    return Array.isArray(dados) ? dados : [];
-  } catch {
-    return [];
+export default function AdminResumoPro({ setViewMode, userData }) {
+  const [dias, setDias] = useState(30);
+  const [dados, setDados] = useState(null);
+  const [erro, setErro] = useState('');
+  const [carregando, setCarregando] = useState(true);
+  const [form, setForm] = useState({ cost_date: new Date().toISOString().slice(0, 10), source: '', campaign: '', amount: '', notes: '' });
+
+  const carregar = useCallback(async () => {
+    setCarregando(true); setErro('');
+    try { const p = periodo(dias); setDados(await carregarDashboard(p.from, p.to)); }
+    catch (e) { setErro(e?.message || 'Não foi possível carregar as métricas.'); }
+    finally { setCarregando(false); }
+  }, [dias]);
+
+  useEffect(() => { carregar(); }, [carregar]);
+  const m = dados?.metrics || {};
+  const funil = useMemo(() => [
+    { name: 'Visualizações', total: Number(m.views || 0) }, { name: 'Cliques', total: Number(m.clicks || 0) },
+    { name: 'Cadastros', total: Number(m.registrations || 0) }, { name: 'Novos PRO', total: Number(m.new_subscribers || 0) }
+  ], [m.views, m.clicks, m.registrations, m.new_subscribers]);
+
+  async function enviarCusto(e) {
+    e.preventDefault(); setErro('');
+    try { await salvarCusto({ ...form, amount: Number(form.amount) }); setForm((a) => ({ ...a, amount: '', notes: '' })); await carregar(); }
+    catch (ex) { setErro(ex?.message || 'Não foi possível salvar o custo.'); }
   }
+
+  if (userData?.is_admin !== true) return <div className="p-8 text-center font-bold text-red-300">Acesso permitido somente ao administrador.</div>;
+
+  return <main className="w-full px-4 pb-28 text-white animate-fade-in">
+    <header className="mb-5 flex items-center gap-3"><button type="button" onClick={() => setViewMode?.('perfil')} aria-label="Voltar ao perfil" className="flex h-11 w-11 items-center justify-center rounded-2xl border border-white/10 bg-[#0f172a]"><ArrowLeft className="h-5 w-5" /></button><div className="min-w-0 flex-1"><p className="text-[10px] font-black uppercase tracking-[.2em] text-yellow-400">Área administrativa segura</p><h1 className="text-2xl font-black">Crescimento e conversão</h1><p className="text-[11px] font-bold text-slate-400">Dados reais do servidor, sem dados pessoais nos eventos.</p></div><button type="button" onClick={carregar} disabled={carregando} aria-label="Atualizar métricas" className="flex h-11 w-11 items-center justify-center rounded-2xl border border-white/10 bg-white/5 disabled:opacity-50"><RefreshCw className={`h-4 w-4 ${carregando ? 'animate-spin' : ''}`} /></button></header>
+    <nav aria-label="Período" className="mb-5 grid grid-cols-3 gap-2 rounded-2xl border border-white/10 bg-black/20 p-1">{PERIODOS.map((p) => <button type="button" key={p} onClick={() => setDias(p)} className={`rounded-xl py-3 text-xs font-black ${dias === p ? 'bg-yellow-400 text-black' : 'text-slate-300'}`}>{p} dias</button>)}</nav>
+    {erro && <div role="alert" className="mb-5 rounded-2xl border border-red-400/30 bg-red-500/10 p-4 text-sm font-bold text-red-200">{erro}</div>}
+    <section aria-label="Indicadores" className="grid grid-cols-2 gap-3 lg:grid-cols-4">
+      <Card titulo="Visualizações" valor={numero(m.views)} detalhe={`${numero(m.unique_visitors)} visitantes únicos`} icon={Eye}/><Card titulo="Cliques no link" valor={numero(m.clicks)} detalhe={`${m.click_rate || 0}% das visualizações`} icon={MousePointerClick} cor="text-cyan-300"/><Card titulo="Cadastros" valor={numero(m.registrations)} detalhe={`${m.registration_rate || 0}% dos cliques`} icon={UserPlus} cor="text-emerald-300"/><Card titulo="Uso gratuito" valor={numero(m.free_users)} detalhe="usuários únicos ativos" icon={Users} cor="text-violet-300"/>
+      <Card titulo="Assinaturas iniciadas" valor={numero(m.subscription_starts)} detalhe={`${numero(m.approved_payments)} aprovadas`} icon={CreditCard} cor="text-yellow-300"/><Card titulo="Novos assinantes" valor={numero(m.new_subscribers)} detalhe={`${m.paid_rate || 0}% dos cadastros`} icon={BarChart3} cor="text-green-300"/><Card titulo="Renovações" valor={numero(m.renewals)} detalhe={`${numero(m.cancellations)} cancelamentos`} icon={RotateCcw}/><Card titulo="CAC" valor={m.cac == null ? 'Sem base' : dinheiro(m.cac)} detalhe={`Custo ${dinheiro(m.campaign_cost)}`} icon={Wallet} cor="text-orange-300"/>
+    </section>
+    <section className="mt-5 grid gap-5 lg:grid-cols-2"><Chart title="Evolução diária"><AreaChart data={dados?.timeline || []}><defs><linearGradient id="r51" x1="0" y1="0" x2="0" y2="1"><stop offset="5%" stopColor="#60a5fa" stopOpacity={.5}/><stop offset="95%" stopColor="#60a5fa" stopOpacity={0}/></linearGradient></defs><CartesianGrid stroke="#ffffff12" vertical={false}/><XAxis dataKey="date" tick={{ fill:'#94a3b8', fontSize:10 }} tickFormatter={(v) => v.slice(5)}/><YAxis tick={{ fill:'#94a3b8',fontSize:10 }}/><Tooltip contentStyle={{background:'#020617',border:'1px solid #334155',borderRadius:12}}/><Area type="monotone" dataKey="views" name="Visualizações" stroke="#60a5fa" fill="url(#r51)"/><Area type="monotone" dataKey="registrations" name="Cadastros" stroke="#34d399" fill="transparent"/></AreaChart></Chart><Chart title="Funil de conversão"><BarChart data={funil} layout="vertical"><CartesianGrid stroke="#ffffff12" horizontal={false}/><XAxis type="number" tick={{fill:'#94a3b8',fontSize:10}}/><YAxis dataKey="name" type="category" width={90} tick={{fill:'#cbd5e1',fontSize:10}}/><Tooltip contentStyle={{background:'#020617',border:'1px solid #334155',borderRadius:12}}/><Bar dataKey="total" fill="#facc15" radius={[0,8,8,0]}/></BarChart></Chart></section>
+    <section className="mt-5 grid gap-5 lg:grid-cols-2"><article className="rounded-3xl border border-white/10 bg-[#0f172a] p-4"><h2 className="mb-4 font-black">Origem das visualizações</h2><div className="space-y-2">{(dados?.sources || []).map((x) => <div key={x.name} className="flex justify-between rounded-xl bg-white/5 px-3 py-2 text-xs"><span>{x.name}</span><strong>{numero(x.views)}</strong></div>)}</div></article><CostForm form={form} setForm={setForm} onSubmit={enviarCusto}/></section>
+    <section className="mt-5 overflow-hidden rounded-3xl border border-white/10 bg-[#0f172a]"><div className="border-b border-white/10 p-4"><h2 className="font-black">Registros recentes</h2><p className="text-[11px] text-slate-400">Sem e-mail, IP, token ou conteúdo digitado.</p></div><div className="overflow-x-auto"><table className="w-full min-w-[620px] text-left text-xs"><thead className="bg-black/20 text-slate-400"><tr>{['Data','Evento','Plataforma','Origem','Campanha'].map((h) => <th className="p-3" key={h}>{h}</th>)}</tr></thead><tbody>{(dados?.recent_events || []).map((x) => <tr key={x.id} className="border-t border-white/5"><td className="p-3">{new Date(x.occurred_at).toLocaleString('pt-BR')}</td><td className="p-3 font-bold">{NOMES[x.event_name] || x.event_name}</td><td className="p-3">{x.platform}</td><td className="p-3">{x.source}</td><td className="p-3">{x.campaign}</td></tr>)}</tbody></table></div></section>
+  </main>;
 }
 
-function lerValor(chave, fallback = '') {
-  try {
-    return localStorage.getItem(chave) || fallback;
-  } catch {
-    return fallback;
-  }
-}
-
-function lucroBanca(item) {
-  const stake = numero(item?.stake, 0);
-  const odd = numero(item?.odd, 1);
-
-  if (item?.resultado === 'green') return stake * (odd - 1);
-  if (item?.resultado === 'red') return -stake;
-
-  return 0;
-}
-
-function lucroIA(item) {
-  if (typeof item?.lucro !== 'undefined') return numero(item.lucro, 0);
-
-  const stake = numero(item?.stake, 50);
-  const odd = numero(item?.odd, 1.85);
-
-  if (item?.status === 'green') return stake * (odd - 1);
-  if (item?.status === 'red') return -stake;
-
-  return 0;
-}
-
-function isAprovado(pagamento) {
-  return Boolean(
-    pagamento?.aprovado ||
-    pagamento?.status === 'approved' ||
-    pagamento?.status === 'processed'
-  );
-}
-
-function isPendente(pagamento) {
-  const status = String(pagamento?.status || '').toLowerCase();
-
-  return !isAprovado(pagamento) && (
-    status === 'pending' ||
-    status.includes('pending') ||
-    status.includes('waiting') ||
-    status === ''
-  );
-}
-
-function Card({ titulo, valor, texto, icon: Icon, cor = 'text-white' }) {
-  return (
-    <div className="rounded-3xl border border-white/10 bg-[#0f172a] p-4 shadow-lg">
-      <div className="mb-3 flex items-center justify-between gap-3">
-        <div className="text-[9px] font-black uppercase tracking-[0.18em] text-slate-500">
-          {titulo}
-        </div>
-
-        <div className="flex h-9 w-9 items-center justify-center rounded-2xl border border-white/10 bg-white/5">
-          <Icon className={`h-4 w-4 ${cor}`} />
-        </div>
-      </div>
-
-      <div className={`truncate text-xl font-black ${cor}`}>
-        {valor}
-      </div>
-
-      {texto && (
-        <div className="mt-1 text-[11px] font-bold text-slate-400">
-          {texto}
-        </div>
-      )}
-    </div>
-  );
-}
-
-function Linha({ nome, valor, cor = 'text-white' }) {
-  return (
-    <div className="flex items-center justify-between gap-3 border-b border-white/5 py-3 first:pt-0 last:border-b-0 last:pb-0">
-      <span className="text-xs font-bold text-slate-400">
-        {nome}
-      </span>
-
-      <span className={`text-xs font-black ${cor}`}>
-        {valor}
-      </span>
-    </div>
-  );
-}
-
-export default function AdminResumoPro({ setViewMode, userData, jogos = [] }) {
-  const [refresh, setRefresh] = useState(0);
-
-  const dados = useMemo(() => {
-    const usuarios = lerArray('bet_users');
-    const pagamentos = lerArray('bet_pagamentos_v1');
-    const historicoIA = lerArray('betanalytics_historico_ia_v1');
-    const banca = lerArray('bet_banca_historico_v2');
-
-    const emailAtual =
-      userData?.email ||
-      lerValor('bet_sessao_ativa', '') ||
-      lerValor('bet_user_email', '') ||
-      'admin@betanalytics.pro';
-
-    const totalUsuarios = Math.max(usuarios.length, emailAtual ? 1 : 0);
-
-    const usuariosPro = usuarios.filter((u) => {
-      return u?.is_vip || u?.vip || u?.plano === 'PRO';
-    }).length;
-
-    const inscritosPro = Math.max(usuariosPro, userData?.is_vip ? 1 : 0);
-
-    const pagamentosAprovados = pagamentos.filter(isAprovado);
-    const pagamentosPendentes = pagamentos.filter(isPendente);
-    const pagamentosRecusados = pagamentos.filter((p) => {
-      const status = String(p?.status || '').toLowerCase();
-      return status.includes('rejected') || status.includes('cancelled') || status.includes('cancel');
-    });
-
-    const receitaReal = pagamentosAprovados.reduce((soma, p) => soma + numero(p.valor, 0), 0);
-    const receitaPotencial = inscritosPro * PLANO_MENSAL;
-    const receitaMensal = Math.max(receitaReal, receitaPotencial);
-    const custosEstimados = receitaMensal * 0.22;
-    const lucroEstimado = receitaMensal - custosEstimados;
-
-    const greensIA = historicoIA.filter((item) => item.status === 'green').length;
-    const redsIA = historicoIA.filter((item) => item.status === 'red').length;
-    const finalizadasIA = greensIA + redsIA;
-    const precisaoIA = finalizadasIA ? Math.round((greensIA / finalizadasIA) * 100) : 0;
-
-    const lucroTotalIA = historicoIA.reduce((soma, item) => soma + lucroIA(item), 0);
-    const lucroTotalBanca = banca.reduce((soma, item) => soma + lucroBanca(item), 0);
-    const saldoInicial = numero(lerValor('bet_banca_saldo_v2', '1000'), 1000);
-    const bancaAtual = saldoInicial + lucroTotalBanca;
-
-    const ultimoPagamento = pagamentos[0] || null;
-
-    return {
-      emailAtual,
-      totalUsuarios,
-      inscritosPro,
-      pagamentosTotal: pagamentos.length,
-      pagamentosAprovados: pagamentosAprovados.length,
-      pagamentosPendentes: pagamentosPendentes.length,
-      pagamentosRecusados: pagamentosRecusados.length,
-      receitaReal,
-      receitaMensal,
-      lucroEstimado,
-      custosEstimados,
-      taxaConversao: totalUsuarios ? ((inscritosPro / totalUsuarios) * 100).toFixed(1) : '0.0',
-      historicoIATotal: historicoIA.length,
-      greensIA,
-      redsIA,
-      precisaoIA,
-      lucroTotalIA,
-      entradasBanca: banca.length,
-      bancaAtual,
-      lucroTotalBanca,
-      jogosCarregados: Array.isArray(jogos) ? jogos.length : 0,
-      ultimoPagamento
-    };
-  }, [userData, jogos, refresh]);
-
-  return (
-    <div className="w-full px-4 pb-28 text-white animate-fade-in">
-      <div className="mb-5 flex items-center gap-3">
-        <button
-          type="button"
-          onClick={() => setViewMode?.('perfil')}
-          className="flex h-10 w-10 items-center justify-center rounded-2xl border border-white/10 bg-[#0f172a] active:scale-95"
-        >
-          <ArrowLeft className="h-5 w-5" />
-        </button>
-
-        <div className="min-w-0 flex-1">
-          <div className="text-[10px] font-black uppercase tracking-[0.2em] text-yellow-400">
-            Area administrativa
-          </div>
-
-          <h2 className="text-2xl font-black leading-tight">
-            Painel Admin PRO
-          </h2>
-
-          <p className="text-[11px] font-bold text-slate-400">
-            Pagamentos, usuarios, IA, banca e receita local.
-          </p>
-        </div>
-
-        <button
-          type="button"
-          onClick={() => setRefresh((v) => v + 1)}
-          className="flex h-10 w-10 items-center justify-center rounded-2xl border border-white/10 bg-white/5"
-        >
-          <RefreshCw className="h-4 w-4" />
-        </button>
-      </div>
-
-      <section className="mb-5 rounded-[32px] border border-yellow-500/30 bg-gradient-to-br from-yellow-500/20 via-[#0f172a] to-green-500/10 p-5 shadow-2xl">
-        <div className="mb-4 flex items-center gap-3">
-          <div className="flex h-12 w-12 items-center justify-center rounded-2xl border border-yellow-400/30 bg-yellow-500/20">
-            <Crown className="h-6 w-6 text-yellow-300" />
-          </div>
-
-          <div className="min-w-0">
-            <div className="text-[10px] font-black uppercase tracking-widest text-yellow-400">
-              Dono do app
-            </div>
-
-            <div className="truncate text-lg font-black">
-              {dados.emailAtual}
-            </div>
-          </div>
-        </div>
-
-        <div className="grid grid-cols-2 gap-3">
-          <div className="rounded-2xl border border-white/10 bg-black/20 p-3">
-            <div className="text-[9px] font-black uppercase text-slate-400">
-              Receita local
-            </div>
-
-            <div className="text-lg font-black text-green-400">
-              {dinheiro(dados.receitaReal)}
-            </div>
-          </div>
-
-          <div className="rounded-2xl border border-white/10 bg-black/20 p-3">
-            <div className="text-[9px] font-black uppercase text-slate-400">
-              Lucro estimado
-            </div>
-
-            <div className="text-lg font-black text-yellow-300">
-              {dinheiro(dados.lucroEstimado)}
-            </div>
-          </div>
-        </div>
-      </section>
-
-      <section className="mb-5 grid grid-cols-2 gap-3">
-        <Card titulo="Usuarios" valor={dados.totalUsuarios} texto="Cadastrados locais" icon={Users} />
-        <Card titulo="PRO" valor={dados.inscritosPro} texto={`${dados.taxaConversao}% conversao`} icon={Crown} cor="text-yellow-300" />
-        <Card titulo="Pagamentos" valor={dados.pagamentosTotal} texto="Historico local" icon={CreditCard} cor="text-blue-400" />
-        <Card titulo="Receita" valor={dinheiro(dados.receitaReal)} texto="Aprovada local" icon={DollarSign} cor="text-green-400" />
-      </section>
-
-      <section className="mb-5 rounded-3xl border border-blue-500/20 bg-[#0f172a] p-5">
-        <div className="mb-4 flex items-center gap-2">
-          <CreditCard className="h-5 w-5 text-blue-400" />
-          <h3 className="text-sm font-black uppercase">
-            Pagamentos Mercado Pago
-          </h3>
-        </div>
-
-        <div className="space-y-1">
-          <Linha nome="Gerados" valor={dados.pagamentosTotal} cor="text-blue-300" />
-          <Linha nome="Pendentes" valor={dados.pagamentosPendentes} cor="text-yellow-300" />
-          <Linha nome="Aprovados" valor={dados.pagamentosAprovados} cor="text-emerald-300" />
-          <Linha nome="Recusados/cancelados" valor={dados.pagamentosRecusados} cor="text-red-300" />
-          <Linha nome="Receita aprovada" valor={dinheiro(dados.receitaReal)} cor="text-green-300" />
-          <Linha nome="Custos estimados" valor={dinheiro(dados.custosEstimados)} cor="text-red-300" />
-        </div>
-
-        {dados.ultimoPagamento && (
-          <div className="mt-4 rounded-2xl border border-white/10 bg-white/5 p-4">
-            <div className="mb-2 text-[10px] font-black uppercase tracking-widest text-slate-500">
-              Ultimo pagamento
-            </div>
-
-            <div className="truncate text-sm font-black">
-              ID {dados.ultimoPagamento.id}
-            </div>
-
-            <div className="mt-1 text-[11px] font-bold text-slate-400">
-              {String(dados.ultimoPagamento.metodo || 'pix').toUpperCase()} • {dinheiro(dados.ultimoPagamento.valor)} • {dados.ultimoPagamento.status || 'pending'}
-            </div>
-          </div>
-        )}
-      </section>
-
-      <section className="mb-5 grid grid-cols-2 gap-3">
-        <Card titulo="Analises IA" valor={dados.historicoIATotal} texto={`${dados.greensIA} green / ${dados.redsIA} red`} icon={Bot} cor="text-blue-400" />
-        <Card titulo="Precisao IA" valor={`${dados.precisaoIA}%`} texto="Historico finalizado" icon={CheckCircle2} cor="text-emerald-400" />
-        <Card titulo="Lucro IA" valor={dinheiro(dados.lucroTotalIA)} texto="Historico IA PRO" icon={TrendingUp} cor={dados.lucroTotalIA >= 0 ? 'text-emerald-400' : 'text-red-400'} />
-        <Card titulo="Banca" valor={dinheiro(dados.bancaAtual)} texto={`${dados.entradasBanca} entradas`} icon={Wallet} cor="text-purple-400" />
-      </section>
-
-      <section className="rounded-3xl border border-green-500/20 bg-[#0f172a] p-5">
-        <div className="mb-4 flex items-center gap-2">
-          <ShieldCheck className="h-5 w-5 text-green-400" />
-          <h3 className="text-sm font-black uppercase">
-            Status do sistema
-          </h3>
-        </div>
-
-        <div className="grid grid-cols-2 gap-2 text-[11px] font-black">
-          <div className="flex items-center gap-2 rounded-2xl border border-green-500/20 bg-green-500/10 p-3 text-green-300">
-            <CheckCircle2 className="h-4 w-4" />
-            App Online
-          </div>
-
-          <div className="flex items-center gap-2 rounded-2xl border border-blue-500/20 bg-blue-500/10 p-3 text-blue-300">
-            <Activity className="h-4 w-4" />
-            IA Local
-          </div>
-
-          <div className="flex items-center gap-2 rounded-2xl border border-yellow-500/20 bg-yellow-500/10 p-3 text-yellow-300">
-            <Clock className="h-4 w-4" />
-            PIX Monitorado
-          </div>
-
-          <div className="flex items-center gap-2 rounded-2xl border border-purple-500/20 bg-purple-500/10 p-3 text-purple-300">
-            <ShieldCheck className="h-4 w-4" />
-            Admin OK
-          </div>
-        </div>
-
-        <div className="mt-4 rounded-2xl border border-white/10 bg-white/5 p-4">
-          <Linha nome="Jogos carregados" valor={dados.jogosCarregados} />
-          <Linha nome="Historico de pagamentos" valor="bet_pagamentos_v1" cor="text-blue-300" />
-          <Linha nome="Modo dos dados" valor="Local / Mercado Pago" cor="text-green-300" />
-        </div>
-      </section>
-    </div>
-  );
-}
+function Chart({ title, children }) { return <article className="rounded-3xl border border-white/10 bg-[#0f172a] p-4"><h2 className="mb-4 font-black">{title}</h2><div className="h-72"><ResponsiveContainer width="100%" height="100%">{children}</ResponsiveContainer></div></article>; }
+function CostForm({ form, setForm, onSubmit }) { const field=(key,value)=>setForm({...form,[key]:value}); return <article className="rounded-3xl border border-white/10 bg-[#0f172a] p-4"><h2 className="font-black">Investimento de campanha</h2><p className="mb-4 text-[11px] text-slate-400">Alimenta o cálculo real de CAC.</p><form onSubmit={onSubmit} className="grid grid-cols-2 gap-3"><Input label="Data" type="date" value={form.cost_date} onChange={(e)=>field('cost_date',e.target.value)}/><Input label="Valor (R$)" type="number" min="0" step="0.01" value={form.amount} onChange={(e)=>field('amount',e.target.value)}/><Input label="Origem" value={form.source} maxLength="80" placeholder="Instagram" onChange={(e)=>field('source',e.target.value)}/><Input label="Campanha" value={form.campaign} maxLength="100" placeholder="Lançamento" onChange={(e)=>field('campaign',e.target.value)}/><label className="col-span-2 text-xs font-bold text-slate-300">Observação<input maxLength="240" value={form.notes} onChange={(e)=>field('notes',e.target.value)} className="mt-1 w-full rounded-xl border border-white/10 bg-black/30 p-3"/></label><button className="col-span-2 rounded-xl bg-yellow-400 py-3 font-black text-black">Salvar custo</button></form></article>; }
+function Input({ label, ...props }) { return <label className="text-xs font-bold text-slate-300">{label}<input required {...props} className="mt-1 w-full rounded-xl border border-white/10 bg-black/30 p-3"/></label>; }

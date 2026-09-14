@@ -1,5 +1,6 @@
 import React from 'react';
 import { Landmark, Star, ShieldCheck, ExternalLink, Gift, AlertTriangle, TrendingUp } from 'lucide-react';
+import { registrarEvento } from '../services/growthAnalytics.js';
 
 const casas = [
   {
@@ -32,6 +33,7 @@ export default function CasasParceirasPro({ setViewMode }) {
       return;
     }
 
+    registrarEvento('cta_click', { action: 'affiliate_link', location: 'partners', label: casa.nome });
     window.open(casa.link, '_blank', 'noopener,noreferrer');
   };
 
