@@ -42,6 +42,7 @@ import TelaInicial from './components/TelaInicial.jsx';
 import HeaderApp from './components/HeaderApp.jsx';
 import AdminResumoPro from './components/AdminResumoPro.jsx';
 import AtalhoAdminPerfil from './components/AtalhoAdminPerfil.jsx';
+import CentralPersonalizadaPro from './components/CentralPersonalizadaPro.jsx';
 import RoteadorProfissional from './components/RoteadorProfissional.jsx';
 import { registrarPagamentoGerado, registrarPagamentoAprovado, atualizarPagamentoLocal } from './utils/pagamentosLocal.js';
 import {
@@ -1519,6 +1520,15 @@ DISTRIBUICAO_PLAY_STORE ? (
 />
 )}
 
+{viewMode === 'central-personalizada' && (
+<CentralPersonalizadaPro
+  userData={userData}
+  jogos={jogos}
+  setViewMode={setViewMode}
+  setJogoSelecionado={setJogoSelecionado}
+/>
+)}
+
 {viewMode === 'perfil' && (
 <>
 <PerfilProCompleto
@@ -1528,6 +1538,13 @@ DISTRIBUICAO_PLAY_STORE ? (
   setAiQuery={setAiQuery}
 />
 <div className="px-4 mt-4 pb-28 w-full">
+  <button
+    type="button"
+    onClick={() => { setViewMode('central-personalizada'); setJogoSelecionado(null); }}
+    className="mb-3 w-full rounded-3xl border border-blue-400/25 bg-gradient-to-br from-blue-600/25 via-[#0f172a] to-violet-600/15 p-5 text-left shadow-lg active:scale-[0.99]"
+  >
+    <div className="flex items-center justify-between gap-3"><div><div className="text-[10px] font-black uppercase tracking-[0.2em] text-blue-300">Experiência personalizada</div><div className="mt-1 text-xl font-black text-white">Minha Central</div><div className="mt-1 text-[11px] font-bold text-slate-400">Busca real, favoritos, alertas, desempenho da IA e uso responsável.</div></div><Star className="h-7 w-7 shrink-0 text-yellow-300" /></div>
+  </button>
   {/* ADMIN_DENTRO_PERFIL */}
   <button
     type="button"
