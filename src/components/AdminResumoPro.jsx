@@ -2,6 +2,7 @@ import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import { ArrowLeft, BarChart3, CreditCard, Eye, MousePointerClick, RefreshCw, RotateCcw, UserPlus, Users, Wallet } from 'lucide-react';
 import { Area, AreaChart, Bar, BarChart, CartesianGrid, ResponsiveContainer, Tooltip, XAxis, YAxis } from 'recharts';
 import { carregarDashboard, salvarCusto } from '../services/growthAnalytics.js';
+import { carregarRelatosAdmin } from '../services/engajamentoR58.js';
 
 const PERIODOS = [7, 30, 90];
 const NOMES = { page_view: 'Visualização', cta_click: 'Clique', signup_started: 'Cadastro iniciado', feature_free_used: 'Recurso gratuito', feature_pro_used: 'Recurso PRO', subscription_cancelled: 'Cancelamento' };
@@ -24,11 +25,12 @@ export default function AdminResumoPro({ setViewMode, userData }) {
   const [dados, setDados] = useState(null);
   const [erro, setErro] = useState('');
   const [carregando, setCarregando] = useState(true);
+  const [relatos, setRelatos] = useState([]);
   const [form, setForm] = useState({ cost_date: new Date().toISOString().slice(0, 10), source: '', campaign: '', amount: '', notes: '' });
 
   const carregar = useCallback(async () => {
     setCarregando(true); setErro('');
-    try { const p = periodo(dias); setDados(await carregarDashboard(p.from, p.to)); }
+    try { const p = periodo(dias); const [dashboard, quality] = await Promise.all([carregarDashboard(p.from, p.to), carregarRelatosAdmin()]); setDados(dashboard); setRelatos(quality); }
     catch (e) { setErro(e?.message || 'Não foi possível carregar as métricas.'); }
     finally { setCarregando(false); }
   }, [dias]);
@@ -59,6 +61,7 @@ export default function AdminResumoPro({ setViewMode, userData }) {
     <section className="mt-5 grid gap-5 lg:grid-cols-2"><Chart title="Evolução diária"><AreaChart data={dados?.timeline || []}><defs><linearGradient id="r51" x1="0" y1="0" x2="0" y2="1"><stop offset="5%" stopColor="#60a5fa" stopOpacity={.5}/><stop offset="95%" stopColor="#60a5fa" stopOpacity={0}/></linearGradient></defs><CartesianGrid stroke="#ffffff12" vertical={false}/><XAxis dataKey="date" tick={{ fill:'#94a3b8', fontSize:10 }} tickFormatter={(v) => v.slice(5)}/><YAxis tick={{ fill:'#94a3b8',fontSize:10 }}/><Tooltip contentStyle={{background:'#020617',border:'1px solid #334155',borderRadius:12}}/><Area type="monotone" dataKey="views" name="Visualizações" stroke="#60a5fa" fill="url(#r51)"/><Area type="monotone" dataKey="registrations" name="Cadastros" stroke="#34d399" fill="transparent"/></AreaChart></Chart><Chart title="Funil de conversão"><BarChart data={funil} layout="vertical"><CartesianGrid stroke="#ffffff12" horizontal={false}/><XAxis type="number" tick={{fill:'#94a3b8',fontSize:10}}/><YAxis dataKey="name" type="category" width={90} tick={{fill:'#cbd5e1',fontSize:10}}/><Tooltip contentStyle={{background:'#020617',border:'1px solid #334155',borderRadius:12}}/><Bar dataKey="total" fill="#facc15" radius={[0,8,8,0]}/></BarChart></Chart></section>
     <section className="mt-5 grid gap-5 lg:grid-cols-2"><article className="rounded-3xl border border-white/10 bg-[#0f172a] p-4"><h2 className="mb-4 font-black">Origem das visualizações</h2><div className="space-y-2">{(dados?.sources || []).map((x) => <div key={x.name} className="flex justify-between rounded-xl bg-white/5 px-3 py-2 text-xs"><span>{x.name}</span><strong>{numero(x.views)}</strong></div>)}</div></article><CostForm form={form} setForm={setForm} onSubmit={enviarCusto}/></section>
     <section className="mt-5 overflow-hidden rounded-3xl border border-white/10 bg-[#0f172a]"><div className="border-b border-white/10 p-4"><h2 className="font-black">Registros recentes</h2><p className="text-[11px] text-slate-400">Sem e-mail, IP, token ou conteúdo digitado.</p></div><div className="overflow-x-auto"><table className="w-full min-w-[620px] text-left text-xs"><thead className="bg-black/20 text-slate-400"><tr>{['Data','Evento','Plataforma','Origem','Campanha'].map((h) => <th className="p-3" key={h}>{h}</th>)}</tr></thead><tbody>{(dados?.recent_events || []).map((x) => <tr key={x.id} className="border-t border-white/5"><td className="p-3">{new Date(x.occurred_at).toLocaleString('pt-BR')}</td><td className="p-3 font-bold">{NOMES[x.event_name] || x.event_name}</td><td className="p-3">{x.platform}</td><td className="p-3">{x.source}</td><td className="p-3">{x.campaign}</td></tr>)}</tbody></table></div></section>
+    <section className="mt-5 overflow-hidden rounded-3xl border border-white/10 bg-[#0f172a]"><div className="border-b border-white/10 p-4"><h2 className="font-black">Qualidade dos dados</h2><p className="text-[11px] text-slate-400">Relatos autenticados enviados pelos usuários.</p></div><div className="divide-y divide-white/5">{relatos.length ? relatos.map((x) => <article key={x.id} className="p-4 text-xs"><div className="flex justify-between gap-3"><b>{x.category} · {x.entity_type}</b><span className="text-slate-500">{new Date(x.created_at).toLocaleString('pt-BR')}</span></div><p className="mt-2 text-slate-300">{x.description}</p><p className="mt-1 text-[9px] text-slate-500">{x.platform} · {x.status}</p></article>) : <p className="p-4 text-xs text-slate-500">Nenhum relato recebido.</p>}</div></section>
   </main>;
 }
 

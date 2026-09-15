@@ -16,6 +16,7 @@ import { instalarRotasRecuperacaoSenha } from './server/passwordRecovery.js';
 import { instalarRotasHistoricoIA } from './server/historicoIA.js';
 import { instalarRotasPush } from './server/pushNotifications.js';
 import { instalarRotasGrowthAnalytics } from './server/growthAnalytics.js';
+import { instalarRotasProductExperienceR58 } from './server/productExperienceR58.js';
 import { instalarWebhookMercadoPago } from './server/paymentWebhook.js';
 import {
   executarPagamentoIdempotente,
@@ -284,6 +285,7 @@ instalarRotasRecuperacaoSenha(app);
 instalarRotasHistoricoIA(app);
 instalarRotasPush(app);
 instalarRotasGrowthAnalytics(app);
+instalarRotasProductExperienceR58(app);
 instalarWebhookMercadoPago(app);
 
 function betMpToken() {

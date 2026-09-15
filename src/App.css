@@ -193,3 +193,15 @@ body:has(textarea[placeholder*="aposta"]) .bet-ia-floating-button {
   }
 }
 /* BET_ETAPA_34_TIPOGRAFIA_MOBILE_FIM */
+html.bet-reduce-motion *,
+html.bet-reduce-motion *::before,
+html.bet-reduce-motion *::after {
+  animation-duration: 0.01ms !important;
+  animation-iteration-count: 1 !important;
+  scroll-behavior: auto !important;
+  transition-duration: 0.01ms !important;
+}
+
+html.bet-high-contrast {
+  filter: contrast(1.12);
+}

@@ -7,6 +7,8 @@ export const preferenciasPadrao = {
   seguidos: [],
   alertas: { inicio: true, gol: true, intervalo: false, fim: true, escalacao: true, cartoes: false, odds: false },
   responsavel: { limiteMinutosDia: 60, lembreteMinutos: 30, pausaAte: null, ocultarOdds: false },
+  onboarding: { completed: false, completedAt: null },
+  accessibility: { textScale: 100, reduceMotion: false, highContrast: false },
 };
 
 function seguro(value) {
@@ -15,6 +17,8 @@ function seguro(value) {
     seguidos: Array.isArray(base.seguidos) ? base.seguidos.slice(0, 100) : [],
     alertas: { ...preferenciasPadrao.alertas, ...(base.alertas || {}) },
     responsavel: { ...preferenciasPadrao.responsavel, ...(base.responsavel || {}) },
+    onboarding: { ...preferenciasPadrao.onboarding, ...(base.onboarding || {}) },
+    accessibility: { ...preferenciasPadrao.accessibility, ...(base.accessibility || {}) },
   };
 }
 
