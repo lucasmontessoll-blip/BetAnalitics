@@ -1,13 +1,15 @@
 import React, { useEffect, useMemo, useState } from 'react';
-import { ArrowLeft, Bell, Brain, Clock3, Compass, Search, Share2, ShieldCheck, Star, Trophy, UserRound, Users } from 'lucide-react';
+import { ArrowLeft, Bell, Brain, BrainCircuit, Clock3, Compass, Search, Share2, ShieldCheck, Star, Trophy, UserRound, Users } from 'lucide-react';
 import { carregarPreferencias, filtrarParaVoce, pesquisarFutebol, preferenciasPadrao, salvarPreferencias } from '../services/personalizacao.js';
 import { buscarClassificacaoApiFootball, buscarJogadorApiFootball, buscarTimeApiFootball } from '../services/apiFootballClient.js';
 import EngajamentoR58Pro from './EngajamentoR58Pro.jsx';
+import IntelligenceR59Pro from './IntelligenceR59Pro.jsx';
 
 const TABS = [
   ['para-voce', 'Para você', Star], ['pesquisa', 'Buscar', Search], ['alertas', 'Alertas', Bell],
   ['ia', 'IA', Brain], ['responsavel', 'Proteção', ShieldCheck],
   ['explorar', 'Explorar', Compass],
+  ['inteligencia', 'Inteligência', BrainCircuit],
 ];
 
 function Card({ children, className = '' }) {
@@ -99,6 +101,7 @@ export default function CentralPersonalizadaPro({ userData, jogos = [], setViewM
 
     {tab === 'responsavel' && <><Card><h2 className="flex items-center gap-2 font-black"><ShieldCheck className="text-emerald-300" /> Central de uso responsável</h2><p className="mt-2 text-xs leading-relaxed text-slate-400">O BetAnalytics é uma plataforma de análise e educação. Não recebe depósitos, não realiza apostas e não garante lucro.</p><label className="mt-5 block text-[10px] font-black uppercase text-slate-500">Limite diário de uso: {prefs.responsavel.limiteMinutosDia} min</label><input type="range" min="15" max="180" step="15" value={prefs.responsavel.limiteMinutosDia} onChange={(e) => void update({ ...prefs, responsavel: { ...prefs.responsavel, limiteMinutosDia: Number(e.target.value) } })} className="mt-3 w-full" /><Switch label="Ocultar informações de odds" checked={prefs.responsavel.ocultarOdds} onChange={(value) => void update({ ...prefs, responsavel: { ...prefs.responsavel, ocultarOdds: value } })} /></Card><Card className="mt-4"><h3 className="flex items-center gap-2 font-black"><Clock3 className="text-amber-300" /> Fazer uma pausa</h3><div className="mt-3 grid grid-cols-3 gap-2">{[1, 7, 30].map((days) => <button key={days} onClick={() => void update({ ...prefs, responsavel: { ...prefs.responsavel, pausaAte: new Date(Date.now() + days * 86400000).toISOString() } })} className="rounded-xl bg-white/5 p-3 text-xs font-black">{days} dia{days > 1 ? 's' : ''}</button>)}</div>{prefs.responsavel.pausaAte && <button onClick={() => void update({ ...prefs, responsavel: { ...prefs.responsavel, pausaAte: null } })} className="mt-3 text-xs font-bold text-blue-300">Cancelar pausa definida</button>}</Card></>}
     {tab === 'explorar' && <EngajamentoR58Pro prefs={prefs} updatePrefs={update} jogos={personalized.length ? personalized : jogos} seguidos={prefs.seguidos} setTab={setTab} />}
+    {tab === 'inteligencia' && <IntelligenceR59Pro prefs={prefs} jogos={jogos} onOpen={(j) => setJogoSelecionado?.(j)} />}
     <Details item={selected} data={detail} loading={loadingDetail} onClose={() => setSelected(null)} />
   </main>;
 }
