@@ -41,8 +41,8 @@ deste pacote e requer armazenamento de previsoes originadas no servidor.
 ## Sequencia segura
 
 1. Extraia o ZIP fora de E:\BetAnalytcs. Leia este documento.
-2. Em uma copia de homologacao do banco, execute files/ops/r48-database.sql do ZIP
-   (ops/r48-database.sql apos a aplicacao local). O script
+2. Em uma copia de homologacao do banco, execute a migracao oficial
+   supabase/migrations/20260913225002_r48_final_hardening.sql. O script
    inicia uma transacao, verifica perfis sem Auth e so confirma se as verificacoes
    finais passarem. Nao executa exclusao de conta durante a instalacao.
 3. Teste as RPCs usando exclusivamente o backend, sem colocar service_role no app.

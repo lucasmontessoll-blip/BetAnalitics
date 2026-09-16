@@ -68,3 +68,5 @@ keystore.properties
 .vercel/
 dist-web/
 dist-play/
+dist-*/
+supabase/.temp/
