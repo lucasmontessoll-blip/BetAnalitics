@@ -4,7 +4,7 @@ import { AreaChart, Area, BarChart, Bar, ResponsiveContainer, XAxis, YAxis, Cart
 import PlayStoreModeBadge from './components/PlayStoreModeBadge.jsx';
 import ComoIACalcula from './components/ComoIACalcula.jsx';
 import RankingOportunidades from './components/RankingOportunidades.jsx';
-import EducacaoBetAnalytics from './components/EducacaoBetAnalytics.jsx';
+import EducacaoGolnexa from './components/EducacaoGolnexa.jsx';
 import HistoricoAssertividade from './components/HistoricoAssertividade.jsx';
 import { motion, AnimatePresence } from 'framer-motion';
 import { initMercadoPago } from '@mercadopago/sdk-react';
@@ -156,7 +156,7 @@ function escudoTime(urlLogo, nomeTime) {
     ? urlLogo
     : gerarEscudoAutomatico(nomeTime);
 }
-const PLANO_PRO = { nome: 'BetAnalyticsPRO Mensal', valor: 29.90, dias: 30 };
+const PLANO_PRO = { nome: 'Golnexa PRO Mensal', valor: 29.90, dias: 30 };
 /* BET_ETAPA_35B_MP_PUBLICA_INICIO */
 const MP_PUBLIC_KEY = String(
   import.meta.env.VITE_MP_PUBLIC_KEY || ''
@@ -1057,7 +1057,7 @@ const confirmarVipServidor = async (conta, pagamento = {}) => {
   });
 
   alert(
-    'Pagamento confirmado. BetAnalyticsPRO ativado.'
+    'Pagamento confirmado. Golnexa PRO ativado.'
   );
 
   return perfil;
@@ -1576,7 +1576,7 @@ DISTRIBUICAO_PLAY_STORE ? (
   setAiQuery={setAiQuery}
 />
 )}
-{viewMode === 'educacao' && (<div className="px-4 animate-fade-in pb-20 w-full"><HeaderNav title="Educacao" onBack={() => setViewMode('perfil')} /><EducacaoBetAnalytics /></div>)}
+{viewMode === 'educacao' && (<div className="px-4 animate-fade-in pb-20 w-full"><HeaderNav title="Educacao" onBack={() => setViewMode('perfil')} /><EducacaoGolnexa /></div>)}
 {viewMode === 'historico' && (<div className="px-4 animate-fade-in pb-20 w-full"><HeaderNav title="Historico IA PRO" onBack={() => setViewMode('perfil')} /><HistoricoIAPro /></div>)}
 {viewMode === 'como-ia' && (<div className="px-4 animate-fade-in pb-20 w-full"><HeaderNav title=" Como a IA calcula" onBack={() => setViewMode('radar')} /><ComoIACalcula /></div>)}
 {viewMode === 'Ranking' && (<div className="px-4 animate-fade-in pb-20 w-full"><HeaderNav title=" Ranking de Oportunidades" onBack={() => setViewMode('radar')} /><RankingOportunidades jogos={jogos} onSelecionarJogo={(j) => setJogoSelecionado(j)} /></div>)}

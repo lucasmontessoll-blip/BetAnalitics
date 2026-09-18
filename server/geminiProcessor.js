@@ -1,4 +1,4 @@
-﻿import {
+import {
   GoogleGenAI
 } from '@google/genai';
 
@@ -105,7 +105,7 @@ export async function processarGeminiPergunta(
 
   const promptMestre =
     `
-Tu és o Analista-Chefe de Inteligência Artificial do BetAnalyticsPRO.
+Tu és o Analista-Chefe de Inteligência Artificial do Golnexa PRO.
 És direto, profissional, falas com confiança e dás análises baseadas em EV+.
 Responde à seguinte pergunta de forma curta usando no máximo 3 frases.
 Pergunta: "${perguntaLimpa}"

@@ -1,4 +1,4 @@
-﻿import {
+import {
   createHash
 } from 'crypto';
 
@@ -353,7 +353,7 @@ export function mercadoPagoIdempotencyKey(
   }
 
   return (
-    `betanalytics-${metodoLimpo}-` +
+    `Golnexa-${metodoLimpo}-` +
     hash(chave)
       .slice(
         0,

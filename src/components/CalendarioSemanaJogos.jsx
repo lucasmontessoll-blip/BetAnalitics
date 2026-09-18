@@ -61,7 +61,7 @@ export default function CalendarioSemanaJogos({ viewMode }) {
             const txt = (el.innerText || '').toLowerCase();
 
             return (
-              txt.includes('betanalytics pro') &&
+              txt.includes('Golnexa PRO') &&
               txt.includes('ver oportunidades') &&
               txt.includes('precisao ia')
             );

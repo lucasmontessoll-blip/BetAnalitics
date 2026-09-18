@@ -398,7 +398,7 @@ export async function buscarHistoricalEngineApiFootball(
       ok: false,
       configurado: false,
       status: 'sem_fixture',
-      engine: 'betanalytics-historical-v1',
+      engine: 'Golnexa-historical-v1',
       probabilidades: null,
       selecao: null,
       qualidadeDados: 0,

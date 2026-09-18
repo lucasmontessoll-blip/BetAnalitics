@@ -1,10 +1,10 @@
 {
-    "short_name":  "BetAnalytics",
-    "name":  "BetAnalyticsPRO",
+    "short_name":  "Golnexa",
+    "name":  "Golnexa PRO",
     "start_url":  ".",
     "display":  "standalone",
-    "theme_color":  "#090a0f",
-    "background_color":  "#ffffff",
+    "theme_color":  "#030a1e",
+    "background_color":  "#030a1e",
     "icons":  [
                   {
                       "type":  "image/png",

@@ -12,7 +12,7 @@ const __dirname =
 
 function playConsumptionOnly(mode) {
   return {
-    name: 'betanalytics-play-consumption-only',
+    name: 'Golnexa-play-consumption-only',
     enforce: 'pre',
 
     transform(code, id) {
@@ -72,7 +72,7 @@ function playConsumptionOnly(mode) {
 
 function playRemoveLegacyLegal(mode) {
   return {
-    name: 'betanalytics-play-remove-legacy-legal',
+    name: 'Golnexa-play-remove-legacy-legal',
 
     writeBundle(outputOptions) {
       if (mode !== 'play') {

@@ -303,7 +303,7 @@ function confianca(v, qualidade) {
 function semApi(id) {
   return {
     ok: true, configurado: false, status: 'aguardando_api',
-    engine: 'betanalytics-historical-v1', fixtureId: String(id || ''),
+    engine: 'Golnexa-historical-v1', fixtureId: String(id || ''),
     mensagem: 'Historical Engine instalado. Configure API_FOOTBALL_KEY para ativar dados reais.',
     probabilidades: null, selecao: null, qualidadeDados: 0, fatores: [],
   };
@@ -336,7 +336,7 @@ export function instalarRotasHistoricalEngine(
     res.json({
       ok: true,
       engine:
-        'betanalytics-historical-v1',
+        'Golnexa-historical-v1',
       configurado:
         ativo,
       status:
@@ -368,7 +368,7 @@ export function instalarRotasHistoricalEngine(
           .json({
             ok: false,
             engine:
-              'betanalytics-historical-v1',
+              'Golnexa-historical-v1',
             erro:
               'fixtureId invalido.'
           });
@@ -567,7 +567,7 @@ export function instalarRotasHistoricalEngine(
 
       const label = lado === 'home' ? `Vitória ${casa}` : lado === 'away' ? `Vitória ${fora}` : lado === 'draw' ? 'Empate' : 'Sem seleção';
       const pModelo = pick(agg.probabilidades)?.[0], pApi = pick(pred)?.[0], pMercado = pick(mercado?.vetor)?.[0];
-      const picks = [{ origem: 'BetAnalytics', pick: pModelo }, { origem: 'API-Football', pick: pApi }, { origem: 'Mercado', pick: pMercado }].filter(x => x.pick);
+      const picks = [{ origem: 'Golnexa', pick: pModelo }, { origem: 'API-Football', pick: pApi }, { origem: 'Mercado', pick: pMercado }].filter(x => x.pick);
 
       const razoes = [];
       const alertas = [];
@@ -577,11 +577,11 @@ export function instalarRotasHistoricalEngine(
         razoes.push((casaMand.score > foraVis.score ? casa : fora) + ' tem vantagem no recorte casa/fora.');
       if (hhRes.vetor && pick(hhRes.vetor)?.[0] === lado) razoes.push('O H2H ponderado reforça a seleção.');
       if (pred && pick(pred)?.[0] === lado) razoes.push('A prediction da API-Football confirma a direção do modelo.');
-      if (pred && pick(pred)?.[0] !== lado) alertas.push('A prediction externa diverge da seleção BetAnalytics.');
+      if (pred && pick(pred)?.[0] !== lado) alertas.push('A prediction externa diverge da seleção Golnexa.');
       if (agg.qualidade < 70) alertas.push('Cobertura de dados abaixo de 70%; a confiança foi reduzida.');
 
       const resposta = {
-        ok: true, configurado: true, status: 'ativo', engine: 'betanalytics-historical-v1',
+        ok: true, configurado: true, status: 'ativo', engine: 'Golnexa-historical-v1',
         fixtureId, atualizadoEm: new Date().toISOString(),
         partida: { casa, fora, homeId, awayId, leagueId: league || null, season: season || null },
         pesos: PESOS,
@@ -681,7 +681,7 @@ export function instalarRotasHistoricalEngine(
       }
     } catch (e) {
       console.error('[Historical Engine]', e?.status || 500, e?.message || e);
-      res.status(Number(e?.status) || 500).json({ ok: false, engine: 'betanalytics-historical-v1', erro: e?.message || 'Falha ao gerar analise historica.' });
+      res.status(Number(e?.status) || 500).json({ ok: false, engine: 'Golnexa-historical-v1', erro: e?.message || 'Falha ao gerar analise historica.' });
     }
   });
 }

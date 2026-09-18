@@ -1,4 +1,4 @@
-﻿import {
+import {
   Queue,
   QueueEvents,
   Worker
@@ -8,7 +8,7 @@ import IORedis
   from 'ioredis';
 
 const QUEUE_NAME =
-  'betanalytics-gemini-chat';
+  'Golnexa-gemini-chat';
 
 const ROLES_VALIDOS =
   new Set([

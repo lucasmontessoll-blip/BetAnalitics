@@ -49,7 +49,7 @@ export function carregarUsuarioSessaoPro() {
 export function usuarioDemoFree() {
   return {
     email: '',
-    nome: 'Visitante BetAnalytics',
+    nome: 'Visitante Golnexa',
     is_vip: false,
     vip: false,
     is_admin: false,

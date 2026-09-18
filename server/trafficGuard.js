@@ -1,4 +1,4 @@
-﻿import {
+import {
   createHash
 } from 'crypto';
 
@@ -479,7 +479,7 @@ export async function trafficGuardProbe() {
         'infra-probe',
 
       identidade:
-        'betanalytics-infra-probe',
+        'Golnexa-infra-probe',
 
       limit:
         1000000,

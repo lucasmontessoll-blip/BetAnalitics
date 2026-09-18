@@ -187,7 +187,7 @@ export default function EntradaComercialGate({ children }) {
           <div className="p-5">
             <h1 className="text-2xl font-black">Termos e Privacidade</h1>
             <div className="mt-4 space-y-3 text-sm text-white/75">
-              <p>O BetAnalytics fornece dados e análises esportivas para apoio informativo.</p>
+              <p>O Golnexa fornece dados e análises esportivas para apoio informativo.</p>
               <p>Não existe garantia de lucro, resultado ou acerto.</p>
               <p>Uso permitido apenas para maiores de 18 anos.</p>
             </div>
@@ -218,7 +218,7 @@ export default function EntradaComercialGate({ children }) {
       <div className="min-h-screen bg-[#050816] text-white px-4 py-6 flex items-center justify-center">
         <div className="w-full max-w-md rounded-[32px] border border-white/10 bg-white/[0.06] shadow-2xl overflow-hidden">
           <div className="p-5 border-b border-white/10">
-            <p className="text-xs text-yellow-300 font-black uppercase tracking-[0.22em]">BetAnalyticsPRO</p>
+            <p className="text-xs text-yellow-300 font-black uppercase tracking-[0.22em]">Golnexa PRO</p>
             <h1 className="mt-1 text-2xl font-black">Cadastro ou login</h1>
 
             <div className="grid grid-cols-2 gap-2 mt-5 bg-black/25 rounded-2xl p-1 border border-white/10">

@@ -1,4 +1,4 @@
-﻿# Etapa 39F.13 — Capacidade e escalabilidade do BetAnalytics
+# Etapa 39F.13 — Capacidade e escalabilidade do Golnexa
 
 ## Status
 
@@ -7,7 +7,7 @@
 Data de fechamento: 2026-09-05.
 
 Os testes principais desta etapa foram executados em produção no backend
-BetAnalytics hospedado no Render.
+Golnexa hospedado no Render.
 
 Este documento registra o envelope de capacidade comprovado no ambiente atual
 sem ativar novas instâncias pagas, autoscaling ou worker dedicado.
@@ -466,7 +466,7 @@ Nesse patamar:
 ## 17. Limites da conclusão
 
 200 VUs não devem ser interpretados como o limite matemático absoluto do
-BetAnalytics.
+Golnexa.
 
 O que foi comprovado é:
 

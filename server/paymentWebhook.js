@@ -40,7 +40,7 @@ function valorPlanoPro() {
 }
 
 const PLANO_REFERENCIA =
-  'betanalytics-pro-mensal';
+  'Golnexa-pro-mensal';
 
 const PLANO_METADATA =
   'pro_mensal';
@@ -483,13 +483,13 @@ function validarPagamentoPro(
   const metadataPlano =
     String(
       data?.metadata
-        ?.betanalytics_plan ||
+        ?.Golnexa_plan ||
       ''
     ).trim();
 
   /*
    * Somente pagamentos criados
-   * como plano BetAnalyticsPRO
+   * como plano Golnexa PRO
    * podem liberar entitlement.
    */
   if (
@@ -499,7 +499,7 @@ function validarPagamentoPro(
       PLANO_METADATA
   ) {
     throw erroHttp(
-      'Pagamento aprovado nao pertence ao plano BetAnalyticsPRO.',
+      'Pagamento aprovado nao pertence ao plano Golnexa PRO.',
       409
     );
   }
@@ -615,9 +615,9 @@ function payloadPagamentoMinimo(
       null,
 
     metadata: {
-      betanalytics_plan:
+      Golnexa_plan:
         data?.metadata
-          ?.betanalytics_plan ||
+          ?.Golnexa_plan ||
         ''
     }
   };
@@ -820,7 +820,7 @@ export function instalarWebhookMercadoPago(
     (_req, res) => {
       return res.json({
         ok: true,
-        servico: 'BetAnalytics Webhook'
+        servico: 'Golnexa Webhook'
       });
     }
   );

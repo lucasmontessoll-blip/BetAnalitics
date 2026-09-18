@@ -1,4 +1,4 @@
-# BetAnalyticsPRO — pacote R48 de correcoes
+# Golnexa PRO — pacote R48 de correcoes
 
 Base exata: 4dd1601d6e8d056df7e8e3888fc7d0b82f5b8d65.
 Este pacote contem arquivos completos alterados, testes e SQL. Nao e uma nova
@@ -40,7 +40,7 @@ deste pacote e requer armazenamento de previsoes originadas no servidor.
 
 ## Sequencia segura
 
-1. Extraia o ZIP fora de E:\BetAnalytcs. Leia este documento.
+1. Extraia o ZIP fora de E:\Golnexa. Leia este documento.
 2. Em uma copia de homologacao do banco, execute a migracao oficial
    supabase/migrations/20260913225002_r48_final_hardening.sql. O script
    inicia uma transacao, verifica perfis sem Auth e so confirma se as verificacoes
@@ -96,7 +96,7 @@ nao implementamos revogacao retroativa que possa retirar acesso legitimo.
 
 ## Recuperacao
 
-O aplicador salva arquivos anteriores em Downloads/BetAnalytics_R48_Backup_<GUID>.
+O aplicador salva arquivos anteriores em Downloads/Golnexa_R48_Backup_<GUID>.
 Em falha de copia, restaura os arquivos que alterou e remove apenas os novos que
 acabou de criar. Erro de validacao posterior NAO executa git reset nem apaga trabalho.
 Antes de publicar, reversao e restaurar somente os arquivos do manifesto a partir

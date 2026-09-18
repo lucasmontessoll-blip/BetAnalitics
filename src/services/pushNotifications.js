@@ -199,13 +199,13 @@ async function prepararCanal(
     await PushNotifications
       .createChannel({
         id:
-          'betanalytics_alertas',
+          'Golnexa_alertas',
 
         name:
-          'Alertas BetAnalytics',
+          'Alertas Golnexa',
 
         description:
-          'Alertas do BetAnalyticsPRO',
+          'Alertas do Golnexa PRO',
 
         importance:
           5,

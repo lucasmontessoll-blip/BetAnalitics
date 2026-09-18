@@ -11,7 +11,7 @@ const RECOVERY_HTML = String.raw`<!doctype html>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
   <meta name="color-scheme" content="dark">
-  <title>BetAnalyticsPRO - Recuperar senha</title>
+  <title>Golnexa PRO - Recuperar senha</title>
   <style>
     :root {
       font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
@@ -136,7 +136,7 @@ const RECOVERY_HTML = String.raw`<!doctype html>
 </head>
 <body>
   <main class="card">
-    <p class="brand">BetAnalyticsPRO</p>
+    <p class="brand">Golnexa PRO</p>
     <h1>Defina sua nova senha</h1>
     <p class="sub" id="descricao">
       Validando seu link seguro de recuperação...
@@ -153,7 +153,7 @@ const RECOVERY_HTML = String.raw`<!doctype html>
     </section>
 
     <div id="status" class="status" role="status" aria-live="polite"></div>
-    <a id="voltar" class="link" href="/" hidden>Voltar para o BetAnalytics</a>
+    <a id="voltar" class="link" href="/" hidden>Voltar para o Golnexa</a>
 
     <p class="seguranca">
       O link é validado antes da alteração. Sua senha não é enviada por e-mail.
@@ -202,7 +202,7 @@ const RECOVERY_HTML = String.raw`<!doctype html>
         descricao.textContent = "Link de recuperação inválido ou incompleto.";
         mostrarStatus(
           "erro",
-          "Solicite um novo e-mail de recuperação pelo BetAnalytics."
+          "Solicite um novo e-mail de recuperação pelo Golnexa."
         );
         voltar.hidden = false;
         return;
@@ -260,7 +260,7 @@ const RECOVERY_HTML = String.raw`<!doctype html>
           descricao.textContent = "Sua senha foi atualizada.";
           mostrarStatus(
             "ok",
-            "Senha atualizada com sucesso. Volte ao BetAnalytics e faça login."
+            "Senha atualizada com sucesso. Volte ao Golnexa e faça login."
           );
           voltar.hidden = false;
 

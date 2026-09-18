@@ -1,4 +1,4 @@
-﻿import 'dotenv/config';
+import 'dotenv/config';
 
 import {
   configurarFilaGemini,
@@ -16,7 +16,7 @@ function falhar(
   mensagem
 ) {
   console.error(
-    `[BetAnalytics Gemini Worker] ${mensagem}`
+    `[Golnexa Gemini Worker] ${mensagem}`
   );
 
   process.exitCode =
@@ -54,11 +54,11 @@ async function iniciar() {
     geminiQueueStatus();
 
   console.log(
-    '[BetAnalytics Gemini Worker] operacional.'
+    '[Golnexa Gemini Worker] operacional.'
   );
 
   console.log(
-    `[BetAnalytics Gemini Worker] role=${status.role} backend=${status.backend} conexoes=${status.conexoes_redis_ativas}`
+    `[Golnexa Gemini Worker] role=${status.role} backend=${status.backend} conexoes=${status.conexoes_redis_ativas}`
   );
 }
 
@@ -76,7 +76,7 @@ async function encerrar(
     true;
 
   console.log(
-    `[BetAnalytics Gemini Worker] encerramento: ${signal}`
+    `[Golnexa Gemini Worker] encerramento: ${signal}`
   );
 
   try {

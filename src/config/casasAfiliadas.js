@@ -42,7 +42,7 @@ export const CASAS_AFILIADAS = [
 ];
 export function gerarClickIdAfiliado(casaId = 'casa') {
   const rand = Math.random().toString(36).slice(2, 10);
-  return `betanalytics_${casaId}_${Date.now()}_${rand}`;
+  return `Golnexa_${casaId}_${Date.now()}_${rand}`;
 }
 export function montarUrlAfiliado(casa, clickId) {
   const base = String(casa?.url || '').trim();
@@ -55,12 +55,12 @@ export function montarUrlAfiliado(casa, clickId) {
   try {
     const url = new URL(base);
     url.searchParams.set('subid', clickId);
-    url.searchParams.set('utm_source', 'betanalytics');
+    url.searchParams.set('utm_source', 'Golnexa');
     url.searchParams.set('utm_medium', 'app');
     url.searchParams.set('utm_campaign', casa?.id || 'casa');
     return url.toString();
   } catch (e) {
     const sep = base.includes('?') ? '&' : '?';
-    return `${base}${sep}subid=${encodeURIComponent(clickId)}&utm_source=betanalytics&utm_medium=app`;
+    return `${base}${sep}subid=${encodeURIComponent(clickId)}&utm_source=Golnexa&utm_medium=app`;
   }
 }

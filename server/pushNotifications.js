@@ -213,7 +213,7 @@ async function enviarFCMToken(
               notification: {
                 title:
                   texto(titulo, 120) ||
-                  'BetAnalyticsPRO',
+                  'Golnexa PRO',
 
                 body:
                   texto(corpo, 300) ||
@@ -229,7 +229,7 @@ async function enviarFCMToken(
 
                 notification: {
                   channel_id:
-                    'betanalytics_alertas',
+                    'Golnexa_alertas',
                 },
               },
             },
@@ -307,7 +307,7 @@ export async function enviarPushParaUsuario(
   userId,
   {
     titulo =
-      'BetAnalyticsPRO',
+      'Golnexa PRO',
 
     corpo =
       'Voce tem uma nova atualizacao.',
@@ -632,7 +632,7 @@ export function instalarRotasPush(
             req.betUser.id,
             {
               titulo:
-                'BetAnalyticsPRO',
+                'Golnexa PRO',
 
               corpo:
                 'Push nativo configurado com sucesso.',

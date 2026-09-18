@@ -37,12 +37,12 @@ export function gerarCalendarioIcs(jogos = []) {
     const home = jogo.home_team || jogo.time_casa || jogo.homeTeam || 'Casa';
     const away = jogo.away_team || jogo.time_fora || jogo.awayTeam || 'Fora';
     const league = jogo.league_name || jogo.liga || jogo.campeonato || 'Futebol';
-    return ['BEGIN:VEVENT', `UID:betanalytics-${icsText(id)}@betanalytics`, `DTSTART:${start}`, `DTEND:${end}`, `SUMMARY:${icsText(`${home} x ${away}`)}`, `DESCRIPTION:${icsText(`${league} — acompanhe no BetAnalytics PRO`)}`, 'END:VEVENT'].join('\r\n');
+    return ['BEGIN:VEVENT', `UID:Golnexa-${icsText(id)}@Golnexa`, `DTSTART:${start}`, `DTEND:${end}`, `SUMMARY:${icsText(`${home} x ${away}`)}`, `DESCRIPTION:${icsText(`${league} — acompanhe no Golnexa PRO`)}`, 'END:VEVENT'].join('\r\n');
   }).filter(Boolean);
-  return ['BEGIN:VCALENDAR', 'VERSION:2.0', 'PRODID:-//BetAnalytics PRO//R58//PT-BR', 'CALSCALE:GREGORIAN', ...events, 'END:VCALENDAR'].join('\r\n');
+  return ['BEGIN:VCALENDAR', 'VERSION:2.0', 'PRODID:-//Golnexa PRO//R58//PT-BR', 'CALSCALE:GREGORIAN', ...events, 'END:VCALENDAR'].join('\r\n');
 }
 
-export function baixarCalendario(jogos, filename = 'betanalytics-jogos.ics') {
+export function baixarCalendario(jogos, filename = 'Golnexa-jogos.ics') {
   const blob = new Blob([gerarCalendarioIcs(jogos)], { type: 'text/calendar;charset=utf-8' });
   const url = URL.createObjectURL(blob);
   const link = document.createElement('a'); link.href = url; link.download = filename; link.click();

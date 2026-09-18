@@ -1,6 +1,6 @@
 export const APP_MODE={
   PLAYSTORE:true,
-  APP_NAME:'BetAnalyticsPRO',
+  APP_NAME:'Golnexa PRO',
   SUPPORT_EMAIL:'betanlyticspro@gmail.com',
   LEGAL:{
     MIN_AGE:18,

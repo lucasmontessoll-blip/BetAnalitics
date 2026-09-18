@@ -1,5 +1,5 @@
 /*
- * BetAnalytics
+ * Golnexa
  * Observabilidade HTTP/TCP do processo Node.
  *
  * Privacidade:

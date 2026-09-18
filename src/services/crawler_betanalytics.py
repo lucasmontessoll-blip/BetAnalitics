@@ -87,7 +87,7 @@ def extrair_e_salvar_jogos(html):
 def iniciar_robo():
     url_alvo = 'https://www.EXEMPLO-DE-SITE-DE-PLACAR.com/ao-vivo'
     
-    print("🚀 Robô Crawler BetAnalytics Iniciado com Proteção Anti-Ban!")
+    print("🚀 Robô Crawler Golnexa Iniciado com Proteção Anti-Ban!")
     while True:
         html = buscar_html_seguro(url_alvo)
         

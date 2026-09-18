@@ -1,4 +1,4 @@
-﻿CHECKLIST DE TESTE FINAL - BetAnalyticsPRO
+CHECKLIST DE TESTE FINAL - Golnexa PRO
 
 1. Abrir o app no celular
 2. Conferir nome e ícone do app

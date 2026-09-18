@@ -71,7 +71,7 @@ export function useIA(
       {
         role: 'assistant',
         text:
-          'Olá! Sou o motor IA do BetAnalytics. Qual é a sua dúvida?',
+          'Olá! Sou o motor IA do Golnexa. Qual é a sua dúvida?',
       },
     ]);
 
@@ -225,7 +225,7 @@ export function useIA(
       };
 
       const prompt = `
-Você é um analista de futebol do BetAnalytics.
+Você é um analista de futebol do Golnexa.
 
 Explique SOMENTE com base nos dados enviados abaixo.
 Não invente estatísticas, percentuais, odds, histórico ou lesões.

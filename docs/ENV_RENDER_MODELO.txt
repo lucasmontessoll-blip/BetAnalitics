@@ -1,4 +1,4 @@
-﻿# MODELO DE VARIÁVEIS PARA RENDER
+# MODELO DE VARIÁVEIS PARA RENDER
 # Não coloque chaves reais dentro do GitHub.
 
 NODE_ENV=production
@@ -16,7 +16,7 @@ SUPABASE_URL=COLE_AQUI_SUA_URL
 SUPABASE_SERVICE_ROLE_KEY=COLE_AQUI_SUA_SERVICE_ROLE
 
 # App
-APP_NAME=BetAnalyticsPRO
+APP_NAME=Golnexa PRO
 SUPPORT_EMAIL=betanlyticspro@gmail.com
 
 # Afiliados

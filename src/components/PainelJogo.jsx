@@ -155,7 +155,7 @@ export default function PainelJogo(props) {
     if (typeof props?.onBack === 'function') return props.onBack();
     if (typeof props?.setJogoSelecionado === 'function') return props.setJogoSelecionado(null);
     if (typeof props?.setViewMode === 'function') return props.setViewMode('jogos');
-    window.dispatchEvent(new CustomEvent('betanalytics:voltarInicio'));
+    window.dispatchEvent(new CustomEvent('Golnexa:voltarInicio'));
   }
 
   return (
@@ -165,7 +165,7 @@ export default function PainelJogo(props) {
           <ArrowLeft className="w-5 h-5 text-white" />
         </button>
         <div>
-          <div className="text-[10px] font-black uppercase tracking-[0.2em] text-blue-400">BetAnalytics Historical Engine</div>
+          <div className="text-[10px] font-black uppercase tracking-[0.2em] text-blue-400">Golnexa Historical Engine</div>
           <h2 className="text-2xl font-black text-white leading-tight">Análise da partida</h2>
         </div>
       </div>
@@ -246,7 +246,7 @@ export default function PainelJogo(props) {
           </div>
 
           <div className="grid grid-cols-2 gap-3 mb-5">
-            <Info icon={TrendingUp} titulo="Odd justa" valor={sel?.oddJusta ? n(sel.oddJusta, 0).toFixed(2) : '--'} sub="Probabilidade BetAnalytics" cor="text-yellow-300" />
+            <Info icon={TrendingUp} titulo="Odd justa" valor={sel?.oddJusta ? n(sel.oddJusta, 0).toFixed(2) : '--'} sub="Probabilidade Golnexa" cor="text-yellow-300" />
             <Info icon={Zap} titulo="EV estimado" valor={ev === null ? '--' : `${ev >= 0 ? '+' : ''}${ev.toFixed(1)}%`} sub="Exige odd real disponível" cor={ev === null ? 'text-slate-400' : ev >= 0 ? 'text-green-400' : 'text-red-300'} />
           </div>
 

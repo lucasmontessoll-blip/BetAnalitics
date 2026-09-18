@@ -1,5 +1,5 @@
-﻿const PREFIXO =
-  'betanalytics_payment_attempt_v1:';
+const PREFIXO =
+  'Golnexa_payment_attempt_v1:';
 
 const memoria =
   new Map();

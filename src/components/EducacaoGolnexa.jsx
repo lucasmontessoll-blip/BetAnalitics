@@ -2,12 +2,12 @@ import React from 'react';
 import { BookOpen, ShieldCheck } from 'lucide-react';
 import {educacaoConteudos} from '../data/educacaoConteudos.js';
 
-export default function EducacaoBetAnalytics(){
+export default function EducacaoGolnexa(){
   return(
     <div className="px-4 animate-fade-in pb-24">
       <div className="bg-gradient-to-br from-emerald-600 to-blue-700 rounded-3xl p-6 mb-5 relative overflow-hidden">
         <BookOpen className="absolute -right-5 -top-5 w-32 h-32 text-white/10"/>
-        <h2 className="text-2xl font-black text-white relative z-10">Educacao BetAnalytics</h2>
+        <h2 className="text-2xl font-black text-white relative z-10">Educacao Golnexa</h2>
         <p className="text-sm text-emerald-100 font-bold mt-2 relative z-10">Aprenda conceitos importantes para interpretar analises esportivas com responsabilidade.</p>
       </div>
 
@@ -26,7 +26,7 @@ export default function EducacaoBetAnalytics(){
           <h3 className="text-xs font-black uppercase text-blue-400">Uso responsavel</h3>
         </div>
         <p className="text-[11px] text-slate-400 leading-relaxed">
-          Este conteudo e educativo. O BetAnalyticsPRO nao garante lucro, nao realiza apostas e nao substitui responsabilidade pessoal.
+          Este conteudo e educativo. O Golnexa PRO nao garante lucro, nao realiza apostas e nao substitui responsabilidade pessoal.
         </p>
       </div>
     </div>

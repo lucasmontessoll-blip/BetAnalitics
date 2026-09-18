@@ -1,15 +1,15 @@
 FICHA DA GOOGLE PLAY STORE — PT-BR
-BetAnalyticsPRO
+Golnexa PRO
 Atualização técnica: 05/09/2026
 
 [NOME_DO_APP]
-BetAnalyticsPRO
+Golnexa PRO
 
 [DESCRICAO_BREVE]
 Partidas, estatísticas e análises esportivas com inteligência artificial.
 
 [DESCRICAO_COMPLETA]
-BetAnalyticsPRO é uma plataforma de acompanhamento e análise esportiva para organizar informações de partidas em um único lugar.
+Golnexa PRO é uma plataforma de acompanhamento e análise esportiva para organizar informações de partidas em um único lugar.
 
 Acompanhe jogos pré-jogo, ao vivo e encerrados, com placares, status e detalhes conforme a disponibilidade da fonte de dados.
 
@@ -23,15 +23,15 @@ Principais recursos:
 
 A inteligência artificial auxilia na interpretação das informações esportivas. As análises são informativas, podem conter incertezas e não constituem promessa de resultado ou garantia de lucro.
 
-BetAnalyticsPRO não é uma casa de apostas. O aplicativo não aceita apostas, depósitos ou saques. A versão distribuída pelo Google Play não oferece compra, checkout ou meios de pagamento dentro do app. Usuários que já possuam acesso PRO vinculado à conta podem utilizar os recursos disponíveis após o login.
+Golnexa PRO não é uma casa de apostas. O aplicativo não aceita apostas, depósitos ou saques. A versão distribuída pelo Google Play não oferece compra, checkout ou meios de pagamento dentro do app. Usuários que já possuam acesso PRO vinculado à conta podem utilizar os recursos disponíveis após o login.
 
 Uso destinado a maiores de 18 anos. Apostas envolvem risco financeiro. Use informações esportivas de forma responsável.
 
 Política de Privacidade:
-https://betanalytics-pro-app.vercel.app/privacidade.html
+https://Golnexa-pro-app.vercel.app/privacidade.html
 
 Exclusão de conta:
-https://betanalytics-pro-app.vercel.app/excluir-conta.html
+https://Golnexa-pro-app.vercel.app/excluir-conta.html
 
 Suporte:
 betanlyticspro@gmail.com

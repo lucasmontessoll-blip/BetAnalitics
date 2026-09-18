@@ -137,7 +137,7 @@ export default function PerfilProCompleto({
   setAiQuery
 }) {
   const stats = useMemo(() => {
-    const history = readArray('betanalytics_historico_ia_v1');
+    const history = readArray('Golnexa_historico_ia_v1');
     const bank = readArray('bet_banca_historico_v2');
 
     return {
@@ -151,12 +151,12 @@ export default function PerfilProCompleto({
     userData?.nome ||
     userData?.name ||
     localStorage.getItem('bet_user_nome') ||
-    'Usuário BetAnalytics';
+    'Usuário Golnexa';
 
   const email =
     userData?.email ||
     localStorage.getItem('bet_user_email') ||
-    'demo@betanalytics.pro';
+    'demo@Golnexa.pro';
 
   const vipActive = temAcessoPro(userData);
   const plan = userData?.plano || userData?.plan || (vipActive ? 'PRO' : 'Free');
@@ -195,7 +195,7 @@ export default function PerfilProCompleto({
           <div className="flex items-center justify-between gap-3">
             <span className="inline-flex items-center gap-1.5 text-[8px] font-black uppercase tracking-[0.18em] text-blue-300">
               <User className="h-3.5 w-3.5" />
-              Conta BetAnalytics
+              Conta Golnexa
             </span>
 
             <span

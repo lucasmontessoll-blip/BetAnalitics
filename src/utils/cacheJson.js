@@ -1,4 +1,4 @@
-const PREFIXO = 'betanalytics_cache_v1:';
+const PREFIXO = 'Golnexa_cache_v1:';
 
 function storageDisponivel() {
   try {

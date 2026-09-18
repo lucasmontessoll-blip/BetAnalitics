@@ -1,4 +1,4 @@
-# BetAnalyticsPRO - Kit API 100%
+# Golnexa PRO - Kit API 100%
 
 Este kit entrega a base real que faltava no app:
 

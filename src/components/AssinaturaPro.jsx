@@ -17,8 +17,8 @@ export default function AssinaturaPro({
 <div className="fixed top-0 left-0 w-full bg-[#050816]/95 backdrop-blur-xl z-[9999] px-5 py-4 border-b border-white/10 flex items-center gap-3 shadow-xl"><span className="font-black text-white uppercase tracking-widest text-xs">Voltar ao App</span></div>
 <div className="bg-[#0f172a] border border-yellow-500/20 rounded-3xl p-6 text-white shadow-[0_0_40px_rgba(234,179,8,0.08)] mt-4 relative overflow-hidden">
 <div className="absolute top-0 right-0 w-64 h-64 bg-yellow-500/10 rounded-full blur-[80px] -mr-20 -mt-20 pointer-events-none"></div>
-<h2 className="text-2xl font-black mb-2 flex items-center gap-2 relative z-10"><Crown className="w-6 h-6 text-yellow-400" />BetAnalytics<span className="text-transparent bg-clip-text bg-gradient-to-r from-yellow-400 to-yellow-600">PRO</span></h2>
-<p className="text-sm font-bold mb-6 text-slate-400 relative z-10">Confirme seus dados para processar a assinatura do BetAnalyticsPRO.</p>
+<h2 className="text-2xl font-black mb-2 flex items-center gap-2 relative z-10"><Crown className="w-6 h-6 text-yellow-400" />Golnexa<span className="text-transparent bg-clip-text bg-gradient-to-r from-yellow-400 to-yellow-600">PRO</span></h2>
+<p className="text-sm font-bold mb-6 text-slate-400 relative z-10">Confirme seus dados para processar a assinatura do Golnexa PRO.</p>
 <div className="bg-[#050816]/60 rounded-2xl p-5 mb-5 border border-white/5 relative z-10">
 <h3 className="text-xs font-black uppercase mb-4 flex items-center gap-2 text-slate-300"><User className="w-4 h-4 text-yellow-500" /> Dados do pagamento</h3>
 <div className="space-y-3">

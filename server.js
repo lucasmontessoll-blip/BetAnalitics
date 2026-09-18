@@ -197,7 +197,7 @@ const BET_CORS_ORIGENS_PADRAO = [
   /*
    * Frontend oficial de producao.
    */
-  'https://betanalytics-pro-app.vercel.app',
+  'https://Golnexa-pro-app.vercel.app',
 
   /*
    * Desenvolvimento / aplicativo nativo.
@@ -309,7 +309,7 @@ function betCpf(valor) {
 }
 
 function betNome(valor) {
-  return String(valor || 'Cliente BetAnalytics').trim();
+  return String(valor || 'Cliente Golnexa').trim();
 }
 
 function betEmail(valor) {
@@ -317,13 +317,13 @@ function betEmail(valor) {
 }
 
 function betDescricao(valor) {
-  return String(valor || 'Plano PRO BetAnalytics').trim();
+  return String(valor || 'Plano PRO Golnexa').trim();
 }
 
 app.get('/api/pagamento/health', (_req, res) => {
   return res.status(200).json({
     ok: true,
-    servico: 'BetAnalytics Pagamento',
+    servico: 'Golnexa Pagamento',
     timestamp: new Date().toISOString()
   });
 });
@@ -356,7 +356,7 @@ app.post('/api/pagamento/pix', autenticarRequest, limitarPagamentoCriacao, async
         erro: 'E-mail do pagamento não corresponde à sessão autenticada.'
       });
     }
-    const descricao = betDescricao(process.env.PLANO_PRO_DESCRICAO || 'Plano PRO BetAnalytics');
+    const descricao = betDescricao(process.env.PLANO_PRO_DESCRICAO || 'Plano PRO Golnexa');
 
     if (!email.includes('@')) {
       return res.status(400).json({
@@ -376,9 +376,9 @@ app.post('/api/pagamento/pix', autenticarRequest, limitarPagamentoCriacao, async
       transaction_amount: Number(valor.toFixed(2)),
       description: descricao,
       payment_method_id: 'pix',
-      external_reference: 'betanalytics-pro-mensal',
+      external_reference: 'Golnexa-pro-mensal',
       metadata: {
-        betanalytics_plan: 'pro_mensal'
+        Golnexa_plan: 'pro_mensal'
       },
       payer: {
         email,
@@ -689,7 +689,7 @@ app.post('/api/pagamento/cartao', autenticarRequest, limitarPagamentoCriacao, as
       description:
         betDescricao(
           process.env.PLANO_PRO_DESCRICAO ||
-          'Plano PRO BetAnalytics'
+          'Plano PRO Golnexa'
         ),
 
       installments,
@@ -698,10 +698,10 @@ app.post('/api/pagamento/cartao', autenticarRequest, limitarPagamentoCriacao, as
         paymentMethodId,
 
       external_reference:
-        'betanalytics-pro-mensal',
+        'Golnexa-pro-mensal',
 
       metadata: {
-        betanalytics_plan:
+        Golnexa_plan:
           'pro_mensal'
       },
 
@@ -1001,7 +1001,7 @@ app.get('/api/pagamento/status/:id', autenticarRequest, limitarPagamentoStatus, 
 /* CORS centralizado pela ETAPA 35B. */
 app.use(express.json());
 
-// ===== INICIO API-FOOTBALL BETANALYTICS =====
+// ===== INICIO API-FOOTBALL Golnexa =====
 const API_FOOTBALL_BASE_URL = process.env.API_FOOTBALL_BASE_URL || 'https://v3.football.api-sports.io';
 const API_FOOTBALL_KEY = process.env.API_FOOTBALL_KEY || process.env.API_FOOTBALL_TOKEN || process.env.APIFOOTBALL_KEY;
 
@@ -1819,7 +1819,7 @@ app.get(
     res.status(e.status || 500).json({ ok: false, erro: e.message || 'Erro ao consultar pacote completo.' });
   }
 });
-// ===== FIM API-FOOTBALL BETANALYTICS =====
+// ===== FIM API-FOOTBALL Golnexa =====
 
 
 // ============================================================================
@@ -1915,7 +1915,7 @@ app.get(
             probe.ok,
 
           servico:
-            'BetAnalytics Gemini Queue',
+            'Golnexa Gemini Queue',
 
           ...probe,
 
@@ -1930,7 +1930,7 @@ app.get(
           ok: false,
 
           servico:
-            'BetAnalytics Gemini Queue',
+            'Golnexa Gemini Queue',
 
           backend:
             'indisponivel',
@@ -2060,7 +2060,7 @@ app.get(
         ok: true,
 
         servico:
-          'BetAnalytics Instance',
+          'Golnexa Instance',
 
         instancia:
           runtimeInstanceStatus(),
@@ -2088,7 +2088,7 @@ app.get(
         ...readiness,
 
         servico:
-          'BetAnalytics Readiness',
+          'Golnexa Readiness',
 
         timestamp:
           new Date()
@@ -2115,7 +2115,7 @@ app.get(
             probe.ok,
 
           servico:
-            'BetAnalytics Traffic Guard',
+            'Golnexa Traffic Guard',
 
           backend:
             probe.backend,
@@ -2134,7 +2134,7 @@ app.get(
           ok: false,
 
           servico:
-            'BetAnalytics Traffic Guard',
+            'Golnexa Traffic Guard',
 
           backend:
             'indisponivel'
@@ -2153,7 +2153,7 @@ app.get(
         ok: true,
 
         servico:
-          'BetAnalytics Observabilidade',
+          'Golnexa Observabilidade',
 
         observabilidade:
           observabilidadeSnapshot(),
@@ -2188,7 +2188,7 @@ app.get(
 app.get('/api/producao/health', (_req, res) => {
   return res.status(200).json({
     ok: true,
-    servico: 'BetAnalytics Produção',
+    servico: 'Golnexa PROdução',
     timestamp: new Date().toISOString()
   });
 });
@@ -2215,7 +2215,7 @@ const httpServer =
     PORT,
     () => {
       console.log(
-        `[BetAnalytics] Motor PRO operacional na porta ${PORT}`
+        `[Golnexa] Motor PRO operacional na porta ${PORT}`
       );
     }
   );
@@ -2313,7 +2313,7 @@ async function encerrarServidor(
       );
 
       console.log(
-        `[BetAnalytics] Encerramento gracioso iniciado: ${signal}`
+        `[Golnexa] Encerramento gracioso iniciado: ${signal}`
       );
 
       const limiteMs =
@@ -2323,7 +2323,7 @@ async function encerrarServidor(
         setTimeout(
           () => {
             console.error(
-              '[BetAnalytics] Timeout no encerramento gracioso.'
+              '[Golnexa] Timeout no encerramento gracioso.'
             );
 
             process.exit(1);
@@ -2362,7 +2362,7 @@ async function encerrarServidor(
         );
 
         console.log(
-          '[BetAnalytics] Encerramento gracioso concluido.'
+          '[Golnexa] Encerramento gracioso concluido.'
         );
 
         process.exitCode =
@@ -2374,7 +2374,7 @@ async function encerrarServidor(
         );
 
         console.error(
-          '[BetAnalytics] Falha durante encerramento gracioso.',
+          '[Golnexa] Falha durante encerramento gracioso.',
           error?.code ||
           error?.name ||
           'SHUTDOWN_ERROR'

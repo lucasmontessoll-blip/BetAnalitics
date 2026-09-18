@@ -10,13 +10,13 @@ const secoesLegais = [
     id: 'privacidade',
     titulo: 'Politica de Privacidade',
     texto: `
-O BetAnalyticsPRO respeita a privacidade dos usuarios.
+O Golnexa PRO respeita a privacidade dos usuarios.
 
 Podemos coletar dados fornecidos no cadastro, como nome, e-mail, telefone, CPF e data de nascimento, alem de dados de perfil e acesso, historico de analises de IA, tokens de notificacao, dados tecnicos do dispositivo, dados de uso e informacoes necessarias para funcionamento do app.
 
 Esses dados podem ser usados para criar conta, liberar acesso, melhorar o app, exibir anuncios quando esse recurso estiver habilitado, medir desempenho, prevenir fraudes e cumprir obrigacoes legais.
 
-O BetAnalyticsPRO nao vende dados pessoais sensiveis do usuario. Dados podem ser compartilhados apenas com provedores necessarios as funcionalidades efetivamente habilitadas, como banco de dados, hospedagem, pagamentos e, quando aplicavel, anuncios e ferramentas de analise.
+O Golnexa PRO nao vende dados pessoais sensiveis do usuario. Dados podem ser compartilhados apenas com provedores necessarios as funcionalidades efetivamente habilitadas, como banco de dados, hospedagem, pagamentos e, quando aplicavel, anuncios e ferramentas de analise.
 
 Ao excluir a conta, dados de perfil, autenticacao, historico de analises de IA e tokens de notificacao associados a conta sao removidos conforme o fluxo tecnico do aplicativo.
 
@@ -29,7 +29,7 @@ O usuario pode solicitar acesso, correcao ou exclusao de dados pelo e-mail: ${EM
     id: 'termos',
     titulo: 'Termos de Uso',
     texto: `
-O BetAnalyticsPRO e uma plataforma de analise esportiva, estatistica e informacao.
+O Golnexa PRO e uma plataforma de analise esportiva, estatistica e informacao.
 
 O aplicativo nao e casa de aposta, nao aceita apostas, nao recebe depositos, nao processa saques, nao vende bilhetes e nao garante lucro.
 
@@ -44,7 +44,7 @@ E proibido usar o app para fins ilegais, por menores de 18 anos ou de forma que 
     id: 'responsabilidade',
     titulo: '+18 e Jogo Responsavel',
     texto: `
-O BetAnalyticsPRO e destinado exclusivamente a maiores de 18 anos.
+O Golnexa PRO e destinado exclusivamente a maiores de 18 anos.
 
 As analises, probabilidades, odds, alertas, estatisticas e informacoes exibidas nao garantem resultados, acertos ou ganhos financeiros.
 
@@ -58,11 +58,11 @@ Caso perceba perda de controle, comportamento compulsivo ou dificuldade de parar
     id: 'parceiros',
     titulo: 'Casas Parceiras e Links Externos',
     texto: `
-O BetAnalyticsPRO pode exibir nomes, marcas, anuncios ou links de terceiros.
+O Golnexa PRO pode exibir nomes, marcas, anuncios ou links de terceiros.
 
-Quando o usuario acessa um site externo, ele sai do ambiente do BetAnalyticsPRO e passa a estar sujeito aos termos, politicas, regras, bonus, verificacoes e condicoes da empresa terceira.
+Quando o usuario acessa um site externo, ele sai do ambiente do Golnexa PRO e passa a estar sujeito aos termos, politicas, regras, bonus, verificacoes e condicoes da empresa terceira.
 
-O BetAnalyticsPRO nao controla casas parceiras, nao opera apostas, nao define odds, nao aprova pagamentos, nao realiza saques e nao se responsabiliza por decisoes, perdas, bloqueios, promocoes ou regras de terceiros.
+O Golnexa PRO nao controla casas parceiras, nao opera apostas, nao define odds, nao aprova pagamentos, nao realiza saques e nao se responsabiliza por decisoes, perdas, bloqueios, promocoes ou regras de terceiros.
 
 Antes de utilizar qualquer servico externo, leia os Termos de Uso e a Politica de Privacidade da respectiva empresa.
 `
@@ -71,7 +71,7 @@ Antes de utilizar qualquer servico externo, leia os Termos de Uso e a Politica d
     id: 'anuncios',
     titulo: 'Publicidade e Anuncios',
     texto: `
-O BetAnalyticsPRO pode exibir anuncios de terceiros por meio de redes como Google AdMob, Google AdSense ou plataformas semelhantes.
+O Golnexa PRO pode exibir anuncios de terceiros por meio de redes como Google AdMob, Google AdSense ou plataformas semelhantes.
 
 Essas redes podem usar identificadores de publicidade, dados tecnicos e informacoes permitidas para exibir e medir anuncios.
 
@@ -85,11 +85,11 @@ export default function LegalCompliance({ modo = 'painel' }) {
   const [aberto, setAberto] = useState(false);
   const [secaoAtiva, setSecaoAtiva] = useState(secoesLegais[0]);
   const [idadeConfirmada, setIdadeConfirmada] = useState(
-    localStorage.getItem('betanalytics_18_confirmado') === 'true'
+    localStorage.getItem('Golnexa_18_confirmado') === 'true'
   );
 
   const confirmarIdade = () => {
-    localStorage.setItem('betanalytics_18_confirmado', 'true');
+    localStorage.setItem('Golnexa_18_confirmado', 'true');
     setIdadeConfirmada(true);
   };
 
@@ -112,7 +112,7 @@ export default function LegalCompliance({ modo = 'painel' }) {
 
           <div className="space-y-3 text-sm text-slate-300 leading-relaxed">
             <p>
-              O BetAnalyticsPRO e uma plataforma de analise esportiva e estatistica.
+              O Golnexa PRO e uma plataforma de analise esportiva e estatistica.
             </p>
 
             <p>
@@ -180,7 +180,7 @@ export default function LegalCompliance({ modo = 'painel' }) {
                 Seguranca, +18 e Jogo Responsavel
               </h2>
               <p className="text-[10px] text-slate-500 font-bold">
-                BetAnalytics e analise esportiva. Nao somos casa de aposta.
+                Golnexa e analise esportiva. Nao somos casa de aposta.
               </p>
             </div>
           </div>
@@ -218,7 +218,7 @@ function ModalLegal({ secaoAtiva, setSecaoAtiva, setAberto }) {
         <div className="flex items-center justify-between p-4 border-b border-white/10">
           <div>
             <h2 className="font-black text-sm uppercase">
-              Central Legal BetAnalytics
+              Central Legal Golnexa
             </h2>
             <p className="text-[10px] text-slate-500">
               Atualizado em {DATA_ATUALIZACAO}
@@ -265,7 +265,7 @@ function ModalLegal({ secaoAtiva, setSecaoAtiva, setAberto }) {
             </div>
 
             <p className="text-[11px] text-yellow-100/80 leading-relaxed">
-              O BetAnalyticsPRO nao garante resultados, nao opera apostas e nao
+              O Golnexa PRO nao garante resultados, nao opera apostas e nao
               se responsabiliza por decisoes tomadas pelo usuario. Use as informacoes
               apenas como apoio estatistico.
             </p>

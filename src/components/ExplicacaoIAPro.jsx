@@ -31,7 +31,7 @@ export default function ExplicacaoIAPro({
             </p>
 
             <p className="mt-1 text-[9px] font-medium leading-relaxed text-slate-600">
-              O BetAnalytics não cria um percentual quando a fonte de previsão não fornece dados para esta partida.
+              O Golnexa não cria um percentual quando a fonte de previsão não fornece dados para esta partida.
             </p>
           </div>
         </div>

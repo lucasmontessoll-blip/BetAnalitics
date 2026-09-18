@@ -7,7 +7,7 @@ import {
 } from '../services/authClient.js';
 
 const PREFIXO_CACHE =
-  'betanalytics_historico_ia_real_v1:';
+  'Golnexa_historico_ia_real_v1:';
 
 function texto(valor) {
   const resultado = String(valor ?? '').trim();

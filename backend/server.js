@@ -92,7 +92,7 @@ function admin(req, res, next) {
 
 app.get('/api/health', (req, res) => {
   ok(res, {
-    name: 'BetAnalyticsPRO API',
+    name: 'Golnexa PRO API',
     status: 'online',
     time: new Date().toISOString()
   });
@@ -311,7 +311,7 @@ app.post('/api/pagamentos/criar-pix', auth, async (req, res) => {
 
     const body = {
       transaction_amount: valor,
-      description: `Assinatura BetAnalyticsPRO - ${plano}`,
+      description: `Assinatura Golnexa PRO - ${plano}`,
       payment_method_id: 'pix',
       payer: {
         email: req.usuario.email,
@@ -494,7 +494,7 @@ app.get('/api/admin/stats', auth, admin, async (req, res) => {
 });
 
 // =========================================================
-// BETANALYTICS PRO - ROTAS DE PAGAMENTO REAL MERCADO PAGO
+// Golnexa PRO - ROTAS DE PAGAMENTO REAL MERCADO PAGO
 // Cole este bloco no seu server.js ANTES do app.listen(...)
 // Requer no Render: MP_ACCESS_TOKEN = sua chave privada do Mercado Pago
 // Nunca coloque MP_ACCESS_TOKEN no App.jsx.
@@ -554,7 +554,7 @@ app.post('/api/pagamento/pix', async (req, res) => {
     const conta = validarContaPagamento(req.body);
     if (conta.erro) return res.status(400).json({ erro: conta.erro });
 
-    const descricao = String(req.body.descricao || 'BetAnalyticsPRO Mensal');
+    const descricao = String(req.body.descricao || 'Golnexa PRO Mensal');
 
     const payment = await mercadoPagoFetch('/v1/payments', {
       method: 'POST',
@@ -610,7 +610,7 @@ app.post('/api/pagamento/cartao', async (req, res) => {
     const body = {
       transaction_amount: Number(conta.valor),
       token,
-      description: String(req.body.descricao || 'BetAnalyticsPRO Mensal'),
+      description: String(req.body.descricao || 'Golnexa PRO Mensal'),
       installments,
       payment_method_id: paymentMethodId,
       payer: {
@@ -676,5 +676,5 @@ app.get('/api/pagamento/status/:id', async (req, res) => {
 });
 
 app.listen(PORT, () => {
-  console.log(`✅ BetAnalyticsPRO API online na porta ${PORT}`);
+  console.log(`✅ Golnexa PRO API online na porta ${PORT}`);
 });

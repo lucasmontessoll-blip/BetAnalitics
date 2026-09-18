@@ -71,7 +71,7 @@ export function instalarRotasExclusaoConta(
         registros_transacionais_podem_ser_retidos:
           true,
         politica_retencao_publica:
-          'https://betanalytics-pro-app.vercel.app/privacidade.html#retencao-e-exclusao',
+          'https://Golnexa-pro-app.vercel.app/privacidade.html#retencao-e-exclusao',
       });
     }
   );
@@ -189,7 +189,7 @@ export function instalarRotasExclusaoConta(
           registros_transacionais_podem_ser_retidos:
             true,
           politica_retencao:
-            'https://betanalytics-pro-app.vercel.app/privacidade.html#retencao-e-exclusao',
+            'https://Golnexa-pro-app.vercel.app/privacidade.html#retencao-e-exclusao',
           sessao_deve_ser_encerrada:
             true,
         });

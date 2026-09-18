@@ -1,4 +1,4 @@
-﻿import { createClient } from 'redis';
+import { createClient } from 'redis';
 
 let client = null;
 let connectPromise = null;
@@ -16,7 +16,7 @@ function redisUrl() {
 function redisPrefix() {
   return (
     texto(process.env.REDIS_PREFIX) ||
-    'betanalytics'
+    'Golnexa'
   );
 }
 

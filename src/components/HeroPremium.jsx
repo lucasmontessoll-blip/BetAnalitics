@@ -10,7 +10,7 @@ export default function HeroPremium({ onViewOportunidades }) {
       
       <div className="flex items-center gap-2 mb-3 relative z-10">
         <Crown className="text-yellow-400 w-6 h-6" />
-        <h2 className="font-black text-xl text-white tracking-tight">BETANALYTICS PRO</h2>
+        <h2 className="font-black text-xl text-white tracking-tight">Golnexa PRO</h2>
       </div>
 
       <div className="grid grid-cols-3 gap-3 mb-5 relative z-10">

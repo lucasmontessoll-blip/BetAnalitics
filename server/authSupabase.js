@@ -51,7 +51,7 @@ export function exigirAdmin(req, res, next) {
   });
 }
 export function instalarRotasAuth(app) {
-  app.get('/api/auth/health', (_req, res) => res.json({ ok: true, servico: 'BetAnalytics Auth' }));
+  app.get('/api/auth/health', (_req, res) => res.json({ ok: true, servico: 'Golnexa Auth' }));
   app.get('/api/auth/me', autenticarRequest, async (req, res) => {
     try {
       const perfil = await obterPerfil(req.betUser);

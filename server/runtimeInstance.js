@@ -1,4 +1,4 @@
-﻿import {
+import {
   createHash,
   randomUUID
 } from 'crypto';
@@ -111,7 +111,7 @@ export function runtimeInstanceMiddleware(
 ) {
   try {
     res.setHeader(
-      'X-BetAnalytics-Instance',
+      'X-Golnexa-Instance',
       INSTANCE_ID
     );
   }
