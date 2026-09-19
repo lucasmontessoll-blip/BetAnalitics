@@ -3,8 +3,11 @@ import ReactDOM from 'react-dom/client';
 import App from './App.jsx';
 import EntradaComercialGate from './components/EntradaComercialGate.jsx';
 import ErrorBoundary from './components/ErrorBoundary.jsx';
+import { initQualityMonitoring } from './services/qualityMonitor.js';
 import './App.css';
 import { HashRouter } from 'react-router-dom';
+
+initQualityMonitoring();
 
 ReactDOM.createRoot(document.getElementById('root')).render(
   <React.StrictMode>

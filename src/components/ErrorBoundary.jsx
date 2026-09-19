@@ -1,5 +1,6 @@
 import React from 'react';
 import { AlertTriangle, Home, RefreshCcw } from 'lucide-react';
+import { recordClientError } from '../services/qualityMonitor.js';
 
 export default class ErrorBoundary extends React.Component {
   constructor(props) {
@@ -18,7 +19,8 @@ export default class ErrorBoundary extends React.Component {
   }
 
   componentDidCatch(error, info) {
-    console.error('Erro capturado pelo ErrorBoundary:', error, info);
+    recordClientError(error, 'react.error-boundary');
+    if (import.meta.env.DEV) console.error('Erro capturado pelo ErrorBoundary:', error, info);
   }
 
   render() {
@@ -42,7 +44,7 @@ export default class ErrorBoundary extends React.Component {
           </p>
 
           <div className="bg-[#050816] border border-white/10 rounded-2xl p-3 text-left text-[11px] text-slate-500 font-mono mb-5 break-words">
-            {this.state.errorMessage}
+            {import.meta.env.DEV ? this.state.errorMessage : 'Codigo de diagnostico salvo neste aparelho.'}
           </div>
 
           <div className="grid grid-cols-2 gap-3">

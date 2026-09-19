@@ -15,7 +15,9 @@
         "start": "node server.js",
         "start:gemini-worker": "node server/geminiWorker.js",
         "build:play": "vite build --mode play",
-        "postinstall": "node scripts/patch-admob-gradle.mjs"
+        "postinstall": "node scripts/patch-admob-gradle.mjs",
+        "quality": "node ops/quality-gate.mjs",
+        "release:manifest": "node ops/release-manifest.mjs"
     },
     "dependencies": {
         "@capacitor-community/admob": "8.1.0",

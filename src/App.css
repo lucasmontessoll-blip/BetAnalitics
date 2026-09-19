@@ -205,3 +205,24 @@ html.bet-reduce-motion *::after {
 html.bet-high-contrast {
   filter: contrast(1.12);
 }
+
+/* R66 global accessibility and motion safety */
+:focus-visible {
+  outline: 3px solid #22d3ee !important;
+  outline-offset: 3px !important;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    scroll-behavior: auto !important;
+    transition-duration: 0.01ms !important;
+  }
+}
+
+@media (forced-colors: active) {
+  button, a, input, select, textarea {
+    border: 1px solid ButtonText;
+  }
+}

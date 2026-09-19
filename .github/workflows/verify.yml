@@ -16,4 +16,6 @@ jobs:
       - run: npm test
       - run: npm run build -- --outDir dist-web
       - run: npm run build:play -- --outDir dist-play
-      - run: npm run verify:play
+      - run: npm run verify:play -- dist-play
+      - run: npm run quality -- dist-play
+      - run: npm run release:manifest -- dist-play
