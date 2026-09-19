@@ -1681,14 +1681,26 @@ app.get('/api/football/classificacao', async (req, res) => {
   }
 });
 
+app.get('/api/football/treinador/:coachId', async (req, res) => {
+  const coachId = String(req.params.coachId || '').replace(/\D/g, '').slice(0, 12);
+  if (!coachId) return res.status(400).json({ ok: false, erro: 'Treinador invalido.' });
+  try {
+    const payload = await apiFootballRequest('/coachs', { id: coachId });
+    return res.json({ ok: true, fonte: 'api-football', coach: payload?.response?.[0] || null });
+  } catch {
+    return res.status(503).json({ ok: false, erro: 'Detalhes do treinador temporariamente indisponiveis.' });
+  }
+});
+
 app.get('/api/football/pesquisa', async (req, res) => {
   const q = String(req.query.q || '').trim().replace(/[\u0000-\u001f\u007f]/g, '').slice(0, 50);
   if (q.length < 3) return res.status(400).json({ ok: false, erro: 'Digite pelo menos 3 caracteres.' });
   try {
-    const [teams, players, leagues] = await Promise.allSettled([
+    const [teams, players, leagues, coaches] = await Promise.allSettled([
       apiFootballRequest('/teams', { search: q }),
       apiFootballRequest('/players/profiles', { search: q }),
       apiFootballRequest('/leagues', { search: q }),
+      apiFootballRequest('/coachs', { search: q }),
     ]);
     const compact = (list, mapper) => (Array.isArray(list) ? list : []).slice(0, 20).map(mapper).filter(Boolean);
     return res.json({
@@ -1696,7 +1708,8 @@ app.get('/api/football/pesquisa', async (req, res) => {
       teams: teams.status === 'fulfilled' ? compact(teams.value?.response, (x) => x?.team && ({ type: 'team', id: x.team.id, name: x.team.name, subtitle: x.team.country || '', image: x.team.logo || '' })) : [],
       players: players.status === 'fulfilled' ? compact(players.value?.response, (x) => x?.player && ({ type: 'player', id: x.player.id, name: x.player.name, subtitle: x.player.nationality || '', image: x.player.photo || '' })) : [],
       leagues: leagues.status === 'fulfilled' ? compact(leagues.value?.response, (x) => x?.league && ({ type: 'league', id: x.league.id, name: x.league.name, subtitle: x.country?.name || '', image: x.league.logo || '', season: x.seasons?.find((s) => s.current)?.year || null })) : [],
-      partial: [teams, players, leagues].some((x) => x.status === 'rejected'),
+      coaches: coaches.status === 'fulfilled' ? compact(coaches.value?.response, (x) => x?.id && ({ type: 'coach', id: x.id, name: x.name || [x.firstname, x.lastname].filter(Boolean).join(' '), subtitle: x.team?.name || x.nationality || '', image: x.photo || '' })) : [],
+      partial: [teams, players, leagues, coaches].some((x) => x.status === 'rejected'),
     });
   } catch {
     return res.status(503).json({ ok: false, erro: 'Pesquisa esportiva temporariamente indisponível.' });

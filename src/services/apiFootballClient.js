@@ -411,3 +411,10 @@ export async function buscarHistoricalEngineApiFootball(
     { signal }
   );
 }
+
+
+export async function buscarTreinadorApiFootball({ coachId, signal } = {}) {
+  if (!coachId) return null;
+  const payload = await requestJson(`/api/football/treinador/${encodeURIComponent(coachId)}`, { signal });
+  return payload?.coach || null;
+}

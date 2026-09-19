@@ -53,11 +53,11 @@ export async function salvarPreferencias(userId, value) {
 
 export async function pesquisarFutebol(term, signal) {
   const q = String(term || '').trim();
-  if (q.length < 3) return { teams: [], players: [], leagues: [] };
+  if (q.length < 3) return { teams: [], players: [], leagues: [], coaches: [] };
   const response = await fetch(apiUrl(`/api/football/pesquisa?q=${encodeURIComponent(q)}`), { signal, headers: { Accept: 'application/json' } });
   const data = await response.json().catch(() => null);
   if (!response.ok || !data?.ok) throw new Error(data?.erro || 'Pesquisa indisponível.');
-  return { teams: data.teams || [], players: data.players || [], leagues: data.leagues || [] };
+  return { teams: data.teams || [], players: data.players || [], leagues: data.leagues || [], coaches: data.coaches || [] };
 }
 
 export function filtrarParaVoce(jogos, seguidos) {

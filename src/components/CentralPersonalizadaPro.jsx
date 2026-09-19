@@ -1,7 +1,7 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import { ArrowLeft, Bell, Brain, BrainCircuit, Clock3, Compass, Search, Share2, ShieldCheck, Star, Trophy, UserRound, Users } from 'lucide-react';
 import { carregarPreferencias, filtrarParaVoce, pesquisarFutebol, preferenciasPadrao, salvarPreferencias } from '../services/personalizacao.js';
-import { buscarClassificacaoApiFootball, buscarJogadorApiFootball, buscarTimeApiFootball } from '../services/apiFootballClient.js';
+import { buscarClassificacaoApiFootball, buscarJogadorApiFootball, buscarTimeApiFootball, buscarTreinadorApiFootball } from '../services/apiFootballClient.js';
 import EngajamentoR58Pro from './EngajamentoR58Pro.jsx';
 import IntelligenceR59Pro from './IntelligenceR59Pro.jsx';
 
@@ -21,7 +21,7 @@ function Switch({ checked, onChange, label }) {
 }
 
 function Result({ item, followed, onFollow, onOpen }) {
-  const Icon = item.type === 'player' ? UserRound : item.type === 'league' ? Trophy : Users;
+  const Icon = item.type === 'player' || item.type === 'coach' ? UserRound : item.type === 'league' ? Trophy : Users;
   return <div className="flex items-center gap-3 rounded-2xl border border-white/5 bg-white/[.03] p-3">
     {item.image ? <img src={item.image} alt="" className="h-11 w-11 rounded-xl object-contain" loading="lazy" /> : <span className="grid h-11 w-11 place-items-center rounded-xl bg-blue-500/10"><Icon className="h-5 w-5 text-blue-300" /></span>}
     <button type="button" onClick={() => onOpen(item)} className="min-w-0 flex-1 text-left"><strong className="block truncate text-sm text-white">{item.name}</strong><span className="block truncate text-[10px] font-semibold text-slate-500">{item.subtitle || 'Dados esportivos'}</span></button>
@@ -31,7 +31,7 @@ function Result({ item, followed, onFollow, onOpen }) {
 
 function Details({ item, data, loading, onClose }) {
   if (!item) return null;
-  const team = data?.team?.team || data?.team || data?.player?.player || data?.player || item;
+  const team = data?.team?.team || data?.team || data?.player?.player || data?.player || data?.coach || item;
   const squad = data?.squad?.players || [];
   const table = data?.standings?.[0]?.league?.standings?.flat?.() || [];
   return <div className="fixed inset-0 z-[1200] overflow-y-auto bg-[#050816] p-4 pb-28 text-white">
@@ -48,7 +48,7 @@ export default function CentralPersonalizadaPro({ userData, jogos = [], setViewM
   const [tab, setTab] = useState('para-voce');
   const [prefs, setPrefs] = useState(preferenciasPadrao);
   const [query, setQuery] = useState('');
-  const [results, setResults] = useState({ teams: [], players: [], leagues: [] });
+  const [results, setResults] = useState({ teams: [], players: [], leagues: [], coaches: [] });
   const [status, setStatus] = useState('');
   const [selected, setSelected] = useState(null);
   const [detail, setDetail] = useState(null);
@@ -57,12 +57,31 @@ export default function CentralPersonalizadaPro({ userData, jogos = [], setViewM
 
   useEffect(() => { carregarPreferencias(userId).then(setPrefs).catch(() => setPrefs(preferenciasPadrao)); }, [userId]);
   useEffect(() => {
-    if (query.trim().length < 3) { setResults({ teams: [], players: [], leagues: [] }); setStatus(''); return; }
+    if (query.trim().length < 3) { setResults({ teams: [], players: [], leagues: [], coaches: [] }); setStatus(''); return; }
     const controller = new AbortController(); const timer = setTimeout(() => {
       setStatus('Buscando…'); pesquisarFutebol(query, controller.signal).then((value) => { setResults(value); setStatus(''); }).catch((e) => { if (e.name !== 'AbortError') setStatus(e.message); });
     }, 350);
     return () => { clearTimeout(timer); controller.abort(); };
   }, [query]);
+
+  useEffect(() => {
+    function receberPesquisaCabecalho(event) {
+      const item = event?.detail;
+      if (!item?.id || !item?.type) return;
+      setTab('pesquisa');
+      setQuery(item.name || '');
+      void openItem(item);
+    }
+
+    try {
+      const initial = JSON.parse(localStorage.getItem('golnexa_header_search_selection_v1') || 'null');
+      localStorage.removeItem('golnexa_header_search_selection_v1');
+      if (initial) receberPesquisaCabecalho({ detail: initial });
+    } catch {}
+
+    window.addEventListener('golnexa:header-search-selection', receberPesquisaCabecalho);
+    return () => window.removeEventListener('golnexa:header-search-selection', receberPesquisaCabecalho);
+  }, []);
 
   const followedIds = useMemo(() => new Set((prefs.seguidos || []).map((x) => `${x.type}:${x.id}`)), [prefs.seguidos]);
   const personalized = useMemo(() => filtrarParaVoce(jogos, prefs.seguidos), [jogos, prefs.seguidos]);
@@ -78,6 +97,7 @@ export default function CentralPersonalizadaPro({ userData, jogos = [], setViewM
     try {
       if (item.type === 'team') setDetail(await buscarTimeApiFootball({ teamId: item.id }));
       else if (item.type === 'player') setDetail({ player: await buscarJogadorApiFootball({ playerId: item.id }) });
+      else if (item.type === 'coach') setDetail({ coach: await buscarTreinadorApiFootball({ coachId: item.id }) });
       else setDetail({ standings: await buscarClassificacaoApiFootball({ league: item.id, season: item.season || new Date().getFullYear() }) });
     } finally { setLoadingDetail(false); }
   }
@@ -93,7 +113,7 @@ export default function CentralPersonalizadaPro({ userData, jogos = [], setViewM
 
     {tab === 'para-voce' && <><Card className="bg-gradient-to-br from-blue-700/30 to-violet-700/20"><h2 className="text-xl font-black">Feito para você</h2><p className="mt-1 text-xs text-slate-300">Jogos reais dos times e campeonatos que você acompanha.</p><div className="mt-4 flex gap-2"><button onClick={() => setTab('pesquisa')} className="rounded-xl bg-blue-600 px-4 py-2 text-xs font-black">Escolher favoritos</button><button onClick={share} className="grid h-9 w-9 place-items-center rounded-xl bg-white/10" aria-label="Compartilhar"><Share2 className="h-4 w-4" /></button></div></Card>{personalized.length ? <div className="mt-4 space-y-2">{personalized.slice(0, 30).map((j) => <button key={j.id} onClick={() => setJogoSelecionado?.(j)} className="flex w-full items-center justify-between rounded-2xl border border-white/5 bg-[#0b1220] p-4 text-left"><div><p className="text-xs font-black">{j.home_team} × {j.away_team}</p><p className="mt-1 text-[9px] text-slate-500">{j.league_name}</p></div><span className="text-[10px] font-bold text-blue-300">Abrir</span></button>)}</div> : <Card className="mt-4 text-center"><Star className="mx-auto h-8 w-8 text-yellow-300" /><h3 className="mt-3 font-black">Personalize seu painel</h3><p className="mt-1 text-xs text-slate-500">Siga times e ligas ou aguarde jogos dos seus favoritos.</p></Card>}</>}
 
-    {tab === 'pesquisa' && <><Card><label className="flex items-center gap-3"><Search className="h-5 w-5 text-blue-300" /><input value={query} onChange={(e) => setQuery(e.target.value)} placeholder="Time, jogador ou campeonato" className="min-w-0 flex-1 bg-transparent text-sm outline-none placeholder:text-slate-600" /></label></Card><div className="mt-4 space-y-2">{[...results.teams, ...results.players, ...results.leagues].map((item) => <Result key={`${item.type}:${item.id}`} item={item} followed={followedIds.has(`${item.type}:${item.id}`)} onFollow={toggleFollow} onOpen={openItem} />)}</div>{!query && prefs.seguidos.length > 0 && <div className="mt-5"><h2 className="mb-2 text-xs font-black uppercase text-slate-500">Você segue</h2><div className="space-y-2">{prefs.seguidos.map((item) => <Result key={`${item.type}:${item.id}`} item={item} followed onFollow={toggleFollow} onOpen={openItem} />)}</div></div>}</>}
+    {tab === 'pesquisa' && <><Card><label className="flex items-center gap-3"><Search className="h-5 w-5 text-blue-300" /><input value={query} onChange={(e) => setQuery(e.target.value)} placeholder="Time, jogador ou campeonato" className="min-w-0 flex-1 bg-transparent text-sm outline-none placeholder:text-slate-600" /></label></Card><div className="mt-4 space-y-2">{[...results.leagues, ...results.teams, ...results.coaches, ...results.players].map((item) => <Result key={`${item.type}:${item.id}`} item={item} followed={followedIds.has(`${item.type}:${item.id}`)} onFollow={toggleFollow} onOpen={openItem} />)}</div>{!query && prefs.seguidos.length > 0 && <div className="mt-5"><h2 className="mb-2 text-xs font-black uppercase text-slate-500">Você segue</h2><div className="space-y-2">{prefs.seguidos.map((item) => <Result key={`${item.type}:${item.id}`} item={item} followed onFollow={toggleFollow} onOpen={openItem} />)}</div></div>}</>}
 
     {tab === 'alertas' && <Card><h2 className="font-black">Alertas personalizados</h2><p className="mb-2 mt-1 text-[10px] text-slate-500">Aplicados aos seus favoritos quando o fornecedor disponibilizar o evento.</p>{Object.entries({ inicio: 'Início da partida', gol: 'Gols', intervalo: 'Intervalo', fim: 'Resultado final', escalacao: 'Escalações', cartoes: 'Cartões', odds: 'Movimento de odds' }).map(([key, label]) => <Switch key={key} label={label} checked={Boolean(prefs.alertas[key])} onChange={(value) => void update({ ...prefs, alertas: { ...prefs.alertas, [key]: value } })} />)}</Card>}
 
