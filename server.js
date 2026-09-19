@@ -18,6 +18,7 @@ import { instalarRotasPush } from './server/pushNotifications.js';
 import { instalarRotasGrowthAnalytics } from './server/growthAnalytics.js';
 import { instalarRotasProductExperienceR58 } from './server/productExperienceR58.js';
 import { instalarRotasIntelligenceR59 } from './server/intelligenceR59.js';
+import { instalarRotasAppUpdate } from './server/appUpdate.js';
 import { instalarWebhookMercadoPago } from './server/paymentWebhook.js';
 import {
   executarPagamentoIdempotente,
@@ -288,6 +289,7 @@ instalarRotasPush(app);
 instalarRotasGrowthAnalytics(app);
 instalarRotasProductExperienceR58(app);
 instalarRotasIntelligenceR59(app);
+instalarRotasAppUpdate(app);
 instalarWebhookMercadoPago(app);
 
 function betMpToken() {
