@@ -107,8 +107,8 @@ export default function HeaderApp({
             value={query}
             onChange={(event) => setQuery(event.target.value)}
             onFocus={() => setOpen(true)}
-            placeholder="Liga, time, treinador ou jogador"
-            aria-label="Pesquisar liga, time, treinador ou jogador"
+            placeholder="Pesquisar no Golnexa"
+            aria-label="Pesquisar no Golnexa"
             autoComplete="off"
             className="h-11 w-full rounded-xl border border-blue-500/35 bg-[#0b1224] pl-10 pr-10 text-sm font-semibold text-white outline-none placeholder:text-slate-500 transition focus:border-cyan-400/80 focus:ring-2 focus:ring-cyan-400/15"
           />

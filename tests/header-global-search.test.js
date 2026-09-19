@@ -7,11 +7,13 @@ const central = fs.readFileSync('src/components/CentralPersonalizadaPro.jsx', 'u
 const server = fs.readFileSync('server.js', 'utf8');
 
 test('R64 replaces header branding with native-styled global search', () => {
-  assert.ok(header.includes('Liga, time, treinador ou jogador'));
+  assert.ok(header.includes('Pesquisar no Golnexa'));
   for (const forbidden of ['logo-topo', 'VIP ativo', 'text-orange', 'border-orange', 'ring-orange']) {
     assert.equal(header.includes(forbidden), false);
   }
   assert.ok(header.includes('border-blue-500'));
+  assert.equal(header.includes('Liga, time, treinador ou jogador'), false);
+  assert.equal(header.includes('Pesquisar liga, time, treinador ou jogador'), false);
   assert.ok(header.includes('golnexa:header-search-selection'));
 });
 
