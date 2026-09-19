@@ -2,6 +2,7 @@ import React, { useState, useEffect, useRef, Suspense, useMemo, useCallback } fr
 import './App.css';
 import { AreaChart, Area, BarChart, Bar, ResponsiveContainer, XAxis, YAxis, CartesianGrid, Tooltip } from 'recharts';
 import PlayStoreModeBadge from './components/PlayStoreModeBadge.jsx';
+import AdMonetizationController from './components/AdMonetizationController.jsx';
 import ComoIACalcula from './components/ComoIACalcula.jsx';
 import RankingOportunidades from './components/RankingOportunidades.jsx';
 import EducacaoGolnexa from './components/EducacaoGolnexa.jsx';
@@ -1315,6 +1316,12 @@ return (
 />
 
 <RemoverSomentePesquisaBottom />
+<AdMonetizationController
+  proAtivo={proAtivo}
+  viewMode={viewMode}
+  jogoSelecionado={jogoSelecionado}
+  menuAtivo={menuAtivo}
+/>
 <HeaderApp
   userData={userData}
   setMenuAtivo={setMenuAtivo}
